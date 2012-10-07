@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8" />
+</head>
+<script src="../lib/require.js"></script>
+<script>
+require.config({
+  baseUrl: "../lib",
+  paths: {
+    "src": "../src"
+  }
+});
+
+require(["../../javascript-debug/debug", "src/filesystem"], function(debug, FileSystem) {
+  var fs = new FileSystem(undefined, true);
+  debug.log("filesystem state: ", fs.state);
+  fs.then(function(fs) {
+    debug.log("filesystem state: ", fs.state);
+  });
+});
+</script>
+</html>
