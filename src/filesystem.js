@@ -30,6 +30,10 @@ define(function(require) {
     }).toUpperCase();
   }
 
+  function dirname(path) {
+    return path.match( /.*\// );
+  }
+
   function FileError(code) {
     this.code = code;
     // FIXME: add a message field with the text error
@@ -58,6 +62,59 @@ define(function(require) {
       RW = "readwrite";
 
   function FileSystem(name, optFormat) {
+    function Transaction(db, scope, mode) {
+      var id = this.id = guid();
+      this._IdbTransaction = db.transaction(scope, mode);
+      var deferred = when.defer();
+      this._IdbTransaction.oncomplete = function(e) {
+        deferred.resolve(e);
+        clearPending(id);
+      };
+      this._IdbTransaction.onerror = function(e) {
+        deferred.reject(e);
+        clearPending(id);
+      };
+      this.then = deferred.promise.then;
+      this.objectStore = this._IdbTransaction.objectStore.bind(this._IdbTransaction);
+      this.abort = this._IdbTransaction.abort.bind(this._IdbTransaction);
+      queuePending(this, id);
+    }
+
+    function Request(request) {
+      var id = this.id = guid();
+      this._IdbRequest = request;
+      var deferred = when.defer();
+      this._IdbRequest.onsuccess = function(e) {
+        deferred.resolve(e);
+        clearPending(id);
+      };
+      this._IdbRequest.onerror = function(e) {
+        deferred.reject(e);
+        clearPending(id);
+      };
+      this.then = deferred.promise.then;
+      queuePending(this, id);
+    }
+
+    function OpenDBRequest(request, upgrade) {
+      var id = this.id = guid();
+      this._IdbRequest = request;
+      var deferred = when.defer();
+      this._IdbRequest.onsuccess = function(e) {
+        deferred.resolve(e);
+        clearPending(id);
+      };
+      this._IdbRequest.onerror = function(e) {
+        deferred.reject(e);
+        clearPending(id);
+      };
+      if(typeof upgrade === "function") {
+        this._IdbRequest.onupgradeneeded = upgrade;
+      }
+      this.then = deferred.promise.then;
+      queuePending(this, id);
+    }
+
     var fs = this;
     fs.OBJECT_STORE_NAME = "files";
     fs.name = name || "default";    
@@ -88,22 +145,17 @@ define(function(require) {
       }
     }
 
-    function queuePending(request) {
-      var id = guid();
-      request.id = id;
-      fs.pending[id] = request;
+    function queuePending(transaction, id) {
+      fs.pending[id] = transaction;
       updateState();
-      return request;
+      return transaction;
     }
 
-    function clearPending(request) {
-      var id = request.id;
+    function clearPending(id) {
       if(fs.pending.hasOwnProperty(id)) {
         delete fs.pending[id];
       }
-      delete request.id;
       updateState();
-      return request;
     } 
 
     var format = undefined !== optFormat ? optFormat : false;
@@ -111,27 +163,8 @@ define(function(require) {
     fs.then = deferred.promise.then;
 
     updateState();
-    var openRequest = queuePending(indexedDB.open(name));
-    fs.state = FileSystem.PENDING;
-
-    openRequest.onsuccess = function(e) {
-      fs.db = e.target.result;
-      var db = fs.db;
-      var transaction = db.transaction([fs.OBJECT_STORE_NAME], RW);
-      var store = transaction.objectStore(fs.OBJECT_STORE_NAME);
-      if(format) {
-        debug.info("format required");        
-        var formatRequest = queuePending(store.put({}, "/"));
-        formatRequest.onsuccess = function(e) {
-          debug.info("format complete");
-          clearPending(formatRequest);
-        };
-      }
-      clearPending(openRequest);
-    };
-
-    openRequest.onupgradeneeded = function(e) {
-      db = e.target.result;
+    var openRequest = new OpenDBRequest(indexedDB.open(name), function(e) {
+      var db = fs.db = e.target.result;
       if(db.objectStoreNames.contains("files")) {
           db.deleteObjectStore("files");
       }
@@ -140,40 +173,57 @@ define(function(require) {
       store.createIndex("name", "name", {unique: true});
 
       format = true;
-    };
-
-    openRequest.onerror = function(e) {
-      clearPending(openRequest);
-    };
+    });
+    openRequest.then(function(e) {
+      fs.db = e.target.result;
+      var db = fs.db;
+      var transaction = new Transaction(db, [fs.OBJECT_STORE_NAME], RW);
+      var store = transaction.objectStore(fs.OBJECT_STORE_NAME);
+      if(format) {
+        debug.info("format required");
+        var clearRequest = new Request(store.clear());
+        clearRequest.then(function() {
+          var formatRequest = new Request(store.put({
+            "parent": null,
+            "name": "/"
+          }, "/"));
+          formatRequest.then(function(e) {
+            debug.info("format complete");
+          });
+        });
+      }
+    });
 
     // API
 
-    this.mkdir = function mkdir(path) {
-      debug.info("mkdir");
-      var db = fs.db;
-      var d = when.defer();
-      var transaction = db.transaction([this.OBJECT_STORE_NAME], RW);
+    this.mkdir = function mkdir(name, transaction) {
+      debug.info("mkdir invoked");
+      var deferred = when.defer();
+      var transaction = transaction || new Transaction(fs.db, [this.OBJECT_STORE_NAME], RW);
       var store = transaction.objectStore(fs.OBJECT_STORE_NAME);      
       var nameIndex = store.index("name");
 
-      var getRequest = queuePending(nameIndex.get(path));
-      getRequest.onsuccess = function(e) {
-        clearPending(getRequest);
+      var getRequest = new Request(nameIndex.get(name));
+      getRequest.then(function(e) {
         var result = e.target.result;
         if(result) {
-          debug.info("mkdir PATH_EXISTS_ERR");
-          d.reject(new DirectoryError(DirectoryError.PATH_EXISTS_ERR));
+          debug.info("mkdir error: PATH_EXISTS_ERR");
+          deferred.reject(new DirectoryError(DirectoryError.PATH_EXISTS_ERR));
         } else {
-          var directoryRequest = queuePending(store.put({}, path));
-          directoryRequest.onsuccess = function(e) {
+          try{
+          var directoryRequest = new Request(store.put({
+            "parent": dirname(name),
+            "name": name
+          }, name));
+          directoryRequest.then(function(e) {
             debug.info("mkdir complete");
-            clearPending(directoryRequest);
-            d.resolve();
-          };
+            deferred.resolve();
+          });
+        }catch(e){console.log(e);}
         }
-      };
-      return d.promise;
-    }
+      });
+      return deferred.promise;
+    };
   }
   FileSystem.READY = 0;
   FileSystem.PENDING = 1;
