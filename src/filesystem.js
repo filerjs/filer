@@ -16,6 +16,7 @@ define(function(require) {
 
   var when = require("when");
   var debug = require("debug");
+  var _ = require("lodash");
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
   var BlobBuilder = window.BlobBuilder || window.MozBlobBuilder || window.WebKitBlobBuilder;
@@ -31,7 +32,18 @@ define(function(require) {
   }
 
   function dirname(path) {
-    return path.match( /.*\// );
+    var components = path.split("/");
+    if(1 === components.length) {
+      return ".";
+    }
+    if(0 === _.last(components).length) {
+      components.pop();
+    }
+    components.pop();
+    if(components.length <= 1) {
+      return "/";
+    }    
+    return components.join("/");
   }
 
   function FileError(code) {
@@ -183,11 +195,7 @@ define(function(require) {
         debug.info("format required");
         var clearRequest = new Request(store.clear());
         clearRequest.then(function() {
-          var formatRequest = new Request(store.put({
-            "parent": null,
-            "name": "/"
-          }, "/"));
-          formatRequest.then(function(e) {
+          mkdir("/", transaction).then(function() {
             debug.info("format complete");
           });
         });
@@ -196,7 +204,7 @@ define(function(require) {
 
     // API
 
-    this.mkdir = function mkdir(name, transaction) {
+    var mkdir = this.mkdir = function mkdir(name, transaction) {
       debug.info("mkdir invoked");
       var deferred = when.defer();
       var transaction = transaction || new Transaction(fs.db, [this.OBJECT_STORE_NAME], RW);
@@ -210,16 +218,16 @@ define(function(require) {
           debug.info("mkdir error: PATH_EXISTS_ERR");
           deferred.reject(new DirectoryError(DirectoryError.PATH_EXISTS_ERR));
         } else {
-          try{
+          var parent = dirname(name);
+          parent = (name === parent) ? null : parent;
           var directoryRequest = new Request(store.put({
-            "parent": dirname(name),
+            "parent": parent,
             "name": name
           }, name));
           directoryRequest.then(function(e) {
             debug.info("mkdir complete");
             deferred.resolve();
           });
-        }catch(e){console.log(e);}
         }
       });
       return deferred.promise;
