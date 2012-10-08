@@ -17,6 +17,7 @@ require(["../../javascript-debug/debug", "src/filesystem"], function(debug, File
   debug.log("filesystem state: ", fs.state);
   fs.then(function(fs) {
     debug.log("filesystem state: ", fs.state);
+    fs.mkdir("/tmp");
   });
 });
 </script>
