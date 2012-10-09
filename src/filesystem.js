@@ -128,7 +128,8 @@ define(function(require) {
     }
 
     var fs = this;
-    fs.OBJECT_STORE_NAME = "files";
+    var FILE_STORE_NAME = "files";
+    var METADATA_STORE_NAME = "metadata";
     fs.name = name || "default";    
     fs.pending = {};
 
@@ -177,20 +178,24 @@ define(function(require) {
     updateState();
     var openRequest = new OpenDBRequest(indexedDB.open(name), function(e) {
       var db = fs.db = e.target.result;
-      if(db.objectStoreNames.contains("files")) {
-          db.deleteObjectStore("files");
+      if(db.objectStoreNames.contains(METADATA_STORE_NAME)) {
+        db.deleteObjectStore(METADATA_STORE_NAME);
       }
-      var store = db.createObjectStore("files");
-      store.createIndex("parent", "parent", {unique: false});
-      store.createIndex("name", "name", {unique: true});
+      if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
+        db.deleteObjectStore(FILE_STORE_NAME);
+      }
+      var metadata = db.createObjectStore(METADATA_STORE_NAME);
+      metadata.createIndex("parent", "parent", {unique: false});
+      metadata.createIndex("name", "name", {unique: true});
+      var files = db.createObjectStore(FILE_STORE_NAME);
 
       format = true;
     });
     openRequest.then(function(e) {
       fs.db = e.target.result;
       var db = fs.db;
-      var transaction = new Transaction(db, [fs.OBJECT_STORE_NAME], RW);
-      var store = transaction.objectStore(fs.OBJECT_STORE_NAME);
+      var transaction = new Transaction(db, [METADATA_STORE_NAME], RW);
+      var store = transaction.objectStore(METADATA_STORE_NAME);
       if(format) {
         debug.info("format required");
         var clearRequest = new Request(store.clear());
@@ -207,8 +212,8 @@ define(function(require) {
     var mkdir = this.mkdir = function mkdir(name, transaction) {
       debug.info("mkdir invoked");
       var deferred = when.defer();
-      var transaction = transaction || new Transaction(fs.db, [this.OBJECT_STORE_NAME], RW);
-      var store = transaction.objectStore(fs.OBJECT_STORE_NAME);      
+      var transaction = transaction || new Transaction(fs.db, [METADATA_STORE_NAME], RW);
+      var store = transaction.objectStore(METADATA_STORE_NAME);      
       var nameIndex = store.index("name");
 
       var getRequest = new Request(nameIndex.get(name));
@@ -218,11 +223,12 @@ define(function(require) {
           debug.info("mkdir error: PATH_EXISTS_ERR");
           deferred.reject(new DirectoryError(DirectoryError.PATH_EXISTS_ERR));
         } else {
-          var parent = dirname(name);
-          parent = (name === parent) ? null : parent;
+          var parent = ("/" === name) ? null : dirname(name);
           var directoryRequest = new Request(store.put({
             "parent": parent,
-            "name": name
+            "name": name,
+            "last-modified": Date.now(),
+            "content-type": "application/directory"
           }, name));
           directoryRequest.then(function(e) {
             debug.info("mkdir complete");
@@ -232,6 +238,27 @@ define(function(require) {
       });
       return deferred.promise;
     };
+
+    var stat = this.stat = function stat(name, transaction) {
+      debug.info("stat invoked");
+      var deferred = when.defer();
+      var transaction = transaction || new Transaction(fs.db, [METADATA_STORE_NAME], RO);
+      var store = transaction.objectStore(METADATA_STORE_NAME);
+      var nameIndex = store.index("name");
+
+      var getRequest = new Request(nameIndex.get(name));
+      getRequest.then(function(e) {
+        var result = e.target.result;
+        if(!result) {
+          debug.info("stat error: MISSING_PATH_COMPONENT_ERR");
+          deferred.reject(new DirectoryError(DirectoryError.MISSING_PATH_COMPONENT_ERR));
+        } else {
+          debug.info("stat complete");
+          deferred.resolve(result);
+        }
+      });
+      return deferred.promise;
+    }
   }
   FileSystem.READY = 0;
   FileSystem.PENDING = 1;

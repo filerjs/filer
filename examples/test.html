@@ -14,12 +14,10 @@ require.config({
 
 require(["../../javascript-debug/debug", "src/filesystem"], function(debug, FileSystem) {
   var fs = new FileSystem(undefined, true);
-  // debug.log("filesystem state: ", fs.state);
   fs.then(function(fs) {
-    // debug.log("filesystem state: ", fs.state);
-    var p = fs.mkdir("/tmp");
-    p.then(function(e) {
-      fs.mkdir("/tmp");
+    fs.mkdir("/tmp");
+    fs.stat("/tmp").then(function(result) {
+      console.log(result);
     });
   });
 });
