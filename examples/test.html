@@ -15,7 +15,7 @@ require.config({
   }
 });
 
-require(["../../javascript-debug/debug", "src/filesystem"], function(debug, IDBFS) {
+require(["src/filesystem"], function(IDBFS) {
 
   IDBFS.mount("default", function(error, fs) {
     fs.mkdir("/tmp", function(error) {
@@ -28,27 +28,6 @@ require(["../../javascript-debug/debug", "src/filesystem"], function(debug, IDBF
       });
     });
   }, true);
-
-  /*
-  var fs = new IdbFS(undefined, true);
-  fs.then(function(fs) {
-    fs.mkdir("/tmp").then(function(result) {
-      var d = fs.open("/tmp/0", IdbFS.O_CREATE, IdbFS.FMODE_RW);
-      d.then(function(fd) {
-        fs.dump(document.getElementById("stdout"));
-      }, function(e) {
-        console.log(e);
-      });
-    }, function(error) {
-      console.log(error);
-    });
-    fs.stat("/tmp").then(function(result) {
-      console.log(result);
-    }, function(error) {
-      console.log(error);
-    });   
-  });
-  */
 
 });
 </script>

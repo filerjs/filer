@@ -16,6 +16,7 @@ define(function(require) {
 
   var debug = require("debug");
   var _ = require("lodash");
+  var path = require("src/path");
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
   var BlobBuilder = window.BlobBuilder || window.MozBlobBuilder || window.WebKitBlobBuilder;
@@ -27,23 +28,8 @@ define(function(require) {
     }).toUpperCase();
   }
 
-  function dirname(path) {
-    var components = path.split("/");
-    if(1 === components.length) {
-      return ".";
-    }
-    if(0 === _.last(components).length) {
-      components.pop();
-    }
-    components.pop();
-    if(components.length <= 1) {
-      return "/";
-    }    
-    return components.join("/");
-  }
-
   function makeDirectoryEntry(name, modtime) {
-    var parent = ("/" === name) ? null : dirname(name);
+    var parent = path.dirname(name);
     return {
       "parent": parent,
       "name": name,
@@ -53,7 +39,7 @@ define(function(require) {
   }
 
   function makeFileEntry(name, oid, size, modtime) {
-    var parent = ("/" === name) ? null : dirname(name);
+    var parent = path.dirname(name);
     return {
       "parent": parent,
       "name": name,
@@ -63,9 +49,6 @@ define(function(require) {
       "object-id": oid || guid()
     }
   }
-
-
-
 
 /*
   function FileSystem(name, optFormat) {
@@ -465,6 +448,8 @@ define(function(require) {
 
     // API
 
+    // Flags: CREATE, APPEND, TRUNCATE, DIRECTORY
+    // Modes: RO, RW
     function open(pathname, flags, mode, callback) {
 
     }
@@ -473,8 +458,9 @@ define(function(require) {
 
     }
 
-    function mkdir(transaction, pathname, callback) {
+    function mkdir(transaction, pathname, callback) {      
       debug.info("mkdir -->");
+      pathname = path.normalize(pathname);
       transaction = transaction || db.transaction([METADATA_STORE_NAME], IDB_RW);
       var store = transaction.objectStore(METADATA_STORE_NAME);
       var nameIndex = store.index(NAME_INDEX);
@@ -502,15 +488,12 @@ define(function(require) {
 
     function rmdir(pathname, callback) {
       debug.info("rmdir -->");
-      var onerror = genericIDBErrorHandler("rmdir", callback);
-      if("/" === pathname) {
-        onerror(new IDBFSError(T_RMDIR, E_BUSY));
-        return;
-      }
+      pathname = path.normalize(pathname);
       transaction = db.transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
       var metaStore = transaction.objectStore(METADATA_STORE_NAME);
       var nameIndex = metaStore.index(NAME_INDEX);
       var parentIndex = metaStore.index(PARENT_INDEX);
+      var onerror = genericIDBErrorHandler("rmdir", callback);
 
       var getRequest = nameIndex.get(pathname);
       getRequest.onsuccess = function(e) {
@@ -544,6 +527,7 @@ define(function(require) {
 
     function stat(transaction, pathname, callback) {
       debug.info("stat -->");
+      pathname = path.normalize(pathname);
       transaction = transaction || db.transaction([METADATA_STORE_NAME], IDB_RO);
       var store = transaction.objectStore(METADATA_STORE_NAME);
       var nameIndex = store.index(NAME_INDEX);
@@ -674,7 +658,8 @@ define(function(require) {
 
   var IDBFS = {
     mount: mount,
-    umount: undefined
+    umount: undefined,
+    path: path
   };
 
   return IDBFS;
