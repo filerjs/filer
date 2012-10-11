@@ -14,18 +14,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 define(function(require) {
   // 'use strict';
 
-  var when = require("when");
   var debug = require("debug");
   var _ = require("lodash");
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
   var BlobBuilder = window.BlobBuilder || window.MozBlobBuilder || window.WebKitBlobBuilder;
-
-  var TEMPORARY = 0;
-  var PERSISTENT = 1;
-
-  var MIME_DIRECTORY = "application/directory";
-  var MIME_FILE = "application/file";
 
   function guid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -71,7 +64,7 @@ define(function(require) {
     }
   }
 
-  
+
 
 
 /*
@@ -405,6 +398,8 @@ define(function(require) {
   var NAME_INDEX_KEY_PATH = "name";
   var PARENT_INDEX = "parent";
   var PARENT_INDEX_KEY_PATH = "parent";
+  var MIME_DIRECTORY = "application/directory";
+  var MIME_FILE = "application/file";
 
   var IDB_RO = "readonly";
   var IDB_RW = "readwrite";
@@ -414,14 +409,17 @@ define(function(require) {
     this.code = code;
   }
   // Types
-  var T_OPEN = 0x0;
-  var T_MKDIR = 0x1;
-  var T_STAT = 0x2;
-  var T_NONE = 0x3;
+  var T_NONE = 0x0;
+  var T_OPEN = 0x1;
+  var T_MKDIR = 0x2;
+  var T_STAT = 0x3;
+  var T_RMDIR = 0x4;  
   // Codes
   var E_EXIST = 0x0;
   var E_ISDIR = 0x1;
   var E_NOENT = 0x2;
+  var E_BUSY = 0x3;
+  var E_NOTEMPTY = 0x4;
 
   function genericIDBErrorHandler(scope, callback) {
     return function(error) {
@@ -476,7 +474,7 @@ define(function(require) {
     }
 
     function mkdir(transaction, pathname, callback) {
-      debug.info("mkdir invoked");
+      debug.info("mkdir -->");
       transaction = transaction || db.transaction([METADATA_STORE_NAME], IDB_RW);
       var store = transaction.objectStore(METADATA_STORE_NAME);
       var nameIndex = store.index(NAME_INDEX);
@@ -491,7 +489,7 @@ define(function(require) {
           var entry = makeDirectoryEntry(pathname, Date.now());
           var directoryRequest = store.put(entry, pathname);
           directoryRequest.onsuccess = function(e) {
-            debug.info("mkdir complete");
+            debug.info("mkdir <--");
             if(callback && "function" === typeof callback) {              
               callback.call(undefined, undefined);
             }
@@ -503,11 +501,67 @@ define(function(require) {
     }
 
     function rmdir(pathname, callback) {
+      debug.info("rmdir -->");
+      var onerror = genericIDBErrorHandler("rmdir", callback);
+      if("/" === pathname) {
+        onerror(new IDBFSError(T_RMDIR, E_BUSY));
+        return;
+      }
+      transaction = db.transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+      var metaStore = transaction.objectStore(METADATA_STORE_NAME);
+      var nameIndex = metaStore.index(NAME_INDEX);
+      var parentIndex = metaStore.index(PARENT_INDEX);
 
+      var getRequest = nameIndex.get(pathname);
+      getRequest.onsuccess = function(e) {
+        var result = e.target.result;
+        if(!result) {
+          onerror(new IDBFSError(T_RMDIR, E_NOENT));
+          return;
+        } else {
+          var contentRequest = parentIndex.get(pathname);
+          contentRequest.onsuccess = function(e) {
+            var result = e.target.result;
+            if(result) {
+              onerror(new IDBFSError(T_RMDIR, E_NOTEMPTY));
+              return;
+            } else {
+              var removeRequest = metaStore.delete(pathname);
+              removeRequest.onsuccess = function(e) {
+                debug.info("rmdir <--");
+                if(callback && "function" === typeof callback) {              
+                  callback.call(undefined, undefined);
+                }
+              };
+              removeRequest.onerror = onerror;
+            }
+          };
+          contentRequest.onerror = onerror;
+        }
+      };
+      getRequest.onerror = onerror;
     }
 
     function stat(transaction, pathname, callback) {
+      debug.info("stat -->");
+      transaction = transaction || db.transaction([METADATA_STORE_NAME], IDB_RO);
+      var store = transaction.objectStore(METADATA_STORE_NAME);
+      var nameIndex = store.index(NAME_INDEX);
+      var onerror = genericIDBErrorHandler("stat", callback);
 
+      var getRequest = nameIndex.get(pathname);
+      getRequest.onsuccess = function(e) {        
+        var result = e.target.result;
+        if(!result) {
+          onerror(new IDBFSError(T_STAT, E_NOENT));
+          return;
+        } else {
+          debug.info("stat <--");
+          if(callback && "function" === typeof callback) {              
+            callback.call(undefined, undefined, result);
+          }
+        }
+      };
     }
 
     function link(oldpath, newpath, callback) {
@@ -562,6 +616,7 @@ define(function(require) {
   }
 
   function mount(name, callback, optFormat) {
+    debug.info("mount -->");
     optFormat = (undefined === optFormat) ? false : optFormat;
     var onerror = genericIDBErrorHandler("mount", callback);
     var openRequest = indexedDB.open(name);
@@ -587,14 +642,15 @@ define(function(require) {
       if(optFormat) {
         var transaction = db.transaction([METADATA_STORE_NAME], IDB_RW);
         var store = transaction.objectStore(METADATA_STORE_NAME);
-        debug.info("format required");
+        debug.info("format -->");
         var clearRequest = store.clear();
         clearRequest.onsuccess = function() {
           fs.mkdir(transaction, "/", function(error) {
             if(error) {
               onerror(error);
             } else {
-              debug.info("format complete");
+              debug.info("format <--");
+              debug.info("mount <--");
               if(callback && "function" === typeof callback) {
                 callback.call(undefined, undefined, fs.api());
               }
@@ -603,6 +659,7 @@ define(function(require) {
         };
         clearRequest.onerror = onerror;
       } else {
+        debug.info("mount <--");
         if(callback && "function" === typeof callback) {
           callback.call(undefined, undefined, fs.api());
         }
