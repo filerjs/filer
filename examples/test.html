@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8" />
 </head>
+<body>
+  <div id="stdout"></div>
+</body>
 <script src="../lib/require.js"></script>
 <script>
 require.config({
@@ -12,14 +15,36 @@ require.config({
   }
 });
 
-require(["../../javascript-debug/debug", "src/filesystem"], function(debug, FileSystem) {
-  var fs = new FileSystem(undefined, true);
+require(["../../javascript-debug/debug", "src/filesystem"], function(debug, IDBFS) {
+
+  IDBFS.mount("default", function(error, fs) {
+    console.log("mount complete");
+    fs.mkdir("/tmp", function(error) {
+      fs.dump(document.getElementById("stdout"));
+    });
+  }, true);
+
+  /*
+  var fs = new IdbFS(undefined, true);
   fs.then(function(fs) {
-    fs.mkdir("/tmp");
+    fs.mkdir("/tmp").then(function(result) {
+      var d = fs.open("/tmp/0", IdbFS.O_CREATE, IdbFS.FMODE_RW);
+      d.then(function(fd) {
+        fs.dump(document.getElementById("stdout"));
+      }, function(e) {
+        console.log(e);
+      });
+    }, function(error) {
+      console.log(error);
+    });
     fs.stat("/tmp").then(function(result) {
       console.log(result);
-    });
+    }, function(error) {
+      console.log(error);
+    });   
   });
+  */
+
 });
 </script>
 </html>
