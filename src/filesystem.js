@@ -50,331 +50,6 @@ define(function(require) {
     }
   }
 
-/*
-  function FileSystem(name, optFormat) {
-    function Transaction(db, scope, mode) {
-      var id = this.id = guid();
-      this._IdbTransaction = db.transaction(scope, mode);
-      var deferred = when.defer();
-      this._IdbTransaction.oncomplete = function(e) {
-        deferred.resolve(e);
-        clearPending(id);
-      };
-      this._IdbTransaction.onerror = function(e) {
-        deferred.reject(e);
-        clearPending(id);
-      };
-      this.then = deferred.promise.then;
-      this.objectStore = this._IdbTransaction.objectStore.bind(this._IdbTransaction);
-      this.abort = this._IdbTransaction.abort.bind(this._IdbTransaction);
-      queuePending(this, id);
-    }
-
-    function Request(request) {
-      var id = this.id = guid();
-      this._IdbRequest = request;
-      var deferred = when.defer();
-      this._IdbRequest.onsuccess = function(e) {
-        deferred.resolve(e);
-        // clearPending(id);
-      };
-      this._IdbRequest.onerror = function(e) {
-        deferred.reject(e);
-        // clearPending(id);
-      };
-      this.then = deferred.promise.then;
-      // queuePending(this, id);
-    }
-
-    function OpenDBRequest(request, upgrade) {
-      var id = this.id = guid();
-      this._IdbRequest = request;
-      var deferred = when.defer();
-      this._IdbRequest.onsuccess = function(e) {
-        deferred.resolve(e);
-        clearPending(id);
-      };
-      this._IdbRequest.onerror = function(e) {
-        deferred.reject(e);
-        clearPending(id);
-      };
-      if(typeof upgrade === "function") {
-        this._IdbRequest.onupgradeneeded = upgrade;
-      }
-      this.then = deferred.promise.then;
-      queuePending(this, id);
-    }
-
-    var fs = this;
-    fs.id = guid();
-    var FILE_STORE_NAME = "files";
-    var METADATA_STORE_NAME = "metadata";
-    var NAME_INDEX = "name";
-    var PARENT_INDEX = "parent";
-    fs.name = name || "default";    
-    fs.pending = {};
-
-    fs.state = FileSystem.UNINITIALIZED;
-    var deferred;
-    fs.then;
-    fs.db;
-
-    function updateState() {
-      if(FileSystem.READY === fs.state && Object.keys(fs.pending).length > 0) {
-        debug.info("filesystem has pending requests");
-        fs.state = FileSystem.PENDING;
-        deferred = when.defer();
-        fs.then = deferred.promise.then;
-      } else if(FileSystem.PENDING === fs.state && Object.keys(fs.pending).length === 0) {
-        debug.info("filesystem is ready");
-        fs.state = FileSystem.READY;
-        deferred.resolve(fs);
-      } else if(FileSystem.UNINITIALIZED === fs.state) {
-        // Start the file system in the READY state and provide an initial resolved promise
-        fs.state = FileSystem.READY;
-        deferred = when.defer();        
-        fs.then = deferred.promise.then;
-        deferred.resolve(fs);
-        debug.info("filesystem is initialized");
-      }
-    }
-
-    function queuePending(transaction, id) {
-      fs.pending[id] = transaction;
-      updateState();
-      return transaction;
-    }
-
-    function clearPending(id) {
-      if(fs.pending.hasOwnProperty(id)) {
-        delete fs.pending[id];
-      }
-      updateState();
-    } 
-
-    var format = undefined !== optFormat ? optFormat : false;
-    var deferred = when.defer();
-    fs.then = deferred.promise.then;
-
-    updateState();
-    var openRequest = new OpenDBRequest(indexedDB.open(name), function(e) {
-      var db = fs.db = e.target.result;
-      if(db.objectStoreNames.contains(METADATA_STORE_NAME)) {
-        db.deleteObjectStore(METADATA_STORE_NAME);
-      }
-      if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
-        db.deleteObjectStore(FILE_STORE_NAME);
-      }
-      var metadata = db.createObjectStore(METADATA_STORE_NAME);
-      metadata.createIndex(NAME_INDEX, "parent", {unique: false});
-      metadata.createIndex(NAME_INDEX, "name", {unique: true});
-      var files = db.createObjectStore(FILE_STORE_NAME);
-
-      format = true;
-    });
-    openRequest.then(function(e) {
-      fs.db = e.target.result;
-      var db = fs.db;
-      var transaction = new Transaction(db, [METADATA_STORE_NAME], RW);
-      var store = transaction.objectStore(METADATA_STORE_NAME);
-      if(format) {
-        debug.info("format required");
-        var clearRequest = new Request(store.clear());
-        clearRequest.then(function() {
-          mkdir(transation, "/").then(function() {
-            debug.info("format complete");
-          });
-        });
-      }
-    });
-
-    // API
-
-    function updateLastModified(transaction, name, timestamp) {
-      debug.info("updateLastModified invoked");
-      var deferred = when.defer();
-      transaction = transaction || new Transaction(fs.db, [METADATA_STORE_NAME], RW);
-      timestamp = timestamp || Date.now();
-      var store = transaction.objectStore(METADATA_STORE_NAME);
-      var nameIndex = store.index(NAME_INDEX);      
-
-      var getRequest = new Request(nameIndex.get(name));
-      getRequest.then(function(e) {
-        var result = e.target.result;
-        if(!result) {
-          debug.info("updateLastModified error: E_NOENT");
-          deferred.reject(new FileSystemError(T_NONE, E_NOENT));
-        } else {          
-          result["last-modified"] = timestamp;
-          var updateRequest = new Request(store.put(result, result.name));    
-          updateRequest.then(function(e) {
-            debug.info("updateLastModified complete");
-            deferred.resolve();
-          });
-        }
-      });
-      return deferred.promise;
-    }
-
-
-    function mkdir(transaction, name) {
-      debug.info("mkdir invoked");
-      var deferred = when.defer();      
-      transaction = transaction || new Transaction(fs.db, [METADATA_STORE_NAME], RW);
-      var store = transaction.objectStore(METADATA_STORE_NAME);      
-      var nameIndex = store.index(NAME_INDEX);
-
-      var getRequest = new Request(nameIndex.get(name));
-      getRequest.then(function(e) {
-        var result = e.target.result;
-        if(result) {
-          debug.info("mkdir error: E_EXIST");
-          deferred.reject(new FileSystemError(T_MKDIR, E_EXIST));
-        } else {
-          var entry = makeDirectoryEntry(name, Date.now());
-          var directoryRequest = new Request(store.put(entry, name));
-          directoryRequest.then(function(e) {
-            debug.info("mkdir complete");
-            deferred.resolve();
-          }, function(e) {
-            debug.info("mkdir error: " + e);
-            deferred.reject(e);
-          });
-        }
-      });
-      return deferred.promise;
-    }
-    fs.mkdir = mkdir.bind(null, null);
-
-    function stat(transaction, name) {
-      debug.info("stat invoked");
-      var deferred = when.defer();
-      transaction = transaction || new Transaction(fs.db, [METADATA_STORE_NAME], RO);
-      var store = transaction.objectStore(METADATA_STORE_NAME);
-      var nameIndex = store.index(NAME_INDEX);
-
-      var getRequest = new Request(nameIndex.get(name));      
-      getRequest.then(function(e) {        
-        var result = e.target.result;
-        if(!result) {
-          debug.info("stat error: E_NOENT");
-          deferred.reject(new FileSystemError(T_STAT, E_NOENT));
-        } else {
-          debug.info("stat complete");
-          deferred.resolve(result);
-        }
-      });
-      return deferred.promise;
-    }
-    fs.stat = stat.bind(null, null);
-
-    function OpenFileDescription(filesystem, name, oid, flags, mode) {
-      this.fs = filesystem;
-      this.name = name;      
-      this.oid = oid;
-      this.fags = flags;
-      this.mode = mode;
-      this.offset = 0;
-    }
-
-    var fds = {};
-    function FileDescriptor(ofd) {
-      this.descriptor = guid();
-      fds[this.descriptor] = ofd;
-    }
-    // Close a file
-    FileDescriptor.prototype.close = function close() {
-      debug.info("close invoked");
-      var deferred = when();
-      delete fds[this.descriptor];
-      debug.info("close complete");
-      return deferred.promise;
-    };
-    // Read from a file
-    FileDescriptor.prototype.read = function read(bytes, buffer) {
-
-    };
-    // Write to a file
-    FileDescriptor.prototype.write = function write(bytes, buffer) {
-
-    };
-    // Set absolute offset
-    FileDescriptor.prototype.seek = function seek(offset) {
-      this.offset = offset;
-    };
-    // Set relative offset (from current offset)
-    FileDescriptor.prototype.rseek = function rseek(offset) {
-      this.offset += offset;
-    };
-
-    function open(name, flags, mode) {
-      debug.info("open invoked");
-      var deferred = when.defer();
-      var transaction = new Transaction(fs.db, [METADATA_STORE_NAME], RW);
-      var store = transaction.objectStore(METADATA_STORE_NAME);
-      var nameIndex = store.index(NAME_INDEX);
-
-      var metadataRequest = new Request(nameIndex.get(name));
-      metadataRequest.then(function(e) {
-        var result = e.target.result;
-        if(!result && !(flags & FileSystem.O_CREATE)) {
-          debug.info("open error: E_NOENT");
-          deferred.reject(new FileSystemError(T_OPEN, E_NOENT));
-        } else if(result && "application/directory" === result["content-type"] && mode === FileSystem.FMODE_RW) {
-          debug.info("open error: E_ISDIR");
-          deferred.reject(new FileSystemError(T_OPEN, E_ISDIR));
-        } else {          
-          function complete() {
-            var ofd = new OpenFileDescription(fs, name, result["object-id"], flags, mode);
-            var fd = new FileDescriptor(ofd);
-            debug.info("open complete");
-            deferred.resolve(fd);
-          }
-          if(!result) {
-            result = makeFileEntry(name);
-            var makeRequest = new Request(store.put(result, name));
-            makeRequest.then(complete);
-          } else {
-            complete();
-          }
-        }
-      });
-      return deferred.promise;
-    }
-    fs.open = open;
-
-    function dump(element) {
-      element.innerHTML = "";
-      var transaction = new Transaction(fs.db, [METADATA_STORE_NAME], RO);
-      var store = transaction.objectStore(METADATA_STORE_NAME);
-      var cursorRequest = store.openCursor();
-      cursorRequest.onsuccess = function(e) {
-        var cursor = e.target.result;
-        if(cursor) {
-          var getRequest = store.get(cursor.key);
-          getRequest.onsuccess = function(e) {
-            var result = e.target.result;
-            element.innerHTML += JSON.stringify(result) + "<br>";
-            cursor.continue();
-          };
-        }
-      };
-    }
-    this.dump = dump;
-  }
-  // File system states
-  FileSystem.READY = 0;
-  FileSystem.PENDING = 1;
-  FileSystem.UNINITIALIZED = 2;
-  // Open flags
-  FileSystem.O_CREATE = 0x1;
-  FileSystem.O_TRUNCATE = 0x2;
-  // Open modes
-  FileSystem.FMODE_RO = 0;
-  FileSystem.FMODE_RW = 1;
-*/
-  /////////////////////////////////////////////////////////////////////////////
-
   var METADATA_STORE_NAME = "metadata";
   var FILE_STORE_NAME = "files";
   var NAME_INDEX = "name";
@@ -398,6 +73,7 @@ define(function(require) {
   var T_STAT = 0x3;
   var T_RMDIR = 0x4;
   var T_CLOSE = 0x5;
+  var T_READ = 0x6;
   // Codes
   var E_EXIST = 0x0;
   var E_ISDIR = 0x1;
@@ -456,10 +132,13 @@ define(function(require) {
 
       function read(buffer, offset, bytes, callback) {
         debug.info("read -->");
-        start();
-        transaction = db.transaction([FILE_STORE_NAME], IDB_RO);
-        var store = transaction.objectStore(FILE_STORE_NAME);
         var onerror = genericIDBErrorHandler("read", callback);
+        if(!start()) {
+          onerror(new IDBFSError(T_READ, E_BADF));
+          return;
+        }
+        transaction = db.transaction([FILE_STORE_NAME], IDB_RO);
+        var store = transaction.objectStore(FILE_STORE_NAME);        
 
         if(MIME_FILE === ofd.entry["content-type"]) {
           var oid = ofd.entry["object-id"];
@@ -468,6 +147,8 @@ define(function(require) {
             var file = e.target.result;
             if(!file) {
               // There's no file data, so return zero bytes read
+              end();
+              debug.info("read <--");
               if(callback && "function" === typeof callback) {
                 callback.call(undefined, undefined, 0, buffer);
               }
@@ -482,6 +163,8 @@ define(function(require) {
                 var sourceView = new Uint8Array(data).subarray(ofd.pointer, ofd.pointer + bytes);
                 var target = buffer;
                 target.set(sourceView, offset);
+                end();
+                debug.info("read <--");
                 if(callback && "function" === typeof callback) {
                   callback.call(undefined, undefined, bytes, buffer);
                 }
@@ -496,7 +179,15 @@ define(function(require) {
       }
 
       function write(buffer, offset, bytes, callback) {
-
+        debug.info("write -->");
+        var onerror = genericIDBErrorHandler("read", callback);
+        if(!start()) {
+          onerror(new IDBFSError(T_READ, E_BADF));
+          return;
+        }
+        transaction = db.transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+        var metaStore = transaction.objectStore(METADATA_STORE_NAME);
+        var fileStore = transaction.objectStore(FILE_STORE_NAME);
       }
 
       var SW_SET = "SET";

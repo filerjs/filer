@@ -20,13 +20,15 @@ require(["src/filesystem"], function(IDBFS) {
   IDBFS.mount("default", function(error, fs) {
     fs.mkdir("/tmp", function(error) {
       fs.open("/tmp/0", "CREATE", "RW", function(error, fd) {        
-        fs.close(fd, function(error) {
-          fs.dump(document.getElementById("stdout"));
-          var buffer = new Uint8Array(16);
-          fd.read(buffer, 0, 16, function(error, bytes_read, buffer) {
-            console.log(error, bytes_read);
+        var buffer = new Uint8Array(16);
+        fd.read(buffer, 0, 16, function(error, bytes_read, buffer) {
+          if(!error) {
+            console.log("bytes read:", bytes_read);
+          }
+          fs.close(fd, function(error) {
+            fs.dump(document.getElementById("stdout"));          
           });
-        });
+        });        
       });
     });
   }, true);
