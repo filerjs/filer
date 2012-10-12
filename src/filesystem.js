@@ -396,7 +396,8 @@ define(function(require) {
   var T_OPEN = 0x1;
   var T_MKDIR = 0x2;
   var T_STAT = 0x3;
-  var T_RMDIR = 0x4;  
+  var T_RMDIR = 0x4;
+  var T_CLOSE = 0x5;
   // Codes
   var E_EXIST = 0x0;
   var E_ISDIR = 0x1;
@@ -404,6 +405,7 @@ define(function(require) {
   var E_BUSY = 0x3;
   var E_NOTEMPTY = 0x4;
   var E_NOTDIR = 0x5;
+  var E_BADF = 0x6;
 
   function genericIDBErrorHandler(scope, callback) {
     return function(error) {
@@ -420,9 +422,9 @@ define(function(require) {
 
     // Internal prototypes
 
-    function OpenFileDescription(name, oid, flags, mode) {
+    function OpenFileDescription(name, entry, flags, mode) {
       this.name = name;      
-      this.oid = oid;
+      this.entry = entry;
       this.flags = flags;
       this.mode = mode;
       this.pointer = 0;
@@ -527,7 +529,8 @@ define(function(require) {
           }
         }
         function complete() {
-          var ofd = new OpenFileDescription(pathname, entry["object-id"], flags, mode);
+          var ofd;
+          ofd = new OpenFileDescription(pathname, entry, flags, mode);
           var fd = new FileDescriptor(ofd);
           debug.info("open <--");
           if(callback && "function" === typeof callback) {              
@@ -540,6 +543,11 @@ define(function(require) {
 
     function close(fd, callback) {
       debug.info("close -->");
+      var onerror = genericIDBErrorHandler("close", callback);
+      if(!fds.hasOwnProperty(fd.descriptor)) {
+        onerror(new IDBFSError(T_CLOSE, E_BADF));
+        return;
+      }
       var ofd = fds[fd.descriptor];
       ofd.valid = false;
       if(!ofd.valid && !ofd.pending) {
