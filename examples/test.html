@@ -22,6 +22,10 @@ require(["src/filesystem"], function(IDBFS) {
       fs.open("/tmp/0", "CREATE", "RW", function(error, fd) {        
         fs.close(fd, function(error) {
           fs.dump(document.getElementById("stdout"));
+          var buffer = new Uint8Array(16);
+          fd.read(buffer, 0, 16, function(error, bytes_read, buffer) {
+            console.log(error, bytes_read);
+          });
         });
       });
     });

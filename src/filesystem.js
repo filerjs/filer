@@ -454,11 +454,48 @@ define(function(require) {
         }
       }
 
-      function read(buffer, bytes, callback) {
+      function read(buffer, offset, bytes, callback) {
+        debug.info("read -->");
+        start();
+        transaction = db.transaction([FILE_STORE_NAME], IDB_RO);
+        var store = transaction.objectStore(FILE_STORE_NAME);
+        var onerror = genericIDBErrorHandler("read", callback);
 
+        if(MIME_FILE === ofd.entry["content-type"]) {
+          var oid = ofd.entry["object-id"];
+          var getRequest = store.get(oid);
+          getRequest.onsuccess = function(e) {
+            var file = e.target.result;
+            if(!file) {
+              // There's no file data, so return zero bytes read
+              if(callback && "function" === typeof callback) {
+                callback.call(undefined, undefined, 0, buffer);
+              }
+            } else {
+              // Make sure we're not going to read past the end of the file
+              bytes = (ofd.pointer + bytes > file.size) ? file.size - ofd.pointer : bytes;
+              var reader = new FileReader();
+              reader.readAsArrayBuffer(file);
+              reader.onload = function(e) {
+                // Copy the desired region from the file into the buffer supplied
+                var source = e.target.result;
+                var sourceView = new Uint8Array(data).subarray(ofd.pointer, ofd.pointer + bytes);
+                var target = buffer;
+                target.set(sourceView, offset);
+                if(callback && "function" === typeof callback) {
+                  callback.call(undefined, undefined, bytes, buffer);
+                }
+              }
+              reader.onerror = onerror;
+            }
+          };
+          getRequest.onerror = onerror;
+        } else if(MIME_DIRECTORY === ofd.entry["content-type"]) {
+
+        }
       }
 
-      function write(buffer, bytes, callback) {
+      function write(buffer, offset, bytes, callback) {
 
       }
 
@@ -469,16 +506,14 @@ define(function(require) {
 
       }
 
-      function isValid() {
-        return ofd.valid;
-      }
-      
       this.read = read;
       this.seek = seek;
-      if(ofd.mode === OM_RW) {
-        this.write = write;
-      }
-      this.isValid = isValid;
+      this.write = write;
+      Object.defineProperty(this, "valid", {
+        get: function() {
+          return ofd.valid;
+        }
+      });
 
       fds[descriptor] = ofd;
     }
