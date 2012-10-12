@@ -34,10 +34,12 @@ require(["src/filesystem"], function(IDBFS) {
               console.log("buffer:", buffer);
             }
             fs.close(fd, function(error) {
-              fs.dump(document.getElementById("stdout"));          
+              fs.unlink("/tmp/0", function(error) {
+                fs.dump(document.getElementById("stdout"));
+              });
             });
           });
-        });        
+        });
         
       });
     });

@@ -33,8 +33,8 @@ define(function(require) {
     return {
       "parent": parent,
       "name": name,
-      "content-type": "application/directory",
-      "last-modified": modtime || Date.now()
+      "contenttype": "application/directory",
+      "lastmodified": modtime || Date.now()
     }
   }
 
@@ -43,19 +43,21 @@ define(function(require) {
     return {
       "parent": parent,
       "name": name,
-      "content-type": "application/file",
-      "last-modified": modtime || Date.now(),
+      "contenttype": "application/file",
+      "lastmodified": modtime || Date.now(),
       "size": size || 0,
-      "object-id": oid || guid()
+      "oid": oid || guid()
     }
   }
 
   var METADATA_STORE_NAME = "metadata";
-  var FILE_STORE_NAME = "files";
+  var FILE_STORE_NAME = "files";  
   var NAME_INDEX = "name";
   var NAME_INDEX_KEY_PATH = "name";
   var PARENT_INDEX = "parent";
   var PARENT_INDEX_KEY_PATH = "parent";
+  var OBJECT_ID_INDEX = "oid";
+  var OBJECT_ID_INDEX_KEY_PATH = "oid";
   var MIME_DIRECTORY = "application/directory";
   var MIME_FILE = "application/file";
 
@@ -74,6 +76,7 @@ define(function(require) {
   var T_RMDIR = 0x4;
   var T_CLOSE = 0x5;
   var T_READ = 0x6;
+  var T_UNLINK = 0x7;
   // Codes
   var E_EXIST = 0x0;
   var E_ISDIR = 0x1;
@@ -139,10 +142,13 @@ define(function(require) {
           return;
         }
         transaction = db.transaction([FILE_STORE_NAME], IDB_RO);
+        transaction.oncomplete = function(e) {
+          end();
+        }
         var store = transaction.objectStore(FILE_STORE_NAME);        
 
-        if(MIME_FILE === ofd.entry["content-type"]) {
-          var oid = ofd.entry["object-id"];
+        if(MIME_FILE === ofd.entry["contenttype"]) {
+          var oid = ofd.entry["oid"];
           var getRequest = store.get(oid);
           getRequest.onsuccess = function(e) {
             var storedBuffer = e.target.result;
@@ -160,7 +166,6 @@ define(function(require) {
               var storedBufferView = storedBuffer.subarray(ofd.pointer, ofd.pointer + bytes);
               buffer.set(storedBufferView);
               ofd.pointer += bytes;
-              end();
               debug.info("read <--");
               if(callback && "function" === typeof callback) {
                 callback.call(undefined, undefined, bytes, buffer);
@@ -168,7 +173,7 @@ define(function(require) {
             }
           };
           getRequest.onerror = onerror;
-        } else if(MIME_DIRECTORY === ofd.entry["content-type"]) {
+        } else if(MIME_DIRECTORY === ofd.entry["contenttype"]) {
           // NOT IMPLEMENTED
           onerror(new IDBFSError(T_READ, E_NOT_IMPLEMENTED))
         }
@@ -176,19 +181,22 @@ define(function(require) {
 
       function write(buffer, callback) {
         debug.info("write -->");
-        var onerror = genericIDBErrorHandler("write", callback);
-        if(!start()) {
-          onerror(new IDBFSError(T_READ, E_BADF));
-          return;
-        }
+        var onerror = genericIDBErrorHandler("write", callback);        
         if(OM_RO === ofd.mode) {
           onerror(new IDBFSError(T_READ, E_BADF));
           return;
         }
+        if(!start()) {
+          onerror(new IDBFSError(T_READ, E_BADF));
+          return;
+        }
         transaction = db.transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+        transaction.oncomplete = function(e) {
+          end();
+        }
         var metaStore = transaction.objectStore(METADATA_STORE_NAME);
         var fileStore = transaction.objectStore(FILE_STORE_NAME);
-        var oid = ofd.entry["object-id"];
+        var oid = ofd.entry["oid"];
         var getRequest = fileStore.get(oid);
         getRequest.onsuccess = function(e) {
           var storedBuffer = e.target.result;
@@ -206,11 +214,10 @@ define(function(require) {
             var readMetadataRequest = metaStore.get(ofd.entry["name"]);
             readMetadataRequest.onsuccess = function(e) {
               var entry = e.target.result;
-              entry = makeFileEntry(entry["name"], entry["object-id"], size);
+              entry = makeFileEntry(entry["name"], entry["oid"], size);
               ofd.entry = entry;                
               var writeMetadataRequest = metaStore.put(entry, entry["name"]);
               writeMetadataRequest.onsuccess = function(e) {
-                end();
                 debug.info("write <--");
                 if(callback && "function" === typeof callback) {              
                   callback.call(undefined, undefined, size, buffer);
@@ -289,7 +296,7 @@ define(function(require) {
             createRequest.onerror = onerror;
           }
         } else {
-          if(entry["content-type"] === MIME_DIRECTORY && mode === OM_RW) {
+          if(entry["contenttype"] === MIME_DIRECTORY && mode === OM_RW) {
             onerror(new IDBFSError(T_OPEN, E_ISDIR));
             return;
           } else {
@@ -414,6 +421,7 @@ define(function(require) {
           }
         }
       };
+      getRequest.onerror = onerror;
     }
 
     function link(oldpath, newpath, callback) {
@@ -421,7 +429,38 @@ define(function(require) {
     }
 
     function unlink(pathname, callback) {
+      debug.info("unlink -->");
+      pathname = path.normalize(pathname);
+      var transaction = db.transaction([METADATA_STORE_NAME], IDB_RW);
+      var metaStore = transaction.objectStore(METADATA_STORE_NAME);
+      var nameIndex = metaStore.index(NAME_INDEX);
+      var onerror = genericIDBErrorHandler("unlink", callback);
 
+      stat(transaction, pathname, function(error, entry) {
+        if(error) {
+          onerror(new IDBFSError(T_UNLINK, error));
+          return;
+        }
+        if(MIME_DIRECTORY === entry["contenttype"]) {
+          onerror(new IDBFSError(T_UNLINK, E_ISDIR));
+          return;
+        }
+        var unlinkRequest = metaStore.delete(entry["name"]);
+        unlinkRequest.onsuccess = function(e) {
+          // We don't support links, so this entry is the only entry for the file data
+          var transaction = db.transaction([FILE_STORE_NAME], IDB_RW);
+          var fileStore = transaction.objectStore(FILE_STORE_NAME);
+          var deleteRequest = fileStore.delete(entry["oid"]);
+          deleteRequest.onsuccess = function(e) {
+            debug.info("unlink <--");
+            if(callback && "function" === typeof callback) {              
+              callback.call(undefined, undefined);
+            }
+          };
+          deleteRequest.onerror = onerror;
+        };
+        unlinkRequest.onerror = onerror;
+      });
     }
 
     function api() {
@@ -442,25 +481,32 @@ define(function(require) {
     this.mkdir = mkdir;
     this.rmdir = rmdir;
     this.stat = stat;
-    this.link = link;
+    // this.link = link;
     this.unlink = unlink;
     this.api = api;
 
     // DEBUG
     function dump(element) {
-      element.innerHTML = "";
-      var transaction = db.transaction([METADATA_STORE_NAME], IDB_RO);
-      var store = transaction.objectStore(METADATA_STORE_NAME);
-      var cursorRequest = store.openCursor();
-      cursorRequest.onsuccess = function(e) {
-        var cursor = e.target.result;
-        if(cursor) {
-          var getRequest = store.get(cursor.key);
-          getRequest.onsuccess = function(e) {
-            var result = e.target.result;
-            element.innerHTML += JSON.stringify(result) + "<br>";
-            cursor.continue();
-          };
+      element.innerHTML = "Metadata://<br>";
+      var transaction = db.transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RO);
+      var metaStore = transaction.objectStore(METADATA_STORE_NAME);
+      var fileStore = transaction.objectStore(FILE_STORE_NAME);
+      var metaRequest = metaStore.openCursor();
+      metaRequest.onsuccess = function(e) {
+        var metaCursor = e.target.result;
+        if(metaCursor) {
+          element.innerHTML += JSON.stringify(metaCursor.value) + "<br>";            
+          metaCursor.continue();        
+        } else {
+          element.innerHTML += "Files://<br>"
+          fileRequest = fileStore.openCursor();
+          fileRequest.onsuccess = function(e) {
+            var fileCursor = e.target.result;
+            if(fileCursor) {
+              element.innerHTML += JSON.stringify(fileCursor.key) + "<br>";            
+              fileCursor.continue(); 
+            }
+          }
         }
       };
     }
@@ -483,6 +529,7 @@ define(function(require) {
       var metadata = db.createObjectStore(METADATA_STORE_NAME);
       metadata.createIndex(PARENT_INDEX, PARENT_INDEX_KEY_PATH, {unique: false});
       metadata.createIndex(NAME_INDEX, NAME_INDEX_KEY_PATH, {unique: true});
+      metadata.createIndex(OBJECT_ID_INDEX, OBJECT_ID_INDEX_KEY_PATH, {unique: false});
       var files = db.createObjectStore(FILE_STORE_NAME);
 
       optFormat = true;
