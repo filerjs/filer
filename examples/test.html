@@ -19,11 +19,10 @@ require(["src/filesystem"], function(IDBFS) {
 
   IDBFS.mount("default", function(error, fs) {
     fs.mkdir("/tmp", function(error) {
-      fs.mkdir("/tmp/0", function(error) {
-        fs.mkdir("/tmp/1", function(error) {          
-          fs.rmdir("/tmp/0", function(error) {
-            fs.dump(document.getElementById("stdout"));
-          });
+      fs.open("/tmp/0", "CREATE", "RW", function(error, fd) {
+        fs.dump(document.getElementById("stdout"));
+        fs.close(fd, function(error) {
+          console.log("finished!");
         });
       });
     });

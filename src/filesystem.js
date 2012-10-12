@@ -403,6 +403,7 @@ define(function(require) {
   var E_NOENT = 0x2;
   var E_BUSY = 0x3;
   var E_NOTEMPTY = 0x4;
+  var E_NOTDIR = 0x5;
 
   function genericIDBErrorHandler(scope, callback) {
     return function(error) {
@@ -415,23 +416,41 @@ define(function(require) {
 
   function FileSystem(db) {
     var fs = this;
-    var pending = {}; // Pending transactions
     var fds = {}; // Open file descriptors
 
     // Internal prototypes
 
     function OpenFileDescription(name, oid, flags, mode) {
-      this.fs = filesystem;
       this.name = name;      
       this.oid = oid;
       this.flags = flags;
       this.mode = mode;
       this.pointer = 0;
+      this.pending = 0;
+      this.valid = true;
+      this.oncomplete = undefined;
     }
 
     function FileDescriptor(ofd) {
-      this.descriptor = guid();
-      fds[this.descriptor] = ofd;
+      var descriptor = this.descriptor = guid();
+
+      function start() {
+        if(!ofd.valid) {
+          return false;
+        }
+        ++ ofd.pending;
+        return true;
+      }
+
+      function end() {
+        -- ofd.pending;
+        if(!ofd.valid && !ofd.pending) {
+          if(ofd.oncomplete && "function" === typeof ofd.oncomplete) {
+            debug.info("close <--");
+            ofd.oncomplete.call();
+          }
+        }
+      }
 
       function read(buffer, bytes, callback) {
 
@@ -441,21 +460,94 @@ define(function(require) {
 
       }
 
+      var SW_SET = "SET";
+      var SW_CURRENT = "CURRENT";
+      var SW_END = "END";
       function seek(offset, whence, callback) {
 
       }
+
+      function isValid() {
+        return ofd.valid;
+      }
+      
+      this.read = read;
+      this.seek = seek;
+      if(ofd.mode === OM_RW) {
+        this.write = write;
+      }
+      this.isValid = isValid;
+
+      fds[descriptor] = ofd;
     }
 
     // API
 
-    // Flags: CREATE, APPEND, TRUNCATE, DIRECTORY
-    // Modes: RO, RW
+    // Flags
+    var OF_CREATE = "CREATE";
+    var OF_APPEND = "APPEND";
+    var OF_TRUNCATE = "TRUNCATE";
+    var OF_DIRECTORY = "DIRECTORY";
+    // Modes
+    var OM_RO = "RO";
+    var OM_RW = "RW";
     function open(pathname, flags, mode, callback) {
+      debug.info("open -->");      
+      pathname = path.normalize(pathname);
+      transaction = db.transaction([METADATA_STORE_NAME], IDB_RW);
+      var store = transaction.objectStore(METADATA_STORE_NAME);
+      var nameIndex = store.index(NAME_INDEX);
+      var onerror = genericIDBErrorHandler("mkdir", callback);
 
+      if(undefined === flags) {
+        flags = [];
+      } else if("string" === typeof flags) {
+        flags = [flags];
+      }
+
+      var getRequest = nameIndex.get(pathname);
+      getRequest.onsuccess = function(e) {
+        var entry = e.target.result;
+        if(!entry) {
+          if(!_(flags).contains(OF_CREATE)) {
+            onerror(new IDBFSError(T_OPEN, E_NOENT));
+            return;
+          } else {
+            entry = makeFileEntry(pathname);
+            var createRequest = store.put(entry, pathname);
+            createRequest.onsuccess = complete;
+            createRequest.onerror = onerror;
+          }
+        } else {
+          if(entry["content-type"] === MIME_DIRECTORY && mode === OM_RW) {
+            onerror(new IDBFSError(T_OPEN, E_ISDIR));
+            return;
+          } else {
+            complete();
+          }
+        }
+        function complete() {
+          var ofd = new OpenFileDescription(pathname, entry["object-id"], flags, mode);
+          var fd = new FileDescriptor(ofd);
+          debug.info("open <--");
+          if(callback && "function" === typeof callback) {              
+            callback.call(undefined, undefined, fd);
+          }
+        }
+      };      
+      getRequest.onerror = onerror;
     }
 
     function close(fd, callback) {
-
+      debug.info("close -->");
+      var ofd = fds[fd.descriptor];
+      ofd.valid = false;
+      if(!ofd.valid && !ofd.pending) {
+        debug.info("close <--");
+        callback.call()
+      } else {        
+        ofd.oncomplete = callback;
+      }
     }
 
     function mkdir(transaction, pathname, callback) {      
