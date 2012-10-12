@@ -82,6 +82,7 @@ define(function(require) {
   var E_NOTEMPTY = 0x4;
   var E_NOTDIR = 0x5;
   var E_BADF = 0x6;
+  var E_NOT_IMPLEMENTED = 0x7;
 
   function genericIDBErrorHandler(scope, callback) {
     return function(error) {
@@ -130,7 +131,7 @@ define(function(require) {
         }
       }
 
-      function read(buffer, offset, bytes, callback) {
+      function read(buffer, callback) {
         debug.info("read -->");
         var onerror = genericIDBErrorHandler("read", callback);
         if(!start()) {
@@ -144,8 +145,8 @@ define(function(require) {
           var oid = ofd.entry["object-id"];
           var getRequest = store.get(oid);
           getRequest.onsuccess = function(e) {
-            var file = e.target.result;
-            if(!file) {
+            var storedBuffer = e.target.result;
+            if(!storedBuffer) {
               // There's no file data, so return zero bytes read
               end();
               debug.info("read <--");
@@ -154,47 +155,88 @@ define(function(require) {
               }
             } else {
               // Make sure we're not going to read past the end of the file
-              bytes = (ofd.pointer + bytes > file.size) ? file.size - ofd.pointer : bytes;
-              var reader = new FileReader();
-              reader.readAsArrayBuffer(file);
-              reader.onload = function(e) {
-                // Copy the desired region from the file into the buffer supplied
-                var source = e.target.result;
-                var sourceView = new Uint8Array(data).subarray(ofd.pointer, ofd.pointer + bytes);
-                var target = buffer;
-                target.set(sourceView, offset);
-                end();
-                debug.info("read <--");
-                if(callback && "function" === typeof callback) {
-                  callback.call(undefined, undefined, bytes, buffer);
-                }
+              var bytes = (ofd.pointer + buffer.length > storedBuffer.length) ? (storedBuffer.length - ofd.pointer) : buffer.length;
+              // Copy the desired region from the file into the buffer supplied
+              var storedBufferView = storedBuffer.subarray(ofd.pointer, ofd.pointer + bytes);
+              buffer.set(storedBufferView);
+              ofd.pointer += bytes;
+              end();
+              debug.info("read <--");
+              if(callback && "function" === typeof callback) {
+                callback.call(undefined, undefined, bytes, buffer);
               }
-              reader.onerror = onerror;
             }
           };
           getRequest.onerror = onerror;
         } else if(MIME_DIRECTORY === ofd.entry["content-type"]) {
-
+          // NOT IMPLEMENTED
+          onerror(new IDBFSError(T_READ, E_NOT_IMPLEMENTED))
         }
       }
 
-      function write(buffer, offset, bytes, callback) {
+      function write(buffer, callback) {
         debug.info("write -->");
-        var onerror = genericIDBErrorHandler("read", callback);
+        var onerror = genericIDBErrorHandler("write", callback);
         if(!start()) {
+          onerror(new IDBFSError(T_READ, E_BADF));
+          return;
+        }
+        if(OM_RO === ofd.mode) {
           onerror(new IDBFSError(T_READ, E_BADF));
           return;
         }
         transaction = db.transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
         var metaStore = transaction.objectStore(METADATA_STORE_NAME);
         var fileStore = transaction.objectStore(FILE_STORE_NAME);
+        var oid = ofd.entry["object-id"];
+        var getRequest = fileStore.get(oid);
+        getRequest.onsuccess = function(e) {
+          var storedBuffer = e.target.result;
+          if(!storedBuffer) {
+            storedBuffer = new Uint8Array();
+          }
+          var bytes = buffer.length;
+          var size = (storedBuffer.length > ofd.pointer + bytes) ? storedBuffer.length : ofd.pointer + bytes;
+          var writeBuffer = new Uint8Array(size);
+          writeBuffer.set(storedBuffer);
+          writeBuffer.set(buffer);
+          ofd.pointer += bytes;
+          var putRequest = fileStore.put(writeBuffer, oid);            
+          putRequest.onsuccess = function(e) {              
+            var readMetadataRequest = metaStore.get(ofd.entry["name"]);
+            readMetadataRequest.onsuccess = function(e) {
+              var entry = e.target.result;
+              entry = makeFileEntry(entry["name"], entry["object-id"], size);
+              ofd.entry = entry;                
+              var writeMetadataRequest = metaStore.put(entry, entry["name"]);
+              writeMetadataRequest.onsuccess = function(e) {
+                end();
+                debug.info("write <--");
+                if(callback && "function" === typeof callback) {              
+                  callback.call(undefined, undefined, size, buffer);
+                }                
+              };
+              writeMetadataRequest.onerror = onerror;
+            }              
+            readMetadataRequest.onerror = onerror;              
+          };
+          putRequest.onerror = onerror;
+        };
+        getRequest.onerror = onerror;
       }
 
       var SW_SET = "SET";
       var SW_CURRENT = "CURRENT";
       var SW_END = "END";
-      function seek(offset, whence, callback) {
-
+      function seek(offset, whence) {
+        whence = whence || SW_CURRENT;
+        if(SW_SET === whence) {
+          ofd.pointer = offset;
+        } else if(SW_CURRENT === whence) {
+          ofd.pointer += offset;
+        } else if(SW_END === whence) {
+          ofd.pointer = ofd.entry["size"] + offset;
+        }
       }
 
       this.read = read;
