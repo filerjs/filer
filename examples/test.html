@@ -26,24 +26,26 @@ require(["src/filesystem"], function(IDBFS) {
           if(!error) {
             console.log("bytes written:", bytes_written);
           }
-          fd.seek(-bytes_written);
-          var readBuffer = new Uint8Array(8);
-          fd.read(readBuffer, function(error, bytes_read, buffer) {
-            if(!error) {
-              console.log("bytes read:", bytes_read);
-              console.log("buffer:", buffer);
-            }
-            fs.close(fd, function(error) {
-              fs.unlink("/tmp/0", function(error) {
-                fs.dump(document.getElementById("stdout"));
+          fs.dump(document.getElementById("stdout"), function() {            
+            var readBuffer = new Uint8Array(8);
+            fd.seek(-bytes_written);
+            fd.read(readBuffer, function(error, bytes_read, buffer) {
+              if(!error) {
+                console.log("bytes read:", bytes_read);
+                console.log("buffer:", buffer);
+              }
+              fs.close(fd, function(error) {
+                fs.unlink("/tmp/0", function(error) {
+                  fs.dump(document.getElementById("stdout"));
+                });
               });
             });
-          });
+          }, true);          
         });
         
       });
     });
-  }, true);
+  }, IDBFS.FORMAT);
 
 });
 </script>

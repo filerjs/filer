@@ -486,11 +486,13 @@ define(function(require) {
     this.api = api;
 
     // DEBUG
-    function dump(element) {
-      element.innerHTML = "Metadata://<br>";
-      var transaction = db.transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RO);
-      var metaStore = transaction.objectStore(METADATA_STORE_NAME);
-      var fileStore = transaction.objectStore(FILE_STORE_NAME);
+    function dump(element, callback, clear) {
+      if(clear) {
+        element.innerHTML = "";
+      }
+      element.innerHTML += "Metadata://<br>";
+      var transaction = db.transaction([METADATA_STORE_NAME], IDB_RO);
+      var metaStore = transaction.objectStore(METADATA_STORE_NAME);      
       var metaRequest = metaStore.openCursor();
       metaRequest.onsuccess = function(e) {
         var metaCursor = e.target.result;
@@ -499,12 +501,19 @@ define(function(require) {
           metaCursor.continue();        
         } else {
           element.innerHTML += "Files://<br>"
-          fileRequest = fileStore.openCursor();
+          transaction = db.transaction([FILE_STORE_NAME], IDB_RO);
+          var fileStore = transaction.objectStore(FILE_STORE_NAME);          
+          var fileRequest = fileStore.openCursor();
           fileRequest.onsuccess = function(e) {
             var fileCursor = e.target.result;
             if(fileCursor) {
               element.innerHTML += JSON.stringify(fileCursor.key) + "<br>";            
               fileCursor.continue(); 
+            } else {
+              element.innerHTML += "-----------------<br>";
+              if(callback && "function" === typeof callback) {              
+                callback.call();
+              }
             }
           }
         }
@@ -515,7 +524,7 @@ define(function(require) {
 
   function mount(name, callback, optFormat) {
     debug.info("mount -->");
-    optFormat = (undefined === optFormat) ? false : optFormat;
+    optFormat = (IDBFS.FORMAT === optFormat) ? true : false;
     var onerror = genericIDBErrorHandler("mount", callback);
     var openRequest = indexedDB.open(name);
     openRequest.onupgradeneeded = function(e) {
@@ -574,7 +583,9 @@ define(function(require) {
   var IDBFS = {
     mount: mount,
     umount: undefined,
-    path: path
+    path: path,
+
+    FORMAT: "IDBFS_FORMAT"
   };
 
   return IDBFS;
