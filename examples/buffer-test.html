@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8" />
+</head>
+<body>
+  <div id="stdout"></div>
+</body>
+<script src="../lib/require.js"></script>
+<script>
+require.config({
+  baseUrl: "../lib",
+  paths: {
+    "src": "../src"
+  }
+});
+
+require(["src/buffer"], function(Buffer) {
+
+try {
+  var string1 = "\u00BD + \u00BC";
+  var string2 = " = \u00BE";
+  var buffer1 = new Buffer(string1);
+  var buffer2 = new Buffer(string2);
+  console.log(buffer1.toString(), ";", buffer2.toString());
+  console.log(Buffer.concat([buffer1, buffer2]).toString());
+} catch(e) {
+  console.log(e);
+}
+
+});
+</script>
+</html>

@@ -107,8 +107,13 @@ define(function(require) {
   function genericErrorHandler(callback) {
     return function(transaction, error) {
       debug.error("error: ", error);
-      if(transaction) {
-        transaction.abort();
+      if(transaction && !transaction.error) {
+        try {
+          transaction.abort();
+        } catch(e) {
+          // Transaction has is already completed or aborted, this is probably a programming error
+          debug.warn("attempt to abort and already completed or aborted transaction");
+        }
       }
       if(callback && "function" === typeof callback) {
         callback.call(undefined, error);

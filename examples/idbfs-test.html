@@ -15,7 +15,7 @@ require.config({
   }
 });
 
-require(["src/filesystem"], function(IDBFS) {
+require(["src/filesystem", "src/buffer"], function(IDBFS, Buffer) {
 
   IDBFS.mount("default", function(error, fs) {
     fs.mkdir("/tmp", function(error) {
