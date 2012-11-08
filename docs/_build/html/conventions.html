@@ -1,0 +1,130 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Conventions &mdash; MathJS 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="MathJS 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Types" href="types.html" />
+    <link rel="prev" title="MathJS documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="types.html" title="Types"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="MathJS documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MathJS 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="conventions">
+<h1>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="angles">
+<h2>Angles<a class="headerlink" href="#angles" title="Permalink to this headline">¶</a></h2>
+<p>Angles in MathJS are assumed to be in radians. If you are working in degrees, you will need to convert angles to radians before passing them into MathJS functions.</p>
+</div>
+<div class="section" id="results">
+<h2>Results<a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h2>
+<p>A function will have an optional <tt class="docutils literal"><span class="pre">result</span></tt> parameter if it expects to return a matrix. If you supply a matrix, the result will be stored there as well as being returned by the function. You will need to make sure that the matrix you supply is the correct size and dimension to accomodate the expected result.</p>
+<p>If you do not supply a matrix for the <tt class="docutils literal"><span class="pre">result</span></tt> parameter, a new matrix will be created and returned.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Conventions</a><ul>
+<li><a class="reference internal" href="#angles">Angles</a></li>
+<li><a class="reference internal" href="#results">Results</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">MathJS documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="types.html"
+                        title="next chapter">Types</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/conventions.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="types.html" title="Types"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="MathJS documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">MathJS 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Mozilla Foundation.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

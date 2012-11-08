@@ -19,7 +19,6 @@ define(function(require) {
   var path = require("src/path");
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-  var BlobBuilder = window.BlobBuilder || window.MozBlobBuilder || window.WebKitBlobBuilder;
 
   function guid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -50,6 +49,50 @@ define(function(require) {
     }
   }
 
+  function Data(handle, bytes) {
+    return {
+      handle: handle || guid(),
+      bytes: bytes || undefined
+    }
+  }
+
+  function File(handle, size, atime, ctime, mtime, nlinks, type, flags, data, xattrs) {
+    var now = Date.now();
+    return {
+      handle: handle || guid(),
+      size: size || 0,
+      atime: atime || now,
+      ctime: ctime || now,
+      mtime: mtime || now,
+      type: type || "application/octet-stream",
+      flags: flags || "",      
+      xattrs: xattrs || {},
+      data: data || guid()
+    }
+  }
+
+  function FileEntry(fullpath, file) {
+    return {
+      name: fullpath,
+      parent: path.dirname(fullpath),
+      file: file,
+      type: "application/file"
+    }
+  }
+
+  function DirectoryEntry(fullpath, atime, ctime, mtime, xattrs) {
+    var now = Date.now();
+    return {
+      name: fullpath,
+      parent: path.dirname(fullpath),
+      atime: atime || now,
+      ctime: ctime || now,
+      mtime: mtime || now,
+      xattrs: xattrs || {},
+      type: "application/directory"
+    }
+  }
+
   var METADATA_STORE_NAME = "metadata";
   var FILE_STORE_NAME = "files";  
   var NAME_INDEX = "name";
@@ -64,45 +107,7 @@ define(function(require) {
   var IDB_RO = "readonly";
   var IDB_RW = "readwrite";
 
-  function PathExistsError(){ Error.apply(this, arguments); }
-  PathExistsError.prototype = new Error();
-  PathExistsError.prototype.name = "PathExistsError";
-  PathExistsError.prototype.constructor = PathExistsError;
-
-  function IsDirectoryError(){ Error.apply(this, arguments); }
-  IsDirectoryError.prototype = new Error();
-  IsDirectoryError.prototype.name = "IsDirectoryError";
-  IsDirectoryError.prototype.constructor = IsDirectoryError;
-
-  function NoEntryError(){ Error.apply(this, arguments); }
-  NoEntryError.prototype = new Error();
-  NoEntryError.prototype.name = "NoEntryError";
-  NoEntryError.prototype.constructor = NoEntryError;
-
-  function BusyError(){ Error.apply(this, arguments); }
-  BusyError.prototype = new Error();
-  BusyError.prototype.name = "BusyError";
-  BusyError.prototype.constructor = BusyError;
-
-  function NotEmptyError(){ Error.apply(this, arguments); }
-  NotEmptyError.prototype = new Error();
-  NotEmptyError.prototype.name = "NotEmptyError";
-  NotEmptyError.prototype.constructor = NotEmptyError;
-
-  function NotDirectoryError(){ Error.apply(this, arguments); }
-  NotDirectoryError.prototype = new Error();
-  NotDirectoryError.prototype.name = "NotADirectoryError";
-  NotDirectoryError.prototype.constructor = NotDirectoryError;
-
-  function BadFileDescriptorError(){ Error.apply(this, arguments); }
-  BadFileDescriptorError.prototype = new Error();
-  BadFileDescriptorError.prototype.name = "BadFileDescriptorError";
-  BadFileDescriptorError.prototype.constructor = BadFileDescriptorError;
-
-  function NotImplementedError(){ Error.apply(this, arguments); }
-  NotImplementedError.prototype = new Error();
-  NotImplementedError.prototype.name = "NotImplementedError";
-  NotImplementedError.prototype.constructor = NotImplementedError;
+  
 
   function genericErrorHandler(callback) {
     return function(transaction, error) {
@@ -154,6 +159,7 @@ define(function(require) {
         if(!ofd.valid && !ofd.pending) {
           if(ofd.oncomplete && "function" === typeof ofd.oncomplete) {
             debug.info("close <--");
+            delete fds[descriptor];
             ofd.oncomplete.call();
           }
         }
@@ -293,12 +299,13 @@ define(function(require) {
     // Modes
     var OM_RO = "RO";
     var OM_RW = "RW";
-    function open(pathname, flags, mode, callback) {
+    function open(fullpath, flags, mode, callback) {
       debug.info("open -->");      
-      pathname = path.normalize(pathname);
+      fullpath = path.normalize(fullpath);
       transaction = db.transaction([METADATA_STORE_NAME], IDB_RW);
-      var store = transaction.objectStore(METADATA_STORE_NAME);
-      var nameIndex = store.index(NAME_INDEX);
+      var metaStore = transaction.objectStore(METADATA_STORE_NAME);
+      var fileStore = transaction.objectStore(FILE_STORE_NAME);
+      var nameIndex = metaStore.index(NAME_INDEX);
       var onerror = genericErrorHandler(callback);
 
       if(undefined === flags) {
@@ -307,30 +314,41 @@ define(function(require) {
         flags = [flags];
       }
 
-      var getRequest = nameIndex.get(pathname);
+      var getRequest = nameIndex.get(fullpath);
       getRequest.onsuccess = function(e) {
         var entry = e.target.result;
+        var file;
         if(!entry) {
           if(!_(flags).contains(OF_CREATE)) {
             onerror(transaction, new NoEntryError());
             return;
-          } else {
-            entry = makeFileEntry(pathname);
-            var createRequest = store.put(entry, pathname);
-            createRequest.onsuccess = complete;
-            createRequest.onerror = onerror.bind(null, transaction);
+          } else {            
+            file = new File();
+            entry = new FileEntry(fullpath, file.handle);
+            var createFileRequest = fileStore.put(file, file.handle);
+            createFileRequest.onsuccess = function(e) {
+              var createEntryRequest = fileStore.put(entry, fullpath);
+              createEntryRequest.onsuccess = complete;
+              createEntryRequest.onerror = onerror.bind(null, transaction);
+            };
+            createFileRequest.onerror = onerror.bind(null, transaction);            
           }
         } else {
-          if(entry["contenttype"] === MIME_DIRECTORY && mode === OM_RW) {
+          if(entry["type"] === MIME_DIRECTORY && mode === OM_RW) {
             onerror(transaction, new IsDirectoryError());
             return;
           } else {
-            complete();
+            var getFileRequest = fileStore.get(entry.file);
+            getFileRequest.onsuccess = function(e) {
+              file = e.target.result;
+              complete();
+            };
+            getFileRequest.onerror = onerror.bind(null, transaction);
           }
         }
         function complete() {
           var ofd;
-          ofd = new OpenFileDescription(pathname, entry, flags, mode);
+          ofd = new OpenFileDescription(fullpath, file, flags, mode);
           var fd = new FileDescriptor(ofd);
           debug.info("open <--");
           if(callback && "function" === typeof callback) {              
@@ -358,22 +376,22 @@ define(function(require) {
       }
     }
 
-    function mkdir(transaction, pathname, callback) {      
+    function mkdir(transaction, fullpath, callback) {      
       debug.info("mkdir -->");
-      pathname = path.normalize(pathname);
+      fullpath = path.normalize(fullpath);
       transaction = transaction || db.transaction([METADATA_STORE_NAME], IDB_RW);
       var store = transaction.objectStore(METADATA_STORE_NAME);
       var nameIndex = store.index(NAME_INDEX);
       var onerror = genericErrorHandler(callback);
 
-      var getRequest = nameIndex.get(pathname);
+      var getRequest = nameIndex.get(fullpath);
       getRequest.onsuccess = function(e) {
         var result = e.target.result;
         if(result) {
           onerror(null, new PathExistsError());
         } else {
-          var entry = makeDirectoryEntry(pathname, Date.now());
-          var directoryRequest = store.put(entry, pathname);
+          var entry = new DirectoryEntry(fullpath);
+          var directoryRequest = store.put(entry, fullpath);
           directoryRequest.onsuccess = function(e) {
             debug.info("mkdir <--");
             if(callback && "function" === typeof callback) {              
@@ -386,30 +404,30 @@ define(function(require) {
       getRequest.onerror = onerror.bind(null, transaction);
     }
 
-    function rmdir(pathname, callback) {
+    function rmdir(fullpath, callback) {
       debug.info("rmdir -->");
-      pathname = path.normalize(pathname);
+      fullpath = path.normalize(fullpath);
       transaction = db.transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
       var metaStore = transaction.objectStore(METADATA_STORE_NAME);
       var nameIndex = metaStore.index(NAME_INDEX);
       var parentIndex = metaStore.index(PARENT_INDEX);
       var onerror = genericErrorHandler(callback);
 
-      var getRequest = nameIndex.get(pathname);
+      var getRequest = nameIndex.get(fullpath);
       getRequest.onsuccess = function(e) {
         var result = e.target.result;
         if(!result) {
           onerror(transaction, new NoEntryError());
           return;
         } else {
-          var contentRequest = parentIndex.get(pathname);
+          var contentRequest = parentIndex.get(fullpath);
           contentRequest.onsuccess = function(e) {
             var result = e.target.result;
             if(result) {
-              onerror(transaction, new NotEntry());
+              onerror(transaction, new NotEmptyError());
               return;
             } else {
-              var removeRequest = metaStore.delete(pathname);
+              var removeRequest = metaStore.delete(fullpath);
               removeRequest.onsuccess = function(e) {
                 debug.info("rmdir <--");
                 if(callback && "function" === typeof callback) {              
@@ -425,15 +443,15 @@ define(function(require) {
       getRequest.onerror = onerror.bind(null, transaction);
     }
 
-    function stat(transaction, pathname, callback) {
+    function stat(transaction, fullpath, callback) {
       debug.info("stat -->");
-      pathname = path.normalize(pathname);
+      fullpath = path.normalize(fullpath);
       transaction = transaction || db.transaction([METADATA_STORE_NAME], IDB_RO);
       var store = transaction.objectStore(METADATA_STORE_NAME);
       var nameIndex = store.index(NAME_INDEX);
       var onerror = genericErrorHandler(callback);
 
-      var getRequest = nameIndex.get(pathname);
+      var getRequest = nameIndex.get(fullpath);
       getRequest.onsuccess = function(e) {        
         var result = e.target.result;
         if(!result) {
@@ -547,16 +565,14 @@ define(function(require) {
     this.dump = dump;
   }
 
-  function mount(name, callback, optFormat) {
+  function mount(name, flags, callback) {
     debug.info("mount -->");
-    optFormat = (IDBFS.FORMAT === optFormat) ? true : false;
+    indexedDB.deleteDatabase(name);
+    var format = _(flags).contains("FORMAT");
     var onerror = genericErrorHandler(callback);
     var openRequest = indexedDB.open(name);
     openRequest.onupgradeneeded = function(e) {
       var db = e.target.result;
-      if(db.objectStoreNames.contains(METADATA_STORE_NAME)) {
-        db.deleteObjectStore(METADATA_STORE_NAME);
-      }
       if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
         db.deleteObjectStore(FILE_STORE_NAME);
       }
@@ -566,13 +582,13 @@ define(function(require) {
       metadata.createIndex(OBJECT_ID_INDEX, OBJECT_ID_INDEX_KEY_PATH, {unique: false});
       var files = db.createObjectStore(FILE_STORE_NAME);
 
-      optFormat = true;
+      format = true;
     };
     openRequest.onsuccess = function(e) {
       var db = e.target.result;
       var fs = new FileSystem(db);
 
-      if(optFormat) {
+      if(format) {
         var transaction = db.transaction([METADATA_STORE_NAME], IDB_RW);
         var store = transaction.objectStore(METADATA_STORE_NAME);
         debug.info("format -->");
@@ -608,9 +624,7 @@ define(function(require) {
   var IDBFS = {
     mount: mount,
     umount: undefined,
-    path: path,
-
-    FORMAT: "IDBFS_FORMAT"
+    path: path
   };
 
   return IDBFS;
