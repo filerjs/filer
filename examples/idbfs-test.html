@@ -23,6 +23,17 @@ require(["src/fs"], function(IDBFS) {
       return;
     }
     fs.mkdir("/tmp", function() {
+      if(error) {
+        console.error(error);
+        return;
+      }
+      fs.stat("/tmp", function(error, result) {
+        if(error) {
+          console.error(error);
+          return;
+        }
+        console.info(result);
+      });
     });
   });
 
