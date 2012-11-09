@@ -113,10 +113,15 @@ define(function(require) {
     return f;
   };
 
+  function isAbsolute(path) {
+    return path.charAt(0) === '/';
+  }
+
   return {
     normalize: normalize,
     dirname: dirname,
-    basename: basename
+    basename: basename,
+    isAbsolute: isAbsolute
   }
 
 });

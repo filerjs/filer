@@ -16,7 +16,7 @@ define(function(require) {
 
   var when = require("when");
   var _ = require("lodash");
-  var path = require("src/path");
+  var Path = require("src/path");
   var guid = require("src/guid");
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
@@ -74,7 +74,7 @@ define(function(require) {
   function FileEntry(fullpath, file) {
     return {
       name: fullpath,
-      parent: path.dirname(fullpath),
+      parent: Path.dirname(fullpath),
       file: file,
       type: FILE_ENTRY_MIME_TYPE
     }
@@ -85,7 +85,7 @@ define(function(require) {
     var now = Date.now();
     return {
       name: fullpath,
-      parent: path.dirname(fullpath),
+      parent: Path.dirname(fullpath),
       atime: atime || now,
       ctime: ctime || now,
       mtime: mtime || now,
@@ -95,50 +95,108 @@ define(function(require) {
   }
 
   function FileSystem(db) {
-    this._db = db;
-    this._deferred = when.defer();
-    this._deferred.resolve();
+    this._db = db;    
     this._pending = 0;
     this._mounted = true;
+    this._descriptors = {};
+
+    this._deferred = when.defer();
+    this._deferred.resolve();
 
     this.Context = FileSystemContext.bind(undefined, this);
   }
   FileSystem.prototype._request = function _request(transaction) {
     var fs = this;
-    if(!fs._pending) {
+    if(0 === fs._pending) {
       fs._deferred = when.defer();
     }
     ++ fs._pending;
     transaction.oncomplete = function(e) {
       -- fs._pending;
-      if(!fs._pending) {
+      if(0 === fs._pending) {
         fs._deferred.resolve();
       }
     }
   };
-  FileSystem.prototype.open = function open(path, flags, mode, callback) {
+  var OF_CREATE = "CREATE";
+  var OF_APPEND = "APPEND";
+  var OF_TRUNCATE = "TRUNCATE";
+  var OM_RO = "RO";
+  var OM_RW = "RW";
+  FileSystem.prototype.open = function open(fullpath, flags, mode, callback, optTransaction) {
+    var fs = this;
+    fullpath = Path.normalize(fullpath);
 
+    var transaction = optTransaction || fs._db.transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+
+    var metadata = transaction.objectStore(METADATA_STORE_NAME);
+    var files = transaction.objectStore(FILE_STORE_NAME);
+
+    flags = parseFlags(flags);
+    mode = mode.toUpperCase();
+
+    var getEntryRequest = metadata.get(fullpath);
+    getEntryRequest.onsuccess = function(e) {
+      var entry = e.target.result;
+      var file;
+      if(!entry) {
+        if(_(flags).contains(OF_CREATE)) {
+          file = new File();
+          entry = new FileEntry(fullpath, file.handle);
+          var createFileRequest = files.put(file, file.handle);
+          createFileRequest.onsuccess = function(e) {
+            var createEntryRequest = metadata.put(entry, entry.name);
+            createEntryRequest.onsuccess = function(e) {              
+              _createFileDescriptor(file.handle, flags, mode);
+            };
+            createEntryRequest.onerror = function(e) {
+              runCallback(callback, e);
+            };
+          };
+          createFileRequest.onerror = function(e) {
+            runCallback(callback, e);
+          };
+        }
+      } else {
+        if(OM_RW === mode && DIRECTORY_ENTRY_MIME_TYPE === entry.type) {
+          runCallback(callback, new error.EIsDirectory());
+        }
+        _createFileDescriptor();
+      }
+    };
+    getEntryRequest.onerror = function(e) {
+      runCallback(callback, e);
+    };
+    function _createFileDescriptor(handle, flags, mode) {
+      var openFile = new OpenFile(handle, flags, mode);
+      var descriptor = new FileDescriptor(openFile);
+      fs._descriptors[descriptor] = openFile;
+      runCallback(callback, null, descriptor);
+    }
   };
   FileSystem.prototype.close = function close(descriptor, callback) {
-
+    var fs = this;
+    var openFile = fs._descriptors[descriptor];
+    openFile.valid = false;
+    openFile._deferred.then(callback);
   };
   FileSystem.prototype.mkdir = function mkdir(fullpath, callback, optTransaction) {
     var fs = this;
-    fullpath = path.normalize(fullpath);
+    fullpath = Path.normalize(fullpath);
 
     var transaction = optTransaction || fs._db.transaction([METADATA_STORE_NAME], IDB_RW);
     this._request(transaction);
 
-    var metaStore = transaction.objectStore(METADATA_STORE_NAME);
+    var metadata = transaction.objectStore(METADATA_STORE_NAME);
 
-    var getRequest = metaStore.get(fullpath);
-    getRequest.onsuccess = function(e) {      
+    var getEntryRequest = metadata.get(fullpath);
+    getEntryRequest.onsuccess = function(e) {      
       var getResult = e.target.result;
       if(getResult) {
         handleError(transaction, new error.EPathExists());
       } else {
         var entry = new DirectoryEntry(fullpath);
-        var putRequest = metaStore.put(entry, fullpath);
+        var putRequest = metadata.put(entry, fullpath);
         putRequest.onsuccess = function(e) {          
           runCallback(callback);
         };
@@ -147,21 +205,21 @@ define(function(require) {
         };
       }
     };
-    getRequest.onerror = function(e) {
+    getEntryRequest.onerror = function(e) {
       runCallback(callback, e);
     }
   };
   FileSystem.prototype.rmdir = function rmdir(fullpath, callback, optTransaction) {
     var fs = this;
-    fullpath = path.normalize(fullpath);
+    fullpath = Path.normalize(fullpath);
 
     var transaction = optTransaction || fs._db.transaction([METADATA_STORE_NAME], IDB_RW);
     this._request(transaction);
 
-    var metaStore = transaction.objectStore(METADATA_STORE_NAME);
-    var parentIndex = metaStore.index(PARENT_INDEX);
+    var metadata = transaction.objectStore(METADATA_STORE_NAME);
+    var parentIndex = metadata.index(PARENT_INDEX);
 
-    var getRequest = metaStore.get(fullpath);
+    var getRequest = metadata.get(fullpath);
     getRequest.onsuccess = function(e) {
       var getResult = e.target.result;
       if(!getResult) {
@@ -173,7 +231,7 @@ define(function(require) {
           if(contentResult) {
             runCallback(callback, new error.ENotEmpty());
           } else {
-            var removeRequest = metaStore.delete(fullpath);
+            var removeRequest = metadata.delete(fullpath);
             removeRequest.onsuccess = function(e) {
               runCallback(callback);
             };
@@ -193,14 +251,14 @@ define(function(require) {
   };
   FileSystem.prototype.stat = function stat(fullpath, callback, optTransaction) {
     var fs = this;
-    fullpath = path.normalize(fullpath);
+    fullpath = Path.normalize(fullpath);
 
     var transaction = optTransaction || fs._db.transaction([METADATA_STORE_NAME], IDB_RW);
     this._request(transaction);
 
-    var metaStore = transaction.objectStore(METADATA_STORE_NAME);
+    var metadata = transaction.objectStore(METADATA_STORE_NAME);
 
-    var getRequest = metaStore.get(fullpath);
+    var getRequest = metadata.get(fullpath);
     getRequest.onsuccess = function(e) {
       var getResult = e.target.result;
       if(!getResult) {
@@ -230,47 +288,68 @@ define(function(require) {
     this._fs = fs;
     this._cwd = optCwd || "/";
   }
-  FileSystemContext.prototype.chdir = function chdir(rpath) {
-
+  FileSystemContext.prototype.chdir = function chdir(path) {
+    if(Path.isAbsolute(path)) {
+      this._cwd = Path.normalize(path);
+    } else {
+      this._cwd = Path.normalize(this._cwd + "/" + path);
+    }
   };
   FileSystemContext.prototype.getcwd = function getcwd() {
     return this._cwd;
   };
-  FileSystemContext.prototype.open = function open(rpath, flags, mode, callback) {
-
+  FileSystemContext.prototype.open = function open(path, flags, mode, callback) {
+    this._fs.open(Path.normalize(this._cwd + "/" + path), flags, mode, callback);
   };
   FileSystemContext.prototype.close = function close(descriptor, callback) {
-
+    this._fs.close(descriptor, callback);
   };
-  FileSystemContext.prototype.mkdir = function mkdir(rpath, callback) {
-    this._fs.mkdir(path.normalize(this._cwd + "/" + rpath), callback);
+  FileSystemContext.prototype.mkdir = function mkdir(path, callback) {
+    this._fs.mkdir(Path.normalize(this._cwd + "/" + path), callback);
   };
-  FileSystemContext.prototype.rmdir = function rmdir(rpath, callback) {
-    this._fs.rmdir(path.normalize(this._cwd + "/" + rpath), callback);
+  FileSystemContext.prototype.rmdir = function rmdir(path, callback) {
+    this._fs.rmdir(Path.normalize(this._cwd + "/" + path), callback);
   };
-  FileSystemContext.prototype.stat = function stat(rpath, callback) {
-    this._fs.stat(path.normalize(this._cwd + "/" + rpath), callback);
+  FileSystemContext.prototype.stat = function stat(path, callback) {
+    this._fs.stat(Path.normalize(this._cwd + "/" + path), callback);
   };
   FileSystemContext.prototype.link = function link(oldpath, newpath, callback) {
 
   };
-  FileSystemContext.prototype.unlink = function unlink(rpath, callback) {
+  FileSystemContext.prototype.unlink = function unlink(path, callback) {
 
   };
-  FileSystemContext.prototype.setxattr = function setxattr(rpath, name, value, callback) {
+  FileSystemContext.prototype.setxattr = function setxattr(path, name, value, callback) {
 
   };
-  FileSystemContext.prototype.getxattr = function getxattr(rpath, name, callback) {
+  FileSystemContext.prototype.getxattr = function getxattr(path, name, callback) {
 
   };
 
   function OpenFile(handle, flags, mode) {
+    this._handle = handle;
     this._pending = 0;
     this._valid = true;
     this._pointer = 0;
     this._flags = flags;
     this._mode = mode;
+
+    this._deferred = when.defer();
+    this._deferred.resolve();
   }
+  OpenFile.prototype._request = function _request(deferred) {
+    var fs = this;
+    if(0 === fs._pending) {
+      fs._deferred = when.defer();
+    }
+    ++ fs._pending;
+    deferred.then(function() {
+      -- fs._pending;
+      if(0 === fs._pending) {
+        fs._deferred.resolve();
+      }
+    })
+  };
 
   function FileDescriptor(openfile, flags) {
     this._openfile = openfile;
@@ -313,9 +392,9 @@ define(function(require) {
 
       if(format) {
         var transaction = db.transaction([METADATA_STORE_NAME], IDB_RW);
-        var metaStore = transaction.objectStore(METADATA_STORE_NAME);
+        var metadata = transaction.objectStore(METADATA_STORE_NAME);
 
-        var clearRequest = metaStore.clear();
+        var clearRequest = metadata.clear();
         clearRequest.onsuccess = function() {
           fs.mkdir("/", function(error) {
             if(error) {

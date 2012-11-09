@@ -19,20 +19,29 @@ require(["src/fs"], function(IDBFS) {
 
   IDBFS.mount("default", "FORMAT", function(error, fs) {
     if(error) {
-      console.error(error);
-      return;
+      return console.error(error);
     }
     fs.mkdir("/tmp", function() {
       if(error) {
-        console.error(error);
-        return;
+        return console.error(error);
       }
       fs.stat("/tmp", function(error, result) {
         if(error) {
-          console.error(error);
-          return;
+          return console.error(error);
         }
         console.info(result);
+        fs.open("/tmp/0", "create", "rw", function(error, fd) {
+          if(error) {
+            return console.error(error);
+          }
+          console.info(fd._openfile._handle);
+          fs.close(fd, function(error) {
+            if(error) {
+              return console.error(error);
+            }
+            console.info("done");
+          });
+        });
       });
     });
   });
