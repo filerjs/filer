@@ -173,7 +173,7 @@ define(function(require) {
           return;
         }
         transaction = db.transaction([FILE_STORE_NAME], IDB_RO);
-        transaction.oncomplete = function(e) {
+        transaction.oncomplete = function(e) 
           end();
         }
         var store = transaction.objectStore(FILE_STORE_NAME);        
@@ -246,7 +246,7 @@ define(function(require) {
             readMetadataRequest.onsuccess = function(e) {
               var entry = e.target.result;
               entry = makeFileEntry(entry["name"], entry["oid"], size);
-              ofd.entry = entry;                
+              ofd.entry = entry;
               var writeMetadataRequest = metaStore.put(entry, entry["name"]);
               writeMetadataRequest.onsuccess = function(e) {
                 debug.info("write <--");

@@ -29,17 +29,38 @@ require(["src/fs"], function(IDBFS) {
         if(error) {
           return console.error(error);
         }
-        console.info(result);
+        console.info("stat /tmp", result);
         fs.open("/tmp/0", "create", "rw", function(error, fd) {
           if(error) {
             return console.error(error);
           }
-          console.info(fd._openfile._handle);
-          fs.close(fd, function(error) {
+          var writeBuffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+          fd.write(writeBuffer, function(error, bytes_written, buffer) {
             if(error) {
               return console.error(error);
             }
-            console.info("done");
+            console.info("bytes written:", bytes_written);
+            var readBuffer = new Uint8Array(8);
+            fd.seek(-bytes_written, "current", function(error) {
+              if(error) {
+                return console.error(error);
+              }
+              fd.read(readBuffer, function(error, bytes_read, buffer) {
+                if(error) {
+                  return console.error(error);
+                }
+                console.info("bytes read:", bytes_read);
+                console.info("buffer:", buffer);                
+                fs.close(fd, function(error) {
+                  fs.stat("/tmp/0", function(error, result) {
+                    if(error) {
+                      return console.error(error);
+                    }
+                    console.info("stat /tmp/0", result);
+                  });
+                });
+              });
+            });            
           });
         });
       });
