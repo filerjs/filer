@@ -57,6 +57,28 @@ require(["src/fs"], function(IDBFS) {
                       return console.error(error);
                     }
                     console.info("stat /tmp/0", result);
+                    fs.link("/tmp/0", "/tmp/1", function(error) {
+                      if(error) {
+                        return console.error(error);
+                      }
+                      fs.stat("/tmp/1", function(error, result) {
+                        if(error) {
+                          return console.error(error);
+                        }
+                        console.info("stat /tmp/1", result);
+                        fs.unlink("/tmp/0", function(error) {
+                          if(error) {
+                            return console.error(error);
+                          }
+                          fs.stat("/tmp/1", function(error, result) {
+                            if(error) {
+                              return console.error(error);
+                            }
+                            console.info("stat /tmp/1", result);
+                          });
+                        });
+                      });
+                    });
                   });
                 });
               });

@@ -59,7 +59,10 @@ define(function(require) {
   ENotMounted.prototype.name = "ENotMounted";
   ENotMounted.prototype.constructor = ENotMounted;
 
-
+  function EFileExists(){ Error.apply(this, arguments); }
+  EFileExists.prototype = new Error();
+  EFileExists.prototype.name = "EFileExists";
+  EFileExists.prototype.constructor = EFileExists;
 
   return {
     EPathExists: EPathExists,
@@ -70,7 +73,8 @@ define(function(require) {
     ENotDirectory: ENotDirectory,
     EBadFileDescriptor: EBadFileDescriptor,
     ENotImplemented: ENotImplemented,
-    ENotMounted: ENotMounted
+    ENotMounted: ENotMounted,
+    EFileExists: EFileExists
   };
 
 });

@@ -166,6 +166,7 @@ define(function(require) {
         if(_(flags).contains(OF_CREATE)) {
           entry = new FileEntry(fullpath);
           file = new File();
+          ++ file.links;
           var createFileRequest = files.put(file, entry.file);
           createFileRequest.onsuccess = function(e) {
             var createEntryRequest = metadata.put(entry, entry.name);
@@ -207,7 +208,7 @@ define(function(require) {
     var fs = this;
     fullpath = Path.normalize(fullpath);
 
-    var transaction = optTransaction || fs.Transaction([METADATA_STORE_NAME], IDB_RW);
+    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME], IDB_RW);
 
     var metadata = transaction.objectStore(METADATA_STORE_NAME);
 
@@ -235,7 +236,7 @@ define(function(require) {
     var fs = this;
     fullpath = Path.normalize(fullpath);
 
-    var transaction = optTransaction || fs.Transaction([METADATA_STORE_NAME], IDB_RW);
+    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME], IDB_RW);
 
     var metadata = transaction.objectStore(METADATA_STORE_NAME);
     var parentIndex = metadata.index(PARENT_INDEX);
@@ -274,7 +275,7 @@ define(function(require) {
     var fs = this;
     fullpath = Path.normalize(fullpath);
 
-    var transaction = optTransaction || fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RO);
+    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RO);
 
     var metadata = transaction.objectStore(METADATA_STORE_NAME);
     var files = transaction.objectStore(FILE_STORE_NAME);
@@ -306,16 +307,118 @@ define(function(require) {
       runCallback(callback, e);
     };
   };
-  FileSystem.prototype.link = function link(oldpath, newpath, callback) {
+  FileSystem.prototype.link = function link(oldpath, newpath, callback, optTransaction) {
+    var fs = this;
+    oldpath = Path.normalize(oldpath);
+    newpath = Path.normalize(newpath);
+
+    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+
+    var metadata = transaction.objectStore(METADATA_STORE_NAME);
+    var files = transaction.objectStore(FILE_STORE_NAME);
+
+    var getOldEntryRequest = metadata.get(oldpath);
+    getOldEntryRequest.onsuccess = function(e) {
+      var oldentry = e.target.result;
+      if(!oldentry) {
+        runCallback(callback, new error.ENoEntry());
+      } else {
+        var getNewEntryRequest = metadata.get(newpath);
+        getNewEntryRequest.onsuccess = function(e) {
+          var newentry = e.target.result;
+          if(newentry) {
+            runCallback(callback, new error.EPathExists());
+          } else {
+            newentry = new FileEntry(newpath, oldentry.file);
+            var putNewEntryRequest = metadata.put(newentry, newentry.name);
+            putNewEntryRequest.onsuccess = function(e) {
+              var getFileRequest = files.get(newentry.file);
+              getFileRequest.onsuccess = function(e) {
+                var file = e.target.result;
+                ++ file.links;
+                var putFileRequest = files.put(file, newentry.file);
+                putFileRequest.onsuccess = function(e) {
+                  runCallback(callback);
+                };
+                putFileRequest.onerror = function(e) {
+                  runCallback(callback, e);
+                };
+              };
+              getFileRequest.onerror = function(e) {
+                runCallback(callback, e);
+              };
+            };
+            putNewEntryRequest.onerror = function(e) {
+              runCallback(callback, e);
+            };
+          }
+        };
+        getNewEntryRequest.onerror = function(e) {
+          runCallback(callback, e);
+        };
+      }
+    };
+    getOldEntryRequest.onerror = function(e) {
+      runCallback(callback, e);
+    }
+  };
+  FileSystem.prototype.unlink = function unlink(fullpath, callback, optTransaction) {
+    var fs = this;
+    fullpath = Path.normalize(fullpath);
+
+    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+
+    var metadata = transaction.objectStore(METADATA_STORE_NAME);
+    var files = transaction.objectStore(FILE_STORE_NAME);
+
+    var getEntryRequest = metadata.get(fullpath);
+    getEntryRequest.onsuccess = function(e) {
+      var entry = e.target.result;
+      if(!entry) {
+        runCallback(callback, new error.ENoEntry());
+      } else if(DIRECTORY_ENTRY_MIME_TYPE === entry.type) {
+        runCallback(callback, new error.EIsDirectory());
+      } else {
+        var deleteEntryRequest = metadata.delete(entry.name);
+        deleteEntryRequest.onsuccess = function(e) {
+          var getFileRequest = files.get(entry.file);
+          getFileRequest.onsuccess = function(e) {
+            var file = e.target.result;
+            -- file.links;
+            if(0 === files.links) {
+              var deleteFileRequest = files.delete(entry.file);
+              deleteFileRequest.onsuccess = complete;
+              deleteFileRequest.onerror = function(e) {
+                runCallback(callback, e);
+              };
+            } else {
+              var putFileRequest = files.put(file, entry.file);
+              putFileRequest.onsuccess = complete;
+              putFileRequest.onerror = function(e) {
+                runCallback(callback, e);
+              };
+            }
+            function complete() {
+              runCallback(callback);
+            }
+          };
+          getFileRequest.onerror = function(e) {
+            runCallback(callback, e);
+          };
+        };
+        deleteEntryRequest.onerror = function(e) {
+          runCallback(callback, e);
+        };        
+      }
+    };
+    getEntryRequest.onerror = function(e) {
+      runCallback(callback, e);
+    };
+  };
+  FileSystem.prototype.setxattr = function setxattr(fullpath, name, value, callback, optTransaction) {
 
   };
-  FileSystem.prototype.unlink = function unlink(fullpath, callback) {
-
-  };
-  FileSystem.prototype.setxattr = function setxattr(fullpath, name, value, callback) {
-
-  };
-  FileSystem.prototype.getxattr = function getxattr(fullpath, name, callback) {
+  FileSystem.prototype.getxattr = function getxattr(fullpath, name, callback, optTransaction) {
 
   };
 
@@ -349,10 +452,10 @@ define(function(require) {
     this._fs.stat(Path.normalize(this._cwd + "/" + path), callback);
   };
   FileSystemContext.prototype.link = function link(oldpath, newpath, callback) {
-
+    this._fs.link(Path.normalize(this._cwd + "/" + oldpath), Path.normalize(this._cwd + "/" + newpath), callback);
   };
   FileSystemContext.prototype.unlink = function unlink(path, callback) {
-
+    this._fs.unlink(Path.normalize(this._cwd + "/" + path), callback);
   };
   FileSystemContext.prototype.setxattr = function setxattr(path, name, value, callback) {
 
