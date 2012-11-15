@@ -416,10 +416,69 @@ define(function(require) {
     };
   };
   FileSystem.prototype.setxattr = function setxattr(fullpath, name, value, callback, optTransaction) {
+    var fs = this;
+    fullpath = Path.normalize(fullpath);
 
+    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+
+    var metadata = transaction.objectStore(METADATA_STORE_NAME);
+    var files = transaction.objectStore(FILE_STORE_NAME);
+
+    var getEntryRequest = metadata.get(fullpath);
+    getEntryRequest.onsuccess = function(e) {
+      var entry = e.target.result;
+      if(!entry) {
+        runCallback(callback, new error.ENoEntry());
+      } else {
+        var getFileRequest = files.get(entry.file);
+        getFileRequest.onsuccess = function(e) {
+          var file = e.target.result;
+          file.xattrs[name] = value;
+          var putFileRequest = files.put(file, entry.file);
+          putFileRequest.onsuccess = function(e) {
+            runCallback(callback);
+          };
+          putFileRequest.onerror = function(e) {
+            runCallback(callback, e);
+          };
+        };
+        getFileRequest.onerror = function(e) {
+          runCallback(callback, e);
+        };
+      }
+    };
+    getEntryRequest.onerror = function(e) {
+      runCallback(callback, e);
+    };
   };
   FileSystem.prototype.getxattr = function getxattr(fullpath, name, callback, optTransaction) {
+    var fs = this;
+    fullpath = Path.normalize(fullpath);
 
+    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RO);
+
+    var metadata = transaction.objectStore(METADATA_STORE_NAME);
+    var files = transaction.objectStore(FILE_STORE_NAME);
+
+    var getEntryRequest = metadata.get(fullpath);
+    getEntryRequest.onsuccess = function(e) {
+      var entry = e.target.result;
+      if(!entry) {
+        runCallback(callback, new error.ENoEntry());
+      } else {
+        var getFileRequest = files.get(entry.file);
+        getFileRequest.onsuccess = function(e) {
+          var file = e.target.result;
+          runCallback(callback, null, file.xattrs[name]);
+        };
+        getFileRequest.onerror = function(e) {
+          runCallback(callback, e);
+        };
+      }
+    };
+    getEntryRequest.onerror = function(e) {
+      runCallback(callback, e);
+    };
   };
 
   function FileSystemContext(fs, optCwd) {
@@ -458,10 +517,10 @@ define(function(require) {
     this._fs.unlink(Path.normalize(this._cwd + "/" + path), callback);
   };
   FileSystemContext.prototype.setxattr = function setxattr(path, name, value, callback) {
-
+    this._fs.setxattr(Path.normalize(this._cwd + "/" + path), name, value, callback);
   };
   FileSystemContext.prototype.getxattr = function getxattr(path, name, callback) {
-
+    this._fs.getxattr(Path.normalize(this._cwd + "/" + path), name, callback);
   };
 
   function OpenFile(fs, entry, flags, mode, size) {
