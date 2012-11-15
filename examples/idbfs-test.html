@@ -17,7 +17,7 @@ require.config({
 
 require(["src/fs"], function(IDBFS) {
 
-  IDBFS.mount("default", "FORMAT", function(error, fs) {
+  IDBFS.mount("default", "format", function(error, fs) {
     if(error) {
       return console.error(error);
     }
