@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8" />
+</head>
+<body>
+  <div id="stdout"></div>
+</body>
+<script src="../lib/require.js"></script>
+<script>
+require.config({
+  baseUrl: "../lib",
+  paths: {
+    "src": "../src"
+  }
+});
+
+require(["src/fs"], function(IDBFS) {
+
+  IDBFS.mount("default", "format", function(error, fs) {
+    if(error) {
+      return console.error(error);
+    }
+    fs.mkdir("/tmp", function(error) {
+      if(error) {
+        return console.error(error);
+      }
+      fs.stat("/tmp", function(error, result) {
+        if(error) {
+          return console.error(error);
+        }
+        console.info("stat /tmp", result);
+        fs.open("/tmp/file-0", "create", "rw", function(error, fd) {
+          if(error) {
+            return console.error(error);
+          }
+          fs.link("/tmp/file-0", "/tmp/file-1", function(error) {
+            if(error) {
+              return console.error(error);
+            }
+            fs.stat("/tmp", function(error, result) {
+              if(error) {
+                return console.error(error);
+              }
+              console.info("stat /tmp", result);
+              fs.open("/tmp", "", "ro", function(error, fd) {
+                if(error) {
+                  return console.error(error);
+                }
+                var dirBuffer = [];
+                fd.readdir(dirBuffer, 4, function(error, count, buffer) {
+                  if(error) {
+                    return console.error(error);
+                  }
+                  console.info(count, buffer);
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+});
+</script>
+</html>
