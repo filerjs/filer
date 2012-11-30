@@ -18,6 +18,7 @@ define(function(require) {
   var _ = require("lodash");
   var Path = require("src/path");
   var guid = require("src/guid");
+  var error = require("src/error");
   require("crypto-js/rollups/sha256"); var Crypto = CryptoJS;
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
@@ -43,10 +44,14 @@ define(function(require) {
     }    
   }
 
-  function runCallback(callback) {
+  function runcallback(callback) {
     if("function" === typeof callback) {
       callback.apply(undefined, Array.prototype.slice.call(arguments, 1));
     }
+  }
+
+  function hash(string) {
+    return Crypto.SHA256(string).toString(Crypto.enc.hex);
   }
 
   function Data(bytes) {
@@ -55,51 +60,39 @@ define(function(require) {
     }
   }
 
-  function File(size, atime, ctime, mtime, nlinks, type, flags, data, xattrs, links) {
+  var FILE_MIME_TYPE = "application/file";
+  var DIRECTORY_MIME_TYPE = "application/directory";
+
+  var BINARY_MIME_TYPE = "application/octet-stream";
+  var JSON_MIME_TYPE = "application/json";
+
+  var DEFAULT_DATA_TYPE = BINARY_MIME_TYPE;
+  function File(mode, data, type, size, version, atime, ctime, mtime, flags, xattrs, links) {
     var now = Date.now();
     return {
       size: size || 0,
       atime: atime || now,
       ctime: ctime || now,
       mtime: mtime || now,
-      type: type || "application/octet-stream",
+      mode: mode || FILE_MIME_TYPE,
       flags: flags || "",      
       xattrs: xattrs || {},
       data: data || Crypto.SHA256(guid()).toString(Crypto.enc.hex),
-      links: links || 0
+      type: type || DEFAULT_DATA_TYPE,
+      links: links || 0,
+      version: version || 0,
+      id: Crypto.SHA256(guid()).toString(Crypto.enc.hex)
     }
   }
 
-  var FILE_ENTRY_MIME_TYPE = "application/file-entry";
-  function FileEntry(fullpath, file, version) {
-    return {
-      name: fullpath,
-      parent: Path.dirname(fullpath),
-      file: file || Crypto.SHA256(guid()).toString(Crypto.enc.hex),
-      type: FILE_ENTRY_MIME_TYPE,
-      version: version || 0
-    }
+  function signature(file) {
+    // Compute file signature based on file id and version
   }
 
-  var DIRECTORY_ENTRY_MIME_TYPE = "application/directory-entry";
-  function DirectoryEntry(fullpath, atime, ctime, mtime, xattrs, version) {
-    var now = Date.now();
-    return {
-      name: fullpath,
-      parent: Path.dirname(fullpath),
-      atime: atime || now,
-      ctime: ctime || now,
-      mtime: mtime || now,
-      xattrs: xattrs || {},
-      type: DIRECTORY_ENTRY_MIME_TYPE,
-      version: version || 0
-    }
-  }
-
-  function Stats(size, handle, atime, ctime, mtime, links) {
+  function Stats(size, data, atime, ctime, mtime, links) {
     return {
       size: size,
-      handle: handle,
+      data: data,
       atime: atime,
       ctime: ctime,
       mtime: mtime,
@@ -150,52 +143,64 @@ define(function(require) {
     var fs = this;
     fullpath = Path.normalize(fullpath);
 
-    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
 
-    var metadata = transaction.objectStore(METADATA_STORE_NAME);
     var files = transaction.objectStore(FILE_STORE_NAME);
 
     flags = parseFlags(flags);
     mode = mode.toUpperCase();
 
-    var getEntryRequest = metadata.get(fullpath);
-    getEntryRequest.onsuccess = function(e) {
-      var entry = e.target.result;
-      var file;
-      if(!entry) {
+    var name = Path.basename(fullpath);
+    var parentpath = Path.dirname(fullpath);
+    var parenthandle = hash(parentpath);
+    var getParentRequest = files.get(parenthandle);
+    getParentRequest.onsuccess = function(e) {
+      var parent = e.target.result;
+      var data = parent.data;
+      var file, filehandle;
+      if(!_(data).has(name)) {
         if(_(flags).contains(OF_CREATE)) {
-          entry = new FileEntry(fullpath);
+          filehandle = data[name] = hash(guid());
           file = new File();
           ++ file.links;
-          var createFileRequest = files.put(file, entry.file);
+          var createFileRequest = files.put(file, data[name]);
           createFileRequest.onsuccess = function(e) {
-            var createEntryRequest = metadata.put(entry, entry.name);
-            createEntryRequest.onsuccess = function(e) {
-              _createFileDescriptor(entry, flags, mode);
+            var updateParentRequest = files.put(parent, parenthandle);
+            updateParentRequest.onsuccess = function(e) {
+              _createFileDescriptor(filehandle, file, flags, mode);
             };
-            createEntryRequest.onerror = function(e) {
-              runCallback(callback, e);
+            updateParentRequest.onerror = function(e) {
+              runcallback(callback, e);
             };
           };
           createFileRequest.onerror = function(e) {
-            runCallback(callback, e);
+            runcallback(callback, e);
           };
         }
       } else {
-        if(OM_RW === mode && DIRECTORY_ENTRY_MIME_TYPE === entry.type) {
-          runCallback(callback, new error.EIsDirectory());
-        }
-        _createFileDescriptor(entry, flags, mode);
+        filehandle = data[name];
+        var getFileRequest = files.get(filehandle);
+        getFileRequest.onsuccess = function(e) {
+          file = e.target.result;
+          if(OM_RW === mode && DIRECTORY_MIME_TYPE === file.mode) {
+            runcallback(callback, new error.EIsDirectory());
+          }
+          _createFileDescriptor(filehandle, file, flags, mode);
+        };
+        getFileRequest.onerror = function(e) {
+          runcallback(callback, e);
+        };
       }
     };
-    getEntryRequest.onerror = function(e) {
-      runCallback(callback, e);
+    getParentRequest.onerror = function(e) {
+      runcallback(callback, e);
     };
-    function _createFileDescriptor(entry, flags, mode) {
-      var openfile = new OpenFile(fs, entry, flags, mode);
+
+    function _createFileDescriptor(handle, file, flags, mode) {
+      var openfile = new OpenFile(fs, handle, file, flags, mode);
       var descriptor = new FileDescriptor(openfile);
       fs._descriptors[descriptor] = openfile;
-      runCallback(callback, null, descriptor);
+      runcallback(callback, null, descriptor);
     }
   };
   FileSystem.prototype.close = function close(descriptor, callback) {
@@ -208,277 +213,268 @@ define(function(require) {
     var fs = this;
     fullpath = Path.normalize(fullpath);
 
-    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME], IDB_RW);
+    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
 
-    var metadata = transaction.objectStore(METADATA_STORE_NAME);
+    var files = transaction.objectStore(FILE_STORE_NAME);
 
-    var getEntryRequest = metadata.get(fullpath);
-    getEntryRequest.onsuccess = function(e) {      
-      var getResult = e.target.result;
-      if(getResult) {
-        handleError(transaction, new error.EPathExists());
+    var directoryhandle = hash(fullpath);
+    var parentpath = Path.dirname(fullpath);
+    var parenthandle = hash(parentpath);
+    var getDirectoryRequest = files.get(directoryhandle);
+    getDirectoryRequest.onsuccess = function(e) {
+      var directory = e.target.result;
+      if(directory) {
+        runcallback(callback, new error.EPathExists());
       } else {
-        var entry = new DirectoryEntry(fullpath);
-        var putRequest = metadata.put(entry, fullpath);
-        putRequest.onsuccess = function(e) {          
-          runCallback(callback);
+        directory = new File(DIRECTORY_MIME_TYPE, {
+          ".": directoryhandle,
+          "..": parenthandle,
+          }, JSON_MIME_TYPE, 2);
+        ++ directory.links;
+        var createDirectoryRequest = files.put(directory, directoryhandle);
+        createDirectoryRequest.onsuccess = function(e) {          
+          var getParentRequest = files.get(parenthandle);
+          getParentRequest.onsuccess = function(e) {
+            var parent = e.target.result;
+            parent.data[Path.basename(fullpath)] = directoryhandle;
+            ++ parent.version;
+            var updateParentRequest = files.put(parent, parenthandle);
+            updateParentRequest.onsuccess = function(e) {
+              runcallback(callback);
+            };
+            updateParentRequest.onerror = function(e) {
+              runcallback(callback, e);
+            };
+          };
+          getParentRequest.onerror = function(e) {
+            runcallback(callback, e);
+          };
         };
-        putRequest.onerror = function(e) {
-          runCallback(callback, e);
+        createDirectoryRequest.onerror = function(e) {
+          runcallback(callback, e);
         };
       }
     };
-    getEntryRequest.onerror = function(e) {
-      runCallback(callback, e);
-    }
+    getDirectoryRequest.onerror = function(e) {
+      runcallback(callback, e);
+    };
   };
   FileSystem.prototype.rmdir = function rmdir(fullpath, callback, optTransaction) {
     var fs = this;
     fullpath = Path.normalize(fullpath);
 
-    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME], IDB_RW);
+    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
 
-    var metadata = transaction.objectStore(METADATA_STORE_NAME);
-    var parentIndex = metadata.index(PARENT_INDEX);
+    var files = transaction.objectStore(FILE_STORE_NAME);
 
-    var getEntryRequest = metadata.get(fullpath);
-    getEntryRequest.onsuccess = function(e) {
-      var entry = e.target.result;
-      if(!entry) {
-        runCallback(callback, new error.ENoEntry());
+    var directoryhandle = hash(fullpath);
+    var getDirectoryRequest = files.get(directoryhandle);
+    getDirectoryRequest.onsuccess = function(e) {
+      var directory = e.target.result;
+      if(!directory) {
+        runcallback(callback, new error.ENoEntry());
       } else {
-        var contentRequest = parentIndex.get(fullpath);
-        contentRequest.onsuccess = function(e) {
-          var contentResult = e.target.result;
-          if(contentResult) {
-            runCallback(callback, new error.ENotEmpty());
-          } else {
-            var removeRequest = metadata.delete(fullpath);
-            removeRequest.onsuccess = function(e) {
-              runCallback(callback);
+        var data = directory.data;
+        if(Object.keys(data).length > 2) {
+          runcallback(callback, new error.ENotEmpty());
+        } else {
+          var removeDirectoryRequest = files.delete(directoryhandle);
+          removeDirectoryRequest.onsuccess = function(e) {
+            var parentpath = Path.dirname(fullpath);
+            var parenthandle = hash(parentpath);
+            var getParentRequest = files.get(parenthandle);
+            getParentRequest.onsuccess = function(e) {
+              var parent = e.target.result;
+              delete parent.data[directoryhandle];
+              ++ parent.version;
+              var updateParentRequest = files.put(parent, parenthandle);
+              updateParentRequest.onsuccess = function(e) {
+                runcallback(callback);
+              };
+              updateParentRequest.onerror = function(e) {
+                runcallback(callback, e);
+              };
             };
-            removeRequest.onerror = function(e) {
-              runCallback(callback, e);
-            }
-          }
-        };
-        contentRequest.onerror = function(e) {
-          runCallback(callback, e);
+            getParentRequest.onerror = function(e) {
+              runcallback(callback, e);
+            };
+          };
+          removeDirectoryRequest.onerror = function(e) {
+            runcallback(callback, e);
+          };
         }
       }
     };
-    getEntryRequest.onerror = function(e) {
-      runCallback(callback, e);
-    }
+    getDirectoryRequest.onerror = function(e) {
+      runcallback(callback, e);
+    };
   };
   FileSystem.prototype.stat = function stat(fullpath, callback, optTransaction) {
     var fs = this;
     fullpath = Path.normalize(fullpath);
 
-    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RO);
+    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RO);
 
-    var metadata = transaction.objectStore(METADATA_STORE_NAME);
     var files = transaction.objectStore(FILE_STORE_NAME);
 
-    var getEntryRequest = metadata.get(fullpath);
-    getEntryRequest.onsuccess = function(e) {
-      var entry = e.target.result;
-      var stats;
-      if(!entry) {
-        runCallback(callback, new error.ENoEntry());
+    var parentpath = Path.dirname(fullpath);
+    var parenthandle = hash(parentpath);
+    var getParentRequest = files.get(parenthandle);    
+    getParentRequest.onsuccess = function(e) {
+      var parent = e.target.result;
+      var data = parent.data;
+      var name = Path.basename(fullpath);
+      if(!_(data).has(name)) {
+        runcallback(callback, new error.ENoEntry());
       } else {
-        if(DIRECTORY_ENTRY_MIME_TYPE === entry.type) {
-          stats = new Stats(undefined, undefined, entry.atime, entry.ctime, entry.mtime, undefined);
-          runCallback(callback, null, stats);
-        } else if(FILE_ENTRY_MIME_TYPE === entry.type) {
-          var getFileRequest = files.get(entry.file);
-          getFileRequest.onsuccess = function(e) {
-            var file = e.target.result;
-            stats = new Stats(file.size, entry.file, file.atime, file.ctime, file.mtime, file.links);
-            runCallback(callback, null, stats);
-          };
-          getFileRequest.onerror = function(e) {
-            runCallback(callback, e);
-          };
-        }
+        var filehandle = data[name];
+        var getFileRequest = files.get(filehandle);
+        getFileRequest.onsuccess = function(e) {
+          var file = e.target.result;
+          var stats = new Stats(file.size, file.data, file.atime, file.ctime, file.mtime, file.links);
+          runcallback(callback, null, stats);
+        };
+        getFileRequest.onerror = function(e) {
+          runcallback(callback, e);
+        };
       }
     };
-    getEntryRequest.onerror = function(e) {
-      runCallback(callback, e);
-    };
+    getParentRequest.onerror = function(e) {
+      runcallback(callback, e);
+    };    
   };
   FileSystem.prototype.link = function link(oldpath, newpath, callback, optTransaction) {
     var fs = this;
     oldpath = Path.normalize(oldpath);
     newpath = Path.normalize(newpath);
+    var oldparentpath = Path.dirname(oldpath);
+    var newparentpath = Path.dirname(newpath);
 
-    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
 
-    var metadata = transaction.objectStore(METADATA_STORE_NAME);
     var files = transaction.objectStore(FILE_STORE_NAME);
 
-    var getOldEntryRequest = metadata.get(oldpath);
-    getOldEntryRequest.onsuccess = function(e) {
-      var oldentry = e.target.result;
-      if(!oldentry) {
-        runCallback(callback, new error.ENoEntry());
+    var oldparenthandle = hash(oldparentpath);
+    var newparenthandle = hash(newparentpath);
+    var getOldParentRequest = files.get(oldparenthandle);
+    getOldParentRequest.onsuccess = function(e) {
+      var oldparent = e.target.result;
+      if(!oldparent) {
+        runcallback(callback, new error.ENoEntry());
       } else {
-        var getNewEntryRequest = metadata.get(newpath);
-        getNewEntryRequest.onsuccess = function(e) {
-          var newentry = e.target.result;
-          if(newentry) {
-            runCallback(callback, new error.EPathExists());
-          } else {
-            newentry = new FileEntry(newpath, oldentry.file);
-            var putNewEntryRequest = metadata.put(newentry, newentry.name);
-            putNewEntryRequest.onsuccess = function(e) {
-              var getFileRequest = files.get(newentry.file);
+        var olddata = oldparent.data;
+        var filehandle = olddata[Path.basename(oldpath)];
+        if(!filehandle) {
+          runcallback(callback, new error.ENoEntry());
+        } else {
+          var getNewParentRequest = files.get(newparenthandle);
+          getNewParentRequest.onsuccess = function(e) {
+            var newparent = e.target.result;
+            if(!newparent) {
+              runcallback(callback, new error.ENoEntry());
+            } else {              
+              var getFileRequest = files.get(filehandle);
               getFileRequest.onsuccess = function(e) {
                 var file = e.target.result;
                 ++ file.links;
-                var putFileRequest = files.put(file, newentry.file);
-                putFileRequest.onsuccess = function(e) {
-                  runCallback(callback);
+                ++ file.version;
+                var updateFileRequest = files.put(file, filehandle);
+                updateFileRequest.onsuccess = function(e) {
+                  var newdata = newparent.data;
+                  var newname = Path.basename(newpath);
+                  if(_(newdata).has(newname)) {
+                    runcallback(callback, new error.EPathExists());
+                  } else {
+                    newdata[newname] = filehandle;
+                    ++ parent.version;                
+                    var updateNewParentRequest = files.put(newparent, newparenthandle);
+                    updateNewParentRequest.onsuccess = function(e) {
+                      runcallback(callback);
+                    };
+                    updateNewParentRequest.onerror = function(e) {
+                      runcallback(callback, e);
+                    };
+                  }
                 };
-                putFileRequest.onerror = function(e) {
-                  runCallback(callback, e);
+                updateFileRequest.onerror = function(e) {
+                  runcallback(callback, e);
                 };
               };
               getFileRequest.onerror = function(e) {
-                runCallback(callback, e);
-              };
-            };
-            putNewEntryRequest.onerror = function(e) {
-              runCallback(callback, e);
-            };
-          }
-        };
-        getNewEntryRequest.onerror = function(e) {
-          runCallback(callback, e);
-        };
+                runcallback(callback, e);
+              };              
+            }
+          };
+          getNewParentRequest.onerror = function(e) {
+            runcallback(callback, e);
+          };
+        }
       }
     };
-    getOldEntryRequest.onerror = function(e) {
-      runCallback(callback, e);
-    }
+    getOldParentRequest.onerror = function(e) {
+      runcallback(callback, e);
+    };
   };
   FileSystem.prototype.unlink = function unlink(fullpath, callback, optTransaction) {
     var fs = this;
     fullpath = Path.normalize(fullpath);
 
-    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
 
-    var metadata = transaction.objectStore(METADATA_STORE_NAME);
     var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var getEntryRequest = metadata.get(fullpath);
-    getEntryRequest.onsuccess = function(e) {
-      var entry = e.target.result;
-      if(!entry) {
-        runCallback(callback, new error.ENoEntry());
-      } else if(DIRECTORY_ENTRY_MIME_TYPE === entry.type) {
-        runCallback(callback, new error.EIsDirectory());
+  
+    var parentpath = Path.dirname(fullpath);
+    var parenthandle = hash(parentpath);
+    var getParentRequest = files.get(parenthandle);
+    getParentRequest.onsuccess = function(e) {
+      var parent = e.target.result;
+      var data = parent.data;
+      var name = Path.basename(fullpath);
+      if(!_(data).has(name)) {
+        runcallback(callback, new error.ENoEntry());
       } else {
-        var deleteEntryRequest = metadata.delete(entry.name);
-        deleteEntryRequest.onsuccess = function(e) {
-          var getFileRequest = files.get(entry.file);
+        var filehandle = data[name];
+        delete data[name];
+        var updateParentRequest = files.put(parent, parenthandle);
+        updateParentRequest.onsuccess = function(e) {
+          var getFileRequest = files.get(filehandle);
           getFileRequest.onsuccess = function(e) {
             var file = e.target.result;
-            -- file.links;
-            if(0 === files.links) {
-              var deleteFileRequest = files.delete(entry.file);
+            -- file.links;            
+            if(0 === file.links) {
+              var deleteFileRequest = files.delete(filehandle);
               deleteFileRequest.onsuccess = complete;
               deleteFileRequest.onerror = function(e) {
-                runCallback(callback, e);
+                runcallback(callback, e);
               };
             } else {
-              var putFileRequest = files.put(file, entry.file);
+              ++ file.version;
+              var putFileRequest = files.put(file, filehandle);
               putFileRequest.onsuccess = complete;
               putFileRequest.onerror = function(e) {
-                runCallback(callback, e);
+                runcallback(callback, e);
               };
             }
             function complete() {
-              runCallback(callback);
+              runcallback(callback);
             }
           };
           getFileRequest.onerror = function(e) {
-            runCallback(callback, e);
+            runcallback(callback, e);
           };
         };
-        deleteEntryRequest.onerror = function(e) {
-          runCallback(callback, e);
-        };        
+        updateParentRequest.onerror = function(e) {
+          runcallback(callback, e);
+        };
       }
     };
-    getEntryRequest.onerror = function(e) {
-      runCallback(callback, e);
+    getParentRequest.onerror = function(e) {
+      runcallback(callback, e);
     };
   };
   FileSystem.prototype.setxattr = function setxattr(fullpath, name, value, callback, optTransaction) {
-    var fs = this;
-    fullpath = Path.normalize(fullpath);
-
-    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
-
-    var metadata = transaction.objectStore(METADATA_STORE_NAME);
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var getEntryRequest = metadata.get(fullpath);
-    getEntryRequest.onsuccess = function(e) {
-      var entry = e.target.result;
-      if(!entry) {
-        runCallback(callback, new error.ENoEntry());
-      } else {
-        var getFileRequest = files.get(entry.file);
-        getFileRequest.onsuccess = function(e) {
-          var file = e.target.result;
-          file.xattrs[name] = value;
-          var putFileRequest = files.put(file, entry.file);
-          putFileRequest.onsuccess = function(e) {
-            runCallback(callback);
-          };
-          putFileRequest.onerror = function(e) {
-            runCallback(callback, e);
-          };
-        };
-        getFileRequest.onerror = function(e) {
-          runCallback(callback, e);
-        };
-      }
-    };
-    getEntryRequest.onerror = function(e) {
-      runCallback(callback, e);
-    };
   };
-  FileSystem.prototype.getxattr = function getxattr(fullpath, name, callback, optTransaction) {
-    var fs = this;
-    fullpath = Path.normalize(fullpath);
-
-    var transaction = optTransaction || new fs.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RO);
-
-    var metadata = transaction.objectStore(METADATA_STORE_NAME);
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var getEntryRequest = metadata.get(fullpath);
-    getEntryRequest.onsuccess = function(e) {
-      var entry = e.target.result;
-      if(!entry) {
-        runCallback(callback, new error.ENoEntry());
-      } else {
-        var getFileRequest = files.get(entry.file);
-        getFileRequest.onsuccess = function(e) {
-          var file = e.target.result;
-          runCallback(callback, null, file.xattrs[name]);
-        };
-        getFileRequest.onerror = function(e) {
-          runCallback(callback, e);
-        };
-      }
-    };
-    getEntryRequest.onerror = function(e) {
-      runCallback(callback, e);
-    };
+  FileSystem.prototype.getxattr = function getxattr(fullpath, name, callback, optTransaction) {    
   };
 
   function FileSystemContext(fs, optCwd) {
@@ -523,7 +519,7 @@ define(function(require) {
     this._fs.getxattr(Path.normalize(this._cwd + "/" + path), name, callback);
   };
 
-  function OpenFile(fs, entry, flags, mode, size) {
+  function OpenFile(fs, handle, file, flags, mode, size) {    
     this._fs = fs;
     this._pending = 0;
     this._valid = true;
@@ -532,7 +528,8 @@ define(function(require) {
     this._mode = mode;
     this._size = size;
 
-    this._entry = entry;  // Cached entry, might require an update
+    this._handle = handle;
+    this._file = file;  // Cached file node, might require an update
 
     this._deferred = when.defer();
     this._deferred.resolve();
@@ -572,17 +569,17 @@ define(function(require) {
         var size = file.size;
         offset += size;
         openfile._position = offset;
-        runCallback(callback, null, offset);
+        runcallback(callback, null, offset);
       };
       getFileRequest.onerror = function(e) {
-        runCallback(callback, e);
+        runcallback(callback, e);
       };
     } else if(SK_CURRENT === origin) {
       openfile._position += offset;
-      runCallback(callback, null, openfile._position);
+      runcallback(callback, null, openfile._position);
     } else if(SK_SET === origin) {
       openfile._position = offset;
-      runCallback(callback, null, offset);
+      runcallback(callback, null, offset);
     }
   };
   OpenFile.prototype.read = function read(buffer, callback, optTransaction) {
@@ -592,13 +589,13 @@ define(function(require) {
 
     var files = transaction.objectStore(FILE_STORE_NAME);
 
-    if(FILE_ENTRY_MIME_TYPE === openfile._entry.type) {
-      var getDataRequest = files.get(Crypto.SHA256(openfile._handle).toString(Crypto.enc.hex));
+    if(FILE_MIME_TYPE === openfile._file.mode) {
+      var getDataRequest = files.get(openfile._file.data);
       getDataRequest.onsuccess = function(e) {        
         var data = e.target.result;
         if(!data) {
           // There's not file data, so return zero bytes read
-          runCallback(callback, null, 0, buffer);
+          runcallback(callback, null, 0, buffer);
         } else {
           // Make sure we won't read past the end of the file
           var bytes = (openfile._position + buffer.length > data.length) ? data.length - openfile._position : buffer.length;
@@ -606,14 +603,14 @@ define(function(require) {
           var dataView = data.subarray(openfile._position, openfile._position + bytes);
           buffer.set(dataView);
           openfile._position += bytes;
-          runCallback(callback, null, bytes, buffer);
+          runcallback(callback, null, bytes, buffer);
         }
       };
       getDataRequest.onerror = function(e) {
-        runCallback(callback, e);
+        runcallback(callback, e);
       }
-    } else if(DIRECTORY_ENTRY_MIME_TYPE === openfile._type) {
-      runCallback(callback, new error.ENotImplemented());
+    } else if(DIRECTORY_MIME_TYPE === openfile._file.mode) {
+      runcallback(callback, new error.ENotImplemented());
     }
   };
   OpenFile.prototype.write = function write(buffer, callback, optTransaction) {
@@ -621,17 +618,15 @@ define(function(require) {
     var fs = openfile._fs;
 
     if(OM_RO === openfile._mode) {
-      runCallback(callback, new error.EBadFileDescriptor());
+      runcallback(callback, new error.EBadFileDescriptor());
       return;
     }
 
-    var transaction = optTransaction || openfile.Transaction([METADATA_STORE_NAME, FILE_STORE_NAME], IDB_RW);
+    var transaction = optTransaction || openfile.Transaction([FILE_STORE_NAME], IDB_RW);
 
-    var metadata = transaction.objectStore(METADATA_STORE_NAME);
     var files = transaction.objectStore(FILE_STORE_NAME);
 
-    var handle = Crypto.SHA256(openfile._handle).toString(Crypto.enc.hex);
-    var getDataRequest = files.get(handle);
+    var getDataRequest = files.get(openfile._file.data);
     getDataRequest.onsuccess = function(e) {
       var data = e.target.result;
       var bytes = buffer.length;
@@ -643,31 +638,31 @@ define(function(require) {
       }
       newData.set(buffer, openfile._position);
       openfile._position += bytes;
-      var putDataRequest = files.put(newData, handle);
+      var putDataRequest = files.put(newData, openfile._file.data);
       putDataRequest.onsuccess = function(e) {
-        var getFileRequest = files.get(openfile._entry.file);
+        var getFileRequest = files.get(openfile._handle);
         getFileRequest.onsuccess = function(e) {
           var file = e.target.result;
           file.size = size;
           file.mtime = Date.now();
-          var putFileRequest = files.put(file, openfile._entry.file);
+          var putFileRequest = files.put(file, openfile._handle);
           putFileRequest.onsuccess = function(e) {
-            runCallback(callback, null, size);
+            runcallback(callback, null, size);
           };
           putFileRequest.onerror = function(e) {
-            runCallback(callback, e);
+            runcallback(callback, e);
           };
         };
         getFileRequest.onerror = function(e) {
-          runCallback(callback, e);
+          runcallback(callback, e);
         };
       };
       putDataRequest.onerror = function(e) {
-        runCallback(callback, e);
+        runcallback(callback, e);
       };
     };
     getDataRequest.onerror = function(e) {
-      runCallback(callback, e);
+      runcallback(callback, e);
     };
   };
 
@@ -697,15 +692,10 @@ define(function(require) {
     openRequest.onupgradeneeded = function(e) {
       var db = e.target.result;
 
-      if(db.objectStoreNames.contains(METADATA_STORE_NAME)) {
-        db.deleteObjectStore(METADATA_STORE_NAME);
-      }
       if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
         db.deleteObjectStore(FILE_STORE_NAME);
       }
-      var metadata = db.createObjectStore(METADATA_STORE_NAME);
       var files = db.createObjectStore(FILE_STORE_NAME);
-      metadata.createIndex(PARENT_INDEX, PARENT_INDEX_KEY_PATH, {unique: false});
 
       format = true;
     };
@@ -715,16 +705,17 @@ define(function(require) {
       var context = new fs.Context();
 
       if(format) {
-        var transaction = db.transaction([METADATA_STORE_NAME], IDB_RW);
-        var metadata = transaction.objectStore(METADATA_STORE_NAME);
+        var transaction = db.transaction([FILE_STORE_NAME], IDB_RW);
 
-        var clearRequest = metadata.clear();
+        var files = transaction.objectStore(FILE_STORE_NAME);
+
+        var clearRequest = files.clear();
         clearRequest.onsuccess = function() {
           fs.mkdir("/", function(error) {
             if(error) {
-              runCallback(callback, error);
+              runcallback(callback, error);
             } else {
-              runCallback(callback, null, context);
+              runcallback(callback, null, context);
             }
           }, transaction);
         };
@@ -732,7 +723,7 @@ define(function(require) {
           console.log(e);
         };
       } else {
-        runCallback(callback, null, context)
+        runcallback(callback, null, context)
       }
     };
     openRequest.onerror = function(e) {

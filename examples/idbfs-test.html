@@ -21,7 +21,7 @@ require(["src/fs"], function(IDBFS) {
     if(error) {
       return console.error(error);
     }
-    fs.mkdir("/tmp", function() {
+    fs.mkdir("/tmp", function(error) {
       if(error) {
         return console.error(error);
       }
