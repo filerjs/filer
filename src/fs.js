@@ -89,10 +89,10 @@ define(function(require) {
     // Compute file signature based on file id and version
   }
 
-  function Stats(size, data, atime, ctime, mtime, links) {
+  function Stats(size, handle, atime, ctime, mtime, links) {
     return {
       size: size,
-      data: data,
+      handle: handle,
       atime: atime,
       ctime: ctime,
       mtime: mtime,
@@ -161,6 +161,8 @@ define(function(require) {
       if(!_(data).has(name)) {
         if(_(flags).contains(OF_CREATE)) {
           filehandle = data[name] = hash(guid());
+          ++ parent.size;
+          ++ parent.version;
           file = new File();
           ++ file.links;
           var createFileRequest = files.put(file, data[name]);
@@ -237,6 +239,7 @@ define(function(require) {
           getParentRequest.onsuccess = function(e) {
             var parent = e.target.result;
             parent.data[Path.basename(fullpath)] = directoryhandle;
+            ++ parent.size;
             ++ parent.version;
             var updateParentRequest = files.put(parent, parenthandle);
             updateParentRequest.onsuccess = function(e) {
@@ -286,6 +289,7 @@ define(function(require) {
             getParentRequest.onsuccess = function(e) {
               var parent = e.target.result;
               delete parent.data[directoryhandle];
+              -- parent.size;
               ++ parent.version;
               var updateParentRequest = files.put(parent, parenthandle);
               updateParentRequest.onsuccess = function(e) {
@@ -331,7 +335,7 @@ define(function(require) {
         var getFileRequest = files.get(filehandle);
         getFileRequest.onsuccess = function(e) {
           var file = e.target.result;
-          var stats = new Stats(file.size, file.data, file.atime, file.ctime, file.mtime, file.links);
+          var stats = new Stats(file.size, filehandle, file.atime, file.ctime, file.mtime, file.links);
           runcallback(callback, null, stats);
         };
         getFileRequest.onerror = function(e) {
@@ -386,7 +390,8 @@ define(function(require) {
                     runcallback(callback, new error.EPathExists());
                   } else {
                     newdata[newname] = filehandle;
-                    ++ parent.version;                
+                    ++ newparent.size;
+                    ++ newparent.version;                
                     var updateNewParentRequest = files.put(newparent, newparenthandle);
                     updateNewParentRequest.onsuccess = function(e) {
                       runcallback(callback);
@@ -435,6 +440,8 @@ define(function(require) {
       } else {
         var filehandle = data[name];
         delete data[name];
+        -- parent.size;
+        ++ parent.version;
         var updateParentRequest = files.put(parent, parenthandle);
         updateParentRequest.onsuccess = function(e) {
           var getFileRequest = files.get(filehandle);
@@ -582,36 +589,64 @@ define(function(require) {
       runcallback(callback, null, offset);
     }
   };
-  OpenFile.prototype.read = function read(buffer, callback, optTransaction) {
+  OpenFile.prototype.read = function read(buffer, callback, optTransaction) {    
     var openfile = this;
     var fs = openfile._fs;
+
+    if(DIRECTORY_MIME_TYPE === openfile._file.mode) {
+      return runcallback(callback, new error.EIsDir());
+    }
+
     var transaction = optTransaction || new openfile.Transaction([FILE_STORE_NAME], IDB_RO);
 
     var files = transaction.objectStore(FILE_STORE_NAME);
 
-    if(FILE_MIME_TYPE === openfile._file.mode) {
-      var getDataRequest = files.get(openfile._file.data);
-      getDataRequest.onsuccess = function(e) {        
-        var data = e.target.result;
-        if(!data) {
-          // There's not file data, so return zero bytes read
-          runcallback(callback, null, 0, buffer);
-        } else {
-          // Make sure we won't read past the end of the file
-          var bytes = (openfile._position + buffer.length > data.length) ? data.length - openfile._position : buffer.length;
-          // Copy the desired region from the file into the buffer
-          var dataView = data.subarray(openfile._position, openfile._position + bytes);
-          buffer.set(dataView);
-          openfile._position += bytes;
-          runcallback(callback, null, bytes, buffer);
-        }
-      };
-      getDataRequest.onerror = function(e) {
-        runcallback(callback, e);
+    var getDataRequest = files.get(openfile._file.data);
+    getDataRequest.onsuccess = function(e) {        
+      var data = e.target.result;
+      if(!data) {
+        // There's not file data, so return zero bytes read
+        runcallback(callback, null, 0, buffer);
+      } else {
+        // Make sure we won't read past the end of the file
+        var bytes = (openfile._position + buffer.length > data.length) ? data.length - openfile._position : buffer.length;
+        // Copy the desired region from the file into the buffer
+        var dataView = data.subarray(openfile._position, openfile._position + bytes);
+        buffer.set(dataView);
+        openfile._position += bytes;
+        runcallback(callback, null, bytes, buffer);
       }
-    } else if(DIRECTORY_MIME_TYPE === openfile._file.mode) {
-      runcallback(callback, new error.ENotImplemented());
+    };
+    getDataRequest.onerror = function(e) {
+      runcallback(callback, e);
     }
+  };
+  OpenFile.prototype.readdir = function readdir(buffer, count, callback, optTransaction) {
+    var openfile = this;
+    var fs = openfile._fs;
+
+    if(!DIRECTORY_MIME_TYPE === openfile._file.mode) {
+      return runcallback(callback, new error.ENotIsDir());
+    }
+
+    var transaction = optTransaction || new openfile.Transaction([FILE_STORE_NAME], IDB_RO);
+
+    var files = transaction.objectStore(FILE_STORE_NAME);
+
+    var getFileRequest = files.get(openfile._handle);
+    getFileRequest.onsuccess = function(e) {
+      var file = e.target.result;
+      var names = _(file.data).keys().sort();
+      count = (openfile._position + count > file.size) ? (file.size - openfile._position) : count;
+      for(var i = openfile._position, l = openfile._position + count; i < l; ++ i) {
+        buffer.push(names[i]);
+      }
+      openfile._position += count;
+      runcallback(callback, null, count, buffer);
+    };
+    getFileRequest.onerror = function(e) {
+      runcallback(callback, e);
+    };
   };
   OpenFile.prototype.write = function write(buffer, callback, optTransaction) {
     var openfile = this;
@@ -678,6 +713,9 @@ define(function(require) {
   };
   FileDescriptor.prototype.read = function read(buffer, callback) {
     this._openfile.read(buffer, callback);
+  };
+  FileDescriptor.prototype.readdir = function readdir(buffer, count, callback) {
+    this._openfile.readdir(buffer, count, callback);
   };
   FileDescriptor.prototype.write = function write(buffer, callback) {
     this._openfile.write(buffer, callback);
