@@ -1,0 +1,97 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8" />
+</head>
+<body>
+  <div id="stdout"></div>
+</body>
+<script src="../lib/require.js"></script>
+<script>
+require.config({
+  baseUrl: "../lib",
+  paths: {
+    "src": "../src"
+  }
+});
+
+function Archive(text) {
+  this.files = [];
+  this.offset = 0;
+  this.offset = this.parseTarChunk(text, this.offset)
+}
+
+Archive.prototype = {
+  parseTarNumber: function parseTarNumber(text) {
+    // if (text.charCodeAt(0) & 0x80 == 1) {
+    // GNU tar 8-byte binary big-endian number
+    // } else {
+      return parseInt(text, 8);
+    // }
+  },
+
+  parseTarHeader: function parseTarHeader(text, offset) {
+    var i = offset || 0;
+    var h = {};
+    h.filename = text.substring(i, i+=100).split("\0", 1)[0];
+    h.mode = text.substring(i, i+=8).split("\0", 1)[0];
+    h.uid = text.substring(i, i+=8).split("\0", 1)[0];
+    h.gid = text.substring(i, i+=8).split("\0", 1)[0];
+    h.length = this.parseTarNumber(text.substring(i, i+=12));
+    h.lastModified = text.substring(i, i+=12).split("\0", 1)[0];
+    h.checkSum = text.substring(i, i+=8).split("\0", 1)[0];
+    h.fileType = text.substring(i, i+=1).split("\0", 1)[0];
+    h.linkName = text.substring(i, i+=100).split("\0", 1)[0];
+    return h;
+  },
+
+  parseTarChunk: function parseTarChunk(text, offset) {
+    while (text.length >= offset + 512) {
+      var header = this.files.length == 0 ? null : this.files[this.files.length-1];
+      if (header && header.data == null) {
+        if (offset + header.length <= text.length) {
+          header.data = text.substring(offset, offset+header.length);
+          offset += 512 * Math.ceil(header.length / 512);
+        } else { // not loaded yet
+          break;
+        }
+      } else {
+        var header = this.parseTarHeader(text, offset);
+        if (header.length > 0 || header.filename != '') {
+          this.files.push(header);
+          offset += 512;
+          header.offset = offset;
+        } else { // empty header, stop processing
+          offset = text.length;
+        }
+      }
+    }
+    return offset;
+  }
+};
+
+require(["src/fs"], function(IDBFS) {
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', './archive.tar', true);
+  // xhr.responseType = 'arraybuffer';
+  xhr.overrideMimeType("text/plain; charset=x-user-defined");
+  xhr.setRequestHeader("Content-Type", "text/plain");
+
+  xhr.onload = function(e) {
+    // var uInt8Array = new Uint8Array(this.response);
+    var archive = new Archive(this.response);
+    archive.files.forEach(function(file) {
+      console.log(file.filename);
+    });
+  };
+
+  xhr.send(null);
+
+  function unpack(archive) {
+
+  }
+
+});
+</script>
+</html>

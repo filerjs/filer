@@ -110,7 +110,7 @@ define(function(require) {
     if (ext && f.substr(-1 * ext.length) === ext) {
       f = f.substr(0, f.length - ext.length);
     }
-    return f;
+    return f === "" ? "/" : f;
   };
 
   function isAbsolute(path) {

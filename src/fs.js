@@ -16,7 +16,7 @@ define(function(require) {
 
   var when = require("when");
   var _ = require("lodash");
-  var Path = require("src/path");
+  var Path = require("src/path");  
   var guid = require("src/guid");
   var error = require("src/error");
   require("crypto-js/rollups/sha256"); var Crypto = CryptoJS;
@@ -158,7 +158,14 @@ define(function(require) {
       var parent = e.target.result;
       var data = parent.data;
       var file, filehandle;
-      if(!_(data).has(name)) {
+      if(name === fullpath) {
+        file = parent;
+        filehandle = parenthandle;
+        if(OM_RW === mode && DIRECTORY_MIME_TYPE === file.mode) {
+          runcallback(callback, new error.EIsDirectory());
+        }
+        _createFileDescriptor(filehandle, file, flags, mode);
+      } else if(!_(data).has(name)) {
         if(_(flags).contains(OF_CREATE)) {
           filehandle = data[name] = hash(guid());
           ++ parent.size;
@@ -234,24 +241,28 @@ define(function(require) {
           }, JSON_MIME_TYPE, 2);
         ++ directory.links;
         var createDirectoryRequest = files.put(directory, directoryhandle);
-        createDirectoryRequest.onsuccess = function(e) {          
-          var getParentRequest = files.get(parenthandle);
-          getParentRequest.onsuccess = function(e) {
-            var parent = e.target.result;
-            parent.data[Path.basename(fullpath)] = directoryhandle;
-            ++ parent.size;
-            ++ parent.version;
-            var updateParentRequest = files.put(parent, parenthandle);
-            updateParentRequest.onsuccess = function(e) {
-              runcallback(callback);
+        createDirectoryRequest.onsuccess = function(e) {
+          if(directoryhandle !== parenthandle) {          
+            var getParentRequest = files.get(parenthandle);
+            getParentRequest.onsuccess = function(e) {
+              var parent = e.target.result;
+              parent.data[Path.basename(fullpath)] = directoryhandle;
+              ++ parent.size;
+              ++ parent.version;
+              var updateParentRequest = files.put(parent, parenthandle);
+              updateParentRequest.onsuccess = function(e) {
+                runcallback(callback);
+              };
+              updateParentRequest.onerror = function(e) {
+                runcallback(callback, e);
+              };
             };
-            updateParentRequest.onerror = function(e) {
+            getParentRequest.onerror = function(e) {
               runcallback(callback, e);
             };
-          };
-          getParentRequest.onerror = function(e) {
-            runcallback(callback, e);
-          };
+          } else {
+            runcallback(callback);
+          }
         };
         createDirectoryRequest.onerror = function(e) {
           runcallback(callback, e);
@@ -323,19 +334,24 @@ define(function(require) {
 
     var parentpath = Path.dirname(fullpath);
     var parenthandle = hash(parentpath);
-    var getParentRequest = files.get(parenthandle);    
+    var getParentRequest = files.get(parenthandle);
+    var stats, file;
     getParentRequest.onsuccess = function(e) {
       var parent = e.target.result;
       var data = parent.data;
       var name = Path.basename(fullpath);
-      if(!_(data).has(name)) {
+      if(name === fullpath) {
+        file = parent;
+        stats = new Stats(file.size, filehandle, file.atime, file.ctime, file.mtime, file.links);
+        runcallback(callback, null, stats);
+      } else if(!_(data).has(name)) {
         runcallback(callback, new error.ENoEntry());
       } else {
         var filehandle = data[name];
         var getFileRequest = files.get(filehandle);
         getFileRequest.onsuccess = function(e) {
           var file = e.target.result;
-          var stats = new Stats(file.size, filehandle, file.atime, file.ctime, file.mtime, file.links);
+          stats = new Stats(file.size, filehandle, file.atime, file.ctime, file.mtime, file.links);
           runcallback(callback, null, stats);
         };
         getFileRequest.onerror = function(e) {
@@ -637,6 +653,7 @@ define(function(require) {
     getFileRequest.onsuccess = function(e) {
       var file = e.target.result;
       var names = _(file.data).keys().sort();
+      count = count || file.size;
       count = (openfile._position + count > file.size) ? (file.size - openfile._position) : count;
       for(var i = openfile._position, l = openfile._position + count; i < l; ++ i) {
         buffer.push(names[i]);
