@@ -342,6 +342,7 @@ define(function(require) {
       var name = Path.basename(fullpath);
       if(name === fullpath) {
         file = parent;
+        filehandle = parenthandle;
         stats = new Stats(file.size, filehandle, file.atime, file.ctime, file.mtime, file.links);
         runcallback(callback, null, stats);
       } else if(!_(data).has(name)) {
