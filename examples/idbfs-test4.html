@@ -6,16 +6,9 @@
 <body>
   <div id="stdout"></div>
 </body>
-<script src="../lib/require.js"></script>
+<script src="../dist/idbfs.min.js"></script>
+<script src="../lib/buffer.js"></script>
 <script>
-require.config({
-  baseUrl: "../lib",
-  paths: {
-    "src": "../src"
-  }
-});
-
-require(["buffer", "src/fs"], function(Buffer, IDBFS) {
 
   var LF_NORMAL = "0",
       LF_LINK = "1",
@@ -82,7 +75,7 @@ require(["buffer", "src/fs"], function(Buffer, IDBFS) {
   xhr.onload = function(e) {
     var buffer = new Uint8Array(this.response);
     var archive = new Archive(buffer);
-    
+
     IDBFS.mount("default", "format", function(error, fs) {
       if(error) {
         return console.error(error);
@@ -128,7 +121,7 @@ require(["buffer", "src/fs"], function(Buffer, IDBFS) {
         } else {
           var file = archive.files[i ++];
           if(LF_DIR == file.fileType) {
-            fs.mkdir(file.filename, createNextFile);            
+            fs.mkdir(file.filename, createNextFile);
           } else {
             fs.open(file.filename, "CREATE", "RW", function(error, fd) {
               if(error) {
@@ -155,6 +148,5 @@ require(["buffer", "src/fs"], function(Buffer, IDBFS) {
 
   }
 
-});
 </script>
 </html>

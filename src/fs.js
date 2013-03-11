@@ -16,7 +16,7 @@ define(function(require) {
 
   var when = require("when");
   var _ = require("lodash");
-  var Path = require("src/path");  
+  var Path = require("src/path");
   var guid = require("src/guid");
   var error = require("src/error");
   require("crypto-js/rollups/sha256"); var Crypto = CryptoJS;
@@ -24,7 +24,7 @@ define(function(require) {
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 
   var METADATA_STORE_NAME = "metadata";
-  var FILE_STORE_NAME = "files";  
+  var FILE_STORE_NAME = "files";
   var PARENT_INDEX = "parent";
   var PARENT_INDEX_KEY_PATH = "parent";
 
@@ -41,7 +41,7 @@ define(function(require) {
         flags[i] = flags[i].trim().toUpperCase();
       }
       return flags;
-    }    
+    }
   }
 
   function runcallback(callback) {
@@ -75,7 +75,7 @@ define(function(require) {
       ctime: ctime || now,
       mtime: mtime || now,
       mode: mode || FILE_MIME_TYPE,
-      flags: flags || "",      
+      flags: flags || "",
       xattrs: xattrs || {},
       data: data || Crypto.SHA256(guid()).toString(Crypto.enc.hex),
       type: type || DEFAULT_DATA_TYPE,
@@ -110,7 +110,7 @@ define(function(require) {
   }
 
   function FileSystem(db) {
-    this._db = db;    
+    this._db = db;
     this._pending = 0;
     this._mounted = true;
     this._descriptors = {};
@@ -242,7 +242,7 @@ define(function(require) {
         ++ directory.links;
         var createDirectoryRequest = files.put(directory, directoryhandle);
         createDirectoryRequest.onsuccess = function(e) {
-          if(directoryhandle !== parenthandle) {          
+          if(directoryhandle !== parenthandle) {
             var getParentRequest = files.get(parenthandle);
             getParentRequest.onsuccess = function(e) {
               var parent = e.target.result;
@@ -362,7 +362,7 @@ define(function(require) {
     };
     getParentRequest.onerror = function(e) {
       runcallback(callback, e);
-    };    
+    };
   };
   FileSystem.prototype.link = function link(oldpath, newpath, callback, optTransaction) {
     var fs = this;
@@ -393,7 +393,7 @@ define(function(require) {
             var newparent = e.target.result;
             if(!newparent) {
               runcallback(callback, new error.ENoEntry());
-            } else {              
+            } else {
               var getFileRequest = files.get(filehandle);
               getFileRequest.onsuccess = function(e) {
                 var file = e.target.result;
@@ -408,7 +408,7 @@ define(function(require) {
                   } else {
                     newdata[newname] = filehandle;
                     ++ newparent.size;
-                    ++ newparent.version;                
+                    ++ newparent.version;
                     var updateNewParentRequest = files.put(newparent, newparenthandle);
                     updateNewParentRequest.onsuccess = function(e) {
                       runcallback(callback);
@@ -424,7 +424,7 @@ define(function(require) {
               };
               getFileRequest.onerror = function(e) {
                 runcallback(callback, e);
-              };              
+              };
             }
           };
           getNewParentRequest.onerror = function(e) {
@@ -444,7 +444,7 @@ define(function(require) {
     var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
 
     var files = transaction.objectStore(FILE_STORE_NAME);
-  
+
     var parentpath = Path.dirname(fullpath);
     var parenthandle = hash(parentpath);
     var getParentRequest = files.get(parenthandle);
@@ -464,7 +464,7 @@ define(function(require) {
           var getFileRequest = files.get(filehandle);
           getFileRequest.onsuccess = function(e) {
             var file = e.target.result;
-            -- file.links;            
+            -- file.links;
             if(0 === file.links) {
               var deleteFileRequest = files.delete(filehandle);
               deleteFileRequest.onsuccess = complete;
@@ -498,7 +498,7 @@ define(function(require) {
   };
   FileSystem.prototype.setxattr = function setxattr(fullpath, name, value, callback, optTransaction) {
   };
-  FileSystem.prototype.getxattr = function getxattr(fullpath, name, callback, optTransaction) {    
+  FileSystem.prototype.getxattr = function getxattr(fullpath, name, callback, optTransaction) {
   };
 
   function FileSystemContext(fs, optCwd) {
@@ -543,7 +543,7 @@ define(function(require) {
     this._fs.getxattr(Path.normalize(this._cwd + "/" + path), name, callback);
   };
 
-  function OpenFile(fs, handle, file, flags, mode, size) {    
+  function OpenFile(fs, handle, file, flags, mode, size) {
     this._fs = fs;
     this._pending = 0;
     this._valid = true;
@@ -606,7 +606,7 @@ define(function(require) {
       runcallback(callback, null, offset);
     }
   };
-  OpenFile.prototype.read = function read(buffer, callback, optTransaction) {    
+  OpenFile.prototype.read = function read(buffer, callback, optTransaction) {
     var openfile = this;
     var fs = openfile._fs;
 
@@ -619,7 +619,7 @@ define(function(require) {
     var files = transaction.objectStore(FILE_STORE_NAME);
 
     var getDataRequest = files.get(openfile._file.data);
-    getDataRequest.onsuccess = function(e) {        
+    getDataRequest.onsuccess = function(e) {
       var data = e.target.result;
       if(!data) {
         // There's not file data, so return zero bytes read
