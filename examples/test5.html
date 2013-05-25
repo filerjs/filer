@@ -1,0 +1,12 @@
+var fs = new FileSystem('packages');
+
+var fd = fs.open('/myfile.txt', fs.RW);
+
+var buffer = new Uint8Array(16);
+
+fd.write(buffer).then(function(nbytes) {
+  fd.seek(-nbytes);
+  return fd.read(buffer);
+}).then(function(nbytes) {
+
+});
