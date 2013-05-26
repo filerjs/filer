@@ -4,6 +4,18 @@ define(function(require) {
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 
+  function Event(idbEvent, target) {
+    this._event = idbEvent;
+    this.type = idbEvent.type;
+    this.timeStamp = idbEvent.timeStamp;
+    this.target = target || idbEvent.target;
+  };
+
+  function Target(idbTarget, result) {
+    this.idbTarget = idbTarget;
+    this.result = result || idbTarget.result;
+  };
+
   /*
    * ObjectStore
    */
@@ -91,7 +103,7 @@ define(function(require) {
   };
   ObjectStore.prototype.index = function index(name) {
     var idbObjectStore = this.idbObjectStore;
-    return idbObjectStore.index.call(idbObjectStore, name);
+    return idbObjectStore.index(name);
   };
   ObjectStore.prototype.openCursor = function openCursor(range, direction) {
     var idbObjectStore = this.idbObjectStore;
@@ -177,14 +189,12 @@ define(function(require) {
 
     var request = indexedDB.open(name);
     request.onupgradeneeded = function(event) {
-      var result = new Database(event.target.result);
-      event.target._result = result;
-      deferred.notify(event);
+      var result = new Event(event, new Target(event.target, new Database(event.target.result)));
+      deferred.notify(result);
     };
     request.onsuccess = function(event) {
-      var result = new Database(event.target.result);
-      event.target._result = result;
-      deferred.resolve(event);
+      var result = new Event(event, new Target(event.target, new Database(event.target.result)));
+      deferred.resolve(result);
     };
     request.onerror = function(event) {
       deferred.reject(event);

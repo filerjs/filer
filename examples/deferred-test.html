@@ -21,7 +21,7 @@ require(["src/indexeddb"], function(idb) {
   var db;
   idb.open('test').then(
     function(event) {
-      db = event.target._result;
+      db = event.target.result;
       var transaction = db.transaction(['FILES'], 'readwrite');
       var files = transaction.objectStore('FILES');
       return files.clear();
@@ -30,7 +30,7 @@ require(["src/indexeddb"], function(idb) {
       console.error('error:', event);
     },
     function(event) {
-      db = event.target._result;
+      db = event.target.result;
       if(db.objectStoreNames().contains('FILES')) {
         db.deleteObjectStore('FILES');
       }
