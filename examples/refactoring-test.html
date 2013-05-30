@@ -31,7 +31,14 @@ function make_tmp_directory() {
   return fs.mkdir('/tmp');
 };
 
-fs.promise.then(make_tmp_directory);
+function remove_tmp_directory() {
+  return fs.rmdir('/tmp');
+};
+
+fs.promise.then(make_tmp_directory)
+          .then(remove_tmp_directory)
+          .then(function() { console.log('done'); })
+          .otherwise(function(error) { console.error(error.message); });
 
 });
 </script>

@@ -81,6 +81,17 @@ define(function(require) {
     };
   };
 
+  function delete_object(objectStore, id, callback) {
+    var deleteRequest = objectStore.delete(id);
+    deleteRequest.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(undefined, result);
+    };
+    deleteRequest.onerror = function(error) {
+      callback(error);
+    };
+  };
+
   // in: file or directory path
   // out: node structure, or error
   function find_node(objectStore, path, callback) {
@@ -132,6 +143,7 @@ define(function(require) {
     }
   };
 
+  // Note: this should only be invoked when formatting a new file system
   function make_root_directory(objectStore, callback) {
     var directoryNode;
     var directoryData;
@@ -221,6 +233,78 @@ define(function(require) {
     find_node(objectStore, path, check_if_directory_exists);
   };
 
+  function remove_directory(objectStore, path, callback) {
+    path = Path.normalize(path);
+    var name = Path.basename(path);
+    var parentPath = Path.dirname(path);
+
+    var directoryNode;
+    var directoryData;
+    var parentDirectoryNode;
+    var parentDirectoryData;
+
+    function check_if_directory_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else if(!result) {
+        callback(new Error('ENOENT'));
+      } else {
+        directoryNode = result;
+        read_object(objectStore, directoryNode.data, check_if_directory_is_empty);
+      }
+    }
+
+    function check_if_directory_is_empty(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = result;
+        if(_(directoryData).size() > 0) {
+          callback(new Error('ENOTEMPTY'));
+        } else {
+          find_node(objectStore, parentPath, read_parent_directory_data);
+        }
+      }
+    };
+
+    function read_parent_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        parentDirectoryNode = result;
+        read_object(objectStore, parentDirectoryNode.data, remove_directory_entry_from_parent_directory_node);
+      }
+    };
+
+    function remove_directory_entry_from_parent_directory_node(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        parentDirectoryData = result;
+        delete parentDirectoryData[name];
+        write_object(objectStore, parentDirectoryData, parentDirectoryNode.data, remove_directory_node);
+      }
+    };
+
+    function remove_directory_node(error) {
+      if(error) {
+        callback(error);
+      } else {
+        delete_object(objectStore, directoryNode.id, remove_directory_data);
+      }
+    };
+
+    function remove_directory_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        delete_object(objectStore, directoryNode.data, callback);
+      }
+    };
+
+    find_node(objectStore, path, check_if_directory_exists);
+  };
+
   /*
    * FileSystem
    */
@@ -298,6 +382,7 @@ define(function(require) {
 
     function check_result(error) {
       if(error) {
+        transaction.abort();
         deferred.reject(error);
       } else {
         deferred.resolve();
@@ -305,10 +390,24 @@ define(function(require) {
     };
 
     make_directory(files, path, check_result);
-    return deferred.promise();
+    return deferred.promise;
   };
   FileSystem.prototype.rmdir = function rmdir(path) {
+    var deferred = when.defer();
+    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
+    var files = transaction.objectStore(FILE_STORE_NAME);
 
+    function check_result(error) {
+      if(error) {
+        transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    };
+
+    remove_directory(files, path, check_result);
+    return deferred.promise;
   };
   FileSystem.prototype.stat = function stat(path) {
 
