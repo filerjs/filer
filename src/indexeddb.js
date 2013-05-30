@@ -17,6 +17,74 @@ define(function(require) {
   };
 
   /*
+   * Cursor
+   */
+
+  function Cursor(idbCursor) {
+    this.idbCursor = idbCursor;
+
+    Object.defineProperty(this, 'source', {
+      get: function() {
+        return idbCursor.source;
+      }
+    });
+
+    Object.defineProperty(this, 'direction', {
+      get: function() {
+        return idbCursor.direction;
+      }
+    });
+
+    Object.defineProperty(this, 'key', {
+      get: function() {
+        return idbCursor.key;
+      }
+    });
+
+    Object.defineProperty(this, 'primaryKey', {
+      get: function() {
+        return idbCursor.primaryKey;
+      }
+    });
+  };
+  Cursor.prototype.update = function update(value) {
+    var idbCursor = this.idbCursor;
+    var deferred = when.defer();
+
+    var request = idbCursor.update(value);
+    request.onsuccess = function(event) {
+      deferred.resolve(event);
+    };
+    request.onerror = function(event) {
+      deferred.reject(event);
+    };
+
+    return deferred.promise;
+  };
+  Cursor.prototype.advance = function advance(count) {
+    var idbCursor = this.idbCursor;
+    return idbCursor.advance(count);
+  };
+  Cursor.prototype.continue = function continue(key) {
+    var idbCursor = this.idbCursor;
+    return idbCursor.continue(key);
+  };
+  Cursor.prototype.delete = function delete() {
+    var idbCursor = this.idbCursor;
+    var deferred = when.defer();
+
+    var request = idbCursor.delete();
+    request.onsuccess = function(event) {
+      deferred.resolve(event);
+    };
+    request.onerror = function(event) {
+      deferred.reject(event);
+    };
+
+    return deferred.promise;
+  };
+
+  /*
    * ObjectStore
    */
 
@@ -27,7 +95,7 @@ define(function(require) {
     var idbObjectStore = this.idbObjectStore;
     var deferred = when.defer();
 
-    var request = idbObjectStore.add.call(idbObjectStore, value, key);
+    var request = idbObjectStore.add(value, key);
     request.onsuccess = function(event) {
       deferred.resolve(event);
     };
@@ -67,7 +135,7 @@ define(function(require) {
   };
   ObjectStore.prototype.createIndex = function createIndex(name, keyPath, optionalParameters) {
     var idbObjectStore = this.idbObjectStore;
-    return idbObjectStore.createIndex.call(idbObjectStore, name, keyPath, optionalParameters);
+    return idbObjectStore.createIndex(name, keyPath, optionalParameters);
   };
   ObjectStore.prototype.delete = function delete(key) {
     var idbObjectStore = this.idbObjectStore;
@@ -85,7 +153,7 @@ define(function(require) {
   };
   ObjectStore.prototype.deleteIndex = function deleteIndex(name) {
     var idbObjectStore = this.idbObjectStore;
-    return idbObjectStore.deleteIndex.call(idbObjectStore, name);
+    return idbObjectStore.deleteIndex(name);
   };
   ObjectStore.prototype.get = function get(key) {
     var idbObjectStore = this.idbObjectStore;
@@ -109,9 +177,15 @@ define(function(require) {
     var idbObjectStore = this.idbObjectStore;
     var deferred = when.defer();
 
-    var request = idbObjectStore.openCursor(range, direction);
+    var request = (!(range || direction)) ? idbObjectStore.openCursor() : idbObjectStore.openCursor(range, direction);
     request.onsuccess = function(event) {
-      deferred.resolve(event);
+      var wrappedEvent = new Event(event);
+      wrappedEvent.result = event.result;
+      if(!event.result) {
+        deferred.resolve(wrappedEvent);
+      } else {
+        deferred.notify(wrappedEvent);
+      }
     };
     request.onerror = function(event) {
       deferred.reject(event);
@@ -156,8 +230,24 @@ define(function(require) {
 
   function Database(idbDatabase) {
     this.idbDatabase = idbDatabase;
-    this.name = idbDatabase.name;
-    this.version = idbDatabase.version;
+
+    Object.defineProperty(this, 'name', {
+      get: function() {
+        return idbDatabase.name;
+      }
+    });
+
+    Object.defineProperty(this, 'version', {
+      get: function() {
+        return idbDatabase.version;
+      }
+    });
+
+    Object.defineProperty(this, 'objectStoreNames', {
+      get: function() {
+        return idbDatabase.objectStoreNames;
+      }
+    });
   };
   Database.prototype.createObjectStore = function createObjectStore(name, optionalParameters) {
     var idbDatabase = this.idbDatabase;
@@ -189,12 +279,12 @@ define(function(require) {
 
     var request = indexedDB.open(name);
     request.onupgradeneeded = function(event) {
-      var result = new Event(event, new Target(event.target, new Database(event.target.result)));
-      deferred.notify(result);
+      var wrappedEvent = new Event(event, new Target(event.target, new Database(event.target.result)));
+      deferred.notify(wrappedEvent);
     };
     request.onsuccess = function(event) {
-      var result = new Event(event, new Target(event.target, new Database(event.target.result)));
-      deferred.resolve(result);
+      var wrappedEvent = new Event(event, new Target(event.target, new Database(event.target.result)));
+      deferred.resolve(wrappedEvent);
     };
     request.onerror = function(event) {
       deferred.reject(event);
@@ -222,7 +312,9 @@ define(function(require) {
 
   return {
     open: open,
-    deleteDatabase: deleteDatabase
+    deleteDatabase: deleteDatabase,
+    KeyRange: indexedDB.KeyRange,
+    when: when,
   };
 
 });

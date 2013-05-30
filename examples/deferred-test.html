@@ -16,45 +16,70 @@ require.config({
   }
 });
 
-require(["src/indexeddb"], function(idb) {
+require(["src/indexeddb2"], function(idb) {
 
-  var db;
-  idb.open('test').then(
+  var opened = idb.open('test').then(
     function(event) {
-      db = event.target.result;
-      var transaction = db.transaction(['FILES'], 'readwrite');
-      var files = transaction.objectStore('FILES');
-      return files.clear();
+      return event.db;
     },
     function(event) {
       console.error('error:', event);
     },
     function(event) {
-      db = event.target.result;
-      if(db.objectStoreNames().contains('FILES')) {
-        db.deleteObjectStore('FILES');
+      if('upgradeneeded' == event.type) {
+        db = event.target.result;
+        if(db.objectStoreNames.contains('FILES')) {
+          db.deleteObjectStore('FILES');
+        }
+        var files = db.createObjectStore('FILES');
       }
-      var files = db.createObjectStore('FILES');
     }
-  ).then(
+  );
+
+  opened.then(
+    function(db) {
+      console.log(db);
+    }
+  );
+
+  /*
+
+  var db = idb.open('test');
+  db.progress(
     function(event) {
-      var transaction = db.transaction(['FILES'], 'readwrite');
+      if('upgradeneeded' == event.type) {
+        db = event.target.result;
+        if(db.objectStoreNames.contains('FILES')) {
+          db.deleteObjectStore('FILES');
+        }
+        var files = db.createObjectStore('FILES');
+      }
+    }
+  );
+  db.otherwise(
+    function(event) {
+      console.error('error:', event);
+    }
+  );
+
+  db.transaction(['FILES'], 'readwrite')(
+    function(transaction) {
       var files = transaction.objectStore('FILES');
-      return files.put('value', 'key');
+      return files.clear();
     }
-  ).then(
-    function(event) {
-      var transaction = db.transaction(['FILES'], 'readwrite');
-      var files = transaction.objectStore('FILES');
-      return files.get('key');
+  ).transaction(['FILES'], 'readonly')(
+    function(transaction) {
+
     }
-  ).then(
-    function(event) {
-      console.info('result', event.target.result);
+  );
+
+  db.transaction(['FILES'], 'readwrite')(
+    function(transaction) {
+
     }
-  ).otherwise(function(event) {
-    console.error('error: ', event);
-  });
+  );
+
+  */
 
 });
 
