@@ -38,7 +38,7 @@ function remove_tmp_directory() {
 fs.promise.then(make_tmp_directory)
           .then(remove_tmp_directory)
           .then(function() { console.log('done'); })
-          .otherwise(function(error) { console.error(error.message); });
+          .otherwise(function(error) { console.error(error.stack); });
 
 });
 </script>

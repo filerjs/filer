@@ -5,8 +5,58 @@ define(function(require) {
   var _ = require('lodash');
   var when = require('when');
   var Path = require('src/path');
-  var guid = require("src/guid");
+  var guid = require('src/guid');
   require("crypto-js/rollups/sha256"); var Crypto = CryptoJS;
+
+  function EPathExists(){ Error.apply(this, arguments); }
+  EPathExists.prototype = new Error();
+  EPathExists.prototype.name = "EPathExists";
+  EPathExists.prototype.constructor = EPathExists;
+
+  function EIsDirectory(){ Error.apply(this, arguments); }
+  EIsDirectory.prototype = new Error();
+  EIsDirectory.prototype.name = "EIsDirectory";
+  EIsDirectory.prototype.constructor = EIsDirectory;
+
+  function ENoEntry(){ Error.apply(this, arguments); }
+  ENoEntry.prototype = new Error();
+  ENoEntry.prototype.name = "ENoEntry";
+  ENoEntry.prototype.constructor = ENoEntry;
+
+  function EBusy(){ Error.apply(this, arguments); }
+  EBusy.prototype = new Error();
+  EBusy.prototype.name = "EBusy";
+  EBusy.prototype.constructor = EBusy;
+
+  function ENotEmpty(){ Error.apply(this, arguments); }
+  ENotEmpty.prototype = new Error();
+  ENotEmpty.prototype.name = "ENotEmpty";
+  ENotEmpty.prototype.constructor = ENotEmpty;
+
+  function ENotDirectory(){ Error.apply(this, arguments); }
+  ENotDirectory.prototype = new Error();
+  ENotDirectory.prototype.name = "NotADirectoryError";
+  ENotDirectory.prototype.constructor = ENotDirectory;
+
+  function EBadFileDescriptor(){ Error.apply(this, arguments); }
+  EBadFileDescriptor.prototype = new Error();
+  EBadFileDescriptor.prototype.name = "EBadFileDescriptor";
+  EBadFileDescriptor.prototype.constructor = EBadFileDescriptor;
+
+  function ENotImplemented(){ Error.apply(this, arguments); }
+  ENotImplemented.prototype = new Error();
+  ENotImplemented.prototype.name = "ENotImplemented";
+  ENotImplemented.prototype.constructor = ENotImplemented;
+
+  function ENotMounted(){ Error.apply(this, arguments); }
+  ENotMounted.prototype = new Error();
+  ENotMounted.prototype.name = "ENotMounted";
+  ENotMounted.prototype.constructor = ENotMounted;
+
+  function EFileExists(){ Error.apply(this, arguments); }
+  EFileExists.prototype = new Error();
+  EFileExists.prototype.name = "EFileExists";
+  EFileExists.prototype.constructor = EFileExists;
 
   var METADATA_STORE_NAME = 'metadata';
   var FILE_STORE_NAME = 'files';
@@ -103,7 +153,7 @@ define(function(require) {
         if(error) {
           callback(error);
         } else if(!rootDirectoryNode) {
-          callback(new Error('ENOENT'));
+          callback(new ENoEntry());
         } else {
           callback(undefined, rootDirectoryNode);
         }
@@ -117,7 +167,7 @@ define(function(require) {
         if(error) {
           callback(error);
         } else if(!_(parentDirectoryNode).has('data') || !parentDirectoryNode.type == MODE_DIRECTORY) {
-          callback(new Error('ENOTDIR'));
+          callback(new ENotDirectory());
         } else {
           read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
         }
@@ -130,7 +180,7 @@ define(function(require) {
           callback(error);
         } else {
           if(!_(parentDirectoryData).has(name)) {
-            callback(new Error('ENOENT'));
+            callback(new ENoEntry());
           } else {
             var nodeId = parentDirectoryData[name].id;
             read_object(objectStore, nodeId, callback);
@@ -150,8 +200,8 @@ define(function(require) {
 
     function write_directory_node(error, existingNode) {
       if(!error && existingNode) {
-        callback(new Error('EEXIST'));
-      } else if(error && 'ENOENT' != error.message) {
+        callback(new EPathExists());
+      } else if(error && !error instanceof ENoEntry) {
         callback(error);
       } else {
         directoryNode = new Node(ROOT_NODE_ID, MODE_DIRECTORY);
@@ -177,38 +227,38 @@ define(function(require) {
     var name = Path.basename(path);
     var parentPath = Path.dirname(path);
 
-    var _directoryNode;
-    var _directoryData;
-    var _parentDirectoryNode;
-    var _parentDirectoryData;
+    var directoryNode;
+    var directoryData;
+    var parentDirectoryNode;
+    var parentDirectoryData;
 
-    function check_if_directory_exists(error, existingNode) {
-      if(!error && existingNode) {
-        callback(new Error('EEXIST'));
-      } else if(error && 'ENOENT' != error.message) {
+    function check_if_directory_exists(error, result) {
+      if(!error && result) {
+        callback(new EPathExists());
+      } else if(error && !error instanceof ENoEntry) {
         callback(error);
       } else {
         find_node(objectStore, parentPath, read_parent_directory_data);
       }
     }
 
-    function read_parent_directory_data(error, parentDirectoryNode) {
+    function read_parent_directory_data(error, result) {
       if(error) {
         callback(error);
       } else {
-        _parentDirectoryNode = parentDirectoryNode;
-        read_object(objectStore, _parentDirectoryNode.data, write_directory_node);
+        parentDirectoryNode = result;
+        read_object(objectStore, parentDirectoryNode.data, write_directory_node);
       }
     };
 
-    function write_directory_node(error, parentDirectoryData) {
+    function write_directory_node(error, result) {
       if(error) {
         callback(error);
       } else {
-        _parentDirectoryData = parentDirectoryData;
-        _directoryNode = new Node(undefined, MODE_DIRECTORY);
-        _directoryNode.links += 1;
-        write_object(objectStore, _directoryNode, _directoryNode.id, write_directory_data);
+        parentDirectoryData = result;
+        directoryNode = new Node(undefined, MODE_DIRECTORY);
+        directoryNode.links += 1;
+        write_object(objectStore, directoryNode, directoryNode.id, write_directory_data);
       }
     };
 
@@ -216,8 +266,8 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        _directoryData = {};
-        write_object(objectStore, _directoryData, _directoryNode.data, update_parent_directory_data);
+        directoryData = {};
+        write_object(objectStore, directoryData, directoryNode.data, update_parent_directory_data);
       }
     };
 
@@ -225,8 +275,8 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        _parentDirectoryData[name] = new DirectoryEntry(_directoryNode.id, MODE_DIRECTORY);
-        write_object(objectStore, _parentDirectoryData, _parentDirectoryNode.data, callback);
+        parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, MODE_DIRECTORY);
+        write_object(objectStore, parentDirectoryData, parentDirectoryNode.data, callback);
       }
     }
 
@@ -247,7 +297,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else if(!result) {
-        callback(new Error('ENOENT'));
+        callback(new ENoEntry());
       } else {
         directoryNode = result;
         read_object(objectStore, directoryNode.data, check_if_directory_is_empty);
@@ -260,7 +310,7 @@ define(function(require) {
       } else {
         directoryData = result;
         if(_(directoryData).size() > 0) {
-          callback(new Error('ENOTEMPTY'));
+          callback(new ENotEmpty());
         } else {
           find_node(objectStore, parentPath, read_parent_directory_data);
         }
