@@ -36,13 +36,13 @@ function remove_tmp_directory() {
 };
 
 function create_tmp_file() {
-  return fs.open('/tmp/1', 'CREATE');
+  return fs.open('/tmp/1', 'w+');
 };
 
 fs.promise.then(make_tmp_directory)
           .then(create_tmp_file)
           .then(function() { console.log('done'); })
-          .otherwise(function(error) { console.error(error, error.stack); });
+          .otherwise(function(error) { console.error(error, error.message); });
 
 });
 </script>

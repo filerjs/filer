@@ -16,7 +16,15 @@ define(function(require) {
   var delete_object = require('src/object-store').delete_object;
   var find_node = require('src/object-store').find_node;
 
+  var O_READ = require('src/constants').O_READ;
+  var O_WRITE = require('src/constants').O_WRITE;
   var O_CREATE = require('src/constants').O_CREATE;
+  var O_EXCLUSIVE = require('src/constants').O_EXCLUSIVE;
+  var O_TRUNCATE = require('src/constants').O_TRUNCATE;
+  var O_APPEND = require('src/constants').O_APPEND;
+  var O_FLAGS = require('src/constants').O_FLAGS;
+
+  var EInvalid = require('src/error').EInvalid;
 
   function DirectoryEntry(id, type) {
     this.id = id;
@@ -39,14 +47,23 @@ define(function(require) {
     this.data = hash(this.id) // id for data object
   };
 
-  function open_file(objectStore, path, flags, mode, callback) {
+  function open_file(objectStore, path, flags, callback) {
     path = normalize(path);
     var name = basename(path);
+    var parentPath = dirname(path);
 
     var directoryNode;
     var directoryData;
     var fileNode;
     var fileData;
+
+    if(!_(O_FLAGS).has(flags)) {
+      return callback(new EInvalid('flags is not valid'));
+    } else {
+      flags = O_FLAGS[flags];
+    }
+
+    find_node(objectStore, parentPath, read_directory_data);
 
     function read_directory_data(error, result) {
       if(error) {
@@ -63,12 +80,14 @@ define(function(require) {
       } else {
         directoryData = result;
         if(_(directoryData).has(name)) {
-          // file exists
+          if(_(flags).contains(O_EXCLUSIVE)) {
+            callback(new ENoEntry('O_CREATE and O_EXCLUSIVE are set, and the named file exists'))
+          }
         } else {
-          if(_(flags).contains(O_CREATE)) {
-            write_file_node();
+          if(!_(flags).contains(O_CREATE)) {
+            callback(new ENoEntry('O_CREATE is not set and the named file does not exist'));
           } else {
-            callback(error);
+            write_file_node();
           }
         }
       }
@@ -105,9 +124,6 @@ define(function(require) {
         callback(undefined, '!');
       }
     };
-
-    var parentPath = dirname(path);
-    find_node(objectStore, parentPath, read_directory_data);
   };
 
   return {

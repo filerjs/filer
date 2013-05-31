@@ -9,7 +9,7 @@ define(function(require) {
   var hash = require('src/shared').hash;
   var nop = require('src/shared').nop;
 
-  var EPathExists = require('src/error').EPathExists;
+  var EExists = require('src/error').EExists;
   var EIsDirectory = require('src/error').EIsDirectory;
   var ENoEntry = require('src/error').ENoEntry;
   var EBusy = require('src/error').EBusy;
@@ -18,7 +18,7 @@ define(function(require) {
   var EBadFileDescriptor = require('src/error').EBadFileDescriptor;
   var ENotImplemented = require('src/error').ENotImplemented;
   var ENotMounted = require('src/error').ENotMounted;
-  var EFileExists = require('src/error').EFileExists;
+  var EInvalid = require('src/error').EInvalid;
 
   var FS_FORMAT = require('src/constants').FS_FORMAT;
 
@@ -100,21 +100,21 @@ define(function(require) {
     this.readyState = FS_PENDING;
     this.db = null;
   };
-  FileSystem.prototype.open = function open(path, flags, mode) {
+  FileSystem.prototype.open = function open(path, flags) {
     var deferred = when.defer();
     var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
     var files = transaction.objectStore(FILE_STORE_NAME);
 
     function check_result(error, fd) {
       if(error) {
-        if(transaction.error) transaction.abort();
+        // if(transaction.error) transaction.abort();
         deferred.reject(error);
       } else {
         deferred.resolve();
       }
     };
 
-    open_file(files, path, flags, mode, check_result);
+    open_file(files, path, flags, check_result);
 
     return deferred.promise;
   };

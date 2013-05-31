@@ -7,7 +7,7 @@ define(function(require) {
 
   var ENoEntry = require('src/error').ENoEntry;
   var ENotDirectory = require('src/error').ENotDirectory;
-  var EPathExists = require('src/error').EPathExists;
+  var EExists = require('src/error').EExists;
 
   var MODE_FILE = require('src/constants').MODE_FILE;
   var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
@@ -28,7 +28,7 @@ define(function(require) {
 
     function write_directory_node(error, existingNode) {
       if(!error && existingNode) {
-        callback(new EPathExists());
+        callback(new EExists());
       } else if(error && !error instanceof ENoEntry) {
         callback(error);
       } else {
@@ -62,7 +62,7 @@ define(function(require) {
 
     function check_if_directory_exists(error, result) {
       if(!error && result) {
-        callback(new EPathExists());
+        callback(new EExists());
       } else if(error && !error instanceof ENoEntry) {
         callback(error);
       } else {

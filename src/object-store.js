@@ -2,7 +2,7 @@ define(function(require) {
 
   var ENoEntry = require('src/error').ENoEntry;
   var ENotDirectory = require('src/error').ENotDirectory;
-  var EPathExists = require('src/error').EPathExists;
+  var EExists = require('src/error').EExists;
 
   var normalize = require('src/path').normalize;
   var dirname = require('src/path').dirname;
@@ -17,6 +17,9 @@ define(function(require) {
   // out: node structure, or error
   function find_node(objectStore, path, callback) {
     path = normalize(path);
+    if(!path) {
+      return callback(new ENoEntry('path is an empty string'));
+    }
     var name = basename(path);
 
     if(ROOT_DIRECTORY_NAME == name) {
@@ -24,7 +27,7 @@ define(function(require) {
         if(error) {
           callback(error);
         } else if(!rootDirectoryNode) {
-          callback(new ENoEntry());
+          callback(new ENoEntry('path does not exist'));
         } else {
           callback(undefined, rootDirectoryNode);
         }
@@ -38,7 +41,7 @@ define(function(require) {
         if(error) {
           callback(error);
         } else if(!_(parentDirectoryNode).has('data') || !parentDirectoryNode.type == MODE_DIRECTORY) {
-          callback(new ENotDirectory());
+          callback(new ENotDirectory('a component of the path prefix is not a directory'));
         } else {
           read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
         }
@@ -51,7 +54,7 @@ define(function(require) {
           callback(error);
         } else {
           if(!_(parentDirectoryData).has(name)) {
-            callback(new ENoEntry());
+            callback(new ENoEntry('path does not exist'));
           } else {
             var nodeId = parentDirectoryData[name].id;
             read_object(objectStore, nodeId, callback);

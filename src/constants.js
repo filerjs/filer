@@ -1,5 +1,12 @@
 define(function(require) {
 
+  var O_READ = 'READ';
+  var O_WRITE = 'WRITE';
+  var O_CREATE = 'CREATE';
+  var O_EXCLUSIVE = 'EXCLUSIVE';
+  var O_TRUNCATE = 'TRUNCATE';
+  var O_APPEND = 'APPEND';
+
   return {
     METADATA_STORE_NAME: 'metadata',
     FILE_STORE_NAME: 'files',
@@ -17,17 +24,28 @@ define(function(require) {
     ROOT_DIRECTORY_NAME: '/', // basename(normalize(path))
     ROOT_NODE_ID: '8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1', // sha256(ROOT_DIRECTORY_NAME)
 
-  // FileSystem flags
     FS_FORMAT: 'FORMAT',
 
-  // Open flags
-    O_READONLY: 'READONLY',
-    O_READWRITE: 'READWRITE',
-    O_APPEND: 'APPEND',
-    O_CREATE: 'CREATE',
-    O_TRUNCATE: 'TRUNCATE',
+    O_READ: O_READ,
+    O_WRITE: O_WRITE,
+    O_CREATE: O_CREATE,
+    O_EXCLUSIVE: O_EXCLUSIVE,
+    O_TRUNCATE: O_TRUNCATE,
+    O_APPEND: O_APPEND,
 
-  // FileSystem readyState
+    O_FLAGS: {
+      'r': [O_READ],
+      'r+': [O_READ, O_WRITE],
+      'w': [O_WRITE, O_CREATE, O_TRUNCATE],
+      'w+': [O_WRITE, O_READ, O_CREATE, O_TRUNCATE],
+      'wx': [O_WRITE, O_CREATE, O_EXCLUSIVE, O_TRUNCATE],
+      'wx+': [O_WRITE, O_READ, O_CREATE, O_EXCLUSIVE, O_TRUNCATE],
+      'a': [O_WRITE, O_CREATE, O_APPEND],
+      'a+': [O_WRITE, O_READ, O_CREATE, O_APPEND],
+      'ax': [O_WRITE, O_CREATE, O_EXCLUSIVE, O_APPEND],
+      'ax+': [O_WRITE, O_READ, O_CREATE, O_EXCLUSIVE, O_APPEND],
+    },
+
     FS_READY: 'READY',
     FS_PENDING: 'PENDING',
     FS_ERROR: 'ERROR',

@@ -14,58 +14,85 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 define(function(require) {
   // 'use strict';
 
-  function EPathExists(){ Error.apply(this, arguments); }
-  EPathExists.prototype = new Error();
-  EPathExists.prototype.name = "EPathExists";
-  EPathExists.prototype.constructor = EPathExists;
+  function EExists(message){
+    this.message = message || '';
+  };
+  EExists.prototype = new Error();
+  EExists.prototype.name = "EExists";
+  EExists.prototype.constructor = EExists;
 
-  function EIsDirectory(){ Error.apply(this, arguments); }
+  function EIsDirectory(message){
+    this.message = message || '';
+  };
   EIsDirectory.prototype = new Error();
   EIsDirectory.prototype.name = "EIsDirectory";
   EIsDirectory.prototype.constructor = EIsDirectory;
 
-  function ENoEntry(){ Error.apply(this, arguments); }
+  function ENoEntry(message){
+    this.message = message || '';
+  };
   ENoEntry.prototype = new Error();
   ENoEntry.prototype.name = "ENoEntry";
   ENoEntry.prototype.constructor = ENoEntry;
 
-  function EBusy(){ Error.apply(this, arguments); }
+  function EBusy(message){
+    this.message = message || '';
+  };
   EBusy.prototype = new Error();
   EBusy.prototype.name = "EBusy";
   EBusy.prototype.constructor = EBusy;
 
-  function ENotEmpty(){ Error.apply(this, arguments); }
+  function ENotEmpty(message){
+    this.message = message || '';
+  };
   ENotEmpty.prototype = new Error();
   ENotEmpty.prototype.name = "ENotEmpty";
   ENotEmpty.prototype.constructor = ENotEmpty;
 
-  function ENotDirectory(){ Error.apply(this, arguments); }
+  function ENotDirectory(message){
+    this.message = message || '';
+  };
   ENotDirectory.prototype = new Error();
-  ENotDirectory.prototype.name = "NotADirectoryError";
+  ENotDirectory.prototype.name = "ENotDirectory";
   ENotDirectory.prototype.constructor = ENotDirectory;
 
-  function EBadFileDescriptor(){ Error.apply(this, arguments); }
+  function EBadFileDescriptor(message){
+    this.message = message || '';
+  };
   EBadFileDescriptor.prototype = new Error();
   EBadFileDescriptor.prototype.name = "EBadFileDescriptor";
   EBadFileDescriptor.prototype.constructor = EBadFileDescriptor;
 
-  function ENotImplemented(){ Error.apply(this, arguments); }
+  function ENotImplemented(message){
+    this.message = message || '';
+  };
   ENotImplemented.prototype = new Error();
   ENotImplemented.prototype.name = "ENotImplemented";
   ENotImplemented.prototype.constructor = ENotImplemented;
 
-  function ENotMounted(){ Error.apply(this, arguments); }
+  function ENotMounted(message){
+    this.message = message || '';
+  };
   ENotMounted.prototype = new Error();
   ENotMounted.prototype.name = "ENotMounted";
   ENotMounted.prototype.constructor = ENotMounted;
 
-  function EFileExists(){ Error.apply(this, arguments); }
-  EFileExists.prototype = new Error();
-  EFileExists.prototype.name = "EFileExists";
-  EFileExists.prototype.constructor = EFileExists;
+  function EInvalid(message){
+    this.message = message || '';
+  };
+  EInvalid.prototype = new Error();
+  EInvalid.prototype.name = "EInvalid";
+  EInvalid.prototype.constructor = EInvalid;
+
+  function EIO(message){
+    this.message = message || '';
+  };
+  EIO.prototype = new Error();
+  EIO.prototype.name = "EIO";
+  EIO.prototype.constructor = EIO;
 
   return {
-    EPathExists: EPathExists,
+    EExists: EExists,
     EIsDirectory: EIsDirectory,
     ENoEntry: ENoEntry,
     EBusy: EBusy,
@@ -74,7 +101,8 @@ define(function(require) {
     EBadFileDescriptor: EBadFileDescriptor,
     ENotImplemented: ENotImplemented,
     ENotMounted: ENotMounted,
-    EFileExists: EFileExists
+    EInvalid: EInvalid,
+    EIO: EIO,
   };
 
 });
