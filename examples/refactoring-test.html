@@ -35,10 +35,14 @@ function remove_tmp_directory() {
   return fs.rmdir('/tmp');
 };
 
+function create_tmp_file() {
+  return fs.open('/tmp/1', 'CREATE');
+};
+
 fs.promise.then(make_tmp_directory)
-          .then(remove_tmp_directory)
+          .then(create_tmp_file)
           .then(function() { console.log('done'); })
-          .otherwise(function(error) { console.error(error.stack); });
+          .otherwise(function(error) { console.error(error, error.stack); });
 
 });
 </script>

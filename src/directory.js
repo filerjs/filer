@@ -3,6 +3,7 @@ define(function(require) {
   var read_object = require('src/object-store').read_object;
   var write_object = require('src/object-store').write_object;
   var delete_object = require('src/object-store').delete_object;
+  var find_node = require('src/object-store').find_node;
 
   var ENoEntry = require('src/error').ENoEntry;
   var ENotDirectory = require('src/error').ENotDirectory;
@@ -14,66 +15,11 @@ define(function(require) {
   var ROOT_NODE_ID = require('src/constants').ROOT_NODE_ID;
 
   var Node = require('src/file').Node;
+  var DirectoryEntry = require('src/file').DirectoryEntry;
 
   var normalize = require('src/path').normalize;
   var dirname = require('src/path').dirname;
   var basename = require('src/path').basename;
-
-  function DirectoryEntry(id, type) {
-    this.id = id;
-    this.type = type || MODE_FILE;
-  };
-
-  // in: file or directory path
-  // out: node structure, or error
-  function find_node(objectStore, path, callback) {
-    path = normalize(path);
-    var name = basename(path);
-
-    if(ROOT_DIRECTORY_NAME == name) {
-      function check_root_directory_node(error, rootDirectoryNode) {
-        if(error) {
-          callback(error);
-        } else if(!rootDirectoryNode) {
-          callback(new ENoEntry());
-        } else {
-          callback(undefined, rootDirectoryNode);
-        }
-      };
-
-      read_object(objectStore, ROOT_NODE_ID, check_root_directory_node);
-    } else {
-      // in: parent directory node
-      // out: parent directory data
-      function read_parent_directory_data(error, parentDirectoryNode) {
-        if(error) {
-          callback(error);
-        } else if(!_(parentDirectoryNode).has('data') || !parentDirectoryNode.type == MODE_DIRECTORY) {
-          callback(new ENotDirectory());
-        } else {
-          read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
-        }
-      };
-
-      // in: parent directory data
-      // out: searched node id
-      function get_node_id_from_parent_directory_data(error, parentDirectoryData) {
-        if(error) {
-          callback(error);
-        } else {
-          if(!_(parentDirectoryData).has(name)) {
-            callback(new ENoEntry());
-          } else {
-            var nodeId = parentDirectoryData[name].id;
-            read_object(objectStore, nodeId, callback);
-          }
-        }
-      };
-
-      var parentPath = dirname(path);
-      find_node(objectStore, parentPath, read_parent_directory_data);
-    }
-  };
 
   // Note: this should only be invoked when formatting a new file system
   function make_root_directory(objectStore, callback) {
@@ -241,7 +187,6 @@ define(function(require) {
     make_directory: make_directory,
     make_root_directory: make_root_directory,
     remove_directory: remove_directory,
-    find_node: find_node,
   };
 
 });

@@ -1,5 +1,5 @@
 
-  var IDBFS = require( "src/fs" );
+  var IDBFS = require( "src/file-system" );
 
   return IDBFS;
 

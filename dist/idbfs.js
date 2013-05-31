@@ -5618,76 +5618,6 @@ define('src/constants',['require'],function(require) {
   };
 
 });
-define('src/object-store',['require'],function(require) {
-
-  function read_object(objectStore, id, callback) {
-    var getRequest = objectStore.get(id);
-    getRequest.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(undefined, result);
-    };
-    getRequest.onerror = function onerror(error) {
-      callback(error);
-    };
-  };
-
-  function write_object(objectStore, object, id, callback) {
-    var putRequest = objectStore.put(object, id);
-    putRequest.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(undefined, result);
-    };
-    putRequest.onerror = function onerror(error) {
-      callback(error);
-    };
-  };
-
-  function delete_object(objectStore, id, callback) {
-    var deleteRequest = objectStore.delete(id);
-    deleteRequest.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(undefined, result);
-    };
-    deleteRequest.onerror = function(error) {
-      callback(error);
-    };
-  };
-
-  return {
-    read_object: read_object,
-    write_object: write_object,
-    delete_object: delete_object,
-  };
-
-});
-define('src/file',['require','src/constants','src/shared','src/shared'],function(require) {
-
-  var MODE_FILE = require('src/constants').MODE_FILE;
-
-  var guid = require('src/shared').guid;
-  var hash = require('src/shared').hash;
-
-  function Node(id, mode, size, atime, ctime, mtime, flags, xattrs, links, version) {
-    var now = Date.now();
-
-    this.id = id || hash(guid()),
-    this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
-    this.size = size || 0; // size (bytes for files, entries for directories)
-    this.atime = atime || now; // access time
-    this.ctime = ctime || now; // creation time
-    this.mtime = mtime || now; // modified time
-    this.flags = flags || ''; // file flags
-    this.xattrs = xattrs || {}; // extended attributes
-    this.links = links || 0; // links count
-    this.version = version || 0; // node version
-    this.data = hash(id) // id for data object
-  };
-
-  return {
-    Node: Node,
-  };
-
-});
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5815,31 +5745,20 @@ define('src/path',['require'],function(require) {
   }
 
 });
-define('src/directory',['require','src/object-store','src/object-store','src/object-store','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/file','src/path','src/path','src/path'],function(require) {
-
-  var read_object = require('src/object-store').read_object;
-  var write_object = require('src/object-store').write_object;
-  var delete_object = require('src/object-store').delete_object;
+define('src/object-store',['require','src/error','src/error','src/error','src/path','src/path','src/path','src/constants','src/constants','src/constants'],function(require) {
 
   var ENoEntry = require('src/error').ENoEntry;
   var ENotDirectory = require('src/error').ENotDirectory;
   var EPathExists = require('src/error').EPathExists;
 
-  var MODE_FILE = require('src/constants').MODE_FILE;
-  var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
-  var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
-  var ROOT_NODE_ID = require('src/constants').ROOT_NODE_ID;
-
-  var Node = require('src/file').Node;
-
   var normalize = require('src/path').normalize;
   var dirname = require('src/path').dirname;
   var basename = require('src/path').basename;
 
-  function DirectoryEntry(id, type) {
-    this.id = id;
-    this.type = type || MODE_FILE;
-  };
+  var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
+  var ROOT_NODE_ID = require('src/constants').ROOT_NODE_ID;
+
+  var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
 
   // in: file or directory path
   // out: node structure, or error
@@ -5891,6 +5810,189 @@ define('src/directory',['require','src/object-store','src/object-store','src/obj
       find_node(objectStore, parentPath, read_parent_directory_data);
     }
   };
+
+  function read_object(objectStore, id, callback) {
+    var getRequest = objectStore.get(id);
+    getRequest.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(undefined, result);
+    };
+    getRequest.onerror = function onerror(error) {
+      callback(error);
+    };
+  };
+
+  function write_object(objectStore, object, id, callback) {
+    var putRequest = objectStore.put(object, id);
+    putRequest.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(undefined, result);
+    };
+    putRequest.onerror = function onerror(error) {
+      callback(error);
+    };
+  };
+
+  function delete_object(objectStore, id, callback) {
+    var deleteRequest = objectStore.delete(id);
+    deleteRequest.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(undefined, result);
+    };
+    deleteRequest.onerror = function(error) {
+      callback(error);
+    };
+  };
+
+  return {
+    read_object: read_object,
+    write_object: write_object,
+    delete_object: delete_object,
+    find_node: find_node
+  };
+
+});
+define('src/file',['require','lodash','src/path','src/path','src/path','src/constants','src/shared','src/shared','src/object-store','src/object-store','src/object-store','src/object-store','src/constants'],function(require) {
+
+  var _ = require('lodash');
+
+  var normalize = require('src/path').normalize;
+  var dirname = require('src/path').dirname;
+  var basename = require('src/path').basename;
+
+  var MODE_FILE = require('src/constants').MODE_FILE;
+
+  var guid = require('src/shared').guid;
+  var hash = require('src/shared').hash;
+
+  var read_object = require('src/object-store').read_object;
+  var write_object = require('src/object-store').write_object;
+  var delete_object = require('src/object-store').delete_object;
+  var find_node = require('src/object-store').find_node;
+
+  var O_CREATE = require('src/constants').O_CREATE;
+
+  function DirectoryEntry(id, type) {
+    this.id = id;
+    this.type = type || MODE_FILE;
+  };
+
+  function Node(id, mode, size, atime, ctime, mtime, flags, xattrs, links, version) {
+    var now = Date.now();
+
+    this.id = id || hash(guid()),
+    this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
+    this.size = size || 0; // size (bytes for files, entries for directories)
+    this.atime = atime || now; // access time
+    this.ctime = ctime || now; // creation time
+    this.mtime = mtime || now; // modified time
+    this.flags = flags || []; // file flags
+    this.xattrs = xattrs || {}; // extended attributes
+    this.links = links || 0; // links count
+    this.version = version || 0; // node version
+    this.data = hash(this.id) // id for data object
+  };
+
+  function open_file(objectStore, path, flags, mode, callback) {
+    path = normalize(path);
+    var name = basename(path);
+
+    var directoryNode;
+    var directoryData;
+    var fileNode;
+    var fileData;
+
+    function read_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryNode = result;
+        read_object(objectStore, directoryNode.data, check_if_file_exists);
+      }
+    };
+
+    function check_if_file_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = result;
+        if(_(directoryData).has(name)) {
+          // file exists
+        } else {
+          if(_(flags).contains(O_CREATE)) {
+            write_file_node();
+          } else {
+            callback(error);
+          }
+        }
+      }
+    };
+
+    function write_file_node() {
+      fileNode = new Node(undefined, MODE_FILE);
+      fileNode.links += 1;
+      write_object(objectStore, fileNode, fileNode.id, write_file_data);
+    };
+
+    function write_file_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        fileData = {};
+        write_object(objectStore, fileData, fileNode.data, update_directory_data);
+      }
+    };
+
+    function update_directory_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData[name] = new DirectoryEntry(fileNode.id, MODE_FILE);
+        write_object(objectStore, directoryData, directoryNode.data, create_file_descriptor);
+      }
+    };
+
+    function create_file_descriptor(error) {
+      if(error) {
+        console.log(error);
+      } else {
+        callback(undefined, '!');
+      }
+    };
+
+    var parentPath = dirname(path);
+    find_node(objectStore, parentPath, read_directory_data);
+  };
+
+  return {
+    Node: Node,
+    open_file: open_file,
+    DirectoryEntry: DirectoryEntry,
+  };
+
+});
+define('src/directory',['require','src/object-store','src/object-store','src/object-store','src/object-store','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/file','src/file','src/path','src/path','src/path'],function(require) {
+
+  var read_object = require('src/object-store').read_object;
+  var write_object = require('src/object-store').write_object;
+  var delete_object = require('src/object-store').delete_object;
+  var find_node = require('src/object-store').find_node;
+
+  var ENoEntry = require('src/error').ENoEntry;
+  var ENotDirectory = require('src/error').ENotDirectory;
+  var EPathExists = require('src/error').EPathExists;
+
+  var MODE_FILE = require('src/constants').MODE_FILE;
+  var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
+  var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
+  var ROOT_NODE_ID = require('src/constants').ROOT_NODE_ID;
+
+  var Node = require('src/file').Node;
+  var DirectoryEntry = require('src/file').DirectoryEntry;
+
+  var normalize = require('src/path').normalize;
+  var dirname = require('src/path').dirname;
+  var basename = require('src/path').basename;
 
   // Note: this should only be invoked when formatting a new file system
   function make_root_directory(objectStore, callback) {
@@ -6058,11 +6160,10 @@ define('src/directory',['require','src/object-store','src/object-store','src/obj
     make_directory: make_directory,
     make_root_directory: make_root_directory,
     remove_directory: remove_directory,
-    find_node: find_node,
   };
 
 });
-define('src/file-system',['require','lodash','when','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/directory','src/directory','src/directory'],function(require) {
+define('src/file-system',['require','lodash','when','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/directory','src/directory','src/directory','src/file'],function(require) {
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 
@@ -6096,6 +6197,8 @@ define('src/file-system',['require','lodash','when','src/shared','src/shared','s
   var make_root_directory = require('src/directory').make_root_directory;
   var make_directory = require('src/directory').make_directory;
   var remove_directory = require('src/directory').remove_directory;
+
+  var open_file = require('src/file').open_file;
 
   /*
    * FileSystem
@@ -6162,7 +6265,22 @@ define('src/file-system',['require','lodash','when','src/shared','src/shared','s
     this.db = null;
   };
   FileSystem.prototype.open = function open(path, flags, mode) {
+    var deferred = when.defer();
+    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
+    var files = transaction.objectStore(FILE_STORE_NAME);
 
+    function check_result(error, fd) {
+      if(error) {
+        if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    };
+
+    open_file(files, path, flags, mode, check_result);
+
+    return deferred.promise;
   };
   FileSystem.prototype.opendir = function opendir(path) {
 
@@ -6174,7 +6292,7 @@ define('src/file-system',['require','lodash','when','src/shared','src/shared','s
 
     function check_result(error) {
       if(error) {
-        transaction.abort();
+        if(transaction.error) transaction.abort();
         deferred.reject(error);
       } else {
         deferred.resolve();
@@ -6191,7 +6309,7 @@ define('src/file-system',['require','lodash','when','src/shared','src/shared','s
 
     function check_result(error) {
       if(error) {
-        transaction.abort();
+        if(transaction.error) transaction.abort();
         deferred.reject(error);
       } else {
         deferred.resolve();
@@ -6222,7 +6340,7 @@ define('src/file-system',['require','lodash','when','src/shared','src/shared','s
   };
 
 });
-  var IDBFS = require( "src/fs" );
+  var IDBFS = require( "src/file-system" );
 
   return IDBFS;
 

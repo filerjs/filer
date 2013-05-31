@@ -93,11 +93,11 @@ var enableLogging = false;
         if (enableDebugging) {
             returnObject.viewer = viewer(dbConfig);
             linq2indexedDB.prototype.utilities.log(linq2indexedDB.prototype.utilities.severity.warning, "Debugging enabled: be carefull when using in production enviroment. Complex objects get written to  the log and may cause memory leaks.")
-            
+
         } else {
             returnObject.viewer = null;
         }
-        
+
 
         return returnObject;
     };
@@ -507,7 +507,7 @@ var enableLogging = false;
                 });
             });
         }
-        
+
         function executeWhere(queryBuilder, pw, transaction) {
             linq2indexedDB.prototype.core.objectStore(transaction, queryBuilder.from).then(function (objArgs) {
                 try {
@@ -1187,7 +1187,7 @@ var enableLogging = false;
             for (var i = 1; i < arguments.length; i++) {
                 args.push(arguments[i]);
             }
-            
+
             switch (severity) {
                 case linq2indexedDB.prototype.utilities.severity.exception:
                     if (window.console.exception) {
@@ -1333,7 +1333,7 @@ var enableLogging = false;
 })(typeof Windows !== "undefined");
 
 if (typeof window !== "undefined") {
-    // UI Thread 
+    // UI Thread
 
     // Namespace linq2indexedDB.prototype.core
     (function (window, isMetroApp) {
@@ -1568,16 +1568,16 @@ if (typeof window !== "undefined") {
                         function (args /*error, e*/) {
                             // Database connection error or abort
                             var err = internal.wrapError(args[1], "db");
-                            
+
                             // Fix for firefox & chrome
                             if (args[1].target && args[1].target.errorCode == 12) {
                                 err.type = "VersionError";
                             }
-                            
+
                             if (err.type == "VersionError") {
                                 err.message = "You are trying to open the database in a lower version (" + version + ") than the current version of the database";
                             }
-                            
+
                             // Fix for firefox & chrome
                             if (args[1].target && args[1].target.errorCode == 8) {
                                 err.type = "AbortError";
@@ -1618,7 +1618,7 @@ if (typeof window !== "undefined") {
                 transactionType = transactionType || linq2indexedDB.prototype.core.transactionTypes.READ_ONLY;
 
                 var nonExistingObjectStores = [];
-                
+
                 try {
                     // Check for non-existing object stores
                     for (var i = 0; i < objectStoreNames.length; i++) {
@@ -1694,7 +1694,7 @@ if (typeof window !== "undefined") {
                                     err.severity = "abort";
                                     err.message = "Transaction was aborted";
                                 }
-                                
+
                                 // Fix for firefox & chrome
                                 if (args[1].target && args[1].target.errorCode == 4) {
                                     err.type = "ConstraintError";
@@ -1702,7 +1702,7 @@ if (typeof window !== "undefined") {
 
                                 if (err.type == "ConstraintError") {
                                     err.message = "A mutation operation in the transaction failed. For more details look at the error on the instert, update, remove or clear statement.";
-                                } 
+                                }
                                 // txn error or abort
                                 linq2indexedDB.prototype.utilities.logError(err);
                                 pw.error(this, err);
@@ -1982,7 +1982,7 @@ if (typeof window !== "undefined") {
                 if (propertyName.indexOf(linq2indexedDB.prototype.core.indexSuffix) == -1) {
                     indexName = indexName + linq2indexedDB.prototype.core.indexSuffix;
                 }
-                
+
                 try {
                     objectStore.deleteIndex(indexName);
                     linq2indexedDB.prototype.core.dbStructureChanged.fire({ type: dbEvents.indexRemoved, data: indexName });
@@ -2011,9 +2011,9 @@ if (typeof window !== "undefined") {
                 var keyRange;
                 var returnData = [];
                 var request;
-                
+
                 try {
-                    
+
                     keyRange = range;
 
                     if (!keyRange) {
@@ -2166,7 +2166,7 @@ if (typeof window !== "undefined") {
                         error.type = "TransactionInactiveError";
                         error.message = "You are trying to retrieve data on an inactieve transaction. (The transaction was already aborted or committed)";
                     }
-                    
+
                     if (ex.name == "TypeError") {
                         error.type = "TypeError";
                         error.message = "The provided directory parameter is invalid";
@@ -2391,7 +2391,7 @@ if (typeof window !== "undefined") {
 
                 try {
                     var req;
-                    
+
                     if (key) {
                         req = source.count(key);
                     }
@@ -2500,7 +2500,7 @@ if (typeof window !== "undefined") {
                         if (args[1].target && args[1].target.errorCode == 4) {
                             err.type = "ConstraintError";
                         }
-                        
+
                         if (err.type == "ConstraintError") {
                             var duplicateKey = key;
                             if (!duplicateKey && objectStore.keyPath) {
@@ -2532,22 +2532,22 @@ if (typeof window !== "undefined") {
                             error.message = "The provided key isn't a valid key (must be an array, string, date or number).";
                         }
                     }
-                    
+
                     if ((ex.READ_ONLY_ERR && ex.code == ex.READ_ONLY_ERR) || ex.name == "ReadOnlyError") {
                         error.type = "ReadOnlyError";
                         error.message = "You are trying to insert data in a readonly transaction.";
                     }
-                    
+
                     if (ex.name == "TransactionInactiveError") {
                         error.type = "TransactionInactiveError";
                         error.message = "You are trying to insert data on an inactieve transaction. (The transaction was already aborted or committed)";
                     }
-                    
+
                     if ((ex.DATA_CLONE_ERR && ex.code == ex.DATA_CLONE_ERR) || ex.name == "DataCloneError") {
                         error.type = "DataCloneError";
                         error.message = "The data you are trying to insert could not be cloned. Your data probably contains a function which can not be cloned by default. Try using the serialize method to insert the data.";
                     }
-                    
+
                     if ((ex.INVALID_STATE_ERR && ex.code == ex.INVALID_STATE_ERR) || (ex.NOT_ALLOWED_ERR && ex.code == ex.NOT_ALLOWED_ERR) || ex.name == "InvalidStateError") {
                         error.type = "InvalidStateError";
                         error.message = "You are trying to insert data on a removed object store.";
@@ -2610,12 +2610,12 @@ if (typeof window !== "undefined") {
                         error.type = "ReadOnlyError";
                         error.message = "You are trying to update data in a readonly transaction.";
                     }
-                    
+
                     if (ex.name == "TransactionInactiveError") {
                         error.type = "TransactionInactiveError";
                         error.message = "You are trying to update data on an inactieve transaction. (The transaction was already aborted or committed)";
                     }
-                    
+
                     if ((ex.DATA_CLONE_ERR && ex.code == ex.DATA_CLONE_ERR) || ex.name == "DataCloneError") {
                         error.type = "DataCloneError";
                         error.message = "The data you are trying to update could not be cloned. Your data probably contains a function which can not be cloned by default. Try using the serialize method to update the data.";
@@ -2625,7 +2625,7 @@ if (typeof window !== "undefined") {
                         error.type = "InvalidStateError";
                         error.message = "You are trying to update data on a removed object store.";
                     }
-                    
+
                     linq2indexedDB.prototype.utilities.logError(error);
                     linq2indexedDB.prototype.core.abortTransaction(objectStore.transaction);
                     pw.error(this, error);
@@ -3080,7 +3080,7 @@ if (typeof window !== "undefined") {
                     db = target.transaction.db;
                 } else if (target instanceof IDBIndex) {
                     db = target.objectStore.transaction.db;
-                } 
+                }
 
                 linq2indexedDB.prototype.utilities.log(linq2indexedDB.prototype.utilities.severity.information, "Close database Connection: ", db);
                 db.close();
@@ -3172,7 +3172,7 @@ if (typeof window !== "undefined") {
                     linq2indexedDB.prototype.utilities.log(linq2indexedDB.prototype.utilities.severity.information, "IE10+ Initialized", window.indexedDB);
                     return implementations.MICROSOFT;
                 }
-                
+
                     // Initialising the window.indexedDB Object for IE 8 & 9
                 else if (navigator.appName == 'Microsoft Internet Explorer') {
                     try {
@@ -3372,6 +3372,6 @@ if (typeof window !== "undefined") {
 }
 
 // Extend array for Opera
-Array.prototype.contains = function (obj) {
-    return this.indexOf(obj) > -1;
-};
+//Array.prototype.contains = function (obj) {
+//    return this.indexOf(obj) > -1;
+//};

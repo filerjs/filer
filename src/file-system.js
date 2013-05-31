@@ -33,6 +33,8 @@ define(function(require) {
   var make_directory = require('src/directory').make_directory;
   var remove_directory = require('src/directory').remove_directory;
 
+  var open_file = require('src/file').open_file;
+
   /*
    * FileSystem
    */
@@ -98,7 +100,22 @@ define(function(require) {
     this.db = null;
   };
   FileSystem.prototype.open = function open(path, flags, mode) {
+    var deferred = when.defer();
+    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
+    var files = transaction.objectStore(FILE_STORE_NAME);
 
+    function check_result(error, fd) {
+      if(error) {
+        if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    };
+
+    open_file(files, path, flags, mode, check_result);
+
+    return deferred.promise;
   };
   FileSystem.prototype.opendir = function opendir(path) {
 
@@ -110,7 +127,7 @@ define(function(require) {
 
     function check_result(error) {
       if(error) {
-        transaction.abort();
+        if(transaction.error) transaction.abort();
         deferred.reject(error);
       } else {
         deferred.resolve();
@@ -127,7 +144,7 @@ define(function(require) {
 
     function check_result(error) {
       if(error) {
-        transaction.abort();
+        if(transaction.error) transaction.abort();
         deferred.reject(error);
       } else {
         deferred.resolve();
