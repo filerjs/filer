@@ -434,745 +434,6 @@ var requirejs, require, define;
 
 define("build/almond", function(){});
 
-/** @license MIT License (c) copyright B Cavalier & J Hann */
-
-/**
- * when
- * A lightweight CommonJS Promises/A and when() implementation
- *
- * when is part of the cujo.js family of libraries (http://cujojs.com/)
- *
- * Licensed under the MIT License at:
- * http://www.opensource.org/licenses/mit-license.php
- *
- * @version 1.0.4
- */
-
-(function(define) {
-define('when',[],function() {
-    var freeze, reduceArray, undef;
-
-    /**
-     * No-Op function used in method replacement
-     * @private
-     */
-    function noop() {}
-
-    /**
-     * Allocate a new Array of size n
-     * @private
-     * @param n {number} size of new Array
-     * @returns {Array}
-     */
-    function allocateArray(n) {
-        return new Array(n);
-    }
-
-    /**
-     * Use freeze if it exists
-     * @function
-     * @private
-     */
-    freeze = Object.freeze || function(o) { return o; };
-
-    // ES5 reduce implementation if native not available
-    // See: http://es5.github.com/#x15.4.4.21 as there are many
-    // specifics and edge cases.
-    reduceArray = [].reduce ||
-        function(reduceFunc /*, initialValue */) {
-            // ES5 dictates that reduce.length === 1
-
-            // This implementation deviates from ES5 spec in the following ways:
-            // 1. It does not check if reduceFunc is a Callable
-
-            var arr, args, reduced, len, i;
-
-            i = 0;
-            arr = Object(this);
-            len = arr.length >>> 0;
-            args = arguments;
-
-            // If no initialValue, use first item of array (we know length !== 0 here)
-            // and adjust i to start at second item
-            if(args.length <= 1) {
-                // Skip to the first real element in the array
-                for(;;) {
-                    if(i in arr) {
-                        reduced = arr[i++];
-                        break;
-                    }
-
-                    // If we reached the end of the array without finding any real
-                    // elements, it's a TypeError
-                    if(++i >= len) {
-                        throw new TypeError();
-                    }
-                }
-            } else {
-                // If initialValue provided, use it
-                reduced = args[1];
-            }
-
-            // Do the actual reduce
-            for(;i < len; ++i) {
-                // Skip holes
-                if(i in arr)
-                    reduced = reduceFunc(reduced, arr[i], i, arr);
-            }
-
-            return reduced;
-        };
-
-    /**
-     * Trusted Promise constructor.  A Promise created from this constructor is
-     * a trusted when.js promise.  Any other duck-typed promise is considered
-     * untrusted.
-     */
-    function Promise() {}
-
-    /**
-     * Create an already-resolved promise for the supplied value
-     * @private
-     *
-     * @param value anything
-     * @return {Promise}
-     */
-    function resolved(value) {
-
-        var p = new Promise();
-
-        p.then = function(callback) {
-            checkCallbacks(arguments);
-
-            var nextValue;
-            try {
-                if(callback) nextValue = callback(value);
-                return promise(nextValue === undef ? value : nextValue);
-            } catch(e) {
-                return rejected(e);
-            }
-        };
-
-        return freeze(p);
-    }
-
-    /**
-     * Create an already-rejected {@link Promise} with the supplied
-     * rejection reason.
-     * @private
-     *
-     * @param reason rejection reason
-     * @return {Promise}
-     */
-    function rejected(reason) {
-
-        var p = new Promise();
-
-        p.then = function(callback, errback) {
-            checkCallbacks(arguments);
-
-            var nextValue;
-            try {
-                if(errback) {
-                    nextValue = errback(reason);
-                    return promise(nextValue === undef ? reason : nextValue)
-                }
-
-                return rejected(reason);
-
-            } catch(e) {
-                return rejected(e);
-            }
-        };
-
-        return freeze(p);
-    }
-
-    /**
-     * Helper that checks arrayOfCallbacks to ensure that each element is either
-     * a function, or null or undefined.
-     *
-     * @param arrayOfCallbacks {Array} array to check
-     * @throws {Error} if any element of arrayOfCallbacks is something other than
-     * a Functions, null, or undefined.
-     */
-    function checkCallbacks(arrayOfCallbacks) {
-        var arg, i = arrayOfCallbacks.length;
-        while(i) {
-            arg = arrayOfCallbacks[--i];
-            if (arg != null && typeof arg != 'function') throw new Error('callback is not a function');
-        }
-    }
-
-    /**
-     * Creates a new, CommonJS compliant, Deferred with fully isolated
-     * resolver and promise parts, either or both of which may be given out
-     * safely to consumers.
-     * The Deferred itself has the full API: resolve, reject, progress, and
-     * then. The resolver has resolve, reject, and progress.  The promise
-     * only has then.
-     *
-     * @memberOf when
-     * @function
-     *
-     * @returns {Deferred}
-     */
-    function defer() {
-        var deferred, promise, listeners, progressHandlers, _then, _progress, complete;
-
-        listeners = [];
-        progressHandlers = [];
-
-        /**
-         * Pre-resolution then() that adds the supplied callback, errback, and progback
-         * functions to the registered listeners
-         *
-         * @private
-         *
-         * @param [callback] {Function} resolution handler
-         * @param [errback] {Function} rejection handler
-         * @param [progback] {Function} progress handler
-         *
-         * @throws {Error} if any argument is not null, undefined, or a Function
-         */
-        _then = function unresolvedThen(callback, errback, progback) {
-            // Check parameters and fail immediately if any supplied parameter
-            // is not null/undefined and is also not a function.
-            // That is, any non-null/undefined parameter must be a function.
-            checkCallbacks(arguments);
-
-            var deferred = defer();
-
-            listeners.push(function(promise) {
-                promise.then(callback, errback)
-                    .then(deferred.resolve, deferred.reject, deferred.progress);
-            });
-
-            progback && progressHandlers.push(progback);
-
-            return deferred.promise;
-        };
-
-        /**
-         * Registers a handler for this {@link Deferred}'s {@link Promise}.  Even though all arguments
-         * are optional, each argument that *is* supplied must be null, undefined, or a Function.
-         * Any other value will cause an Error to be thrown.
-         *
-         * @memberOf Promise
-         *
-         * @param [callback] {Function} resolution handler
-         * @param [errback] {Function} rejection handler
-         * @param [progback] {Function} progress handler
-         *
-         * @throws {Error} if any argument is not null, undefined, or a Function
-         */
-        function then(callback, errback, progback) {
-            return _then(callback, errback, progback);
-        }
-
-        /**
-         * Resolves this {@link Deferred}'s {@link Promise} with val as the
-         * resolution value.
-         *
-         * @memberOf Resolver
-         *
-         * @param val anything
-         */
-        function resolve(val) {
-            complete(resolved(val));
-        }
-
-        /**
-         * Rejects this {@link Deferred}'s {@link Promise} with err as the
-         * reason.
-         *
-         * @memberOf Resolver
-         *
-         * @param err anything
-         */
-        function reject(err) {
-            complete(rejected(err));
-        }
-
-        /**
-         * @private
-         * @param update
-         */
-        _progress = function(update) {
-            var progress, i = 0;
-            while (progress = progressHandlers[i++]) progress(update);
-        };
-
-        /**
-         * Emits a progress update to all progress observers registered with
-         * this {@link Deferred}'s {@link Promise}
-         *
-         * @memberOf Resolver
-         *
-         * @param update anything
-         */
-        function progress(update) {
-            _progress(update);
-        }
-
-        /**
-         * Transition from pre-resolution state to post-resolution state, notifying
-         * all listeners of the resolution or rejection
-         *
-         * @private
-         *
-         * @param completed {Promise} the completed value of this deferred
-         */
-        complete = function(completed) {
-            var listener, i = 0;
-
-            // Replace _then with one that directly notifies with the result.
-            _then = completed.then;
-
-            // Replace complete so that this Deferred can only be completed
-            // once. Also Replace _progress, so that subsequent attempts to issue
-            // progress throw.
-            complete = _progress = function alreadyCompleted() {
-                // TODO: Consider silently returning here so that parties who
-                // have a reference to the resolver cannot tell that the promise
-                // has been resolved using try/catch
-                throw new Error("already completed");
-            };
-
-            // Free progressHandlers array since we'll never issue progress events
-            // for this promise again now that it's completed
-            progressHandlers = undef;
-
-            // Notify listeners
-            // Traverse all listeners registered directly with this Deferred
-
-            while (listener = listeners[i++]) {
-                listener(completed);
-            }
-
-            listeners = [];
-        };
-
-        /**
-         * The full Deferred object, with both {@link Promise} and {@link Resolver}
-         * parts
-         * @class Deferred
-         * @name Deferred
-         * @augments Resolver
-         * @augments Promise
-         */
-        deferred = {};
-
-        // Promise and Resolver parts
-        // Freeze Promise and Resolver APIs
-
-        /**
-         * The Promise API
-         * @namespace Promise
-         * @name Promise
-         */
-        promise = new Promise();
-        promise.then = deferred.then = then;
-
-        /**
-         * The {@link Promise} for this {@link Deferred}
-         * @memberOf Deferred
-         * @name promise
-         * @type {Promise}
-         */
-        deferred.promise = freeze(promise);
-
-        /**
-         * The {@link Resolver} for this {@link Deferred}
-         * @namespace Resolver
-         * @name Resolver
-         * @memberOf Deferred
-         * @name resolver
-         * @type {Resolver}
-         */
-        deferred.resolver = freeze({
-            resolve:  (deferred.resolve  = resolve),
-            reject:   (deferred.reject   = reject),
-            progress: (deferred.progress = progress)
-        });
-
-        return deferred;
-    }
-
-    /**
-     * Determines if promiseOrValue is a promise or not.  Uses the feature
-     * test from http://wiki.commonjs.org/wiki/Promises/A to determine if
-     * promiseOrValue is a promise.
-     *
-     * @param promiseOrValue anything
-     *
-     * @returns {Boolean} true if promiseOrValue is a {@link Promise}
-     */
-    function isPromise(promiseOrValue) {
-        return promiseOrValue && typeof promiseOrValue.then === 'function';
-    }
-
-    /**
-     * Register an observer for a promise or immediate value.
-     *
-     * @function
-     * @name when
-     * @namespace
-     *
-     * @param promiseOrValue anything
-     * @param {Function} [callback] callback to be called when promiseOrValue is
-     *   successfully resolved.  If promiseOrValue is an immediate value, callback
-     *   will be invoked immediately.
-     * @param {Function} [errback] callback to be called when promiseOrValue is
-     *   rejected.
-     * @param {Function} [progressHandler] callback to be called when progress updates
-     *   are issued for promiseOrValue.
-     *
-     * @returns {Promise} a new {@link Promise} that will complete with the return
-     *   value of callback or errback or the completion value of promiseOrValue if
-     *   callback and/or errback is not supplied.
-     */
-    function when(promiseOrValue, callback, errback, progressHandler) {
-        // Get a promise for the input promiseOrValue
-        // See promise()
-        var trustedPromise = promise(promiseOrValue);
-
-        // Register promise handlers
-        return trustedPromise.then(callback, errback, progressHandler);
-    }
-
-    /**
-     * Returns promiseOrValue if promiseOrValue is a {@link Promise}, a new Promise if
-     * promiseOrValue is a foreign promise, or a new, already-resolved {@link Promise}
-     * whose resolution value is promiseOrValue if promiseOrValue is an immediate value.
-     *
-     * Note that this function is not safe to export since it will return its
-     * input when promiseOrValue is a {@link Promise}
-     *
-     * @private
-     *
-     * @param promiseOrValue anything
-     *
-     * @returns Guaranteed to return a trusted Promise.  If promiseOrValue is a when.js {@link Promise}
-     *   returns promiseOrValue, otherwise, returns a new, already-resolved, when.js {@link Promise}
-     *   whose resolution value is:
-     *   * the resolution value of promiseOrValue if it's a foreign promise, or
-     *   * promiseOrValue if it's a value
-     */
-    function promise(promiseOrValue) {
-        var promise, deferred;
-
-        if(promiseOrValue instanceof Promise) {
-            // It's a when.js promise, so we trust it
-            promise = promiseOrValue;
-
-        } else {
-            // It's not a when.js promise.  Check to see if it's a foreign promise
-            // or a value.
-
-            deferred = defer();
-            if(isPromise(promiseOrValue)) {
-                // It's a compliant promise, but we don't know where it came from,
-                // so we don't trust its implementation entirely.  Introduce a trusted
-                // middleman when.js promise
-
-                // IMPORTANT: This is the only place when.js should ever call .then() on
-                // an untrusted promise.
-                promiseOrValue.then(deferred.resolve, deferred.reject, deferred.progress);
-                promise = deferred.promise;
-
-            } else {
-                // It's a value, not a promise.  Create an already-resolved promise
-                // for it.
-                deferred.resolve(promiseOrValue);
-                promise = deferred.promise;
-            }
-        }
-
-        return promise;
-    }
-
-    /**
-     * Return a promise that will resolve when howMany of the supplied promisesOrValues
-     * have resolved. The resolution value of the returned promise will be an array of
-     * length howMany containing the resolutions values of the triggering promisesOrValues.
-     *
-     * @memberOf when
-     *
-     * @param promisesOrValues {Array} array of anything, may contain a mix
-     *      of {@link Promise}s and values
-     * @param howMany
-     * @param [callback]
-     * @param [errback]
-     * @param [progressHandler]
-     *
-     * @returns {Promise}
-     */
-    function some(promisesOrValues, howMany, callback, errback, progressHandler) {
-        var toResolve, results, ret, deferred, resolver, rejecter, handleProgress, len, i;
-
-        len = promisesOrValues.length >>> 0;
-
-        toResolve = Math.max(0, Math.min(howMany, len));
-        results = [];
-        deferred = defer();
-        ret = when(deferred, callback, errback, progressHandler);
-
-        // Wrapper so that resolver can be replaced
-        function resolve(val) {
-            resolver(val);
-        }
-
-        // Wrapper so that rejecter can be replaced
-        function reject(err) {
-            rejecter(err);
-        }
-
-        // Wrapper so that progress can be replaced
-        function progress(update) {
-            handleProgress(update);
-        }
-
-        function complete() {
-            resolver = rejecter = handleProgress = noop;
-        }
-
-        // No items in the input, resolve immediately
-        if (!toResolve) {
-            deferred.resolve(results);
-
-        } else {
-            // Resolver for promises.  Captures the value and resolves
-            // the returned promise when toResolve reaches zero.
-            // Overwrites resolver var with a noop once promise has
-            // be resolved to cover case where n < promises.length
-            resolver = function(val) {
-                // This orders the values based on promise resolution order
-                // Another strategy would be to use the original position of
-                // the corresponding promise.
-                results.push(val);
-
-                if (!--toResolve) {
-                    complete();
-                    deferred.resolve(results);
-                }
-            };
-
-            // Rejecter for promises.  Rejects returned promise
-            // immediately, and overwrites rejecter var with a noop
-            // once promise to cover case where n < promises.length.
-            // TODO: Consider rejecting only when N (or promises.length - N?)
-            // promises have been rejected instead of only one?
-            rejecter = function(err) {
-                complete();
-                deferred.reject(err);
-            };
-
-            handleProgress = deferred.progress;
-
-            // TODO: Replace while with forEach
-            for(i = 0; i < len; ++i) {
-                if(i in promisesOrValues) {
-                    when(promisesOrValues[i], resolve, reject, progress);
-                }
-            }
-        }
-
-        return ret;
-    }
-
-    /**
-     * Return a promise that will resolve only once all the supplied promisesOrValues
-     * have resolved. The resolution value of the returned promise will be an array
-     * containing the resolution values of each of the promisesOrValues.
-     *
-     * @memberOf when
-     *
-     * @param promisesOrValues {Array} array of anything, may contain a mix
-     *      of {@link Promise}s and values
-     * @param [callback] {Function}
-     * @param [errback] {Function}
-     * @param [progressHandler] {Function}
-     *
-     * @returns {Promise}
-     */
-    function all(promisesOrValues, callback, errback, progressHandler) {
-        var results, promise;
-
-        results = allocateArray(promisesOrValues.length);
-        promise = reduce(promisesOrValues, reduceIntoArray, results);
-
-        return when(promise, callback, errback, progressHandler);
-    }
-
-    function reduceIntoArray(current, val, i) {
-        current[i] = val;
-        return current;
-    }
-
-    /**
-     * Return a promise that will resolve when any one of the supplied promisesOrValues
-     * has resolved. The resolution value of the returned promise will be the resolution
-     * value of the triggering promiseOrValue.
-     *
-     * @memberOf when
-     *
-     * @param promisesOrValues {Array} array of anything, may contain a mix
-     *      of {@link Promise}s and values
-     * @param [callback] {Function}
-     * @param [errback] {Function}
-     * @param [progressHandler] {Function}
-     *
-     * @returns {Promise}
-     */
-    function any(promisesOrValues, callback, errback, progressHandler) {
-
-        function unwrapSingleResult(val) {
-            return callback(val[0]);
-        }
-
-        return some(promisesOrValues, 1, unwrapSingleResult, errback, progressHandler);
-    }
-
-    /**
-     * Traditional map function, similar to `Array.prototype.map()`, but allows
-     * input to contain {@link Promise}s and/or values, and mapFunc may return
-     * either a value or a {@link Promise}
-     *
-     * @memberOf when
-     *
-     * @param promisesOrValues {Array} array of anything, may contain a mix
-     *      of {@link Promise}s and values
-     * @param mapFunc {Function} mapping function mapFunc(value) which may return
-     *      either a {@link Promise} or value
-     *
-     * @returns {Promise} a {@link Promise} that will resolve to an array containing
-     *      the mapped output values.
-     */
-    function map(promisesOrValues, mapFunc) {
-
-        var results, i;
-
-        // Since we know the resulting length, we can preallocate the results
-        // array to avoid array expansions.
-        i = promisesOrValues.length;
-        results = allocateArray(i);
-
-        // Since mapFunc may be async, get all invocations of it into flight
-        // asap, and then use reduce() to collect all the results
-        for(;i >= 0; --i) {
-            if(i in promisesOrValues)
-                results[i] = when(promisesOrValues[i], mapFunc);
-        }
-
-        // Could use all() here, but that would result in another array
-        // being allocated, i.e. map() would end up allocating 2 arrays
-        // of size len instead of just 1.  Since all() uses reduce()
-        // anyway, avoid the additional allocation by calling reduce
-        // directly.
-        return reduce(results, reduceIntoArray, results);
-    }
-
-    /**
-     * Traditional reduce function, similar to `Array.prototype.reduce()`, but
-     * input may contain {@link Promise}s and/or values, but reduceFunc
-     * may return either a value or a {@link Promise}, *and* initialValue may
-     * be a {@link Promise} for the starting value.
-     *
-     * @memberOf when
-     *
-     * @param promisesOrValues {Array} array of anything, may contain a mix
-     *      of {@link Promise}s and values
-     * @param reduceFunc {Function} reduce function reduce(currentValue, nextValue, index, total),
-     *      where total is the total number of items being reduced, and will be the same
-     *      in each call to reduceFunc.
-     * @param initialValue starting value, or a {@link Promise} for the starting value
-     *
-     * @returns {Promise} that will resolve to the final reduced value
-     */
-    function reduce(promisesOrValues, reduceFunc, initialValue) {
-
-        var total, args;
-
-        total = promisesOrValues.length;
-
-        // Skip promisesOrValues, since it will be used as 'this' in the call
-        // to the actual reduce engine below.
-
-        // Wrap the supplied reduceFunc with one that handles promises and then
-        // delegates to the supplied.
-
-        args = [
-            function (current, val, i) {
-                return when(current, function (c) {
-                    return when(val, function (value) {
-                        return reduceFunc(c, value, i, total);
-                    });
-                });
-            }
-        ];
-
-        if (arguments.length >= 3) args.push(initialValue);
-
-        return promise(reduceArray.apply(promisesOrValues, args));
-    }
-
-    /**
-     * Ensure that resolution of promiseOrValue will complete resolver with the completion
-     * value of promiseOrValue, or instead with resolveValue if it is provided.
-     *
-     * @memberOf when
-     *
-     * @param promiseOrValue
-     * @param resolver {Resolver}
-     * @param [resolveValue] anything
-     *
-     * @returns {Promise}
-     */
-    function chain(promiseOrValue, resolver, resolveValue) {
-        var useResolveValue = arguments.length > 2;
-
-        return when(promiseOrValue,
-            function(val) {
-				if(useResolveValue) val = resolveValue;
-                resolver.resolve(val);
-				return val;
-            },
-			function(e) {
-				resolver.reject(e);
-				return rejected(e);
-			},
-            resolver.progress
-        );
-    }
-
-    //
-    // Public API
-    //
-
-    when.defer     = defer;
-
-    when.isPromise = isPromise;
-    when.some      = some;
-    when.all       = all;
-    when.any       = any;
-
-    when.reduce    = reduce;
-    when.map       = map;
-
-    when.chain     = chain;
-
-    return when;
-});
-})(typeof define == 'function'
-    ? define
-    : function (factory) { typeof module != 'undefined'
-        ? (module.exports = factory())
-        : (this.when      = factory());
-    }
-    // Boilerplate for AMD, Node, and browser global
-);
-
 /*!
  * Lo-Dash v0.8.1 <http://lodash.com>
  * (c) 2012 John-David Dalton <http://allyoucanleet.com/>
@@ -5375,6 +4636,1058 @@ define('when',[],function() {
   }
 }(this));
 
+/** @license MIT License (c) copyright 2011-2013 original author or authors */
+
+/**
+ * A lightweight CommonJS Promises/A and when() implementation
+ * when is part of the cujo.js family of libraries (http://cujojs.com/)
+ *
+ * Licensed under the MIT License at:
+ * http://www.opensource.org/licenses/mit-license.php
+ *
+ * @author Brian Cavalier
+ * @author John Hann
+ * @version 2.1.0
+ */
+(function(define, global) { 
+define('when',[],function () {
+
+	// Public API
+
+	when.defer     = defer;      // Create a deferred
+	when.resolve   = resolve;    // Create a resolved promise
+	when.reject    = reject;     // Create a rejected promise
+
+	when.join      = join;       // Join 2 or more promises
+
+	when.all       = all;        // Resolve a list of promises
+	when.map       = map;        // Array.map() for promises
+	when.reduce    = reduce;     // Array.reduce() for promises
+	when.settle    = settle;     // Settle a list of promises
+
+	when.any       = any;        // One-winner race
+	when.some      = some;       // Multi-winner race
+
+	when.isPromise = isPromise;  // Determine if a thing is a promise
+
+	when.promise   = promise;    // EXPERIMENTAL: May change. Use at your own risk
+
+	/**
+	 * Register an observer for a promise or immediate value.
+	 *
+	 * @param {*} promiseOrValue
+	 * @param {function?} [onFulfilled] callback to be called when promiseOrValue is
+	 *   successfully fulfilled.  If promiseOrValue is an immediate value, callback
+	 *   will be invoked immediately.
+	 * @param {function?} [onRejected] callback to be called when promiseOrValue is
+	 *   rejected.
+	 * @param {function?} [onProgress] callback to be called when progress updates
+	 *   are issued for promiseOrValue.
+	 * @returns {Promise} a new {@link Promise} that will complete with the return
+	 *   value of callback or errback or the completion value of promiseOrValue if
+	 *   callback and/or errback is not supplied.
+	 */
+	function when(promiseOrValue, onFulfilled, onRejected, onProgress) {
+		// Get a trusted promise for the input promiseOrValue, and then
+		// register promise handlers
+		return resolve(promiseOrValue).then(onFulfilled, onRejected, onProgress);
+	}
+
+	/**
+	 * Trusted Promise constructor.  A Promise created from this constructor is
+	 * a trusted when.js promise.  Any other duck-typed promise is considered
+	 * untrusted.
+	 * @constructor
+	 * @name Promise
+	 */
+	function Promise(then, inspect) {
+		this.then = then;
+		this.inspect = inspect;
+	}
+
+	Promise.prototype = {
+		/**
+		 * Register a rejection handler.  Shortcut for .then(undefined, onRejected)
+		 * @param {function?} onRejected
+		 * @return {Promise}
+		 */
+		otherwise: function(onRejected) {
+			return this.then(undef, onRejected);
+		},
+
+		/**
+		 * Ensures that onFulfilledOrRejected will be called regardless of whether
+		 * this promise is fulfilled or rejected.  onFulfilledOrRejected WILL NOT
+		 * receive the promises' value or reason.  Any returned value will be disregarded.
+		 * onFulfilledOrRejected may throw or return a rejected promise to signal
+		 * an additional error.
+		 * @param {function} onFulfilledOrRejected handler to be called regardless of
+		 *  fulfillment or rejection
+		 * @returns {Promise}
+		 */
+		ensure: function(onFulfilledOrRejected) {
+			return this.then(injectHandler, injectHandler).yield(this);
+
+			function injectHandler() {
+				return resolve(onFulfilledOrRejected());
+			}
+		},
+
+		/**
+		 * Shortcut for .then(function() { return value; })
+		 * @param  {*} value
+		 * @return {Promise} a promise that:
+		 *  - is fulfilled if value is not a promise, or
+		 *  - if value is a promise, will fulfill with its value, or reject
+		 *    with its reason.
+		 */
+		'yield': function(value) {
+			return this.then(function() {
+				return value;
+			});
+		},
+
+		/**
+		 * Assumes that this promise will fulfill with an array, and arranges
+		 * for the onFulfilled to be called with the array as its argument list
+		 * i.e. onFulfilled.apply(undefined, array).
+		 * @param {function} onFulfilled function to receive spread arguments
+		 * @return {Promise}
+		 */
+		spread: function(onFulfilled) {
+			return this.then(function(array) {
+				// array may contain promises, so resolve its contents.
+				return all(array, function(array) {
+					return onFulfilled.apply(undef, array);
+				});
+			});
+		},
+
+		/**
+		 * Shortcut for .then(onFulfilledOrRejected, onFulfilledOrRejected)
+		 * @deprecated
+		 */
+		always: function(onFulfilledOrRejected, onProgress) {
+			return this.then(onFulfilledOrRejected, onFulfilledOrRejected, onProgress);
+		}
+	};
+
+	/**
+	 * Returns a resolved promise. The returned promise will be
+	 *  - fulfilled with promiseOrValue if it is a value, or
+	 *  - if promiseOrValue is a promise
+	 *    - fulfilled with promiseOrValue's value after it is fulfilled
+	 *    - rejected with promiseOrValue's reason after it is rejected
+	 * @param  {*} value
+	 * @return {Promise}
+	 */
+	function resolve(value) {
+		return promise(function(resolve) {
+			resolve(value);
+		});
+	}
+
+	/**
+	 * Returns a rejected promise for the supplied promiseOrValue.  The returned
+	 * promise will be rejected with:
+	 * - promiseOrValue, if it is a value, or
+	 * - if promiseOrValue is a promise
+	 *   - promiseOrValue's value after it is fulfilled
+	 *   - promiseOrValue's reason after it is rejected
+	 * @param {*} promiseOrValue the rejected value of the returned {@link Promise}
+	 * @return {Promise} rejected {@link Promise}
+	 */
+	function reject(promiseOrValue) {
+		return when(promiseOrValue, rejected);
+	}
+
+	/**
+	 * Creates a new Deferred with fully isolated resolver and promise parts,
+	 * either or both of which may be given out safely to consumers.
+	 * The resolver has resolve, reject, and progress.  The promise
+	 * only has then.
+	 *
+	 * @return {{
+	 * promise: Promise,
+	 * resolve: function:Promise,
+	 * reject: function:Promise,
+	 * notify: function:Promise
+	 * resolver: {
+	 *	resolve: function:Promise,
+	 *	reject: function:Promise,
+	 *	notify: function:Promise
+	 * }}}
+	 */
+	function defer() {
+		var deferred, pending, resolved;
+
+		// Optimize object shape
+		deferred = {
+			promise: undef, resolve: undef, reject: undef, notify: undef,
+			resolver: { resolve: undef, reject: undef, notify: undef }
+		};
+
+		deferred.promise = pending = promise(makeDeferred);
+
+		return deferred;
+
+		function makeDeferred(resolvePending, rejectPending, notifyPending) {
+			deferred.resolve = deferred.resolver.resolve = function(value) {
+				if(resolved) {
+					return resolve(value);
+				}
+				resolved = true;
+				resolvePending(value);
+				return pending;
+			};
+
+			deferred.reject  = deferred.resolver.reject  = function(reason) {
+				if(resolved) {
+					return resolve(rejected(reason));
+				}
+				resolved = true;
+				rejectPending(reason);
+				return pending;
+			};
+
+			deferred.notify  = deferred.resolver.notify  = function(update) {
+				notifyPending(update);
+				return update;
+			};
+		}
+	}
+
+	/**
+	 * Creates a new promise whose fate is determined by resolver.
+	 * @private (for now)
+	 * @param {function} resolver function(resolve, reject, notify)
+	 * @returns {Promise} promise whose fate is determine by resolver
+	 */
+	function promise(resolver) {
+		var value, handlers = [];
+
+		// Call the provider resolver to seal the promise's fate
+		try {
+			resolver(promiseResolve, promiseReject, promiseNotify);
+		} catch(e) {
+			promiseReject(e);
+		}
+
+		// Return the promise
+		return new Promise(then, inspect);
+
+		/**
+		 * Register handlers for this promise.
+		 * @param [onFulfilled] {Function} fulfillment handler
+		 * @param [onRejected] {Function} rejection handler
+		 * @param [onProgress] {Function} progress handler
+		 * @return {Promise} new Promise
+		 */
+		function then(onFulfilled, onRejected, onProgress) {
+			return promise(function(resolve, reject, notify) {
+				handlers
+				// Call handlers later, after resolution
+				? handlers.push(function(value) {
+					value.then(onFulfilled, onRejected, onProgress)
+						.then(resolve, reject, notify);
+				})
+				// Call handlers soon, but not in the current stack
+				: enqueue(function() {
+					value.then(onFulfilled, onRejected, onProgress)
+						.then(resolve, reject, notify);
+				});
+			});
+		}
+
+		function inspect() {
+			return value ? value.inspect() : toPendingState();
+		}
+
+		/**
+		 * Transition from pre-resolution state to post-resolution state, notifying
+		 * all listeners of the ultimate fulfillment or rejection
+		 * @param {*|Promise} val resolution value
+		 */
+		function promiseResolve(val) {
+			if(!handlers) {
+				return;
+			}
+
+			value = coerce(val);
+			scheduleHandlers(handlers, value);
+
+			handlers = undef;
+		}
+
+		/**
+		 * Reject this promise with the supplied reason, which will be used verbatim.
+		 * @param {*} reason reason for the rejection
+		 */
+		function promiseReject(reason) {
+			promiseResolve(rejected(reason));
+		}
+
+		/**
+		 * Issue a progress event, notifying all progress listeners
+		 * @param {*} update progress event payload to pass to all listeners
+		 */
+		function promiseNotify(update) {
+			if(handlers) {
+				scheduleHandlers(handlers, progressing(update));
+			}
+		}
+	}
+
+	/**
+	 * Coerces x to a trusted Promise
+	 *
+	 * @private
+	 * @param {*} x thing to coerce
+	 * @returns {Promise} Guaranteed to return a trusted Promise.  If x
+	 *   is trusted, returns x, otherwise, returns a new, trusted, already-resolved
+	 *   Promise whose resolution value is:
+	 *   * the resolution value of x if it's a foreign promise, or
+	 *   * x if it's a value
+	 */
+	function coerce(x) {
+		if(x instanceof Promise) {
+			return x;
+		}
+
+		if (!(x === Object(x) && 'then' in x)) {
+			return fulfilled(x);
+		}
+
+		return promise(function(resolve, reject, notify) {
+			enqueue(function() {
+				try {
+					// We must check and assimilate in the same tick, but not the
+					// current tick, careful only to access promiseOrValue.then once.
+					var untrustedThen = x.then;
+
+					if(typeof untrustedThen === 'function') {
+						fcall(untrustedThen, x, resolve, reject, notify);
+					} else {
+						// It's a value, create a fulfilled wrapper
+						resolve(fulfilled(x));
+					}
+
+				} catch(e) {
+					// Something went wrong, reject
+					reject(e);
+				}
+			});
+		});
+	}
+
+	/**
+	 * Create an already-fulfilled promise for the supplied value
+	 * @private
+	 * @param {*} value
+	 * @return {Promise} fulfilled promise
+	 */
+	function fulfilled(value) {
+		var self = new Promise(function (onFulfilled) {
+			try {
+				return typeof onFulfilled == 'function'
+					? coerce(onFulfilled(value)) : self;
+			} catch (e) {
+				return rejected(e);
+			}
+		}, function() {
+			return toFulfilledState(value);
+		});
+
+		return self;
+	}
+
+	/**
+	 * Create an already-rejected promise with the supplied rejection reason.
+	 * @private
+	 * @param {*} reason
+	 * @return {Promise} rejected promise
+	 */
+	function rejected(reason) {
+		var self = new Promise(function (_, onRejected) {
+			try {
+				return typeof onRejected == 'function'
+					? coerce(onRejected(reason)) : self;
+			} catch (e) {
+				return rejected(e);
+			}
+		}, function() {
+			return toRejectedState(reason);
+		});
+
+		return self;
+	}
+
+	/**
+	 * Create a progress promise with the supplied update.
+	 * @private
+	 * @param {*} update
+	 * @return {Promise} progress promise
+	 */
+	function progressing(update) {
+		var self = new Promise(function (_, __, onProgress) {
+			try {
+				return typeof onProgress == 'function'
+					? progressing(onProgress(update)) : self;
+			} catch (e) {
+				return progressing(e);
+			}
+		});
+
+		return self;
+	}
+
+	/**
+	 * Schedule a task that will process a list of handlers
+	 * in the next queue drain run.
+	 * @private
+	 * @param {Array} handlers queue of handlers to execute
+	 * @param {*} value passed as the only arg to each handler
+	 */
+	function scheduleHandlers(handlers, value) {
+		enqueue(function() {
+			var handler, i = 0;
+			while (handler = handlers[i++]) {
+				handler(value);
+			}
+		});
+	}
+
+	/**
+	 * Determines if promiseOrValue is a promise or not
+	 *
+	 * @param {*} promiseOrValue anything
+	 * @returns {boolean} true if promiseOrValue is a {@link Promise}
+	 */
+	function isPromise(promiseOrValue) {
+		return promiseOrValue && typeof promiseOrValue.then === 'function';
+	}
+
+	/**
+	 * Initiates a competitive race, returning a promise that will resolve when
+	 * howMany of the supplied promisesOrValues have resolved, or will reject when
+	 * it becomes impossible for howMany to resolve, for example, when
+	 * (promisesOrValues.length - howMany) + 1 input promises reject.
+	 *
+	 * @param {Array} promisesOrValues array of anything, may contain a mix
+	 *      of promises and values
+	 * @param howMany {number} number of promisesOrValues to resolve
+	 * @param {function?} [onFulfilled] DEPRECATED, use returnedPromise.then()
+	 * @param {function?} [onRejected] DEPRECATED, use returnedPromise.then()
+	 * @param {function?} [onProgress] DEPRECATED, use returnedPromise.then()
+	 * @returns {Promise} promise that will resolve to an array of howMany values that
+	 *  resolved first, or will reject with an array of
+	 *  (promisesOrValues.length - howMany) + 1 rejection reasons.
+	 */
+	function some(promisesOrValues, howMany, onFulfilled, onRejected, onProgress) {
+
+		return when(promisesOrValues, function(promisesOrValues) {
+
+			return promise(resolveSome).then(onFulfilled, onRejected, onProgress);
+
+			function resolveSome(resolve, reject, notify) {
+				var toResolve, toReject, values, reasons, fulfillOne, rejectOne, len, i;
+
+				len = promisesOrValues.length >>> 0;
+
+				toResolve = Math.max(0, Math.min(howMany, len));
+				values = [];
+
+				toReject = (len - toResolve) + 1;
+				reasons = [];
+
+				// No items in the input, resolve immediately
+				if (!toResolve) {
+					resolve(values);
+
+				} else {
+					rejectOne = function(reason) {
+						reasons.push(reason);
+						if(!--toReject) {
+							fulfillOne = rejectOne = identity;
+							reject(reasons);
+						}
+					};
+
+					fulfillOne = function(val) {
+						// This orders the values based on promise resolution order
+						values.push(val);
+						if (!--toResolve) {
+							fulfillOne = rejectOne = identity;
+							resolve(values);
+						}
+					};
+
+					for(i = 0; i < len; ++i) {
+						if(i in promisesOrValues) {
+							when(promisesOrValues[i], fulfiller, rejecter, notify);
+						}
+					}
+				}
+
+				function rejecter(reason) {
+					rejectOne(reason);
+				}
+
+				function fulfiller(val) {
+					fulfillOne(val);
+				}
+			}
+		});
+	}
+
+	/**
+	 * Initiates a competitive race, returning a promise that will resolve when
+	 * any one of the supplied promisesOrValues has resolved or will reject when
+	 * *all* promisesOrValues have rejected.
+	 *
+	 * @param {Array|Promise} promisesOrValues array of anything, may contain a mix
+	 *      of {@link Promise}s and values
+	 * @param {function?} [onFulfilled] DEPRECATED, use returnedPromise.then()
+	 * @param {function?} [onRejected] DEPRECATED, use returnedPromise.then()
+	 * @param {function?} [onProgress] DEPRECATED, use returnedPromise.then()
+	 * @returns {Promise} promise that will resolve to the value that resolved first, or
+	 * will reject with an array of all rejected inputs.
+	 */
+	function any(promisesOrValues, onFulfilled, onRejected, onProgress) {
+
+		function unwrapSingleResult(val) {
+			return onFulfilled ? onFulfilled(val[0]) : val[0];
+		}
+
+		return some(promisesOrValues, 1, unwrapSingleResult, onRejected, onProgress);
+	}
+
+	/**
+	 * Return a promise that will resolve only once all the supplied promisesOrValues
+	 * have resolved. The resolution value of the returned promise will be an array
+	 * containing the resolution values of each of the promisesOrValues.
+	 * @memberOf when
+	 *
+	 * @param {Array|Promise} promisesOrValues array of anything, may contain a mix
+	 *      of {@link Promise}s and values
+	 * @param {function?} [onFulfilled] DEPRECATED, use returnedPromise.then()
+	 * @param {function?} [onRejected] DEPRECATED, use returnedPromise.then()
+	 * @param {function?} [onProgress] DEPRECATED, use returnedPromise.then()
+	 * @returns {Promise}
+	 */
+	function all(promisesOrValues, onFulfilled, onRejected, onProgress) {
+		return _map(promisesOrValues, identity).then(onFulfilled, onRejected, onProgress);
+	}
+
+	/**
+	 * Joins multiple promises into a single returned promise.
+	 * @return {Promise} a promise that will fulfill when *all* the input promises
+	 * have fulfilled, or will reject when *any one* of the input promises rejects.
+	 */
+	function join(/* ...promises */) {
+		return _map(arguments, identity);
+	}
+
+	/**
+	 * Settles all input promises such that they are guaranteed not to
+	 * be pending once the returned promise fulfills. The returned promise
+	 * will always fulfill, except in the case where `array` is a promise
+	 * that rejects.
+	 * @param {Array|Promise} array or promise for array of promises to settle
+	 * @returns {Promise} promise that always fulfills with an array of
+	 *  outcome snapshots for each input promise.
+	 */
+	function settle(array) {
+		return _map(array, toFulfilledState, toRejectedState);
+	}
+
+	/**
+	 * Promise-aware array map function, similar to `Array.prototype.map()`,
+	 * but input array may contain promises or values.
+	 * @param {Array|Promise} array array of anything, may contain promises and values
+	 * @param {function} mapFunc map function which may return a promise or value
+	 * @returns {Promise} promise that will fulfill with an array of mapped values
+	 *  or reject if any input promise rejects.
+	 */
+	function map(array, mapFunc) {
+		return _map(array, mapFunc);
+	}
+
+	/**
+	 * Internal map that allows a fallback to handle rejections
+	 * @param {Array|Promise} array array of anything, may contain promises and values
+	 * @param {function} mapFunc map function which may return a promise or value
+	 * @param {function?} fallback function to handle rejected promises
+	 * @returns {Promise} promise that will fulfill with an array of mapped values
+	 *  or reject if any input promise rejects.
+	 */
+	function _map(array, mapFunc, fallback) {
+		return when(array, function(array) {
+
+			return promise(resolveMap);
+
+			function resolveMap(resolve, reject, notify) {
+				var results, len, toResolve, resolveOne, i;
+
+				// Since we know the resulting length, we can preallocate the results
+				// array to avoid array expansions.
+				toResolve = len = array.length >>> 0;
+				results = [];
+
+				if(!toResolve) {
+					resolve(results);
+					return;
+				}
+
+				resolveOne = function(item, i) {
+					when(item, mapFunc, fallback).then(function(mapped) {
+						results[i] = mapped;
+
+						if(!--toResolve) {
+							resolve(results);
+						}
+					}, reject, notify);
+				};
+
+				// Since mapFunc may be async, get all invocations of it into flight
+				for(i = 0; i < len; i++) {
+					if(i in array) {
+						resolveOne(array[i], i);
+					} else {
+						--toResolve;
+					}
+				}
+			}
+		});
+	}
+
+	/**
+	 * Traditional reduce function, similar to `Array.prototype.reduce()`, but
+	 * input may contain promises and/or values, and reduceFunc
+	 * may return either a value or a promise, *and* initialValue may
+	 * be a promise for the starting value.
+	 *
+	 * @param {Array|Promise} promise array or promise for an array of anything,
+	 *      may contain a mix of promises and values.
+	 * @param {function} reduceFunc reduce function reduce(currentValue, nextValue, index, total),
+	 *      where total is the total number of items being reduced, and will be the same
+	 *      in each call to reduceFunc.
+	 * @returns {Promise} that will resolve to the final reduced value
+	 */
+	function reduce(promise, reduceFunc /*, initialValue */) {
+		var args = fcall(slice, arguments, 1);
+
+		return when(promise, function(array) {
+			var total;
+
+			total = array.length;
+
+			// Wrap the supplied reduceFunc with one that handles promises and then
+			// delegates to the supplied.
+			args[0] = function (current, val, i) {
+				return when(current, function (c) {
+					return when(val, function (value) {
+						return reduceFunc(c, value, i, total);
+					});
+				});
+			};
+
+			return reduceArray.apply(array, args);
+		});
+	}
+
+	// Snapshot states
+
+	/**
+	 * Creates a fulfilled state snapshot
+	 * @private
+	 * @param {*} x any value
+	 * @returns {{state:'fulfilled',value:*}}
+	 */
+	function toFulfilledState(x) {
+		return { state: 'fulfilled', value: x };
+	}
+
+	/**
+	 * Creates a rejected state snapshot
+	 * @private
+	 * @param {*} x any reason
+	 * @returns {{state:'rejected',reason:*}}
+	 */
+	function toRejectedState(x) {
+		return { state: 'rejected', reason: x };
+	}
+
+	/**
+	 * Creates a pending state snapshot
+	 * @private
+	 * @returns {{state:'pending'}}
+	 */
+	function toPendingState() {
+		return { state: 'pending' };
+	}
+
+	//
+	// Utilities, etc.
+	//
+
+	var reduceArray, slice, fcall, nextTick, handlerQueue,
+		setTimeout, funcProto, call, arrayProto, undef;
+
+	//
+	// Shared handler queue processing
+	//
+	// Credit to Twisol (https://github.com/Twisol) for suggesting
+	// this type of extensible queue + trampoline approach for
+	// next-tick conflation.
+
+	handlerQueue = [];
+
+	/**
+	 * Enqueue a task. If the queue is not currently scheduled to be
+	 * drained, schedule it.
+	 * @param {function} task
+	 */
+	function enqueue(task) {
+		if(handlerQueue.push(task) === 1) {
+			scheduleDrainQueue();
+		}
+	}
+
+	/**
+	 * Schedule the queue to be drained after the stack has cleared.
+	 */
+	function scheduleDrainQueue() {
+		nextTick(drainQueue);
+	}
+
+	/**
+	 * Drain the handler queue entirely, being careful to allow the
+	 * queue to be extended while it is being processed, and to continue
+	 * processing until it is truly empty.
+	 */
+	function drainQueue() {
+		var task, i = 0;
+
+		while(task = handlerQueue[i++]) {
+			task();
+		}
+
+		handlerQueue = [];
+	}
+
+	//
+	// Capture function and array utils
+	//
+	/*global setImmediate,process,vertx*/
+
+	// capture setTimeout to avoid being caught by fake timers used in time based tests
+	setTimeout = global.setTimeout;
+	// Prefer setImmediate, cascade to node, vertx and finally setTimeout
+	nextTick = typeof setImmediate === 'function' ? setImmediate.bind(global)
+		: typeof process === 'object' && process.nextTick ? process.nextTick
+		: typeof vertx === 'object' ? vertx.runOnLoop // vert.x
+			: function(task) { setTimeout(task, 0); }; // fallback
+	// nextTick = function(task) { task.call(); };
+
+	// Safe function calls
+	funcProto = Function.prototype;
+	call = funcProto.call;
+	fcall = funcProto.bind
+		? call.bind(call)
+		: function(f, context) {
+			return f.apply(context, slice.call(arguments, 2));
+		};
+
+	// Safe array ops
+	arrayProto = [];
+	slice = arrayProto.slice;
+
+	// ES5 reduce implementation if native not available
+	// See: http://es5.github.com/#x15.4.4.21 as there are many
+	// specifics and edge cases.  ES5 dictates that reduce.length === 1
+	// This implementation deviates from ES5 spec in the following ways:
+	// 1. It does not check if reduceFunc is a Callable
+	reduceArray = arrayProto.reduce ||
+		function(reduceFunc /*, initialValue */) {
+			/*jshint maxcomplexity: 7*/
+			var arr, args, reduced, len, i;
+
+			i = 0;
+			arr = Object(this);
+			len = arr.length >>> 0;
+			args = arguments;
+
+			// If no initialValue, use first item of array (we know length !== 0 here)
+			// and adjust i to start at second item
+			if(args.length <= 1) {
+				// Skip to the first real element in the array
+				for(;;) {
+					if(i in arr) {
+						reduced = arr[i++];
+						break;
+					}
+
+					// If we reached the end of the array without finding any real
+					// elements, it's a TypeError
+					if(++i >= len) {
+						throw new TypeError();
+					}
+				}
+			} else {
+				// If initialValue provided, use it
+				reduced = args[1];
+			}
+
+			// Do the actual reduce
+			for(;i < len; ++i) {
+				if(i in arr) {
+					reduced = reduceFunc(reduced, arr[i], i, arr);
+				}
+			}
+
+			return reduced;
+		};
+
+	function identity(x) {
+		return x;
+	}
+
+	return when;
+});
+})(
+	typeof define === 'function' && define.amd ? define : function (factory) { module.exports = factory(); },
+	this
+);
+
+/*
+CryptoJS v3.0.2
+code.google.com/p/crypto-js
+(c) 2009-2012 by Jeff Mott. All rights reserved.
+code.google.com/p/crypto-js/wiki/License
+*/
+var CryptoJS=CryptoJS||function(i,p){var f={},q=f.lib={},j=q.Base=function(){function a(){}return{extend:function(h){a.prototype=this;var d=new a;h&&d.mixIn(h);d.$super=this;return d},create:function(){var a=this.extend();a.init.apply(a,arguments);return a},init:function(){},mixIn:function(a){for(var d in a)a.hasOwnProperty(d)&&(this[d]=a[d]);a.hasOwnProperty("toString")&&(this.toString=a.toString)},clone:function(){return this.$super.extend(this)}}}(),k=q.WordArray=j.extend({init:function(a,h){a=
+this.words=a||[];this.sigBytes=h!=p?h:4*a.length},toString:function(a){return(a||m).stringify(this)},concat:function(a){var h=this.words,d=a.words,c=this.sigBytes,a=a.sigBytes;this.clamp();if(c%4)for(var b=0;b<a;b++)h[c+b>>>2]|=(d[b>>>2]>>>24-8*(b%4)&255)<<24-8*((c+b)%4);else if(65535<d.length)for(b=0;b<a;b+=4)h[c+b>>>2]=d[b>>>2];else h.push.apply(h,d);this.sigBytes+=a;return this},clamp:function(){var a=this.words,b=this.sigBytes;a[b>>>2]&=4294967295<<32-8*(b%4);a.length=i.ceil(b/4)},clone:function(){var a=
+j.clone.call(this);a.words=this.words.slice(0);return a},random:function(a){for(var b=[],d=0;d<a;d+=4)b.push(4294967296*i.random()|0);return k.create(b,a)}}),r=f.enc={},m=r.Hex={stringify:function(a){for(var b=a.words,a=a.sigBytes,d=[],c=0;c<a;c++){var e=b[c>>>2]>>>24-8*(c%4)&255;d.push((e>>>4).toString(16));d.push((e&15).toString(16))}return d.join("")},parse:function(a){for(var b=a.length,d=[],c=0;c<b;c+=2)d[c>>>3]|=parseInt(a.substr(c,2),16)<<24-4*(c%8);return k.create(d,b/2)}},s=r.Latin1={stringify:function(a){for(var b=
+a.words,a=a.sigBytes,d=[],c=0;c<a;c++)d.push(String.fromCharCode(b[c>>>2]>>>24-8*(c%4)&255));return d.join("")},parse:function(a){for(var b=a.length,d=[],c=0;c<b;c++)d[c>>>2]|=(a.charCodeAt(c)&255)<<24-8*(c%4);return k.create(d,b)}},g=r.Utf8={stringify:function(a){try{return decodeURIComponent(escape(s.stringify(a)))}catch(b){throw Error("Malformed UTF-8 data");}},parse:function(a){return s.parse(unescape(encodeURIComponent(a)))}},b=q.BufferedBlockAlgorithm=j.extend({reset:function(){this._data=k.create();
+this._nDataBytes=0},_append:function(a){"string"==typeof a&&(a=g.parse(a));this._data.concat(a);this._nDataBytes+=a.sigBytes},_process:function(a){var b=this._data,d=b.words,c=b.sigBytes,e=this.blockSize,f=c/(4*e),f=a?i.ceil(f):i.max((f|0)-this._minBufferSize,0),a=f*e,c=i.min(4*a,c);if(a){for(var g=0;g<a;g+=e)this._doProcessBlock(d,g);g=d.splice(0,a);b.sigBytes-=c}return k.create(g,c)},clone:function(){var a=j.clone.call(this);a._data=this._data.clone();return a},_minBufferSize:0});q.Hasher=b.extend({init:function(){this.reset()},
+reset:function(){b.reset.call(this);this._doReset()},update:function(a){this._append(a);this._process();return this},finalize:function(a){a&&this._append(a);this._doFinalize();return this._hash},clone:function(){var a=b.clone.call(this);a._hash=this._hash.clone();return a},blockSize:16,_createHelper:function(a){return function(b,d){return a.create(d).finalize(b)}},_createHmacHelper:function(a){return function(b,d){return e.HMAC.create(a,d).finalize(b)}}});var e=f.algo={};return f}(Math);
+(function(i){var p=CryptoJS,f=p.lib,q=f.WordArray,f=f.Hasher,j=p.algo,k=[],r=[];(function(){function f(a){for(var b=i.sqrt(a),d=2;d<=b;d++)if(!(a%d))return!1;return!0}function g(a){return 4294967296*(a-(a|0))|0}for(var b=2,e=0;64>e;)f(b)&&(8>e&&(k[e]=g(i.pow(b,0.5))),r[e]=g(i.pow(b,1/3)),e++),b++})();var m=[],j=j.SHA256=f.extend({_doReset:function(){this._hash=q.create(k.slice(0))},_doProcessBlock:function(f,g){for(var b=this._hash.words,e=b[0],a=b[1],h=b[2],d=b[3],c=b[4],i=b[5],j=b[6],k=b[7],l=0;64>
+l;l++){if(16>l)m[l]=f[g+l]|0;else{var n=m[l-15],o=m[l-2];m[l]=((n<<25|n>>>7)^(n<<14|n>>>18)^n>>>3)+m[l-7]+((o<<15|o>>>17)^(o<<13|o>>>19)^o>>>10)+m[l-16]}n=k+((c<<26|c>>>6)^(c<<21|c>>>11)^(c<<7|c>>>25))+(c&i^~c&j)+r[l]+m[l];o=((e<<30|e>>>2)^(e<<19|e>>>13)^(e<<10|e>>>22))+(e&a^e&h^a&h);k=j;j=i;i=c;c=d+n|0;d=h;h=a;a=e;e=n+o|0}b[0]=b[0]+e|0;b[1]=b[1]+a|0;b[2]=b[2]+h|0;b[3]=b[3]+d|0;b[4]=b[4]+c|0;b[5]=b[5]+i|0;b[6]=b[6]+j|0;b[7]=b[7]+k|0},_doFinalize:function(){var f=this._data,g=f.words,b=8*this._nDataBytes,
+e=8*f.sigBytes;g[e>>>5]|=128<<24-e%32;g[(e+64>>>9<<4)+15]=b;f.sigBytes=4*g.length;this._process()}});p.SHA256=f._createHelper(j);p.HmacSHA256=f._createHmacHelper(j)})(Math);
+
+define("crypto-js/rollups/sha256", function(){});
+
+define('src/shared',['require','crypto-js/rollups/sha256'],function(require) {
+
+  require("crypto-js/rollups/sha256"); var Crypto = CryptoJS;
+
+  function guid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+      return v.toString(16);
+    }).toUpperCase();
+  };
+
+  function hash(string) {
+    return Crypto.SHA256(string).toString(Crypto.enc.hex);
+  };
+
+  function nop() {};
+
+  return {
+    guid: guid,
+    hash: hash,
+    nop: nop,
+  };
+
+});
+/*
+Copyright (c) 2012, Alan Kligman
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    Neither the name of the Mozilla Foundation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+define('src/error',['require'],function(require) {
+  // 
+
+  function EPathExists(){ Error.apply(this, arguments); }
+  EPathExists.prototype = new Error();
+  EPathExists.prototype.name = "EPathExists";
+  EPathExists.prototype.constructor = EPathExists;
+
+  function EIsDirectory(){ Error.apply(this, arguments); }
+  EIsDirectory.prototype = new Error();
+  EIsDirectory.prototype.name = "EIsDirectory";
+  EIsDirectory.prototype.constructor = EIsDirectory;
+
+  function ENoEntry(){ Error.apply(this, arguments); }
+  ENoEntry.prototype = new Error();
+  ENoEntry.prototype.name = "ENoEntry";
+  ENoEntry.prototype.constructor = ENoEntry;
+
+  function EBusy(){ Error.apply(this, arguments); }
+  EBusy.prototype = new Error();
+  EBusy.prototype.name = "EBusy";
+  EBusy.prototype.constructor = EBusy;
+
+  function ENotEmpty(){ Error.apply(this, arguments); }
+  ENotEmpty.prototype = new Error();
+  ENotEmpty.prototype.name = "ENotEmpty";
+  ENotEmpty.prototype.constructor = ENotEmpty;
+
+  function ENotDirectory(){ Error.apply(this, arguments); }
+  ENotDirectory.prototype = new Error();
+  ENotDirectory.prototype.name = "NotADirectoryError";
+  ENotDirectory.prototype.constructor = ENotDirectory;
+
+  function EBadFileDescriptor(){ Error.apply(this, arguments); }
+  EBadFileDescriptor.prototype = new Error();
+  EBadFileDescriptor.prototype.name = "EBadFileDescriptor";
+  EBadFileDescriptor.prototype.constructor = EBadFileDescriptor;
+
+  function ENotImplemented(){ Error.apply(this, arguments); }
+  ENotImplemented.prototype = new Error();
+  ENotImplemented.prototype.name = "ENotImplemented";
+  ENotImplemented.prototype.constructor = ENotImplemented;
+
+  function ENotMounted(){ Error.apply(this, arguments); }
+  ENotMounted.prototype = new Error();
+  ENotMounted.prototype.name = "ENotMounted";
+  ENotMounted.prototype.constructor = ENotMounted;
+
+  function EFileExists(){ Error.apply(this, arguments); }
+  EFileExists.prototype = new Error();
+  EFileExists.prototype.name = "EFileExists";
+  EFileExists.prototype.constructor = EFileExists;
+
+  return {
+    EPathExists: EPathExists,
+    EIsDirectory: EIsDirectory,
+    ENoEntry: ENoEntry,
+    EBusy: EBusy,
+    ENotEmpty: ENotEmpty,
+    ENotDirectory: ENotDirectory,
+    EBadFileDescriptor: EBadFileDescriptor,
+    ENotImplemented: ENotImplemented,
+    ENotMounted: ENotMounted,
+    EFileExists: EFileExists
+  };
+
+});
+define('src/constants',['require'],function(require) {
+
+  return {
+    METADATA_STORE_NAME: 'metadata',
+    FILE_STORE_NAME: 'files',
+
+    IDB_RO: 'readonly',
+    IDB_RW: 'readwrite',
+
+    MODE_FILE: 'FILE',
+    MODE_DIRECTORY: 'DIRECTORY',
+    MODE_SYMBOLIC_LINK: 'SYMLINK',
+
+    BINARY_MIME_TYPE: 'application/octet-stream',
+    JSON_MIME_TYPE: 'application/json',
+
+    ROOT_DIRECTORY_NAME: '/', // basename(normalize(path))
+    ROOT_NODE_ID: '8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1', // sha256(ROOT_DIRECTORY_NAME)
+
+  // FileSystem flags
+    FS_FORMAT: 'FORMAT',
+
+  // Open flags
+    O_READONLY: 'READONLY',
+    O_READWRITE: 'READWRITE',
+    O_APPEND: 'APPEND',
+    O_CREATE: 'CREATE',
+    O_TRUNCATE: 'TRUNCATE',
+
+  // FileSystem readyState
+    FS_READY: 'READY',
+    FS_PENDING: 'PENDING',
+    FS_ERROR: 'ERROR',
+  };
+
+});
+define('src/object-store',['require'],function(require) {
+
+  function read_object(objectStore, id, callback) {
+    var getRequest = objectStore.get(id);
+    getRequest.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(undefined, result);
+    };
+    getRequest.onerror = function onerror(error) {
+      callback(error);
+    };
+  };
+
+  function write_object(objectStore, object, id, callback) {
+    var putRequest = objectStore.put(object, id);
+    putRequest.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(undefined, result);
+    };
+    putRequest.onerror = function onerror(error) {
+      callback(error);
+    };
+  };
+
+  function delete_object(objectStore, id, callback) {
+    var deleteRequest = objectStore.delete(id);
+    deleteRequest.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(undefined, result);
+    };
+    deleteRequest.onerror = function(error) {
+      callback(error);
+    };
+  };
+
+  return {
+    read_object: read_object,
+    write_object: write_object,
+    delete_object: delete_object,
+  };
+
+});
+define('src/file',['require','src/constants','src/shared','src/shared'],function(require) {
+
+  var MODE_FILE = require('src/constants').MODE_FILE;
+
+  var guid = require('src/shared').guid;
+  var hash = require('src/shared').hash;
+
+  function Node(id, mode, size, atime, ctime, mtime, flags, xattrs, links, version) {
+    var now = Date.now();
+
+    this.id = id || hash(guid()),
+    this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
+    this.size = size || 0; // size (bytes for files, entries for directories)
+    this.atime = atime || now; // access time
+    this.ctime = ctime || now; // creation time
+    this.mtime = mtime || now; // modified time
+    this.flags = flags || ''; // file flags
+    this.xattrs = xattrs || {}; // extended attributes
+    this.links = links || 0; // links count
+    this.version = version || 0; // node version
+    this.data = hash(id) // id for data object
+  };
+
+  return {
+    Node: Node,
+  };
+
+});
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5502,922 +5815,411 @@ define('src/path',['require'],function(require) {
   }
 
 });
-if ( typeof define !== "function" ) {
-  var define = require( "amdefine" )( module );
-}
+define('src/directory',['require','src/object-store','src/object-store','src/object-store','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/file','src/path','src/path','src/path'],function(require) {
 
-define('src/guid',['require'], function ( require ) {
-  
+  var read_object = require('src/object-store').read_object;
+  var write_object = require('src/object-store').write_object;
+  var delete_object = require('src/object-store').delete_object;
 
-  function guid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-      return v.toString(16);
-    }).toUpperCase();
+  var ENoEntry = require('src/error').ENoEntry;
+  var ENotDirectory = require('src/error').ENotDirectory;
+  var EPathExists = require('src/error').EPathExists;
+
+  var MODE_FILE = require('src/constants').MODE_FILE;
+  var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
+  var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
+  var ROOT_NODE_ID = require('src/constants').ROOT_NODE_ID;
+
+  var Node = require('src/file').Node;
+
+  var normalize = require('src/path').normalize;
+  var dirname = require('src/path').dirname;
+  var basename = require('src/path').basename;
+
+  function DirectoryEntry(id, type) {
+    this.id = id;
+    this.type = type || MODE_FILE;
+  };
+
+  // in: file or directory path
+  // out: node structure, or error
+  function find_node(objectStore, path, callback) {
+    path = normalize(path);
+    var name = basename(path);
+
+    if(ROOT_DIRECTORY_NAME == name) {
+      function check_root_directory_node(error, rootDirectoryNode) {
+        if(error) {
+          callback(error);
+        } else if(!rootDirectoryNode) {
+          callback(new ENoEntry());
+        } else {
+          callback(undefined, rootDirectoryNode);
+        }
+      };
+
+      read_object(objectStore, ROOT_NODE_ID, check_root_directory_node);
+    } else {
+      // in: parent directory node
+      // out: parent directory data
+      function read_parent_directory_data(error, parentDirectoryNode) {
+        if(error) {
+          callback(error);
+        } else if(!_(parentDirectoryNode).has('data') || !parentDirectoryNode.type == MODE_DIRECTORY) {
+          callback(new ENotDirectory());
+        } else {
+          read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
+        }
+      };
+
+      // in: parent directory data
+      // out: searched node id
+      function get_node_id_from_parent_directory_data(error, parentDirectoryData) {
+        if(error) {
+          callback(error);
+        } else {
+          if(!_(parentDirectoryData).has(name)) {
+            callback(new ENoEntry());
+          } else {
+            var nodeId = parentDirectoryData[name].id;
+            read_object(objectStore, nodeId, callback);
+          }
+        }
+      };
+
+      var parentPath = dirname(path);
+      find_node(objectStore, parentPath, read_parent_directory_data);
+    }
+  };
+
+  // Note: this should only be invoked when formatting a new file system
+  function make_root_directory(objectStore, callback) {
+    var directoryNode;
+    var directoryData;
+
+    function write_directory_node(error, existingNode) {
+      if(!error && existingNode) {
+        callback(new EPathExists());
+      } else if(error && !error instanceof ENoEntry) {
+        callback(error);
+      } else {
+        directoryNode = new Node(ROOT_NODE_ID, MODE_DIRECTORY);
+        directoryNode.links += 1;
+        write_object(objectStore, directoryNode, directoryNode.id, write_directory_data);
+      }
+    };
+
+    function write_directory_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = {};
+        write_object(objectStore, directoryData, directoryNode.data, callback);
+      }
+    };
+
+    find_node(objectStore, ROOT_DIRECTORY_NAME, write_directory_node);
   }
 
-  return guid;
+  function make_directory(objectStore, path, callback) {
+    path = normalize(path);
+    var name = basename(path);
+    var parentPath = dirname(path);
 
-});
+    var directoryNode;
+    var directoryData;
+    var parentDirectoryNode;
+    var parentDirectoryData;
 
-/*
-Copyright (c) 2012, Alan Kligman
-All rights reserved.
+    function check_if_directory_exists(error, result) {
+      if(!error && result) {
+        callback(new EPathExists());
+      } else if(error && !error instanceof ENoEntry) {
+        callback(error);
+      } else {
+        find_node(objectStore, parentPath, read_parent_directory_data);
+      }
+    }
 
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    function read_parent_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        parentDirectoryNode = result;
+        read_object(objectStore, parentDirectoryNode.data, write_directory_node);
+      }
+    };
 
-    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-    Neither the name of the Mozilla Foundation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+    function write_directory_node(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        parentDirectoryData = result;
+        directoryNode = new Node(undefined, MODE_DIRECTORY);
+        directoryNode.links += 1;
+        write_object(objectStore, directoryNode, directoryNode.id, write_directory_data);
+      }
+    };
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+    function write_directory_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = {};
+        write_object(objectStore, directoryData, directoryNode.data, update_parent_directory_data);
+      }
+    };
 
-define('src/error',['require'],function(require) {
-  // 
+    function update_parent_directory_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, MODE_DIRECTORY);
+        write_object(objectStore, parentDirectoryData, parentDirectoryNode.data, callback);
+      }
+    }
 
-  function EPathExists(){ Error.apply(this, arguments); }
-  EPathExists.prototype = new Error();
-  EPathExists.prototype.name = "EPathExists";
-  EPathExists.prototype.constructor = EPathExists;
+    find_node(objectStore, path, check_if_directory_exists);
+  };
 
-  function EIsDirectory(){ Error.apply(this, arguments); }
-  EIsDirectory.prototype = new Error();
-  EIsDirectory.prototype.name = "EIsDirectory";
-  EIsDirectory.prototype.constructor = EIsDirectory;
+  function remove_directory(objectStore, path, callback) {
+    path = normalize(path);
+    var name = basename(path);
+    var parentPath = dirname(path);
 
-  function ENoEntry(){ Error.apply(this, arguments); }
-  ENoEntry.prototype = new Error();
-  ENoEntry.prototype.name = "ENoEntry";
-  ENoEntry.prototype.constructor = ENoEntry;
+    var directoryNode;
+    var directoryData;
+    var parentDirectoryNode;
+    var parentDirectoryData;
 
-  function EBusy(){ Error.apply(this, arguments); }
-  EBusy.prototype = new Error();
-  EBusy.prototype.name = "EBusy";
-  EBusy.prototype.constructor = EBusy;
+    function check_if_directory_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else if(!result) {
+        callback(new ENoEntry());
+      } else {
+        directoryNode = result;
+        read_object(objectStore, directoryNode.data, check_if_directory_is_empty);
+      }
+    }
 
-  function ENotEmpty(){ Error.apply(this, arguments); }
-  ENotEmpty.prototype = new Error();
-  ENotEmpty.prototype.name = "ENotEmpty";
-  ENotEmpty.prototype.constructor = ENotEmpty;
+    function check_if_directory_is_empty(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = result;
+        if(_(directoryData).size() > 0) {
+          callback(new ENotEmpty());
+        } else {
+          find_node(objectStore, parentPath, read_parent_directory_data);
+        }
+      }
+    };
 
-  function ENotDirectory(){ Error.apply(this, arguments); }
-  ENotDirectory.prototype = new Error();
-  ENotDirectory.prototype.name = "NotADirectoryError";
-  ENotDirectory.prototype.constructor = ENotDirectory;
+    function read_parent_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        parentDirectoryNode = result;
+        read_object(objectStore, parentDirectoryNode.data, remove_directory_entry_from_parent_directory_node);
+      }
+    };
 
-  function EBadFileDescriptor(){ Error.apply(this, arguments); }
-  EBadFileDescriptor.prototype = new Error();
-  EBadFileDescriptor.prototype.name = "EBadFileDescriptor";
-  EBadFileDescriptor.prototype.constructor = EBadFileDescriptor;
+    function remove_directory_entry_from_parent_directory_node(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        parentDirectoryData = result;
+        delete parentDirectoryData[name];
+        write_object(objectStore, parentDirectoryData, parentDirectoryNode.data, remove_directory_node);
+      }
+    };
 
-  function ENotImplemented(){ Error.apply(this, arguments); }
-  ENotImplemented.prototype = new Error();
-  ENotImplemented.prototype.name = "ENotImplemented";
-  ENotImplemented.prototype.constructor = ENotImplemented;
+    function remove_directory_node(error) {
+      if(error) {
+        callback(error);
+      } else {
+        delete_object(objectStore, directoryNode.id, remove_directory_data);
+      }
+    };
 
-  function ENotMounted(){ Error.apply(this, arguments); }
-  ENotMounted.prototype = new Error();
-  ENotMounted.prototype.name = "ENotMounted";
-  ENotMounted.prototype.constructor = ENotMounted;
+    function remove_directory_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        delete_object(objectStore, directoryNode.data, callback);
+      }
+    };
 
-  function EFileExists(){ Error.apply(this, arguments); }
-  EFileExists.prototype = new Error();
-  EFileExists.prototype.name = "EFileExists";
-  EFileExists.prototype.constructor = EFileExists;
+    find_node(objectStore, path, check_if_directory_exists);
+  };
 
   return {
-    EPathExists: EPathExists,
-    EIsDirectory: EIsDirectory,
-    ENoEntry: ENoEntry,
-    EBusy: EBusy,
-    ENotEmpty: ENotEmpty,
-    ENotDirectory: ENotDirectory,
-    EBadFileDescriptor: EBadFileDescriptor,
-    ENotImplemented: ENotImplemented,
-    ENotMounted: ENotMounted,
-    EFileExists: EFileExists
+    make_directory: make_directory,
+    make_root_directory: make_root_directory,
+    remove_directory: remove_directory,
+    find_node: find_node,
   };
 
 });
-/*
-CryptoJS v3.0.2
-code.google.com/p/crypto-js
-(c) 2009-2012 by Jeff Mott. All rights reserved.
-code.google.com/p/crypto-js/wiki/License
-*/
-var CryptoJS=CryptoJS||function(i,p){var f={},q=f.lib={},j=q.Base=function(){function a(){}return{extend:function(h){a.prototype=this;var d=new a;h&&d.mixIn(h);d.$super=this;return d},create:function(){var a=this.extend();a.init.apply(a,arguments);return a},init:function(){},mixIn:function(a){for(var d in a)a.hasOwnProperty(d)&&(this[d]=a[d]);a.hasOwnProperty("toString")&&(this.toString=a.toString)},clone:function(){return this.$super.extend(this)}}}(),k=q.WordArray=j.extend({init:function(a,h){a=
-this.words=a||[];this.sigBytes=h!=p?h:4*a.length},toString:function(a){return(a||m).stringify(this)},concat:function(a){var h=this.words,d=a.words,c=this.sigBytes,a=a.sigBytes;this.clamp();if(c%4)for(var b=0;b<a;b++)h[c+b>>>2]|=(d[b>>>2]>>>24-8*(b%4)&255)<<24-8*((c+b)%4);else if(65535<d.length)for(b=0;b<a;b+=4)h[c+b>>>2]=d[b>>>2];else h.push.apply(h,d);this.sigBytes+=a;return this},clamp:function(){var a=this.words,b=this.sigBytes;a[b>>>2]&=4294967295<<32-8*(b%4);a.length=i.ceil(b/4)},clone:function(){var a=
-j.clone.call(this);a.words=this.words.slice(0);return a},random:function(a){for(var b=[],d=0;d<a;d+=4)b.push(4294967296*i.random()|0);return k.create(b,a)}}),r=f.enc={},m=r.Hex={stringify:function(a){for(var b=a.words,a=a.sigBytes,d=[],c=0;c<a;c++){var e=b[c>>>2]>>>24-8*(c%4)&255;d.push((e>>>4).toString(16));d.push((e&15).toString(16))}return d.join("")},parse:function(a){for(var b=a.length,d=[],c=0;c<b;c+=2)d[c>>>3]|=parseInt(a.substr(c,2),16)<<24-4*(c%8);return k.create(d,b/2)}},s=r.Latin1={stringify:function(a){for(var b=
-a.words,a=a.sigBytes,d=[],c=0;c<a;c++)d.push(String.fromCharCode(b[c>>>2]>>>24-8*(c%4)&255));return d.join("")},parse:function(a){for(var b=a.length,d=[],c=0;c<b;c++)d[c>>>2]|=(a.charCodeAt(c)&255)<<24-8*(c%4);return k.create(d,b)}},g=r.Utf8={stringify:function(a){try{return decodeURIComponent(escape(s.stringify(a)))}catch(b){throw Error("Malformed UTF-8 data");}},parse:function(a){return s.parse(unescape(encodeURIComponent(a)))}},b=q.BufferedBlockAlgorithm=j.extend({reset:function(){this._data=k.create();
-this._nDataBytes=0},_append:function(a){"string"==typeof a&&(a=g.parse(a));this._data.concat(a);this._nDataBytes+=a.sigBytes},_process:function(a){var b=this._data,d=b.words,c=b.sigBytes,e=this.blockSize,f=c/(4*e),f=a?i.ceil(f):i.max((f|0)-this._minBufferSize,0),a=f*e,c=i.min(4*a,c);if(a){for(var g=0;g<a;g+=e)this._doProcessBlock(d,g);g=d.splice(0,a);b.sigBytes-=c}return k.create(g,c)},clone:function(){var a=j.clone.call(this);a._data=this._data.clone();return a},_minBufferSize:0});q.Hasher=b.extend({init:function(){this.reset()},
-reset:function(){b.reset.call(this);this._doReset()},update:function(a){this._append(a);this._process();return this},finalize:function(a){a&&this._append(a);this._doFinalize();return this._hash},clone:function(){var a=b.clone.call(this);a._hash=this._hash.clone();return a},blockSize:16,_createHelper:function(a){return function(b,d){return a.create(d).finalize(b)}},_createHmacHelper:function(a){return function(b,d){return e.HMAC.create(a,d).finalize(b)}}});var e=f.algo={};return f}(Math);
-(function(i){var p=CryptoJS,f=p.lib,q=f.WordArray,f=f.Hasher,j=p.algo,k=[],r=[];(function(){function f(a){for(var b=i.sqrt(a),d=2;d<=b;d++)if(!(a%d))return!1;return!0}function g(a){return 4294967296*(a-(a|0))|0}for(var b=2,e=0;64>e;)f(b)&&(8>e&&(k[e]=g(i.pow(b,0.5))),r[e]=g(i.pow(b,1/3)),e++),b++})();var m=[],j=j.SHA256=f.extend({_doReset:function(){this._hash=q.create(k.slice(0))},_doProcessBlock:function(f,g){for(var b=this._hash.words,e=b[0],a=b[1],h=b[2],d=b[3],c=b[4],i=b[5],j=b[6],k=b[7],l=0;64>
-l;l++){if(16>l)m[l]=f[g+l]|0;else{var n=m[l-15],o=m[l-2];m[l]=((n<<25|n>>>7)^(n<<14|n>>>18)^n>>>3)+m[l-7]+((o<<15|o>>>17)^(o<<13|o>>>19)^o>>>10)+m[l-16]}n=k+((c<<26|c>>>6)^(c<<21|c>>>11)^(c<<7|c>>>25))+(c&i^~c&j)+r[l]+m[l];o=((e<<30|e>>>2)^(e<<19|e>>>13)^(e<<10|e>>>22))+(e&a^e&h^a&h);k=j;j=i;i=c;c=d+n|0;d=h;h=a;a=e;e=n+o|0}b[0]=b[0]+e|0;b[1]=b[1]+a|0;b[2]=b[2]+h|0;b[3]=b[3]+d|0;b[4]=b[4]+c|0;b[5]=b[5]+i|0;b[6]=b[6]+j|0;b[7]=b[7]+k|0},_doFinalize:function(){var f=this._data,g=f.words,b=8*this._nDataBytes,
-e=8*f.sigBytes;g[e>>>5]|=128<<24-e%32;g[(e+64>>>9<<4)+15]=b;f.sigBytes=4*g.length;this._process()}});p.SHA256=f._createHelper(j);p.HmacSHA256=f._createHmacHelper(j)})(Math);
-
-define("crypto-js/rollups/sha256", function(){});
-
-/*
-Copyright (c) 2012, Alan Kligman
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-    Neither the name of the Mozilla Foundation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-define('src/fs',['require','when','lodash','src/path','src/guid','src/error','crypto-js/rollups/sha256'],function(require) {
-  // 
-
-  var when = require("when");
-  var _ = require("lodash");
-  var Path = require("src/path");
-  var guid = require("src/guid");
-  var error = require("src/error");
-  require("crypto-js/rollups/sha256"); var Crypto = CryptoJS;
+define('src/file-system',['require','lodash','when','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/directory','src/directory','src/directory'],function(require) {
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 
-  var METADATA_STORE_NAME = "metadata";
-  var FILE_STORE_NAME = "files";
-  var PARENT_INDEX = "parent";
-  var PARENT_INDEX_KEY_PATH = "parent";
+  var _ = require('lodash');
+  var when = require('when');
 
-  var IDB_RO = "readonly";
-  var IDB_RW = "readwrite";
+  var guid = require('src/shared').guid;
+  var hash = require('src/shared').hash;
+  var nop = require('src/shared').nop;
 
-  function parseFlags(flags) {
-    var i;
-    if(undefined === flags) {
-      return [];
-    } else if("string" === typeof flags) {
-      flags = flags.split(",");
-      for(i = 0, l = flags.length; i < l; ++ i) {
-        flags[i] = flags[i].trim().toUpperCase();
-      }
-      return flags;
-    }
-  }
+  var EPathExists = require('src/error').EPathExists;
+  var EIsDirectory = require('src/error').EIsDirectory;
+  var ENoEntry = require('src/error').ENoEntry;
+  var EBusy = require('src/error').EBusy;
+  var ENotEmpty = require('src/error').ENotEmpty;
+  var ENotDirectory = require('src/error').ENotDirectory;
+  var EBadFileDescriptor = require('src/error').EBadFileDescriptor;
+  var ENotImplemented = require('src/error').ENotImplemented;
+  var ENotMounted = require('src/error').ENotMounted;
+  var EFileExists = require('src/error').EFileExists;
 
-  function runcallback(callback) {
-    if("function" === typeof callback) {
-      callback.apply(undefined, Array.prototype.slice.call(arguments, 1));
-    }
-  }
+  var FS_FORMAT = require('src/constants').FS_FORMAT;
 
-  function hash(string) {
-    return Crypto.SHA256(string).toString(Crypto.enc.hex);
-  }
+  var IDB_RW = require('src/constants').IDB_RW;
+  var IDB_RO = require('src/constants').IDB_RO;
+  var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
+  var FS_READY = require('src/constants').READY;
+  var FS_PENDING = require('src/constants').FS_PENDING;
+  var FS_ERROR = require('src/constants').FS_ERROR;
 
-  function Data(bytes) {
-    return {
-      bytes: bytes || undefined
-    }
-  }
+  var make_root_directory = require('src/directory').make_root_directory;
+  var make_directory = require('src/directory').make_directory;
+  var remove_directory = require('src/directory').remove_directory;
 
-  var FILE_MIME_TYPE = "application/file";
-  var DIRECTORY_MIME_TYPE = "application/directory";
+  /*
+   * FileSystem
+   */
 
-  var BINARY_MIME_TYPE = "application/octet-stream";
-  var JSON_MIME_TYPE = "application/json";
+  function FileSystem(name, flags) {
+    var format = _(flags).contains(FS_FORMAT);
+    var that = this;
 
-  var DEFAULT_DATA_TYPE = BINARY_MIME_TYPE;
-  function File(mode, data, type, size, version, atime, ctime, mtime, flags, xattrs, links) {
-    var now = Date.now();
-    return {
-      size: size || 0,
-      atime: atime || now,
-      ctime: ctime || now,
-      mtime: mtime || now,
-      mode: mode || FILE_MIME_TYPE,
-      flags: flags || "",
-      xattrs: xattrs || {},
-      data: data || Crypto.SHA256(guid()).toString(Crypto.enc.hex),
-      type: type || DEFAULT_DATA_TYPE,
-      links: links || 0,
-      version: version || 0,
-      id: Crypto.SHA256(guid()).toString(Crypto.enc.hex)
-    }
-  }
-
-  function signature(file) {
-    // Compute file signature based on file id and version
-  }
-
-  function Stats(size, handle, atime, ctime, mtime, links) {
-    return {
-      size: size,
-      handle: handle,
-      atime: atime,
-      ctime: ctime,
-      mtime: mtime,
-      links: links
-    }
-  }
-
-  function Transaction(db, request, stores, mode) {
-    var transaction = db.transaction(stores, mode);
     var deferred = when.defer();
-    transaction.oncomplete = deferred.resolve;
-    transaction.then = deferred.then;
-    request(transaction);
-    return transaction;
-  }
-
-  function FileSystem(db) {
-    this._db = db;
-    this._pending = 0;
-    this._mounted = true;
-    this._descriptors = {};
-
-    this._deferred = when.defer();
-    this._deferred.resolve();
-
-    this.Context = FileSystemContext.bind(undefined, this);
-    this.Transaction = Transaction.bind(undefined, db, this._request);
-  }
-  FileSystem.prototype._request = function _request(transaction) {
-    var fs = this;
-    if(0 === fs._pending) {
-      fs._deferred = when.defer();
-    }
-    ++ fs._pending;
-    transaction.then(function(e) {
-      -- fs._pending;
-      if(0 === fs._pending) {
-        fs._deferred.resolve();
-      }
-    });
-  };
-  var OF_CREATE = "CREATE";
-  var OF_APPEND = "APPEND";
-  var OF_TRUNCATE = "TRUNCATE";
-  var OM_RO = "RO";
-  var OM_RW = "RW";
-  FileSystem.prototype.open = function open(fullpath, flags, mode, callback, optTransaction) {
-    var fs = this;
-    fullpath = Path.normalize(fullpath);
-
-    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    flags = parseFlags(flags);
-    mode = mode.toUpperCase();
-
-    var name = Path.basename(fullpath);
-    var parentpath = Path.dirname(fullpath);
-    var parenthandle = hash(parentpath);
-    var getParentRequest = files.get(parenthandle);
-    getParentRequest.onsuccess = function(e) {
-      var parent = e.target.result;
-      var data = parent.data;
-      var file, filehandle;
-      if(name === fullpath) {
-        file = parent;
-        filehandle = parenthandle;
-        if(OM_RW === mode && DIRECTORY_MIME_TYPE === file.mode) {
-          runcallback(callback, new error.EIsDirectory());
-        }
-        _createFileDescriptor(filehandle, file, flags, mode);
-      } else if(!_(data).has(name)) {
-        if(_(flags).contains(OF_CREATE)) {
-          filehandle = data[name] = hash(guid());
-          ++ parent.size;
-          ++ parent.version;
-          file = new File();
-          ++ file.links;
-          var createFileRequest = files.put(file, data[name]);
-          createFileRequest.onsuccess = function(e) {
-            var updateParentRequest = files.put(parent, parenthandle);
-            updateParentRequest.onsuccess = function(e) {
-              _createFileDescriptor(filehandle, file, flags, mode);
-            };
-            updateParentRequest.onerror = function(e) {
-              runcallback(callback, e);
-            };
-          };
-          createFileRequest.onerror = function(e) {
-            runcallback(callback, e);
-          };
-        }
-      } else {
-        filehandle = data[name];
-        var getFileRequest = files.get(filehandle);
-        getFileRequest.onsuccess = function(e) {
-          file = e.target.result;
-          if(OM_RW === mode && DIRECTORY_MIME_TYPE === file.mode) {
-            runcallback(callback, new error.EIsDirectory());
-          }
-          _createFileDescriptor(filehandle, file, flags, mode);
-        };
-        getFileRequest.onerror = function(e) {
-          runcallback(callback, e);
-        };
-      }
-    };
-    getParentRequest.onerror = function(e) {
-      runcallback(callback, e);
-    };
-
-    function _createFileDescriptor(handle, file, flags, mode) {
-      var openfile = new OpenFile(fs, handle, file, flags, mode);
-      var descriptor = new FileDescriptor(openfile);
-      fs._descriptors[descriptor] = openfile;
-      runcallback(callback, null, descriptor);
-    }
-  };
-  FileSystem.prototype.close = function close(descriptor, callback) {
-    var fs = this;
-    var openfile = fs._descriptors[descriptor];
-    openfile.valid = false;
-    openfile._deferred.then(callback);
-  };
-  FileSystem.prototype.mkdir = function mkdir(fullpath, callback, optTransaction) {
-    var fs = this;
-    fullpath = Path.normalize(fullpath);
-
-    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var directoryhandle = hash(fullpath);
-    var parentpath = Path.dirname(fullpath);
-    var parenthandle = hash(parentpath);
-    var getDirectoryRequest = files.get(directoryhandle);
-    getDirectoryRequest.onsuccess = function(e) {
-      var directory = e.target.result;
-      if(directory) {
-        runcallback(callback, new error.EPathExists());
-      } else {
-        directory = new File(DIRECTORY_MIME_TYPE, {
-          ".": directoryhandle,
-          "..": parenthandle,
-          }, JSON_MIME_TYPE, 2);
-        ++ directory.links;
-        var createDirectoryRequest = files.put(directory, directoryhandle);
-        createDirectoryRequest.onsuccess = function(e) {
-          if(directoryhandle !== parenthandle) {
-            var getParentRequest = files.get(parenthandle);
-            getParentRequest.onsuccess = function(e) {
-              var parent = e.target.result;
-              parent.data[Path.basename(fullpath)] = directoryhandle;
-              ++ parent.size;
-              ++ parent.version;
-              var updateParentRequest = files.put(parent, parenthandle);
-              updateParentRequest.onsuccess = function(e) {
-                runcallback(callback);
-              };
-              updateParentRequest.onerror = function(e) {
-                runcallback(callback, e);
-              };
-            };
-            getParentRequest.onerror = function(e) {
-              runcallback(callback, e);
-            };
-          } else {
-            runcallback(callback);
-          }
-        };
-        createDirectoryRequest.onerror = function(e) {
-          runcallback(callback, e);
-        };
-      }
-    };
-    getDirectoryRequest.onerror = function(e) {
-      runcallback(callback, e);
-    };
-  };
-  FileSystem.prototype.rmdir = function rmdir(fullpath, callback, optTransaction) {
-    var fs = this;
-    fullpath = Path.normalize(fullpath);
-
-    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var directoryhandle = hash(fullpath);
-    var getDirectoryRequest = files.get(directoryhandle);
-    getDirectoryRequest.onsuccess = function(e) {
-      var directory = e.target.result;
-      if(!directory) {
-        runcallback(callback, new error.ENoEntry());
-      } else {
-        var data = directory.data;
-        if(Object.keys(data).length > 2) {
-          runcallback(callback, new error.ENotEmpty());
-        } else {
-          var removeDirectoryRequest = files.delete(directoryhandle);
-          removeDirectoryRequest.onsuccess = function(e) {
-            var parentpath = Path.dirname(fullpath);
-            var parenthandle = hash(parentpath);
-            var getParentRequest = files.get(parenthandle);
-            getParentRequest.onsuccess = function(e) {
-              var parent = e.target.result;
-              delete parent.data[directoryhandle];
-              -- parent.size;
-              ++ parent.version;
-              var updateParentRequest = files.put(parent, parenthandle);
-              updateParentRequest.onsuccess = function(e) {
-                runcallback(callback);
-              };
-              updateParentRequest.onerror = function(e) {
-                runcallback(callback, e);
-              };
-            };
-            getParentRequest.onerror = function(e) {
-              runcallback(callback, e);
-            };
-          };
-          removeDirectoryRequest.onerror = function(e) {
-            runcallback(callback, e);
-          };
-        }
-      }
-    };
-    getDirectoryRequest.onerror = function(e) {
-      runcallback(callback, e);
-    };
-  };
-  FileSystem.prototype.stat = function stat(fullpath, callback, optTransaction) {
-    var fs = this;
-    fullpath = Path.normalize(fullpath);
-
-    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RO);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var parentpath = Path.dirname(fullpath);
-    var parenthandle = hash(parentpath);
-    var getParentRequest = files.get(parenthandle);
-    var stats, file;
-    getParentRequest.onsuccess = function(e) {
-      var parent = e.target.result;
-      var data = parent.data;
-      var name = Path.basename(fullpath);
-      if(name === fullpath) {
-        file = parent;
-        filehandle = parenthandle;
-        stats = new Stats(file.size, filehandle, file.atime, file.ctime, file.mtime, file.links);
-        runcallback(callback, null, stats);
-      } else if(!_(data).has(name)) {
-        runcallback(callback, new error.ENoEntry());
-      } else {
-        var filehandle = data[name];
-        var getFileRequest = files.get(filehandle);
-        getFileRequest.onsuccess = function(e) {
-          var file = e.target.result;
-          stats = new Stats(file.size, filehandle, file.atime, file.ctime, file.mtime, file.links);
-          runcallback(callback, null, stats);
-        };
-        getFileRequest.onerror = function(e) {
-          runcallback(callback, e);
-        };
-      }
-    };
-    getParentRequest.onerror = function(e) {
-      runcallback(callback, e);
-    };
-  };
-  FileSystem.prototype.link = function link(oldpath, newpath, callback, optTransaction) {
-    var fs = this;
-    oldpath = Path.normalize(oldpath);
-    newpath = Path.normalize(newpath);
-    var oldparentpath = Path.dirname(oldpath);
-    var newparentpath = Path.dirname(newpath);
-
-    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var oldparenthandle = hash(oldparentpath);
-    var newparenthandle = hash(newparentpath);
-    var getOldParentRequest = files.get(oldparenthandle);
-    getOldParentRequest.onsuccess = function(e) {
-      var oldparent = e.target.result;
-      if(!oldparent) {
-        runcallback(callback, new error.ENoEntry());
-      } else {
-        var olddata = oldparent.data;
-        var filehandle = olddata[Path.basename(oldpath)];
-        if(!filehandle) {
-          runcallback(callback, new error.ENoEntry());
-        } else {
-          var getNewParentRequest = files.get(newparenthandle);
-          getNewParentRequest.onsuccess = function(e) {
-            var newparent = e.target.result;
-            if(!newparent) {
-              runcallback(callback, new error.ENoEntry());
-            } else {
-              var getFileRequest = files.get(filehandle);
-              getFileRequest.onsuccess = function(e) {
-                var file = e.target.result;
-                ++ file.links;
-                ++ file.version;
-                var updateFileRequest = files.put(file, filehandle);
-                updateFileRequest.onsuccess = function(e) {
-                  var newdata = newparent.data;
-                  var newname = Path.basename(newpath);
-                  if(_(newdata).has(newname)) {
-                    runcallback(callback, new error.EPathExists());
-                  } else {
-                    newdata[newname] = filehandle;
-                    ++ newparent.size;
-                    ++ newparent.version;
-                    var updateNewParentRequest = files.put(newparent, newparenthandle);
-                    updateNewParentRequest.onsuccess = function(e) {
-                      runcallback(callback);
-                    };
-                    updateNewParentRequest.onerror = function(e) {
-                      runcallback(callback, e);
-                    };
-                  }
-                };
-                updateFileRequest.onerror = function(e) {
-                  runcallback(callback, e);
-                };
-              };
-              getFileRequest.onerror = function(e) {
-                runcallback(callback, e);
-              };
-            }
-          };
-          getNewParentRequest.onerror = function(e) {
-            runcallback(callback, e);
-          };
-        }
-      }
-    };
-    getOldParentRequest.onerror = function(e) {
-      runcallback(callback, e);
-    };
-  };
-  FileSystem.prototype.unlink = function unlink(fullpath, callback, optTransaction) {
-    var fs = this;
-    fullpath = Path.normalize(fullpath);
-
-    var transaction = optTransaction || new fs.Transaction([FILE_STORE_NAME], IDB_RW);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var parentpath = Path.dirname(fullpath);
-    var parenthandle = hash(parentpath);
-    var getParentRequest = files.get(parenthandle);
-    getParentRequest.onsuccess = function(e) {
-      var parent = e.target.result;
-      var data = parent.data;
-      var name = Path.basename(fullpath);
-      if(!_(data).has(name)) {
-        runcallback(callback, new error.ENoEntry());
-      } else {
-        var filehandle = data[name];
-        delete data[name];
-        -- parent.size;
-        ++ parent.version;
-        var updateParentRequest = files.put(parent, parenthandle);
-        updateParentRequest.onsuccess = function(e) {
-          var getFileRequest = files.get(filehandle);
-          getFileRequest.onsuccess = function(e) {
-            var file = e.target.result;
-            -- file.links;
-            if(0 === file.links) {
-              var deleteFileRequest = files.delete(filehandle);
-              deleteFileRequest.onsuccess = complete;
-              deleteFileRequest.onerror = function(e) {
-                runcallback(callback, e);
-              };
-            } else {
-              ++ file.version;
-              var putFileRequest = files.put(file, filehandle);
-              putFileRequest.onsuccess = complete;
-              putFileRequest.onerror = function(e) {
-                runcallback(callback, e);
-              };
-            }
-            function complete() {
-              runcallback(callback);
-            }
-          };
-          getFileRequest.onerror = function(e) {
-            runcallback(callback, e);
-          };
-        };
-        updateParentRequest.onerror = function(e) {
-          runcallback(callback, e);
-        };
-      }
-    };
-    getParentRequest.onerror = function(e) {
-      runcallback(callback, e);
-    };
-  };
-  FileSystem.prototype.setxattr = function setxattr(fullpath, name, value, callback, optTransaction) {
-  };
-  FileSystem.prototype.getxattr = function getxattr(fullpath, name, callback, optTransaction) {
-  };
-
-  function FileSystemContext(fs, optCwd) {
-    this._fs = fs;
-    this._cwd = optCwd || "/";
-  }
-  FileSystemContext.prototype.chdir = function chdir(path) {
-    if(Path.isAbsolute(path)) {
-      this._cwd = Path.normalize(path);
-    } else {
-      this._cwd = Path.normalize(this._cwd + "/" + path);
-    }
-  };
-  FileSystemContext.prototype.getcwd = function getcwd() {
-    return this._cwd;
-  };
-  FileSystemContext.prototype.open = function open(path, flags, mode, callback) {
-    this._fs.open(Path.normalize(this._cwd + "/" + path), flags, mode, callback);
-  };
-  FileSystemContext.prototype.close = function close(descriptor, callback) {
-    this._fs.close(descriptor, callback);
-  };
-  FileSystemContext.prototype.mkdir = function mkdir(path, callback) {
-    this._fs.mkdir(Path.normalize(this._cwd + "/" + path), callback);
-  };
-  FileSystemContext.prototype.rmdir = function rmdir(path, callback) {
-    this._fs.rmdir(Path.normalize(this._cwd + "/" + path), callback);
-  };
-  FileSystemContext.prototype.stat = function stat(path, callback) {
-    this._fs.stat(Path.normalize(this._cwd + "/" + path), callback);
-  };
-  FileSystemContext.prototype.link = function link(oldpath, newpath, callback) {
-    this._fs.link(Path.normalize(this._cwd + "/" + oldpath), Path.normalize(this._cwd + "/" + newpath), callback);
-  };
-  FileSystemContext.prototype.unlink = function unlink(path, callback) {
-    this._fs.unlink(Path.normalize(this._cwd + "/" + path), callback);
-  };
-  FileSystemContext.prototype.setxattr = function setxattr(path, name, value, callback) {
-    this._fs.setxattr(Path.normalize(this._cwd + "/" + path), name, value, callback);
-  };
-  FileSystemContext.prototype.getxattr = function getxattr(path, name, callback) {
-    this._fs.getxattr(Path.normalize(this._cwd + "/" + path), name, callback);
-  };
-
-  function OpenFile(fs, handle, file, flags, mode, size) {
-    this._fs = fs;
-    this._pending = 0;
-    this._valid = true;
-    this._position = 0;
-    this._flags = flags;
-    this._mode = mode;
-    this._size = size;
-
-    this._handle = handle;
-    this._file = file;  // Cached file node, might require an update
-
-    this._deferred = when.defer();
-    this._deferred.resolve();
-
-    var openfile = this;
-    this.Transaction = Transaction.bind(undefined, fs._db, function(transaction) {
-      fs._request(transaction);
-      openfile._request(transaction);
-    });
-  }
-  OpenFile.prototype._request = function _request(transaction) {
-    var openfile = this;
-    if(0 === openfile._pending) {
-      openfile._deferred = when.defer();
-    }
-    ++ openfile._pending;
-    transaction.then(function(x) {
-      -- openfile._pending;
-      if(0 === openfile._pending) {
-        openfile._deferred.resolve();
-      }
-    });
-  };
-  OpenFile.prototype.seek = function seek(offset, origin, callback, optTransaction) {
-    var openfile = this;
-    var fs = openfile._fs;
-    origin = origin.toUpperCase();
-
-    var transaction = optTransaction || new openfile.Transaction([FILE_STORE_NAME], IDB_RO);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    if(SK_END === origin) {
-      var getFileRequest = files.get(fd._handle);
-      getFileRequest.onsuccess = function(e) {
-        var file = e.target.result;
-        var size = file.size;
-        offset += size;
-        openfile._position = offset;
-        runcallback(callback, null, offset);
-      };
-      getFileRequest.onerror = function(e) {
-        runcallback(callback, e);
-      };
-    } else if(SK_CURRENT === origin) {
-      openfile._position += offset;
-      runcallback(callback, null, openfile._position);
-    } else if(SK_SET === origin) {
-      openfile._position = offset;
-      runcallback(callback, null, offset);
-    }
-  };
-  OpenFile.prototype.read = function read(buffer, callback, optTransaction) {
-    var openfile = this;
-    var fs = openfile._fs;
-
-    if(DIRECTORY_MIME_TYPE === openfile._file.mode) {
-      return runcallback(callback, new error.EIsDir());
-    }
-
-    var transaction = optTransaction || new openfile.Transaction([FILE_STORE_NAME], IDB_RO);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var getDataRequest = files.get(openfile._file.data);
-    getDataRequest.onsuccess = function(e) {
-      var data = e.target.result;
-      if(!data) {
-        // There's not file data, so return zero bytes read
-        runcallback(callback, null, 0, buffer);
-      } else {
-        // Make sure we won't read past the end of the file
-        var bytes = (openfile._position + buffer.length > data.length) ? data.length - openfile._position : buffer.length;
-        // Copy the desired region from the file into the buffer
-        var dataView = data.subarray(openfile._position, openfile._position + bytes);
-        buffer.set(dataView);
-        openfile._position += bytes;
-        runcallback(callback, null, bytes, buffer);
-      }
-    };
-    getDataRequest.onerror = function(e) {
-      runcallback(callback, e);
-    }
-  };
-  OpenFile.prototype.readdir = function readdir(buffer, count, callback, optTransaction) {
-    var openfile = this;
-    var fs = openfile._fs;
-
-    if(!DIRECTORY_MIME_TYPE === openfile._file.mode) {
-      return runcallback(callback, new error.ENotIsDir());
-    }
-
-    var transaction = optTransaction || new openfile.Transaction([FILE_STORE_NAME], IDB_RO);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var getFileRequest = files.get(openfile._handle);
-    getFileRequest.onsuccess = function(e) {
-      var file = e.target.result;
-      var names = _(file.data).keys().sort();
-      count = count || file.size;
-      count = (openfile._position + count > file.size) ? (file.size - openfile._position) : count;
-      for(var i = openfile._position, l = openfile._position + count; i < l; ++ i) {
-        buffer.push(names[i]);
-      }
-      openfile._position += count;
-      runcallback(callback, null, count, buffer);
-    };
-    getFileRequest.onerror = function(e) {
-      runcallback(callback, e);
-    };
-  };
-  OpenFile.prototype.write = function write(buffer, callback, optTransaction) {
-    var openfile = this;
-    var fs = openfile._fs;
-
-    if(OM_RO === openfile._mode) {
-      runcallback(callback, new error.EBadFileDescriptor());
-      return;
-    }
-
-    var transaction = optTransaction || openfile.Transaction([FILE_STORE_NAME], IDB_RW);
-
-    var files = transaction.objectStore(FILE_STORE_NAME);
-
-    var getDataRequest = files.get(openfile._file.data);
-    getDataRequest.onsuccess = function(e) {
-      var data = e.target.result;
-      var bytes = buffer.length;
-      var dataLength = data ? data.length : 0;
-      var size = (dataLength > openfile._position + bytes) ? dataLength : openfile._position + bytes;
-      var newData = new Uint8Array(size);
-      if(data) {
-        newData.set(data);
-      }
-      newData.set(buffer, openfile._position);
-      openfile._position += bytes;
-      var putDataRequest = files.put(newData, openfile._file.data);
-      putDataRequest.onsuccess = function(e) {
-        var getFileRequest = files.get(openfile._handle);
-        getFileRequest.onsuccess = function(e) {
-          var file = e.target.result;
-          file.size = size;
-          file.mtime = Date.now();
-          var putFileRequest = files.put(file, openfile._handle);
-          putFileRequest.onsuccess = function(e) {
-            runcallback(callback, null, size);
-          };
-          putFileRequest.onerror = function(e) {
-            runcallback(callback, e);
-          };
-        };
-        getFileRequest.onerror = function(e) {
-          runcallback(callback, e);
-        };
-      };
-      putDataRequest.onerror = function(e) {
-        runcallback(callback, e);
-      };
-    };
-    getDataRequest.onerror = function(e) {
-      runcallback(callback, e);
-    };
-  };
-
-  function FileDescriptor(openfile, flags) {
-    this._openfile = openfile;
-    this._flags = flags;
-  }
-  var SK_SET = "SET";
-  var SK_CURRENT = "CURRENT";
-  var SK_END = "END";
-  FileDescriptor.prototype.seek = function seek(offset, origin, callback) {
-    this._openfile.seek(offset, origin, callback);
-  };
-  FileDescriptor.prototype.read = function read(buffer, callback) {
-    this._openfile.read(buffer, callback);
-  };
-  FileDescriptor.prototype.readdir = function readdir(buffer, count, callback) {
-    this._openfile.readdir(buffer, count, callback);
-  };
-  FileDescriptor.prototype.write = function write(buffer, callback) {
-    this._openfile.write(buffer, callback);
-  };
-
-  var MNT_FORMAT = "FORMAT";
-  function mount(name, flags, callback) {
-    flags = parseFlags(flags);
-    var format = _(flags).contains(MNT_FORMAT);
+    this.promise = deferred.promise;
 
     var openRequest = indexedDB.open(name);
-    openRequest.onupgradeneeded = function(e) {
-      var db = e.target.result;
+    openRequest.onupgradeneeded = function onupgradeneeded(event) {
+      var db = event.target.result;
 
       if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
         db.deleteObjectStore(FILE_STORE_NAME);
       }
       var files = db.createObjectStore(FILE_STORE_NAME);
 
+      if(db.objectStoreNames.contains(METADATA_STORE_NAME)) {
+        db.deleteObjectStore(METADATA_STORE_NAME);
+      }
+      var metadata = db.createObjectStore(METADATA_STORE_NAME);
+
       format = true;
     };
-    openRequest.onsuccess = function(e) {
-      var db = e.target.result;
-      var fs = new FileSystem(db);
-      var context = new fs.Context();
+    openRequest.onsuccess = function onsuccess(event) {
+      var db = event.target.result;
+
+      function complete(error) {
+        if(error) {
+          that.readyState = FS_ERROR;
+          deferred.reject(error);
+        } else {
+          that.readyState = FS_READY;
+          that.db = db;
+          deferred.resolve();
+        }
+      };
 
       if(format) {
         var transaction = db.transaction([FILE_STORE_NAME], IDB_RW);
-
         var files = transaction.objectStore(FILE_STORE_NAME);
 
         var clearRequest = files.clear();
-        clearRequest.onsuccess = function() {
-          fs.mkdir("/", function(error) {
-            if(error) {
-              runcallback(callback, error);
-            } else {
-              runcallback(callback, null, context);
-            }
-          }, transaction);
+        clearRequest.onsuccess = function onsuccess(event) {
+          make_root_directory(files, complete);
         };
-        clearRequest.onerror = function(e) {
-          console.log(e);
+        clearRequest.onerror = function onerror(error) {
+          complete(error);
         };
       } else {
-        runcallback(callback, null, context)
+        complete();
       }
     };
-    openRequest.onerror = function(e) {
-      console.log(e);
-    }
-  }
+    openRequest.onerror = function onerror(error) {
+      this.readyState = FS_ERROR;
+      deferred.reject(error);
+    };
 
-  function umount(fs, callback) {
-    fs._db.close();
-    fs._deferred.then(callback);
-  }
+    this.readyState = FS_PENDING;
+    this.db = null;
+  };
+  FileSystem.prototype.open = function open(path, flags, mode) {
 
-  var IDBFS = {
-    mount: mount,
-    umount: umount
+  };
+  FileSystem.prototype.opendir = function opendir(path) {
+
+  };
+  FileSystem.prototype.mkdir = function mkdir(path) {
+    var deferred = when.defer();
+    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
+    var files = transaction.objectStore(FILE_STORE_NAME);
+
+    function check_result(error) {
+      if(error) {
+        transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    };
+
+    make_directory(files, path, check_result);
+    return deferred.promise;
+  };
+  FileSystem.prototype.rmdir = function rmdir(path) {
+    var deferred = when.defer();
+    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
+    var files = transaction.objectStore(FILE_STORE_NAME);
+
+    function check_result(error) {
+      if(error) {
+        transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    };
+
+    remove_directory(files, path, check_result);
+    return deferred.promise;
+  };
+  FileSystem.prototype.stat = function stat(path) {
+
+  };
+  FileSystem.prototype.link = function link(oldpath, newpath) {
+
+  };
+  FileSystem.prototype.unlink = function unlink(path) {
+
+  };
+  FileSystem.prototype.getxattr = function getxattr(path, name) {
+
+  };
+  FileSystem.prototype.setxattr = function setxattr(path, name, value) {
+
   };
 
-  return IDBFS;
+  return {
+    FileSystem: FileSystem,
+  };
 
 });
   var IDBFS = require( "src/fs" );
