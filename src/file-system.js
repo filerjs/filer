@@ -25,6 +25,7 @@ define(function(require) {
   var IDB_RW = require('src/constants').IDB_RW;
   var IDB_RO = require('src/constants').IDB_RO;
   var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
+  var METADATA_STORE_NAME = require('src/constants').METADATA_STORE_NAME;
   var FS_READY = require('src/constants').READY;
   var FS_PENDING = require('src/constants').FS_PENDING;
   var FS_ERROR = require('src/constants').FS_ERROR;

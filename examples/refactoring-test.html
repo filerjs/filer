@@ -20,7 +20,7 @@ require(["src/file-system"], function(IDBFS) {
 var flags = 'FORMAT';
 //var flags = undefined;
 
-var fs = new IDBFS.FileSystem('test', flags);
+var fs = new IDBFS.FileSystem('local', flags);
 fs.promise.otherwise(
   function(error) {
     console.error(error);
