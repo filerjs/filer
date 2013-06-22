@@ -2,6 +2,12 @@ var write_buffer = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
 var read_buffer = new Uint8Array(16);
 
 var fs = new FileSystem('local');
+fs.mkdir('/tmp');
+fs.open('/tmp/', 'w+', function(error, fd) {
+  if(error) return console.error(error);
+  fs.write(fd, ...);
+  fs.read(fd, ...);
+});
 
 fs.then(
   function() {
