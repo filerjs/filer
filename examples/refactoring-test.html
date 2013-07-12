@@ -18,15 +18,25 @@ require.config({
 require(["src/file-system"], function(IDBFS) {
 
 var flags = 'FORMAT';
-//var flags = undefined;
+//var flags;
 
 var fs = new IDBFS.FileSystem('local', flags);
-fs.promise.otherwise(
-  function(error) {
-    console.error(error);
-  }
-);
+fs.stat('/', function(error, result) {
+  console.log('stat /', error, result);
+});
+fs.stat('/tmp', function(error, result) {
+  console.log('stat /tmp', error, result);
+});
+/*
+fs.mkdir('/tmp', function(error) {
+  if(error) throw error;
+  fs.stat('/tmp', function(error, result) {
+    console.log('stat /tmp', error, result);
+  });
+});
+*/
 
+/*
 function make_tmp_directory() {
   return fs.mkdir('/tmp');
 };
@@ -69,7 +79,7 @@ fs.promise.then(make_tmp_directory)
           .then(write_data)
           .then(function() { console.log('done'); })
           .otherwise(function(error) { console.error(error, error.message, error.stack); });
-
+*/
 });
 </script>
 </html>

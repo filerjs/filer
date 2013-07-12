@@ -91,6 +91,13 @@ define(function(require) {
   EIO.prototype.name = "EIO";
   EIO.prototype.constructor = EIO;
 
+  function EFileSystemError(message){
+    this.message = message || '';
+  };
+  EFileSystemError.prototype = new Error();
+  EFileSystemError.prototype.name = "EFileSystemError";
+  EFileSystemError.prototype.constructor = EFileSystemError;
+
   return {
     EExists: EExists,
     EIsDirectory: EIsDirectory,
