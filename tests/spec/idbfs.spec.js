@@ -85,7 +85,7 @@ describe('stat', function() {
     delete this.fs;
   });
 
-  describe('on path that does not exist', function() {
+  describe('on non-existing path', function() {
     it('should return an error', function() {
       var complete = false;
       var _error, _result;
@@ -111,7 +111,6 @@ describe('stat', function() {
       var _error, _result;
 
       this.fs.stat('/tmp', function(error, result) {
-        jasmine.log(error, result);
         _error = error;
         _result = result;
 
@@ -124,6 +123,37 @@ describe('stat', function() {
 
       runs(function() {
         expect(_result).not.toBeDefined();
+      });
+    });
+  });
+
+  describe('on existing path', function() {
+    it('should return a stat object', function() {
+      var complete = false;
+      var _error, _result;
+      var that = this;
+
+      this.fs.mkdir('/tmp', function(error) {
+        if(error) throw error;
+        that.fs.stat('/tmp', function(error, result) {
+          _error = error;
+          _result = result;
+
+          complete = true;
+        });
+      });
+
+      waitsFor(function() {
+        return complete;
+      }, 'stat to complete', DEFAULT_TIMEOUT);
+
+      runs(function() {
+        expect(_result).toBeDefined();
+        expect(_result['dev']).toEqual(that.db_name);
+        expect(_result['nlinks']).toEqual(jasmine.any(Number));
+        expect(_result['atime']).toEqual(jasmine.any(Number));
+        expect(_result['mtime']).toEqual(jasmine.any(Number));
+        expect(_result['ctime']).toEqual(jasmine.any(Number));
       });
     });
   });
