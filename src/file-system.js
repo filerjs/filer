@@ -150,14 +150,18 @@ define(function(require) {
    */
 
   function read_object(objectStore, id, callback) {
-    var getRequest = objectStore.get(id);
-    getRequest.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(undefined, result);
-    };
-    getRequest.onerror = function onerror(error) {
-      callback(error);
-    };
+    try {
+      var getRequest = objectStore.get(id);
+      getRequest.onsuccess = function onsuccess(event) {
+        var result = event.target.result;
+        callback(undefined, result);
+      };
+      getRequest.onerror = function onerror(error) {
+        callback(error);
+      };
+    } catch(error) {
+      callback(new EIO(error.message));
+    }
   };
 
   /*
@@ -165,14 +169,18 @@ define(function(require) {
    */
 
   function write_object(objectStore, object, id, callback) {
-    var putRequest = objectStore.put(object, id);
-    putRequest.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(undefined, result);
-    };
-    putRequest.onerror = function onerror(error) {
-      callback(error);
-    };
+    try {
+      var putRequest = objectStore.put(object, id);
+      putRequest.onsuccess = function onsuccess(event) {
+        var result = event.target.result;
+        callback(undefined, result);
+      };
+      putRequest.onerror = function onerror(error) {
+        callback(error);
+      };
+    } catch(error) {
+      callback(new EIO(error.message));
+    }
   };
 
   /*
@@ -586,22 +594,21 @@ define(function(require) {
     };
     openRequest.onsuccess = function onsuccess(event) {
       var db = event.target.result;
+      var transaction = db.transaction([FILE_STORE_NAME], IDB_RW);
+      var files = transaction.objectStore(FILE_STORE_NAME);
 
       function complete(error) {
+        that.db = db;
         if(error) {
           that.readyState = FS_ERROR;
           deferred.reject(error);
         } else {
           that.readyState = FS_READY;
-          that.db = db;
           deferred.resolve();
         }
       };
 
       if(format) {
-        var transaction = db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
-
         var clearRequest = files.clear();
         clearRequest.onsuccess = function onsuccess(event) {
           make_root_directory(files, complete);

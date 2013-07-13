@@ -23,10 +23,9 @@ var flags = 'FORMAT';
 var fs = new IDBFS.FileSystem('local', flags);
 fs.stat('/', function(error, result) {
   console.log('stat /', error, result);
+  // indexedDB.deleteDatabase('local');
 });
-fs.stat('/tmp', function(error, result) {
-  console.log('stat /tmp', error, result);
-});
+
 /*
 fs.mkdir('/tmp', function(error) {
   if(error) throw error;
