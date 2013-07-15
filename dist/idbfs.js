@@ -5950,14 +5950,18 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
    */
 
   function read_object(objectStore, id, callback) {
-    var getRequest = objectStore.get(id);
-    getRequest.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(undefined, result);
-    };
-    getRequest.onerror = function onerror(error) {
-      callback(error);
-    };
+    try {
+      var getRequest = objectStore.get(id);
+      getRequest.onsuccess = function onsuccess(event) {
+        var result = event.target.result;
+        callback(undefined, result);
+      };
+      getRequest.onerror = function onerror(error) {
+        callback(error);
+      };
+    } catch(error) {
+      callback(new EIO(error.message));
+    }
   };
 
   /*
@@ -5965,14 +5969,18 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
    */
 
   function write_object(objectStore, object, id, callback) {
-    var putRequest = objectStore.put(object, id);
-    putRequest.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(undefined, result);
-    };
-    putRequest.onerror = function onerror(error) {
-      callback(error);
-    };
+    try {
+      var putRequest = objectStore.put(object, id);
+      putRequest.onsuccess = function onsuccess(event) {
+        var result = event.target.result;
+        callback(undefined, result);
+      };
+      putRequest.onerror = function onerror(error) {
+        callback(error);
+      };
+    } catch(error) {
+      callback(new EIO(error.message));
+    }
   };
 
   /*
@@ -6105,6 +6113,8 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
     function check_if_directory_exists(error, result) {
       if(error) {
         callback(error);
+      } else if(ROOT_DIRECTORY_NAME == name) {
+        callback(new EBusy());
       } else if(!result) {
         callback(new ENoEntry());
       } else {
@@ -6386,22 +6396,21 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
     };
     openRequest.onsuccess = function onsuccess(event) {
       var db = event.target.result;
+      var transaction = db.transaction([FILE_STORE_NAME], IDB_RW);
+      var files = transaction.objectStore(FILE_STORE_NAME);
 
       function complete(error) {
+        that.db = db;
         if(error) {
           that.readyState = FS_ERROR;
           deferred.reject(error);
         } else {
           that.readyState = FS_READY;
-          that.db = db;
           deferred.resolve();
         }
       };
 
       if(format) {
-        var transaction = db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
-
         var clearRequest = files.clear();
         clearRequest.onsuccess = function onsuccess(event) {
           make_root_directory(files, complete);
@@ -6513,21 +6522,36 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
     );
   };
   FileSystem.prototype.rmdir = function rmdir(path, callback) {
-    var deferred = when.defer();
-    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
-    var files = transaction.objectStore(FILE_STORE_NAME);
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
-    function check_result(error) {
-      if(error) {
-        // if(transaction.error) transaction.abort();
-        deferred.reject(error);
-      } else {
-        deferred.resolve();
+        function check_result(error) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            deferred.resolve();
+          }
+        };
+
+        remove_directory(files, path, check_result);
+        deferred.promise.then(
+          function() {
+            callback();
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
       }
-    };
-
-    remove_directory(files, path, check_result);
-    deferred.then(callback);
+    );
   };
   FileSystem.prototype.readdir = function readdir(path, callback) {
 

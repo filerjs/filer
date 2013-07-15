@@ -313,6 +313,8 @@ define(function(require) {
     function check_if_directory_exists(error, result) {
       if(error) {
         callback(error);
+      } else if(ROOT_DIRECTORY_NAME == name) {
+        callback(new EBusy());
       } else if(!result) {
         callback(new ENoEntry());
       } else {
@@ -720,21 +722,36 @@ define(function(require) {
     );
   };
   FileSystem.prototype.rmdir = function rmdir(path, callback) {
-    var deferred = when.defer();
-    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
-    var files = transaction.objectStore(FILE_STORE_NAME);
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
-    function check_result(error) {
-      if(error) {
-        // if(transaction.error) transaction.abort();
-        deferred.reject(error);
-      } else {
-        deferred.resolve();
+        function check_result(error) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            deferred.resolve();
+          }
+        };
+
+        remove_directory(files, path, check_result);
+        deferred.promise.then(
+          function() {
+            callback();
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
       }
-    };
-
-    remove_directory(files, path, check_result);
-    deferred.then(callback);
+    );
   };
   FileSystem.prototype.readdir = function readdir(path, callback) {
 

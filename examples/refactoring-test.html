@@ -21,19 +21,11 @@ var flags = 'FORMAT';
 //var flags;
 
 var fs = new IDBFS.FileSystem('local', flags);
-fs.stat('/', function(error, result) {
-  console.log('stat /', error, result);
-  // indexedDB.deleteDatabase('local');
-});
-
-/*
 fs.mkdir('/tmp', function(error) {
-  if(error) throw error;
-  fs.stat('/tmp', function(error, result) {
-    console.log('stat /tmp', error, result);
-  });
+  /*fs.rmdir('/tmp', function(error) {
+    console.log('!');
+  });*/
 });
-*/
 
 /*
 function make_tmp_directory() {
