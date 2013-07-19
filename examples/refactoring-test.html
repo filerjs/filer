@@ -21,10 +21,8 @@ var flags = 'FORMAT';
 //var flags;
 
 var fs = new IDBFS.FileSystem('local', flags);
-fs.mkdir('/tmp', function(error) {
-  /*fs.rmdir('/tmp', function(error) {
-    console.log('!');
-  });*/
+fs.open('/', 'r', function(error, result) {
+  console.log('1', error, result);
 });
 
 /*

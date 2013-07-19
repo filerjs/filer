@@ -61,7 +61,7 @@ describe("fs", function() {
 
     waitsFor(function() {
       return complete;
-    }, 'stat to complete', DEFAULT_TIMEOUT);
+    }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
       expect(_result).toBeDefined();
@@ -97,7 +97,7 @@ describe('fs.stat', function() {
 
     waitsFor(function() {
       return complete;
-    }, 'stat to complete', DEFAULT_TIMEOUT);
+    }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
       expect(_error).toBeDefined();
@@ -119,7 +119,7 @@ describe('fs.stat', function() {
 
     waitsFor(function() {
       return complete;
-    }, 'stat to complete', DEFAULT_TIMEOUT);
+    }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
       expect(_result).toBeDefined();
@@ -181,7 +181,7 @@ describe('fs.mkdir', function() {
 
     waitsFor(function() {
       return complete;
-    }, 'stat to complete', DEFAULT_TIMEOUT);
+    }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
       expect(_error).toBeDefined();
@@ -206,7 +206,7 @@ describe('fs.mkdir', function() {
 
     waitsFor(function() {
       return complete;
-    }, 'stat to complete', DEFAULT_TIMEOUT);
+    }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
       expect(_error).not.toBeDefined();
@@ -231,7 +231,7 @@ describe('fs.rmdir', function() {
     expect(typeof this.fs.rmdir).toEqual('function');
   });
 
-  it('should return an error if part of the path does not exist', function() {
+  it('should return an error if the path does not exist', function() {
     var complete = false;
     var _error;
     var that = this;
@@ -244,7 +244,7 @@ describe('fs.rmdir', function() {
 
     waitsFor(function() {
       return complete;
-    }, 'rmdir to complete', DEFAULT_TIMEOUT);
+    }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
       expect(_error).toBeDefined();
@@ -264,7 +264,7 @@ describe('fs.rmdir', function() {
 
     waitsFor(function() {
       return complete;
-    }, 'rmdir to complete', DEFAULT_TIMEOUT);
+    }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
       expect(_error).toBeDefined();
@@ -288,7 +288,7 @@ describe('fs.rmdir', function() {
 
     waitsFor(function() {
       return complete;
-    }, 'rmdir to complete', DEFAULT_TIMEOUT);
+    }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
       expect(_error).toBeDefined();
@@ -313,11 +313,126 @@ describe('fs.rmdir', function() {
 
     waitsFor(function() {
       return complete;
-    }, 'rmdir to complete', DEFAULT_TIMEOUT);
+    }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
       expect(_error).not.toBeDefined();
       expect(_stat).not.toBeDefined();
     });
   });
+});
+
+describe('fs.open', function() {
+  beforeEach(function() {
+    this.db_name = mk_db_name();
+    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+  });
+
+  afterEach(function() {
+    indexedDB.deleteDatabase(this.db_name);
+    delete this.fs;
+  });
+
+  it('should be a function', function() {
+    expect(typeof this.fs.open).toEqual('function');
+  });
+
+  it('should return an error if the parent path does not exist', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.open('/tmp/myfile', 'w+', function(error, result) {
+      _error = error;
+      _result = result;
+
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+      expect(_result).not.toBeDefined();
+    });
+  });
+
+  it('should return an error when flagged for read and the path does not exist', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.open('/myfile', 'r+', function(error, result) {
+      _error = error;
+      _result = result;
+
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+      expect(_result).not.toBeDefined();
+    });
+  });
+
+
+  it('should return an error when flagged for write and the path is a directory', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.mkdir('/tmp', function(error) {
+      if(error) throw error;
+      that.fs.open('/tmp', 'w', function(error, result) {
+        _error = error;
+        _result = result;
+
+        complete = true;
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+      expect(_result).not.toBeDefined();
+    });
+  });
+
+  it('should return an error when flagged for append and the path is a directory', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.mkdir('/tmp', function(error) {
+      if(error) throw error;
+      that.fs.open('/tmp', 'a', function(error, result) {
+        _error = error;
+        _result = result;
+
+        complete = true;
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+      expect(_result).not.toBeDefined();
+    });
+  });
+/*
+  it('should return a unique file descriptor', function() {
+  });
+*/
 });

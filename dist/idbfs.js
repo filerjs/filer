@@ -6206,7 +6206,7 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
             callback(new ENoEntry('O_CREATE and O_EXCLUSIVE are set, and the named file exists'))
           } else {
             directoryEntry = directoryData[name];
-            if(directoryEntry.type == MODE_DIRECTORY) {
+            if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
               callback(new EIsDirectory('the named file is a directory and O_WRITE is set'))
             } else {
               read_object(objectStore, directoryEntry.id, set_file_node);
@@ -6446,36 +6446,49 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
   };
   FileSystem.prototype.open = function open(path, flags, callback) {
     var that = this;
-    var deferred = when.defer();
-    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
-    var files = transaction.objectStore(FILE_STORE_NAME);
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
-    function check_result(error, fileNode) {
-      if(error) {
-        // if(transaction.error) transaction.abort();
-        deferred.reject(error);
-      } else {
-        var position;
-        if(_(flags).contains(O_APPEND)) {
-          position = fileNode.size;
+        function check_result(error, fileNode) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            var position;
+            if(_(flags).contains(O_APPEND)) {
+              position = fileNode.size;
+            } else {
+              position = 0;
+            }
+            var openFileDescription = new  OpenFileDescription(fileNode.id, flags, position);
+            var fd = that._allocate_descriptor(openFileDescription);
+            deferred.resolve(fd);
+          }
+        };
+
+        if(!_(O_FLAGS).has(flags)) {
+          deferred.reject(new EInvalid('flags is not valid'));
         } else {
-          position = 0;
+          flags = O_FLAGS[flags];
         }
-        var openFileDescription = new  OpenFileDescription(fileNode.id, flags, position);
-        var fd = that._allocate_descriptor(openFileDescription);
-        deferred.resolve(fd);
+
+        open_file(this, files, path, flags, check_result);
+        deferred.promise.then(
+          function(result) {
+            callback(undefined, result);
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
       }
-    };
-
-    if(!_(O_FLAGS).has(flags)) {
-      deferred.reject(new EInvalid('flags is not valid'));
-    } else {
-      flags = O_FLAGS[flags];
-    }
-
-
-    open_file(this, files, path, flags, check_result);
-    deferred.then(callback);
+    );
   };
   FileSystem.prototype.close = function close(fd, callback) {
     var deferred = when.defer();
