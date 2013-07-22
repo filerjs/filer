@@ -24,6 +24,24 @@ function mk_db_name() {
   return name;
 };
 
+function array_buffer_equal(left, right) {
+  if(!(left instanceof ArrayBuffer && right instanceof ArrayBuffer)) {
+    return false;
+  }
+
+  if(left.byteLength !== right.byteLength) {
+    return false;
+  }
+
+  for(var i = 0; i < left.byteLength; ++ i) {
+    if(left[i] !== right[i]) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 describe("IDBFS", function() {
   it("is defined", function() {
     expect(typeof IDBFS).not.toEqual(undefined);
@@ -431,8 +449,158 @@ describe('fs.open', function() {
       expect(_result).not.toBeDefined();
     });
   });
-/*
+
   it('should return a unique file descriptor', function() {
+    var complete1 = false;
+    var complete2 = false;
+    var _error, _result1, _result2;
+    var that = this;
+
+    that.fs.open('/file1', 'w+', function(error, fd) {
+      if(error) throw error;
+      _error = error;
+      _result1 = fd;
+
+      complete1 = true;
+    });
+    that.fs.open('/file2', 'w+', function(error, fd) {
+      if(error) throw error;
+      _error = error;
+      _result2 = fd;
+
+      complete2 = true;
+    });
+
+    waitsFor(function() {
+      return complete1 && complete2;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result1).toBeDefined();
+      expect(_result2).toBeDefined();
+      expect(_result1).not.toEqual(_result2);
+    });
   });
-*/
+
+  it('should create a new file when flagged for write', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+      that.fs.stat('/myfile', function(error, result) {
+        _error = error;
+        _result = result;
+
+        complete = true;
+      })
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result).toBeDefined();
+    });
+  });
+});
+
+describe('fs.write', function() {
+  beforeEach(function() {
+    this.db_name = mk_db_name();
+    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+  });
+
+  afterEach(function() {
+    indexedDB.deleteDatabase(this.db_name);
+    delete this.fs;
+  });
+
+  it('should be a function', function() {
+    expect(typeof this.fs.write).toEqual('function');
+  });
+
+  it('should write data to a file', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      that.fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
+        _error = error;
+        _result = result;
+
+        complete = true;
+      })
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result).toEqual(buffer.length);
+    });
+  });
+});
+
+describe('fs.read', function() {
+  beforeEach(function() {
+    this.db_name = mk_db_name();
+    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+  });
+
+  afterEach(function() {
+    indexedDB.deleteDatabase(this.db_name);
+    delete this.fs;
+  });
+
+  it('should be a function', function() {
+    expect(typeof this.fs.read).toEqual('function');
+  });
+
+  it('should read data from a file', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    var wbuffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    var rbuffer = new Uint8Array(wbuffer.length);
+
+    that.fs.open('/myfile', 'w+', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      that.fs.write(fd, wbuffer, 0, wbuffer.length, 0, function(error, result) {
+        if(error) throw error;
+
+        that.fs.read(fd, rbuffer, 0, rbuffer.length, 0, function(error, result) {
+          _error = error;
+          _result = result;
+
+          complete = true;
+        });
+      })
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result).toEqual(rbuffer.length);
+      expect(array_buffer_equal(wbuffer.buffer, rbuffer.buffer)).toEqual(true);
+    });
+  });
 });

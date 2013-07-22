@@ -449,7 +449,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        fileData = {};
+        fileData = new Uint8Array(0);
         write_object(objectStore, fileData, fileNode.data, update_directory_data);
       }
     };
@@ -507,7 +507,7 @@ define(function(require) {
         fileNode.mtime = Date.now();
         fileNode.version += 1;
 
-        write_object(objectStore, fileNode.data, update_file_node);
+        write_object(objectStore, newData, fileNode.data, update_file_node);
       }
     };
 
@@ -515,7 +515,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        write_object(objectStore, fileNode.id, return_nbytes);
+        write_object(objectStore, fileNode, fileNode.id, return_nbytes);
       }
     };
 
@@ -523,7 +523,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, nbytes);
+        callback(undefined, length);
       }
     };
   };
@@ -551,6 +551,7 @@ define(function(require) {
         var _position = (undefined !== position) ? position : ofd.position;
         length = (_position + length > buffer.length) ? length - _position : length;
         var dataView = fileData.subarray(_position, _position + length);
+        buffer.set(dataView, offset);
         if(undefined === position) {
           ofd.position += length;
         }
@@ -832,67 +833,93 @@ define(function(require) {
 
   };
   FileSystem.prototype.read = function read(fd, buffer, offset, length, position, callback) {
-    var deferred = when.defer();
-    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
-    var files = transaction.objectStore(FILE_STORE_NAME);
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
-    offset = (undefined === offset) ? 0 : offset;
-    length = (undefined === length) ? buffer.length - offset : length;
+        offset = (undefined === offset) ? 0 : offset;
+        length = (undefined === length) ? buffer.length - offset : length;
 
-    function check_result(error, nbytes) {
-      if(error) {
-        // if(transaction.error) transaction.abort();
-        deferred.reject(error);
-      } else {
-        deferred.resolve(nbytes);
+        function check_result(error, nbytes) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            deferred.resolve(nbytes);
+          }
+        };
+
+        var ofd = that.openFiles[fd];
+
+        if(!ofd) {
+          deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+        } else if(!_(ofd.flags).contains(O_READ)) {
+          deferred.reject(new EBadFileDescriptor('descriptor does not permit reading'));
+        } else {
+          read_data(files, ofd, buffer, offset, length, position, check_result);
+        }
+
+        deferred.promise.then(
+          function(result) {
+            callback(undefined, result);
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
       }
-    };
-
-    var ofd = this.openFiles[fd];
-
-    if(!ofd) {
-      deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
-    } else if(!_(flags).contains(O_READ)) {
-      deferred.reject(new EBadFileDescriptor('descriptor does not permit reading'));
-    } else {
-      read_data(files, ofd, buffer, offset, length, position, check_result);
-    }
-
-    // TODO: check buffer length
-
-    return deferred.promise;
+    );
   };
   FileSystem.prototype.write = function write(fd, buffer, offset, length, position, callback) {
-    var deferred = when.defer();
-    var transaction = this.db.transaction([FILE_STORE_NAME], IDB_RW);
-    var files = transaction.objectStore(FILE_STORE_NAME);
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
-    offset = (undefined === offset) ? 0 : offset;
-    length = (undefined === length) ? buffer.length - offset : length;
+        offset = (undefined === offset) ? 0 : offset;
+        length = (undefined === length) ? buffer.length - offset : length;
 
-    function check_result(error, nbytes) {
-      if(error) {
-        deferred.reject(error);
-      } else {
-        deferred.resolve(nbytes);
+        function check_result(error, nbytes) {
+          if(error) {
+            deferred.reject(error);
+          } else {
+            deferred.resolve(nbytes);
+          }
+        };
+
+        var ofd = that.openFiles[fd];
+
+        if(!ofd) {
+          deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+        } else if(!_(ofd.flags).contains(O_WRITE)) {
+          deferred.reject(new EBadFileDescriptor('descriptor does not permit writing'));
+        } else if(buffer.length - offset < length) {
+          deferred.reject(new EIO('intput buffer is too small'));
+        } else {
+          write_data(files, ofd, buffer, offset, length, position, check_result);
+        }
+
+        deferred.promise.then(
+          function(result) {
+            callback(undefined, result);
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
       }
-    };
-
-    var ofd = this.openFiles[fd];
-
-    if(!ofd) {
-      deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
-    } else if(!_(flags).contains(O_WRITE)) {
-      deferred.reject(new EBadFileDescriptor('descriptor does not permit writing'));
-    } else if(buffer.length - offset < length) {
-      deferred.reject(new EIO('intput buffer is too small'));
-    } else {
-      write_data(files, ofd, buffer, offset, length, position, check_result);
-    }
-
-    // TODO: check buffer length
-
-    return deferred.promise;
+    );
   };
   FileSystem.prototype.seek = function seek(fd, offset, origin) {
 
