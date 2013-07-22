@@ -6593,6 +6593,7 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
           } else {
             var stats = {
               dev: that.name,
+              size: result.size,
               nlinks: result.nlinks,
               atime: result.atime,
               mtime: result.mtime,

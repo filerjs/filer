@@ -793,6 +793,7 @@ define(function(require) {
           } else {
             var stats = {
               dev: that.name,
+              size: result.size,
               nlinks: result.nlinks,
               atime: result.atime,
               mtime: result.mtime,

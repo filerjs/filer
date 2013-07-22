@@ -24,17 +24,19 @@ var fs = new IDBFS.FileSystem('local', flags);
 var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
 console.log('buffer', buffer);
 var data = new Uint8Array(buffer.length);
-console.log('data', data);
-debugger;
+
 fs.open('/myfile', 'w+', function(error, fd) {
   if(error) throw error;
   console.log('descriptor:', fd);
-  fs.write(fd, buffer, 0, buffer.length, 0, function(error, nbytes) {
+  fs.write(fd, buffer, 0, buffer.length, undefined, function(error, nbytes) {
     console.log('write:', nbytes)
     if(error) throw error;
-    fs.read(fd, data, 0, data.length, 0, function(error, nbytes) {
-      console.log('read:', nbytes);
-      console.log('data', data);
+    fs.write(fd, buffer, 0, buffer.length, undefined, function(error, nbytes) {
+      console.log('write:', nbytes);
+      fs.stat('/myfile', function(error, stats) {
+        if(error) throw error;
+        console.log(stats);
+      });
     });
   });
 });

@@ -25,15 +25,11 @@ function mk_db_name() {
 };
 
 function array_buffer_equal(left, right) {
-  if(!(left instanceof ArrayBuffer && right instanceof ArrayBuffer)) {
+  if(left.length !== right.length) {
     return false;
   }
 
-  if(left.byteLength !== right.byteLength) {
-    return false;
-  }
-
-  for(var i = 0; i < left.byteLength; ++ i) {
+  for(var i = 0; i < left.length; ++ i) {
     if(left[i] !== right[i]) {
       return false;
     }
@@ -143,6 +139,7 @@ describe('fs.stat', function() {
       expect(_result).toBeDefined();
       expect(_error).not.toBeDefined();
       expect(_result['dev']).toEqual(that.db_name);
+      expect(_result['size']).toBeDefined();
       expect(_result['nlinks']).toEqual(jasmine.any(Number));
       expect(_result['atime']).toEqual(jasmine.any(Number));
       expect(_result['mtime']).toEqual(jasmine.any(Number));
@@ -526,7 +523,7 @@ describe('fs.write', function() {
 
   it('should write data to a file', function() {
     var complete = false;
-    var _error, _result;
+    var _error, _result, _stats;
     var that = this;
 
     var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
@@ -539,7 +536,13 @@ describe('fs.write', function() {
         _error = error;
         _result = result;
 
-        complete = true;
+        that.fs.stat('/myfile', function(error, result) {
+          if(error) throw error;
+
+          _stats = result;
+
+          complete = true;
+        });
       })
     });
 
@@ -550,6 +553,49 @@ describe('fs.write', function() {
     runs(function() {
       expect(_error).not.toBeDefined();
       expect(_result).toEqual(buffer.length);
+      expect(_stats.size).toEqual(buffer.length);
+    });
+  });
+
+  it('should update the current file position', function() {
+    var complete = false;
+    var _error, _result, _stats;
+    var that = this;
+
+    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    _result = 0;
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      that.fs.write(fd, buffer, 0, buffer.length, undefined, function(error, result) {
+        if(error) throw error;
+        _result += result;
+
+        that.fs.write(fd, buffer, 0, buffer.length, undefined, function(error, result) {
+          if(error) throw error;
+          _result += result;
+
+          that.fs.stat('/myfile', function(error, result) {
+            if(error) throw error;
+
+            _stats = result;
+
+            complete = true;
+          });
+        });
+      })
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result).toEqual(2 * buffer.length);
+      expect(_stats.size).toEqual(_result);
     });
   });
 });
@@ -589,6 +635,47 @@ describe('fs.read', function() {
           _result = result;
 
           complete = true;
+        });
+      })
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result).toEqual(rbuffer.length);
+      expect(array_buffer_equal(wbuffer, rbuffer)).toEqual(true);
+    });
+  });
+
+  it('should update the current file position', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    var wbuffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    var rbuffer = new Uint8Array(wbuffer.length);
+    _result = 0;
+
+    that.fs.open('/myfile', 'w+', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      that.fs.write(fd, wbuffer, 0, wbuffer.length, 0, function(error, result) {
+        if(error) throw error;
+
+        that.fs.read(fd, rbuffer, 0, rbuffer.length / 2, undefined, function(error, result) {
+          if(error) throw error;
+
+          _result += result;
+          that.fs.read(fd, rbuffer, rbuffer.length / 2, rbuffer.length, undefined, function(error, result) {
+            if(error) throw error;
+
+            _result += result;
+            complete = true;
+          });
         });
       })
     });
