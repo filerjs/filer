@@ -6509,7 +6509,14 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
       deferred.resolve();
     }
 
-    deferred.then(callback);
+    deferred.promise.then(
+      function() {
+        callback();
+      },
+      function(error) {
+        callback(error);
+      }
+    );
   };
   FileSystem.prototype.mkdir = function mkdir(path, callback) {
     var that = this;
@@ -6622,7 +6629,28 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
 
   };
   FileSystem.prototype.link = function link(oldpath, newpath, callback) {
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
+
+
+        deferred.promise.then(
+          function(result) {
+            callback(undefined, result);
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   };
   FileSystem.prototype.unlink = function unlink(path, callback) {
 
@@ -6722,7 +6750,10 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
       }
     );
   };
-  FileSystem.prototype.seek = function seek(fd, offset, origin) {
+  FileSystem.prototype.seek = function seek(fd, offset, whence, callback) {
+
+  };
+  FileSystem.prototype.utime = function utime(path, atime, mtime, callback) {
 
   };
 
