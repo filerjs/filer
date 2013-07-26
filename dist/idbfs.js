@@ -6388,7 +6388,6 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
     var oldDirectoryData;
     var newDirectoryNode;
     var newDirectoryData;
-    var directoryEntry;
     var fileNode;
 
     find_node(objectStore, oldParentPath, read_old_directory_data);
@@ -6442,16 +6441,51 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
       if(error) {
         callback(error);
       } else {
-        read_object(objectStore, newDirectoryData[newname].id, read_file_node);
+        read_object(objectStore, newDirectoryData[newname].id, update_file_node);
       }
     }
 
-    function read_file_node(error, result) {
+    function update_file_node(error, result) {
       if(error) {
         callback(error);
       } else {
-        directoryEntry = result;
-        read_object(objectStore, directoryEntry.id, update_file_node);
+        fileNode = result;
+        fileNode.nlinks += 1
+        write_object(objectStore, fileNode, fileNode.id, callback);
+      }
+    };
+  };
+
+  function unlink_node(objectStore, path, callback) {
+    path = normalize(path);
+    name = basename(path);
+    parentPath = dirname(path);
+
+    var directoryNode;
+    var directoryData;
+    var fileNode;
+
+    find_node(objectStore, parentPath, read_directory_data);
+
+    function read_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryNode = result;
+        read_object(objectStore, directoryNode.data, check_if_file_exists);
+      }
+    };
+
+    function check_if_file_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = result;
+        if(!_(directoryData).has(name)) {
+          callback(new ENoEntry('a component of the path does not name an existing file'));
+        } else {
+          read_object(objectStore, directoryData[name].id, update_file_node);
+        }
       }
     };
 
@@ -6460,10 +6494,31 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
         callback(error);
       } else {
         fileNode = result;
-        fileNode.nlinks += 1
-        write_object(objectStore, fileNode, directoryEntry.id, callback);
+        fileNode.nlinks -= 1;
+        if(fileNode.nlinks < 1) {
+          delete_object(objectStore, fileNode.id, delete_file_data);
+        } else {
+          write_object(objectStore, fileNode, fileNode.id, update_directory_data);
+        }
       }
     };
+
+    function delete_file_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        delete_object(objectStore, fileNode.data, update_directory_data);
+      }
+    };
+
+    function update_directory_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        delete directoryData[name];
+        write_object(objectStore, directoryData, directoryNode.data, callback);
+      }
+    }
   };
 
   /*

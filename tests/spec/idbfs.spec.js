@@ -810,4 +810,50 @@ describe('fs.unlink', function() {
   it('should be a function', function() {
     expect(typeof this.fs.unlink).toEqual('function');
   });
+
+  it('should remove a link to an existing file', function() {
+    var complete1 = false;
+    var complete2 = false;
+    var _error, _stats;
+    var that = this;
+
+    that.fs.open('/myfile', 'w+', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      that.fs.close(fd, function(error) {
+        if(error) throw error;
+
+        that.fs.link('/myfile', '/myotherfile', function(error) {
+          if(error) throw error;
+
+          that.fs.unlink('/myfile', function(error) {
+            if(error) throw error;
+
+            that.fs.stat('/myfile', function(error, result) {
+              _error = error;
+              complete1 = true;
+            });
+
+            that.fs.stat('/myotherfile', function(error, result) {
+              if(error) throw error;
+
+              _stats = result;
+              complete2 = true;
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete1 && complete2;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+      expect(_error).toBeDefined();
+      expect(_stats.nlinks).toEqual(1);
+    });
+  });
 });

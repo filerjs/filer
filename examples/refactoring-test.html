@@ -37,9 +37,9 @@ fs.open('/myfile', 'w+', function(error, fd) {
       fs.link('/myfile', '/myotherfile', function(error) {
         if(error) throw error;
         console.log('linked');
-        fs.stat('/myfile', function(error, stats) {
+        fs.unlink('/myfile', function(error) {
           if(error) throw error;
-          console.log(stats);
+          console.log('unlinked');
         });
       });
     });
