@@ -145,6 +145,7 @@ describe('fs.stat', function() {
       expect(_result['atime']).toEqual(jasmine.any(Number));
       expect(_result['mtime']).toEqual(jasmine.any(Number));
       expect(_result['ctime']).toEqual(jasmine.any(Number));
+      expect(_result['type']).toBeDefined();
     });
   });
 });

@@ -950,7 +950,8 @@ define(function(require) {
               nlinks: result.nlinks,
               atime: result.atime,
               mtime: result.mtime,
-              ctime: result.ctime
+              ctime: result.ctime,
+              type: result.mode,
             };
             deferred.resolve(stats);
           }
