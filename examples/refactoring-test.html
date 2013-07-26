@@ -34,9 +34,9 @@ fs.open('/myfile', 'w+', function(error, fd) {
     fs.close(fd, function(error) {
       if(error) throw error;
       console.log('closed');
-      fs.write(fd, buffer, 0, buffer.length, undefined, function(error, nbytes) {
+      fs.link('/myfile', '/myotherfile', function(error) {
         if(error) throw error;
-        console.log('write:', nbytes);
+        console.log('linked');
         fs.stat('/myfile', function(error, stats) {
           if(error) throw error;
           console.log(stats);

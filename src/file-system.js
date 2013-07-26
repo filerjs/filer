@@ -563,7 +563,6 @@ define(function(require) {
   function stat_file(objectStore, path, callback) {
     path = normalize(path);
     var name = basename(path);
-    var parentPath = dirname(path);
 
     find_node(objectStore, path, check_file);
 
@@ -572,6 +571,97 @@ define(function(require) {
         callback(error);
       } else {
         callback(undefined, result);
+      }
+    };
+  };
+
+  function link_node(objectStore, oldpath, newpath, callback) {
+    oldpath = normalize(oldpath);
+    var oldname = basename(oldpath);
+    var oldParentPath = dirname(oldpath);
+
+    newpath = normalize(newpath);
+    var newname = basename(newpath);
+    var newParentPath = dirname(newpath);
+
+    var oldDirectoryNode;
+    var oldDirectoryData;
+    var newDirectoryNode;
+    var newDirectoryData;
+    var directoryEntry;
+    var fileNode;
+
+    find_node(objectStore, oldParentPath, read_old_directory_data);
+
+    function read_old_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        oldDirectoryNode = result;
+        read_object(objectStore, oldDirectoryNode.data, check_if_old_file_exists);
+      }
+    };
+
+    function check_if_old_file_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        oldDirectoryData = result;
+        if(!_(oldDirectoryData).has(oldname)) {
+          callback(new ENoEntry('a component of either path prefix does not exist'));
+        } else {
+          find_node(objectStore, newParentPath, read_new_directory_data);
+        }
+      }
+    };
+
+    function read_new_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        newDirectoryNode = result;
+        read_object(objectStore, newDirectoryNode.data, check_if_new_file_exists);
+      }
+    };
+
+    function check_if_new_file_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        newDirectoryData = result;
+        if(_(newDirectoryData).has(newname)) {
+          callback(new EExists('newpath resolves to an existing file'));
+        } else {
+          newDirectoryData[newname] = oldDirectoryData[oldname];
+          write_object(objectStore, newDirectoryData, newDirectoryNode.data, read_directory_entry);
+        }
+      }
+    };
+
+    function read_directory_entry(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        read_object(objectStore, newDirectoryData[newname].id, read_file_node);
+      }
+    }
+
+    function read_file_node(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryEntry = result;
+        read_object(objectStore, directoryEntry.id, update_file_node);
+      }
+    };
+
+    function update_file_node(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        fileNode = result;
+        fileNode.nlinks += 1
+        write_object(objectStore, fileNode, directoryEntry.id, callback);
       }
     };
   };
@@ -799,6 +889,7 @@ define(function(require) {
             deferred.reject(error);
           } else {
             var stats = {
+              node: result.id,
               dev: that.name,
               size: result.size,
               nlinks: result.nlinks,
@@ -836,11 +927,20 @@ define(function(require) {
         var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
 
+        function check_result(error) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            deferred.resolve();
+          }
+        };
 
+        link_node(files, oldpath, newpath, check_result);
 
         deferred.promise.then(
           function(result) {
-            callback(undefined, result);
+            callback();
           },
           function(error) {
             callback(error);
@@ -853,7 +953,37 @@ define(function(require) {
     );
   };
   FileSystem.prototype.unlink = function unlink(path, callback) {
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
+        function check_result(error) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            deferred.resolve();
+          }
+        };
+
+        unlink_node(files, path, check_result);
+
+        deferred.promise.then(
+          function(result) {
+            callback();
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   };
   FileSystem.prototype.getxattr = function getxattr(path, name, callback) {
 
