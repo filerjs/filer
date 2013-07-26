@@ -6750,7 +6750,8 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
               nlinks: result.nlinks,
               atime: result.atime,
               mtime: result.mtime,
-              ctime: result.ctime
+              ctime: result.ctime,
+              type: result.mode,
             };
             deferred.resolve(stats);
           }
