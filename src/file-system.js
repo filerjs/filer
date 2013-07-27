@@ -492,7 +492,7 @@ define(function(require) {
         callback(error);
       } else {
         fileData = result;
-        var _position = (undefined !== position) ? position : ofd.position;
+        var _position = (!(undefined === position && null === position)) ? position : ofd.position;
         var newSize = Math.max(fileData.length, _position + length);
         var newData = new Uint8Array(newSize);
         if(fileData) {
@@ -548,7 +548,7 @@ define(function(require) {
         callback(error);
       } else {
         fileData = result;
-        var _position = (undefined !== position) ? position : ofd.position;
+        var _position = (!(undefined === position && null === position)) ? position : ofd.position;
         length = (_position + length > buffer.length) ? length - _position : length;
         var dataView = fileData.subarray(_position, _position + length);
         buffer.set(dataView, offset);
@@ -1140,6 +1140,15 @@ define(function(require) {
 
   };
   FileSystem.prototype.utime = function utime(path, atime, mtime, callback) {
+
+  };
+  FileSystem.prototype.rename = function rename(old, new, callback) {
+
+  };
+  FileSystem.prototype.truncate = function truncate(path, length, callback) {
+
+  };
+  FileSystem.prototype.ftruncate = function ftruncate(fd, length, callback) {
 
   };
 
