@@ -492,7 +492,7 @@ define(function(require) {
         callback(error);
       } else {
         fileData = result;
-        var _position = (!(undefined === position && null === position)) ? position : ofd.position;
+        var _position = (!(undefined === position || null === position)) ? position : ofd.position;
         var newSize = Math.max(fileData.length, _position + length);
         var newData = new Uint8Array(newSize);
         if(fileData) {
@@ -548,7 +548,7 @@ define(function(require) {
         callback(error);
       } else {
         fileData = result;
-        var _position = (!(undefined === position && null === position)) ? position : ofd.position;
+        var _position = (!(undefined === position || null === position)) ? position : ofd.position;
         length = (_position + length > buffer.length) ? length - _position : length;
         var dataView = fileData.subarray(_position, _position + length);
         buffer.set(dataView, offset);
@@ -565,6 +565,18 @@ define(function(require) {
     var name = basename(path);
 
     find_node(objectStore, path, check_file);
+
+    function check_file(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        callback(undefined, result);
+      }
+    };
+  };
+
+  function fstat_file(objectStore, ofd, callback) {
+    read_object(objectStore, ofd.id, check_file);
 
     function check_file(error, result) {
       if(error) {
@@ -973,7 +985,53 @@ define(function(require) {
     );
   };
   FileSystem.prototype.fstat = function fstat(fd, callback) {
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
+        function check_result(error, result) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            var stats = {
+              node: result.id,
+              dev: that.name,
+              size: result.size,
+              nlinks: result.nlinks,
+              atime: result.atime,
+              mtime: result.mtime,
+              ctime: result.ctime,
+              type: result.mode,
+            };
+            deferred.resolve(stats);
+          }
+        };
+
+        var ofd = that.openFiles[fd];
+
+        if(!ofd) {
+          deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+        } else {
+          fstat_file(files, ofd, check_result);
+        }
+
+        deferred.promise.then(
+          function(result) {
+            callback(undefined, result);
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   };
   FileSystem.prototype.link = function link(oldpath, newpath, callback) {
     var that = this;
@@ -1040,12 +1098,6 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  };
-  FileSystem.prototype.getxattr = function getxattr(path, name, callback) {
-
-  };
-  FileSystem.prototype.setxattr = function setxattr(path, name, value, callback) {
-
   };
   FileSystem.prototype.read = function read(fd, buffer, offset, length, position, callback) {
     var that = this;
@@ -1136,13 +1188,72 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.seek = function seek(fd, offset, whence, callback) {
+  FileSystem.prototype.getxattr = function getxattr(path, name, callback) {
 
+  };
+  FileSystem.prototype.setxattr = function setxattr(path, name, value, callback) {
+
+  };
+  FileSystem.prototype.seek = function seek(fd, offset, whence, callback) {
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+
+        function check_result(error, offset) {
+          if(error) {
+            deferred.reject(error);
+          } else {
+            deferred.resolve(offset);
+          }
+        };
+
+        var ofd = that.openFiles[fd];
+
+        if(!ofd) {
+          deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+        }
+
+        if('SET' === whence) {
+          if(offset < 0) {
+            deferred.reject(new EInvalid('resulting file offset would be negative'));
+          } else {
+            ofd.position = offset;
+            deferred.resolve(ofd.position);
+          }
+        } else if('CUR' === whence) {
+          if(ofd.position + offset < 0) {
+            deferred.reject(new EInvalid('resulting file offset would be negative'));
+          } else {
+            ofd.position += offset;
+            deferred.resolve(ofd.position);
+          }
+        } else if('END' === whence) {
+          // do fstat
+        } else {
+          deferred.reject(new EInvalid('whence argument is not a proper value'));
+        }
+
+        deferred.promise.then(
+          function(result) {
+            callback(undefined, result);
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   };
   FileSystem.prototype.utime = function utime(path, atime, mtime, callback) {
 
   };
-  FileSystem.prototype.rename = function rename(old, new, callback) {
+  FileSystem.prototype.rename = function rename(oldpath, newpath, callback) {
 
   };
   FileSystem.prototype.truncate = function truncate(path, length, callback) {
