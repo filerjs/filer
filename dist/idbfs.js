@@ -5888,6 +5888,21 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
   };
 
   /*
+   * Stats
+   */
+
+  function Stats(fileNode, devName) {
+    this.node = fileNode.id;
+    this.dev = devName;
+    this.size = fileNode.size;
+    this.nlinks = fileNode.nlinks;
+    this.atime = fileNode.atime;
+    this.mtime = fileNode.mtime;
+    this.ctime = fileNode.ctime;
+    this.type = fileNode.mode;
+  };
+
+  /*
    * find_node
    */
 
@@ -6755,16 +6770,7 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
             // if(transaction.error) transaction.abort();
             deferred.reject(error);
           } else {
-            var stats = {
-              node: result.id,
-              dev: that.name,
-              size: result.size,
-              nlinks: result.nlinks,
-              atime: result.atime,
-              mtime: result.mtime,
-              ctime: result.ctime,
-              type: result.mode,
-            };
+            var stats = new Stats(result, that.name);
             deferred.resolve(stats);
           }
         };
@@ -6797,16 +6803,7 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
             // if(transaction.error) transaction.abort();
             deferred.reject(error);
           } else {
-            var stats = {
-              node: result.id,
-              dev: that.name,
-              size: result.size,
-              nlinks: result.nlinks,
-              atime: result.atime,
-              mtime: result.mtime,
-              ctime: result.ctime,
-              type: result.mode,
-            };
+            var stats = new Stats(result, that.name);
             deferred.resolve(stats);
           }
         };

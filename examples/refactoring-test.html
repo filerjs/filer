@@ -35,6 +35,10 @@ fs.open('/tmp', 'w+', function(error, fd) {
     fs.close(fd, function(error) {
       if(error) throw error;
       console.log('closed');
+      fs.stat('/tmp', function(error, stats) {
+        if(error) throw error;
+        console.log('stats:', stats);
+      });
     });
   });
 });
