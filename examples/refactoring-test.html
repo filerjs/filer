@@ -29,9 +29,9 @@ try {
 fs.open('/tmp', 'w+', function(error, fd) {
   if(error) throw error;
   console.log('descriptor:', fd);
-  fs.fstat(fd, function(error, stats) {
+  fs.lseek(fd, 2, 'END', function(error, pos) {
     if(error) throw error;
-    console.log('stats:', stats);
+    console.log('pos:', pos);
     fs.close(fd, function(error) {
       if(error) throw error;
       console.log('closed');

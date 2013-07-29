@@ -1194,13 +1194,11 @@ define(function(require) {
   FileSystem.prototype.setxattr = function setxattr(path, name, value, callback) {
 
   };
-  FileSystem.prototype.seek = function seek(fd, offset, whence, callback) {
+  FileSystem.prototype.lseek = function lseek(fd, offset, whence, callback) {
     var that = this;
     this.promise.then(
       function() {
         var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
 
         function check_result(error, offset) {
           if(error) {
@@ -1231,7 +1229,23 @@ define(function(require) {
             deferred.resolve(ofd.position);
           }
         } else if('END' === whence) {
-          // do fstat
+          var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+          var files = transaction.objectStore(FILE_STORE_NAME);
+
+          function update_descriptor_position(error, stats) {
+            if(error) {
+              deferred.reject(error);
+            } else {
+              if(stats.size + offset < 0) {
+                deferred.reject(new EInvalid('resulting file offset would be negative'));
+              } else {
+                ofd.position = stats.size + offset;
+                deferred.resolve(ofd.position);
+              }
+            }
+          };
+
+          fstat_file(files, ofd, update_descriptor_position);
         } else {
           deferred.reject(new EInvalid('whence argument is not a proper value'));
         }
