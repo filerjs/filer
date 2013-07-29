@@ -954,9 +954,6 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.readdir = function readdir(path, callback) {
-
-  };
   FileSystem.prototype.stat = function stat(path, callback) {
     var that = this;
     this.promise.then(
@@ -1261,7 +1258,10 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.utime = function utime(path, atime, mtime, callback) {
+  FileSystem.prototype.readdir = function readdir(path, callback) {
+
+  };
+  FileSystem.prototype.utimes = function utimes(path, atime, mtime, callback) {
 
   };
   FileSystem.prototype.rename = function rename(oldpath, newpath, callback) {
@@ -1273,6 +1273,19 @@ define(function(require) {
   FileSystem.prototype.ftruncate = function ftruncate(fd, length, callback) {
 
   };
+  FileSystem.prototype.symlink = function symlink(fd, length, callback) {
+
+  };
+  FileSystem.prototype.readlink = function readlink(fd, length, callback) {
+
+  };
+  FileSystem.prototype.realpath = function realpath(fd, length, callback) {
+
+  };
+  FileSystem.prototype.lstat = function lstat(fd, length, callback) {
+
+  };
+
 
   return {
     FileSystem: FileSystem,
