@@ -106,3 +106,7 @@ The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes read.
 #### fs.lseek(fd, offset, whence, callback)
 
 Asynchronous lseek(2), where `whence` can be `SET`, `CUR`, or `END`. Callback gets `(error, pos)`, where `pos` is the resulting offset, in bytes, from the beginning of the file.
+
+#### fs.readdir(path, callback)
+
+Asynchronous readdir(3). Reads the contents of a directory. Callback gets `(error, files)`, where `files` is an array containing the names of each file in the directory, excluding `.` and `..`.
