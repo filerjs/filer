@@ -25,7 +25,7 @@ module.exports = function(grunt) {
           },
           baseUrl: "lib",
           name: "build/almond",
-          include: ["src/file-system"],
+          include: ["src/fs"],
           out: "dist/idbfs.js",
           optimize: "none",
           wrap: {

@@ -5798,7 +5798,7 @@ define('src/constants',['require'],function(require) {
   };
 
 });
-define('src/file-system',['require','lodash','when','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants'],function(require) {
+define('src/fs',['require','lodash','when','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants'],function(require) {
 
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 
@@ -7151,7 +7151,7 @@ define('src/file-system',['require','lodash','when','src/path','src/path','src/p
   };
 
 });
-  var IDBFS = require( "src/file-system" );
+  var IDBFS = require( "src/fs" );
 
   return IDBFS;
 
