@@ -1176,6 +1176,8 @@ define(function(require) {
     this.promise.then(
       function() {
         var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RO);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
         if(!options) {
           options = { encoding: null, flag: 'r' };
@@ -1186,35 +1188,48 @@ define(function(require) {
           options = { encoding: options, flag: 'r' };
         }
 
-        var flag = options.flag || 'r';
+        var flags = options.flag || 'r';
+        if(!_(O_FLAGS).has(flags)) {
+          deferred.reject(new EInvalid('flags is not valid'));
+        } else {
+          flags = O_FLAGS[flags];
+        }
 
-        that.open(path, flag, function(err, fd) {
+        open_file(this, files, path, flags, function(err, fileNode) {
           if(err) {
+            // TODO: abort transaction?
             return deferred.reject(err);
           }
+          var ofd = new OpenFileDescription(fileNode.id, flags, 0);
+          var fd = that._allocate_descriptor(ofd);
 
-          that.fstat(fd, function(err2, stats) {
+          fstat_file(files, ofd, function(err2, fstatResult) {
             if(err2) {
+              // TODO: abort transaction?
               return deferred.reject(err2);
             }
 
+            var stats = new Stats(fstatResult, that.name);
             var size = stats.size;
             var buffer = new Uint8Array(size);
-            that.read(fd, buffer, 0, buffer.length, 0, function(err3, result) {
+
+            read_data(files, ofd, buffer, 0, size, 0, function(err3, nbytes) {
               if(err3) {
+                // TODO: abort transaction?
                 return deferred.reject(err3);
               }
-              that.close(fd, function() {
-                var data;
-                if(options.encoding === 'utf8') {
-                  data = new TextDecoder('utf-8').decode(buffer);
-                } else {
-                  data = buffer;
-                }
-                deferred.resolve(data);
-              });
+              that._release_descriptor(fd);
+
+              var data;
+              if(options.encoding === 'utf8') {
+                data = new TextDecoder('utf-8').decode(buffer);
+              } else {
+                data = buffer;
+              }
+              deferred.resolve(data);
             });
           });
+
         });
 
         deferred.promise.then(
@@ -1281,6 +1296,8 @@ define(function(require) {
     this.promise.then(
       function() {
         var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
         if(!options) {
           options = { encoding: 'utf8', flag: 'w' };
@@ -1291,23 +1308,32 @@ define(function(require) {
           options = { encoding: options, flag: 'w' };
         }
 
+        var flags = options.flag || 'w';
+        if(!_(O_FLAGS).has(flags)) {
+          deferred.reject(new EInvalid('flags is not valid'));
+        } else {
+          flags = O_FLAGS[flags];
+        }
+
         if(typeof data === "string" && options.encoding === 'utf8') {
           data = new TextEncoder('utf-8').encode(data);
         }
 
-        var flag = options.flag || 'w';
-
-        that.open(path, flag, function(err, fd) {
+        open_file(this, files, path, flags, function(err, fileNode) {
           if(err) {
+            // TODO: abort transaction?
             return deferred.reject(err);
           }
-          that.write(fd, data, 0, data.length, 0, function(err2, bytes_written) {
+          var ofd = new OpenFileDescription(fileNode.id, flags, 0);
+          var fd = that._allocate_descriptor(ofd);
+
+          write_data(files, ofd, data, 0, data.length, 0, function(err2, nbytes) {
             if(err2) {
+              // TODO: abort transaction?
               return deferred.reject(err2);
             }
-            that.close(fd, function() {
-              deferred.resolve();
-            });
+            that._release_descriptor(fd);
+            deferred.resolve();
           });
         });
 
