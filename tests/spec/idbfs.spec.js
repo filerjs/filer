@@ -730,6 +730,29 @@ describe('fs.writeFile, fs.readFile', function() {
     expect(typeof this.fs.readFile).toEqual('function');
   });
 
+  it('should error when path is wrong to readFile', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    var contents = "This is a file.";
+
+    that.fs.readFile('/no-such-file', 'utf8', function(error, data) {
+      _error = error;
+      _result = data;
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+      expect(_result).not.toBeDefined();
+    });
+  });
+
   it('should write, read a utf8 file without specifying utf8 in writeFile', function() {
     var complete = false;
     var _error, _result;
