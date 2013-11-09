@@ -782,6 +782,14 @@ define(function(require) {
     }
   }
 
+  function validate_flags(flags) {
+    if(!_(O_FLAGS).has(flags)) {
+      return null;
+    } else {
+      return O_FLAGS[flags];
+    }
+  }
+
   /*
    * FileSystem
    */
@@ -884,10 +892,9 @@ define(function(require) {
           }
         }
 
-        if(!_(O_FLAGS).has(flags)) {
+        flags = validate_flags(flags);
+        if(!flags) {
           deferred.reject(new EInvalid('flags is not valid'));
-        } else {
-          flags = O_FLAGS[flags];
         }
 
         open_file(this, files, path, flags, check_result);
@@ -1188,11 +1195,9 @@ define(function(require) {
           options = { encoding: options, flag: 'r' };
         }
 
-        var flags = options.flag || 'r';
-        if(!_(O_FLAGS).has(flags)) {
+        var flags = validate_flags(options.flag || 'r');
+        if(!flags) {
           deferred.reject(new EInvalid('flags is not valid'));
-        } else {
-          flags = O_FLAGS[flags];
         }
 
         open_file(this, files, path, flags, function(err, fileNode) {
@@ -1308,11 +1313,9 @@ define(function(require) {
           options = { encoding: options, flag: 'w' };
         }
 
-        var flags = options.flag || 'w';
-        if(!_(O_FLAGS).has(flags)) {
+        var flags = validate_flags(options.flag || 'w');
+        if(!flags) {
           deferred.reject(new EInvalid('flags is not valid'));
-        } else {
-          flags = O_FLAGS[flags];
         }
 
         if(typeof data === "string" && options.encoding === 'utf8') {
