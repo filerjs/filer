@@ -97,11 +97,45 @@ Write bytes from `buffer` to the file specified by `fd`, where `offset` and `len
 
 The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes written.
 
+#### fs.writeFile(filename, data, [options], callback)
+
+Asynchronously writes data to a file. `data` can be a string or a buffer, in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
+
+```javascript
+// Write UTF8 text file
+fs.writeFile('/myfile.txt', "...data...", function (err) {
+  if (err) throw err;
+});
+
+// Write binary file
+fs.writeFile('/myfile', buffer, function (err) {
+  if (err) throw err;
+});
+```
+
 #### fs.read(fd, buffer, offset, length, position, callback)
 
 Read bytes from the file specified by `fd` into `buffer`, where `offset` and `length` describe the part of the buffer to be used. The `position` refers to the offset from the beginning of the file where this data should be read. If `position` is `null`, the data will be written at the current position. See pread(2).
 
 The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes read.
+
+#### fs.readFile(filename, [options], callback)
+
+Asynchronously reads the entire contents of a file. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "r" }`. If no encoding is specified, the raw binary buffer is returned on the callback. The callback gets `(error, data)`, where data is the contents of the file.
+
+```javascript
+// Read UTF8 text file
+fs.readFile('/myfile.txt', 'utf8', function (err, data) {
+  if (err) throw err;
+  console.log(data);
+});
+
+// Read binary file
+fs.readFile('/myfile.txt', function (err, data) {
+  if (err) throw err;
+  console.log(data);
+});
+```
 
 #### fs.lseek(fd, offset, whence, callback)
 

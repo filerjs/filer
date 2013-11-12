@@ -16,84 +16,84 @@ define(function(require) {
 
   function EExists(message){
     this.message = message || '';
-  };
+  }
   EExists.prototype = new Error();
   EExists.prototype.name = "EExists";
   EExists.prototype.constructor = EExists;
 
   function EIsDirectory(message){
     this.message = message || '';
-  };
+  }
   EIsDirectory.prototype = new Error();
   EIsDirectory.prototype.name = "EIsDirectory";
   EIsDirectory.prototype.constructor = EIsDirectory;
 
   function ENoEntry(message){
     this.message = message || '';
-  };
+  }
   ENoEntry.prototype = new Error();
   ENoEntry.prototype.name = "ENoEntry";
   ENoEntry.prototype.constructor = ENoEntry;
 
   function EBusy(message){
     this.message = message || '';
-  };
+  }
   EBusy.prototype = new Error();
   EBusy.prototype.name = "EBusy";
   EBusy.prototype.constructor = EBusy;
 
   function ENotEmpty(message){
     this.message = message || '';
-  };
+  }
   ENotEmpty.prototype = new Error();
   ENotEmpty.prototype.name = "ENotEmpty";
   ENotEmpty.prototype.constructor = ENotEmpty;
 
   function ENotDirectory(message){
     this.message = message || '';
-  };
+  }
   ENotDirectory.prototype = new Error();
   ENotDirectory.prototype.name = "ENotDirectory";
   ENotDirectory.prototype.constructor = ENotDirectory;
 
   function EBadFileDescriptor(message){
     this.message = message || '';
-  };
+  }
   EBadFileDescriptor.prototype = new Error();
   EBadFileDescriptor.prototype.name = "EBadFileDescriptor";
   EBadFileDescriptor.prototype.constructor = EBadFileDescriptor;
 
   function ENotImplemented(message){
     this.message = message || '';
-  };
+  }
   ENotImplemented.prototype = new Error();
   ENotImplemented.prototype.name = "ENotImplemented";
   ENotImplemented.prototype.constructor = ENotImplemented;
 
   function ENotMounted(message){
     this.message = message || '';
-  };
+  }
   ENotMounted.prototype = new Error();
   ENotMounted.prototype.name = "ENotMounted";
   ENotMounted.prototype.constructor = ENotMounted;
 
   function EInvalid(message){
     this.message = message || '';
-  };
+  }
   EInvalid.prototype = new Error();
   EInvalid.prototype.name = "EInvalid";
   EInvalid.prototype.constructor = EInvalid;
 
   function EIO(message){
     this.message = message || '';
-  };
+  }
   EIO.prototype = new Error();
   EIO.prototype.name = "EIO";
   EIO.prototype.constructor = EIO;
 
   function EFileSystemError(message){
     this.message = message || '';
-  };
+  }
   EFileSystemError.prototype = new Error();
   EFileSystemError.prototype.name = "EFileSystemError";
   EFileSystemError.prototype.constructor = EFileSystemError;
@@ -109,7 +109,7 @@ define(function(require) {
     ENotImplemented: ENotImplemented,
     ENotMounted: ENotMounted,
     EInvalid: EInvalid,
-    EIO: EIO,
+    EIO: EIO
   };
 
 });

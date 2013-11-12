@@ -48,7 +48,7 @@ define(function(require) {
 
     FS_READY: 'READY',
     FS_PENDING: 'PENDING',
-    FS_ERROR: 'ERROR',
+    FS_ERROR: 'ERROR'
   };
 
 });

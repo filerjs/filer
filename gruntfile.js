@@ -16,6 +16,11 @@ module.exports = function(grunt) {
       }
     },
 
+    jshint: {
+      // Don't bother with src/path.js
+      all: ['gruntfile.js', 'src/constants.js', 'src/error.js', 'src/fs.js', 'srs/shared.js']
+    },
+
     requirejs: {
       develop: {
         options: {
@@ -40,9 +45,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
 
   grunt.registerTask('develop', ['clean', 'requirejs']);
   grunt.registerTask('release', ['develop', 'uglify']);
+  grunt.registerTask('check', ['jshint']);
 
   grunt.registerTask('default', ['develop']);
 };

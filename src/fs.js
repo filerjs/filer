@@ -5,6 +5,11 @@ define(function(require) {
   var _ = require('lodash');
   var when = require('when');
 
+  // TextEncoder and TextDecoder will either already be present, or use this shim.
+  // Because of the way the spec is defined, we need to get them off the global.
+  require('encoding-indexes');
+  require('encoding');
+
   var normalize = require('src/path').normalize;
   var dirname = require('src/path').dirname;
   var basename = require('src/path').basename;
@@ -53,7 +58,7 @@ define(function(require) {
   function DirectoryEntry(id, type) {
     this.id = id;
     this.type = type || MODE_FILE;
-  };
+  }
 
   /*
    * OpenFileDescription
@@ -63,7 +68,7 @@ define(function(require) {
     this.id = id;
     this.flags = flags;
     this.position = position;
-  };
+  }
 
   /*
    * Node
@@ -72,7 +77,7 @@ define(function(require) {
   function Node(id, mode, size, atime, ctime, mtime, flags, xattrs, nlinks, version) {
     var now = Date.now();
 
-    this.id = id || hash(guid()),
+    this.id = id || hash(guid());
     this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
     this.size = size || 0; // size (bytes for files, entries for directories)
     this.atime = atime || now; // access time
@@ -85,7 +90,7 @@ define(function(require) {
     this.blksize = undefined; // block size
     this.nblocks = 1; // blocks count
     this.data = hash(guid()); // id for data object
-  };
+  }
 
   /*
    * Stats
@@ -100,7 +105,7 @@ define(function(require) {
     this.mtime = fileNode.mtime;
     this.ctime = fileNode.ctime;
     this.type = fileNode.mode;
-  };
+  }
 
   /*
    * find_node
@@ -125,7 +130,7 @@ define(function(require) {
         } else {
           callback(undefined, rootDirectoryNode);
         }
-      };
+      }
 
       read_object(objectStore, ROOT_NODE_ID, check_root_directory_node);
     } else {
@@ -139,7 +144,7 @@ define(function(require) {
         } else {
           read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
         }
-      };
+      }
 
       // in: parent directory data
       // out: searched node id
@@ -154,11 +159,11 @@ define(function(require) {
             read_object(objectStore, nodeId, callback);
           }
         }
-      };
+      }
 
       find_node(objectStore, parentPath, read_parent_directory_data);
     }
-  };
+  }
 
   /*
    * read_object
@@ -177,7 +182,7 @@ define(function(require) {
     } catch(error) {
       callback(new EIO(error.message));
     }
-  };
+  }
 
   /*
    * write_object
@@ -196,7 +201,7 @@ define(function(require) {
     } catch(error) {
       callback(new EIO(error.message));
     }
-  };
+  }
 
   /*
    * delete_object
@@ -211,7 +216,7 @@ define(function(require) {
     deleteRequest.onerror = function(error) {
       callback(error);
     };
-  };
+  }
 
   /*
    * make_root_directory
@@ -232,7 +237,7 @@ define(function(require) {
         directoryNode.nlinks += 1;
         write_object(objectStore, directoryNode, directoryNode.id, write_directory_data);
       }
-    };
+    }
 
     function write_directory_data(error) {
       if(error) {
@@ -241,10 +246,10 @@ define(function(require) {
         directoryData = {};
         write_object(objectStore, directoryData, directoryNode.data, callback);
       }
-    };
+    }
 
     find_node(objectStore, ROOT_DIRECTORY_NAME, write_directory_node);
-  };
+  }
 
   /*
    * make_directory
@@ -277,7 +282,7 @@ define(function(require) {
         parentDirectoryNode = result;
         read_object(objectStore, parentDirectoryNode.data, write_directory_node);
       }
-    };
+    }
 
     function write_directory_node(error, result) {
       if(error) {
@@ -288,7 +293,7 @@ define(function(require) {
         directoryNode.nlinks += 1;
         write_object(objectStore, directoryNode, directoryNode.id, write_directory_data);
       }
-    };
+    }
 
     function write_directory_data(error) {
       if(error) {
@@ -297,7 +302,7 @@ define(function(require) {
         directoryData = {};
         write_object(objectStore, directoryData, directoryNode.data, update_parent_directory_data);
       }
-    };
+    }
 
     function update_parent_directory_data(error) {
       if(error) {
@@ -309,7 +314,7 @@ define(function(require) {
     }
 
     find_node(objectStore, path, check_if_directory_exists);
-  };
+  }
 
   /*
    * remove_directory
@@ -349,7 +354,7 @@ define(function(require) {
           find_node(objectStore, parentPath, read_parent_directory_data);
         }
       }
-    };
+    }
 
     function read_parent_directory_data(error, result) {
       if(error) {
@@ -358,7 +363,7 @@ define(function(require) {
         parentDirectoryNode = result;
         read_object(objectStore, parentDirectoryNode.data, remove_directory_entry_from_parent_directory_node);
       }
-    };
+    }
 
     function remove_directory_entry_from_parent_directory_node(error, result) {
       if(error) {
@@ -368,7 +373,7 @@ define(function(require) {
         delete parentDirectoryData[name];
         write_object(objectStore, parentDirectoryData, parentDirectoryNode.data, remove_directory_node);
       }
-    };
+    }
 
     function remove_directory_node(error) {
       if(error) {
@@ -376,7 +381,7 @@ define(function(require) {
       } else {
         delete_object(objectStore, directoryNode.id, remove_directory_data);
       }
-    };
+    }
 
     function remove_directory_data(error) {
       if(error) {
@@ -384,10 +389,10 @@ define(function(require) {
       } else {
         delete_object(objectStore, directoryNode.data, callback);
       }
-    };
+    }
 
     find_node(objectStore, path, check_if_directory_exists);
-  };
+  }
 
   function open_file(fs, objectStore, path, flags, callback) {
     path = normalize(path);
@@ -402,7 +407,7 @@ define(function(require) {
 
     if(ROOT_DIRECTORY_NAME == name) {
       if(_(flags).contains(O_WRITE)) {
-        callback(new EIsDirectory('the named file is a directory and O_WRITE is set'))
+        callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
       } else {
         find_node(objectStore, path, set_file_node);
       }
@@ -417,7 +422,7 @@ define(function(require) {
         directoryNode = result;
         read_object(objectStore, directoryNode.data, check_if_file_exists);
       }
-    };
+    }
 
     function check_if_file_exists(error, result) {
       if(error) {
@@ -426,11 +431,11 @@ define(function(require) {
         directoryData = result;
         if(_(directoryData).has(name)) {
           if(_(flags).contains(O_EXCLUSIVE)) {
-            callback(new ENoEntry('O_CREATE and O_EXCLUSIVE are set, and the named file exists'))
+            callback(new ENoEntry('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
           } else {
             directoryEntry = directoryData[name];
             if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
-              callback(new EIsDirectory('the named file is a directory and O_WRITE is set'))
+              callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
             } else {
               read_object(objectStore, directoryEntry.id, set_file_node);
             }
@@ -443,7 +448,7 @@ define(function(require) {
           }
         }
       }
-    };
+    }
 
     function set_file_node(error, result) {
       if(error) {
@@ -452,13 +457,13 @@ define(function(require) {
         fileNode = result;
         callback(undefined, fileNode);
       }
-    };
+    }
 
     function write_file_node() {
       fileNode = new Node(undefined, MODE_FILE);
       fileNode.nlinks += 1;
       write_object(objectStore, fileNode, fileNode.id, write_file_data);
-    };
+    }
 
     function write_file_data(error) {
       if(error) {
@@ -467,7 +472,7 @@ define(function(require) {
         fileData = new Uint8Array(0);
         write_object(objectStore, fileData, fileNode.data, update_directory_data);
       }
-    };
+    }
 
     function update_directory_data(error) {
       if(error) {
@@ -476,7 +481,7 @@ define(function(require) {
         directoryData[name] = new DirectoryEntry(fileNode.id, MODE_FILE);
         write_object(objectStore, directoryData, directoryNode.data, handle_update_result);
       }
-    };
+    }
 
     function handle_update_result(error) {
       if(error) {
@@ -484,8 +489,8 @@ define(function(require) {
       } else {
         callback(undefined, fileNode);
       }
-    };
-  };
+    }
+  }
 
   function write_data(objectStore, ofd, buffer, offset, length, position, callback) {
     var fileNode;
@@ -500,7 +505,7 @@ define(function(require) {
         fileNode = result;
         read_object(objectStore, fileNode.data, update_file_data);
       }
-    };
+    }
 
     function update_file_data(error, result) {
       if(error) {
@@ -524,7 +529,7 @@ define(function(require) {
 
         write_object(objectStore, newData, fileNode.data, update_file_node);
       }
-    };
+    }
 
     function update_file_node(error) {
       if(error) {
@@ -532,7 +537,7 @@ define(function(require) {
       } else {
         write_object(objectStore, fileNode, fileNode.id, return_nbytes);
       }
-    };
+    }
 
     function return_nbytes(error) {
       if(error) {
@@ -540,8 +545,8 @@ define(function(require) {
       } else {
         callback(undefined, length);
       }
-    };
-  };
+    }
+  }
 
   function read_data(objectStore, ofd, buffer, offset, length, position, callback) {
     var fileNode;
@@ -556,7 +561,7 @@ define(function(require) {
         fileNode = result;
         read_object(objectStore, fileNode.data, handle_file_data);
       }
-    };
+    }
 
     function handle_file_data(error, result) {
       if(error) {
@@ -572,8 +577,8 @@ define(function(require) {
         }
         callback(undefined, length);
       }
-    };
-  };
+    }
+  }
 
   function stat_file(objectStore, path, callback) {
     path = normalize(path);
@@ -587,8 +592,8 @@ define(function(require) {
       } else {
         callback(undefined, result);
       }
-    };
-  };
+    }
+  }
 
   function fstat_file(objectStore, ofd, callback) {
     read_object(objectStore, ofd.id, check_file);
@@ -599,8 +604,8 @@ define(function(require) {
       } else {
         callback(undefined, result);
       }
-    };
-  };
+    }
+  }
 
   function link_node(objectStore, oldpath, newpath, callback) {
     oldpath = normalize(oldpath);
@@ -626,7 +631,7 @@ define(function(require) {
         oldDirectoryNode = result;
         read_object(objectStore, oldDirectoryNode.data, check_if_old_file_exists);
       }
-    };
+    }
 
     function check_if_old_file_exists(error, result) {
       if(error) {
@@ -639,7 +644,7 @@ define(function(require) {
           find_node(objectStore, newParentPath, read_new_directory_data);
         }
       }
-    };
+    }
 
     function read_new_directory_data(error, result) {
       if(error) {
@@ -648,7 +653,7 @@ define(function(require) {
         newDirectoryNode = result;
         read_object(objectStore, newDirectoryNode.data, check_if_new_file_exists);
       }
-    };
+    }
 
     function check_if_new_file_exists(error, result) {
       if(error) {
@@ -662,7 +667,7 @@ define(function(require) {
           write_object(objectStore, newDirectoryData, newDirectoryNode.data, read_directory_entry);
         }
       }
-    };
+    }
 
     function read_directory_entry(error, result) {
       if(error) {
@@ -677,11 +682,11 @@ define(function(require) {
         callback(error);
       } else {
         fileNode = result;
-        fileNode.nlinks += 1
+        fileNode.nlinks += 1;
         write_object(objectStore, fileNode, fileNode.id, callback);
       }
-    };
-  };
+    }
+  }
 
   function unlink_node(objectStore, path, callback) {
     path = normalize(path);
@@ -701,7 +706,7 @@ define(function(require) {
         directoryNode = result;
         read_object(objectStore, directoryNode.data, check_if_file_exists);
       }
-    };
+    }
 
     function check_if_file_exists(error, result) {
       if(error) {
@@ -714,7 +719,7 @@ define(function(require) {
           read_object(objectStore, directoryData[name].id, update_file_node);
         }
       }
-    };
+    }
 
     function update_file_node(error, result) {
       if(error) {
@@ -728,7 +733,7 @@ define(function(require) {
           write_object(objectStore, fileNode, fileNode.id, update_directory_data);
         }
       }
-    };
+    }
 
     function delete_file_data(error) {
       if(error) {
@@ -736,7 +741,7 @@ define(function(require) {
       } else {
         delete_object(objectStore, fileNode.data, update_directory_data);
       }
-    };
+    }
 
     function update_directory_data(error) {
       if(error) {
@@ -746,7 +751,7 @@ define(function(require) {
         write_object(objectStore, directoryData, directoryNode.data, callback);
       }
     }
-  };
+  }
 
   function read_directory(objectStore, path, callback) {
     path = normalize(path);
@@ -764,7 +769,7 @@ define(function(require) {
         directoryNode = result;
         read_object(objectStore, directoryNode.data, handle_directory_data);
       }
-    };
+    }
 
     function handle_directory_data(error, result) {
       if(error) {
@@ -774,8 +779,16 @@ define(function(require) {
         var files = Object.keys(directoryData);
         callback(undefined, files);
       }
-    };
-  };
+    }
+  }
+
+  function validate_flags(flags) {
+    if(!_(O_FLAGS).has(flags)) {
+      return null;
+    } else {
+      return O_FLAGS[flags];
+    }
+  }
 
   /*
    * FileSystem
@@ -818,7 +831,7 @@ define(function(require) {
           that.readyState = FS_READY;
           deferred.resolve();
         }
-      };
+      }
 
       if(format) {
         var clearRequest = files.clear();
@@ -845,7 +858,7 @@ define(function(require) {
     this.nextDescriptor = nextDescriptor;
     this.openFiles = openFiles;
     this.name = name;
-  };
+  }
   FileSystem.prototype._allocate_descriptor = function _allocate_descriptor(openFileDescription) {
     var fd = this.nextDescriptor ++;
     this.openFiles[fd] = openFileDescription;
@@ -877,12 +890,11 @@ define(function(require) {
             var fd = that._allocate_descriptor(openFileDescription);
             deferred.resolve(fd);
           }
-        };
+        }
 
-        if(!_(O_FLAGS).has(flags)) {
+        flags = validate_flags(flags);
+        if(!flags) {
           deferred.reject(new EInvalid('flags is not valid'));
-        } else {
-          flags = O_FLAGS[flags];
         }
 
         open_file(this, files, path, flags, check_result);
@@ -934,7 +946,7 @@ define(function(require) {
           } else {
             deferred.resolve();
           }
-        };
+        }
 
         make_directory(files, path, check_result);
         deferred.promise.then(
@@ -966,7 +978,7 @@ define(function(require) {
           } else {
             deferred.resolve();
           }
-        };
+        }
 
         remove_directory(files, path, check_result);
         deferred.promise.then(
@@ -999,7 +1011,7 @@ define(function(require) {
             var stats = new Stats(result, that.name);
             deferred.resolve(stats);
           }
-        };
+        }
 
         stat_file(files, path, check_result);
         deferred.promise.then(
@@ -1032,7 +1044,7 @@ define(function(require) {
             var stats = new Stats(result, that.name);
             deferred.resolve(stats);
           }
-        };
+        }
 
         var ofd = that.openFiles[fd];
 
@@ -1071,7 +1083,7 @@ define(function(require) {
           } else {
             deferred.resolve();
           }
-        };
+        }
 
         link_node(files, oldpath, newpath, check_result);
 
@@ -1104,7 +1116,7 @@ define(function(require) {
           } else {
             deferred.resolve();
           }
-        };
+        }
 
         unlink_node(files, path, check_result);
 
@@ -1140,7 +1152,7 @@ define(function(require) {
           } else {
             deferred.resolve(nbytes);
           }
-        };
+        }
 
         var ofd = that.openFiles[fd];
 
@@ -1151,6 +1163,79 @@ define(function(require) {
         } else {
           read_data(files, ofd, buffer, offset, length, position, check_result);
         }
+
+        deferred.promise.then(
+          function(result) {
+            callback(undefined, result);
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
+  };
+  FileSystem.prototype.readFile = function readFile(path, options, callback) {
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RO);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+
+        if(!options) {
+          options = { encoding: null, flag: 'r' };
+        } else if(typeof options === "function") {
+          callback = options;
+          options = { encoding: null, flag: 'r' };
+        } else if(typeof options === "string") {
+          options = { encoding: options, flag: 'r' };
+        }
+
+        var flags = validate_flags(options.flag || 'r');
+        if(!flags) {
+          deferred.reject(new EInvalid('flags is not valid'));
+        }
+
+        open_file(this, files, path, flags, function(err, fileNode) {
+          if(err) {
+            // TODO: abort transaction?
+            return deferred.reject(err);
+          }
+          var ofd = new OpenFileDescription(fileNode.id, flags, 0);
+          var fd = that._allocate_descriptor(ofd);
+
+          fstat_file(files, ofd, function(err2, fstatResult) {
+            if(err2) {
+              // TODO: abort transaction?
+              return deferred.reject(err2);
+            }
+
+            var stats = new Stats(fstatResult, that.name);
+            var size = stats.size;
+            var buffer = new Uint8Array(size);
+
+            read_data(files, ofd, buffer, 0, size, 0, function(err3, nbytes) {
+              if(err3) {
+                // TODO: abort transaction?
+                return deferred.reject(err3);
+              }
+              that._release_descriptor(fd);
+
+              var data;
+              if(options.encoding === 'utf8') {
+                data = new TextDecoder('utf-8').decode(buffer);
+              } else {
+                data = buffer;
+              }
+              deferred.resolve(data);
+            });
+          });
+
+        });
 
         deferred.promise.then(
           function(result) {
@@ -1183,7 +1268,7 @@ define(function(require) {
           } else {
             deferred.resolve(nbytes);
           }
-        };
+        }
 
         var ofd = that.openFiles[fd];
 
@@ -1200,6 +1285,64 @@ define(function(require) {
         deferred.promise.then(
           function(result) {
             callback(undefined, result);
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
+  };
+  FileSystem.prototype.writeFile = function writeFile(path, data, options, callback) {
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+
+        if(!options) {
+          options = { encoding: 'utf8', flag: 'w' };
+        } else if(typeof options === "function") {
+          callback = options;
+          options = { encoding: 'utf8', flag: 'w' };
+        } else if(typeof options === "string") {
+          options = { encoding: options, flag: 'w' };
+        }
+
+        var flags = validate_flags(options.flag || 'w');
+        if(!flags) {
+          deferred.reject(new EInvalid('flags is not valid'));
+        }
+
+        if(typeof data === "string" && options.encoding === 'utf8') {
+          data = new TextEncoder('utf-8').encode(data);
+        }
+
+        open_file(this, files, path, flags, function(err, fileNode) {
+          if(err) {
+            // TODO: abort transaction?
+            return deferred.reject(err);
+          }
+          var ofd = new OpenFileDescription(fileNode.id, flags, 0);
+          var fd = that._allocate_descriptor(ofd);
+
+          write_data(files, ofd, data, 0, data.length, 0, function(err2, nbytes) {
+            if(err2) {
+              // TODO: abort transaction?
+              return deferred.reject(err2);
+            }
+            that._release_descriptor(fd);
+            deferred.resolve();
+          });
+        });
+
+        deferred.promise.then(
+          function() {
+            callback(undefined);
           },
           function(error) {
             callback(error);
@@ -1229,7 +1372,7 @@ define(function(require) {
           } else {
             deferred.resolve(offset);
           }
-        };
+        }
 
         var ofd = that.openFiles[fd];
 
@@ -1266,7 +1409,7 @@ define(function(require) {
                 deferred.resolve(ofd.position);
               }
             }
-          };
+          }
 
           fstat_file(files, ofd, update_descriptor_position);
         } else {
@@ -1302,7 +1445,7 @@ define(function(require) {
           } else {
             deferred.resolve(files);
           }
-        };
+        }
 
         read_directory(files, path, check_result);
 
@@ -1347,7 +1490,7 @@ define(function(require) {
 
 
   return {
-    FileSystem: FileSystem,
+    FileSystem: FileSystem
   };
 
 });
