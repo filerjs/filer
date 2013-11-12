@@ -15,7 +15,7 @@ require.config({
   }
 });
 
-require(["src/file-system"], function(IDBFS) {
+require(["src/fs"], function(IDBFS) {
 
 var flags = 'FORMAT';
 //var flags;
@@ -38,9 +38,9 @@ fs.open('/tmp', 'w+', function(error, fd) {
       fs.stat('/tmp', function(error, stats) {
         if(error) throw error;
         console.log('stats:', stats);
-        fs.readdir('/', function(error, files) {
+        fs.rename('/tmp', '/tmp1', function(error) {
           if(error) throw error;
-          console.log('ls:', files);
+          console.log('done');
         });
       });
     });

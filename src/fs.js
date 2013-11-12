@@ -136,7 +136,7 @@ define(function(require) {
     function read_parent_directory_data(error, parentDirectoryNode) {
       if(error) {
         callback(error);
-      } else if(!(_(parentDirectoryNode).has('data') && parentDirectoryNode.type == MODE_DIRECTORY)) {
+      } else if(!parentDirectoryNode.type == MODE_DIRECTORY) {
         callback(new ENotDirectory('a component of the path prefix is not a directory'));
       } else {
         read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
@@ -1014,6 +1014,7 @@ define(function(require) {
         }
 
         stat_file(files, path, check_result);
+
         deferred.promise.then(
           function(result) {
             callback(undefined, result);
@@ -1467,7 +1468,46 @@ define(function(require) {
 
   };
   FileSystem.prototype.rename = function rename(oldpath, newpath, callback) {
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
+        link_node(files, oldpath, newpath, unlink_old_node);
+
+        function unlink_old_node(error) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            unlink_node(files, oldpath, check_result);
+          }
+        }
+
+        function check_result(error) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            deferred.resolve();
+          }
+        }
+
+        deferred.promise.then(
+          function(result) {
+            callback();
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   };
   FileSystem.prototype.truncate = function truncate(path, length, callback) {
 

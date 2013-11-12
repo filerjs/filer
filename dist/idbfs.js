@@ -8290,46 +8290,46 @@ define('src/fs',['require','lodash','when','encoding-indexes','encoding','src/pa
     var name = basename(path);
     var parentPath = dirname(path);
 
-    if(ROOT_DIRECTORY_NAME == name) {
-      function check_root_directory_node(error, rootDirectoryNode) {
-        if(error) {
-          callback(error);
-        } else if(!rootDirectoryNode) {
+    function check_root_directory_node(error, rootDirectoryNode) {
+      if(error) {
+        callback(error);
+      } else if(!rootDirectoryNode) {
+        callback(new ENoEntry('path does not exist'));
+      } else {
+        callback(undefined, rootDirectoryNode);
+      }
+    }
+
+    // in: parent directory node
+    // out: parent directory data
+    function read_parent_directory_data(error, parentDirectoryNode) {
+      if(error) {
+        callback(error);
+      } else if(!_(parentDirectoryNode).has('data') || !parentDirectoryNode.type == MODE_DIRECTORY) {
+        callback(new ENotDirectory('a component of the path prefix is not a directory'));
+      } else {
+        read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
+      }
+    }
+
+    // in: parent directory data
+    // out: searched node id
+    function get_node_id_from_parent_directory_data(error, parentDirectoryData) {
+      if(error) {
+        callback(error);
+      } else {
+        if(!_(parentDirectoryData).has(name)) {
           callback(new ENoEntry('path does not exist'));
         } else {
-          callback(undefined, rootDirectoryNode);
+          var nodeId = parentDirectoryData[name].id;
+          read_object(objectStore, nodeId, callback);
         }
       }
+    }
 
+    if(ROOT_DIRECTORY_NAME == name) {
       read_object(objectStore, ROOT_NODE_ID, check_root_directory_node);
     } else {
-      // in: parent directory node
-      // out: parent directory data
-      function read_parent_directory_data(error, parentDirectoryNode) {
-        if(error) {
-          callback(error);
-        } else if(!_(parentDirectoryNode).has('data') || !parentDirectoryNode.type == MODE_DIRECTORY) {
-          callback(new ENotDirectory('a component of the path prefix is not a directory'));
-        } else {
-          read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
-        }
-      }
-
-      // in: parent directory data
-      // out: searched node id
-      function get_node_id_from_parent_directory_data(error, parentDirectoryData) {
-        if(error) {
-          callback(error);
-        } else {
-          if(!_(parentDirectoryData).has(name)) {
-            callback(new ENoEntry('path does not exist'));
-          } else {
-            var nodeId = parentDirectoryData[name].id;
-            read_object(objectStore, nodeId, callback);
-          }
-        }
-      }
-
       find_node(objectStore, parentPath, read_parent_directory_data);
     }
   }
@@ -9183,6 +9183,7 @@ define('src/fs',['require','lodash','when','encoding-indexes','encoding','src/pa
         }
 
         stat_file(files, path, check_result);
+
         deferred.promise.then(
           function(result) {
             callback(undefined, result);
@@ -9543,6 +9544,19 @@ define('src/fs',['require','lodash','when','encoding-indexes','encoding','src/pa
           }
         }
 
+        function update_descriptor_position(error, stats) {
+          if(error) {
+            deferred.reject(error);
+          } else {
+            if(stats.size + offset < 0) {
+              deferred.reject(new EInvalid('resulting file offset would be negative'));
+            } else {
+              ofd.position = stats.size + offset;
+              deferred.resolve(ofd.position);
+            }
+          }
+        }
+
         var ofd = that.openFiles[fd];
 
         if(!ofd) {
@@ -9566,19 +9580,6 @@ define('src/fs',['require','lodash','when','encoding-indexes','encoding','src/pa
         } else if('END' === whence) {
           var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
           var files = transaction.objectStore(FILE_STORE_NAME);
-
-          function update_descriptor_position(error, stats) {
-            if(error) {
-              deferred.reject(error);
-            } else {
-              if(stats.size + offset < 0) {
-                deferred.reject(new EInvalid('resulting file offset would be negative'));
-              } else {
-                ofd.position = stats.size + offset;
-                deferred.resolve(ofd.position);
-              }
-            }
-          }
 
           fstat_file(files, ofd, update_descriptor_position);
         } else {
@@ -9636,7 +9637,46 @@ define('src/fs',['require','lodash','when','encoding-indexes','encoding','src/pa
 
   };
   FileSystem.prototype.rename = function rename(oldpath, newpath, callback) {
+    var that = this;
+    this.promise.then(
+      function() {
+        var deferred = when.defer();
+        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
 
+        link_node(files, oldpath, newpath, unlink_old_node);
+
+        function unlink_old_node(error) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            unlink_node(files, oldpath, check_result);
+          }
+        }
+
+        function check_result(error) {
+          if(error) {
+            // if(transaction.error) transaction.abort();
+            deferred.reject(error);
+          } else {
+            deferred.resolve();
+          }
+        }
+
+        deferred.promise.then(
+          function(result) {
+            callback();
+          },
+          function(error) {
+            callback(error);
+          }
+        );
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   };
   FileSystem.prototype.truncate = function truncate(path, length, callback) {
 
