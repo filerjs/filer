@@ -8305,7 +8305,7 @@ define('src/fs',['require','lodash','when','encoding-indexes','encoding','src/pa
     function read_parent_directory_data(error, parentDirectoryNode) {
       if(error) {
         callback(error);
-      } else if(!_(parentDirectoryNode).has('data') || !parentDirectoryNode.type == MODE_DIRECTORY) {
+      } else if(!parentDirectoryNode.type == MODE_DIRECTORY) {
         callback(new ENotDirectory('a component of the path prefix is not a directory'));
       } else {
         read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
