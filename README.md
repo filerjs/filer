@@ -3,11 +3,19 @@ IDBFS is provides a POSIX-like file system interface for browser-based JavaScrip
 * [idbfs.js](https://raw.github.com/js-platform/idbfs/develop/dist/idbfs.js)
 * [idbfs.min.js](https://raw.github.com/js-platform/idbfs/develop/dist/idbfs.min.js)
 
+### Contributing
+
+The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/js-platform/idbfs/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet.
+
+Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If you're patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the AUTHORS file.
+
 ### Getting Started
 
 IDBFS is partly based on the `fs` module from node.js. The API is asynchronous and most methods require the caller to provide a callback function. Errors are passed to callbacks through the first parameter.
 
 To create a new file system or open an existing one, create a new `FileSystem` instance and pass the name of the file system. A new IndexedDB database is created for each file system.
+
+For additional documentation, check out the `API Reference` below and have a look through the unit tests for more concrete examples of how things work.
 
 #### Example
 
@@ -28,6 +36,10 @@ To create a new file system or open an existing one, create a new `FileSystem` i
 ````
 
 As with node.js, there is no guarantee that file system operations will be executed in the order they are invoked. Ensure proper ordering by chaining operations in callbacks.
+
+### Tests
+
+You can run the tests from the project by opening the `tests` directory in your browser. You can also run them [here](http://js-platform.github.io/idbfs/tests/).
 
 ### API Reference
 
@@ -97,45 +109,11 @@ Write bytes from `buffer` to the file specified by `fd`, where `offset` and `len
 
 The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes written.
 
-#### fs.writeFile(filename, data, [options], callback)
-
-Asynchronously writes data to a file. `data` can be a string or a buffer, in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
-
-```javascript
-// Write UTF8 text file
-fs.writeFile('/myfile.txt', "...data...", function (err) {
-  if (err) throw err;
-});
-
-// Write binary file
-fs.writeFile('/myfile', buffer, function (err) {
-  if (err) throw err;
-});
-```
-
 #### fs.read(fd, buffer, offset, length, position, callback)
 
 Read bytes from the file specified by `fd` into `buffer`, where `offset` and `length` describe the part of the buffer to be used. The `position` refers to the offset from the beginning of the file where this data should be read. If `position` is `null`, the data will be written at the current position. See pread(2).
 
 The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes read.
-
-#### fs.readFile(filename, [options], callback)
-
-Asynchronously reads the entire contents of a file. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "r" }`. If no encoding is specified, the raw binary buffer is returned on the callback. The callback gets `(error, data)`, where data is the contents of the file.
-
-```javascript
-// Read UTF8 text file
-fs.readFile('/myfile.txt', 'utf8', function (err, data) {
-  if (err) throw err;
-  console.log(data);
-});
-
-// Read binary file
-fs.readFile('/myfile.txt', function (err, data) {
-  if (err) throw err;
-  console.log(data);
-});
-```
 
 #### fs.lseek(fd, offset, whence, callback)
 
