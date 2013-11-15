@@ -897,7 +897,7 @@ define(function(require) {
           deferred.reject(new EInvalid('flags is not valid'));
         }
 
-        open_file(this, files, path, flags, check_result);
+        open_file(that, files, path, flags, check_result);
         deferred.promise.then(
           function(result) {
             callback(undefined, result);
@@ -1201,7 +1201,7 @@ define(function(require) {
           deferred.reject(new EInvalid('flags is not valid'));
         }
 
-        open_file(this, files, path, flags, function(err, fileNode) {
+        open_file(that, files, path, flags, function(err, fileNode) {
           if(err) {
             // TODO: abort transaction?
             return deferred.reject(err);
@@ -1323,7 +1323,7 @@ define(function(require) {
           data = new TextEncoder('utf-8').encode(data);
         }
 
-        open_file(this, files, path, flags, function(err, fileNode) {
+        open_file(that, files, path, flags, function(err, fileNode) {
           if(err) {
             // TODO: abort transaction?
             return deferred.reject(err);
