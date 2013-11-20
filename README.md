@@ -68,25 +68,29 @@ Asynchronous stat(2). Callback gets `(error, stats)`, where `stats` is an object
 
 Asynchronous stat(2). Callback gets `(error, stats)`. See `fs.stat`.
 
-#### fs.link(oldpath, newpath, callback)
+#### fs.link(srcPath, dstPath, callback)
 
-Asynchronous link(2). Callback gets no additional agruments.
+Asynchronous link(2). Callback gets no additional arguments.
 
 #### fs.unlink(path, callback)
 
-Asynchronous unlink(2). Callback gets no additional agruments.
+Asynchronous unlink(2). Callback gets no additional arguments.
+
+#### fs.rename(oldPath, newPath, callback)#
+
+Asynchronous rename(2). Callback gets no additional arguments.
 
 #### fs.rmdir(path, callback)
 
-Asynchronous rmdir(2). Callback gets no additional agruments.
+Asynchronous rmdir(2). Callback gets no additional arguments.
 
 #### fs.mkdir(path, callback)
 
-Asynchronous mkdir(2). Callback gets no additional agruments.
+Asynchronous mkdir(2). Callback gets no additional arguments.
 
 #### fs.close(fd, callback)
 
-Asynchronous close(2). Callback gets no additional agruments.
+Asynchronous close(2). Callback gets no additional arguments.
 
 #### fs.open(path, flags, callback)
 
