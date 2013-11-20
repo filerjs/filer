@@ -5,7 +5,7 @@ IDBFS is provides a POSIX-like file system interface for browser-based JavaScrip
 
 ### Contributing
 
-The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/js-platform/idbfs/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet.
+The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/js-platform/idbfs/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet. If you would like to have an issue assigned to you, please send me a message and I'll update it.
 
 Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If you're patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
 
