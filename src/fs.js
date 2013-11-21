@@ -136,7 +136,7 @@ define(function(require) {
     function read_parent_directory_data(error, parentDirectoryNode) {
       if(error) {
         callback(error);
-      } else if(!parentDirectoryNode.type == MODE_DIRECTORY) {
+      } else if(parentDirectoryNode.type != MODE_DIRECTORY) {
         callback(new ENotDirectory('a component of the path prefix is not a directory'));
       } else {
         read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
@@ -765,20 +765,6 @@ define(function(require) {
    * FileSystem
    */
 
-  function IndexedDBDatabase(db) {
-    this.db = db;
-  }
-  function transaction(stores, mode, callback) {
-    var tx = this.db.transaction(stores, mode);
-  }
-
-  function WebSQLDatabase(db) {
-    this.db = db;
-  }
-  function transaction() {
-
-  }
-
   function FileSystem(name, flags) {
   }
   FileSystem.prototype._allocate_descriptor = function _allocate_descriptor(openFileDescription) {
@@ -1335,14 +1321,14 @@ define(function(require) {
       request.onsuccess = function onsuccess(event) {
         var result = event.target.result;
         callback(undefined, result);
-      }
+      };
       request.onerror = function onerror(error) {
         callback(error);
-      }
+      };
     } catch(error) {
       callback(new EIO(error.message));
     }
-  }
+  };
   IndexedDBContext.prototype.put = function(key, value, callback) {
     try {
       var request = this.objectStore.put(value, key);
@@ -1356,7 +1342,7 @@ define(function(require) {
     } catch(error) {
       callback(new EIO(error.message));
     }
-  }
+  };
   IndexedDBContext.prototype.delete = function(key, callback) {
     var request = this.objectStore.delete(key);
     request.onsuccess = function onsuccess(event) {
@@ -1366,7 +1352,7 @@ define(function(require) {
     request.onerror = function(error) {
       callback(error);
     };
-  }
+  };
 
   function IndexedDBFileSystem(name, flags) {
     var format = _(flags).contains(FS_FORMAT);
@@ -1449,10 +1435,10 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.close = function close(fd, callback) {
     this._close(fd, callback);
-  }
+  };
   IndexedDBFileSystem.prototype.mkdir = function mkdir(path, callback) {
     var fs = this;
     this.promise.then(
@@ -1466,7 +1452,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.rmdir = function rmdir(path, callback) {
     var fs = this;
     this.promise.then(
@@ -1480,7 +1466,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.stat = function stat(path, callback) {
     var fs = this;
     this.promise.then(
@@ -1494,7 +1480,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.fstat = function fstat(fd, callback) {
     var fs = this;
     this.promise.then(
@@ -1508,7 +1494,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.link = function link(oldpath, newpath, callback) {
     var fs = this;
     this.promise.then(
@@ -1522,7 +1508,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.unlink = function unlink(path, callback) {
     var fs = this;
     this.promise.then(
@@ -1536,7 +1522,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.read = function read(fd, buffer, offset, length, position, callback) {
     var fs = this;
     this.promise.then(
@@ -1550,7 +1536,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.readFile = function readFile(path, options, callback) {
     var fs = this;
     this.promise.then(
@@ -1564,7 +1550,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.write = function write(fd, buffer, offset, length, position, callback) {
     var fs = this;
     this.promise.then(
@@ -1578,7 +1564,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.writeFile = function writeFile(path, data, options, callback) {
     var fs = this;
     this.promise.then(
@@ -1592,7 +1578,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.lseek = function lseek(fd, offset, whence, callback) {
     var fs = this;
     this.promise.then(
@@ -1606,7 +1592,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.readdir = function readdir(path, callback) {
     var fs = this;
     this.promise.then(
@@ -1620,7 +1606,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
   IndexedDBFileSystem.prototype.rename = function rename(oldpath, newpath, callback) {
     var fs = this;
     this.promise.then(
@@ -1634,7 +1620,7 @@ define(function(require) {
         callback(new EFileSystemError('unknown error'));
       }
     );
-  }
+  };
 
   // FIXME: WebSQL stuff, this needs implementation
   function WebSQLContext(transaction) {
@@ -1646,17 +1632,17 @@ define(function(require) {
     } catch(error) {
       callback(new EIO(error.message));
     }
-  }
+  };
   WebSQLContext.prototype.put = function(key, value, callback) {
     try {
 
     } catch(error) {
       callback(new EIO(error.message));
     }
-  }
+  };
   WebSQLContext.prototype.delete = function(key, callback) {
 
-  }
+  };
 
   function WebSQLFileSystem(name, flags) {
   }
