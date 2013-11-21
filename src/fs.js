@@ -818,48 +818,41 @@ define(function(require) {
   FileSystem.prototype._release_descriptor = function _release_descriptor(fd) {
     delete this.openFiles[fd];
   };
-  FileSystem.prototype._open = function _open(path, flags, callback) {
+  FileSystem.prototype._open = function _open(context, path, flags, callback) {
     var that = this;
-    this.promise.then(
-      function() {
-        var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
+    var deferred = when.defer();
+    // var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
+    // var files = transaction.objectStore(FILE_STORE_NAME);
 
-        function check_result(error, fileNode) {
-          if(error) {
-            // if(transaction.error) transaction.abort();
-            deferred.reject(error);
-          } else {
-            var position;
-            if(_(flags).contains(O_APPEND)) {
-              position = fileNode.size;
-            } else {
-              position = 0;
-            }
-            var openFileDescription = new  OpenFileDescription(fileNode.id, flags, position);
-            var fd = that._allocate_descriptor(openFileDescription);
-            deferred.resolve(fd);
-          }
+    function check_result(error, fileNode) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        var position;
+        if(_(flags).contains(O_APPEND)) {
+          position = fileNode.size;
+        } else {
+          position = 0;
         }
+        var openFileDescription = new  OpenFileDescription(fileNode.id, flags, position);
+        var fd = that._allocate_descriptor(openFileDescription);
+        deferred.resolve(fd);
+      }
+    }
 
-        flags = validate_flags(flags);
-        if(!flags) {
-          deferred.reject(new EInvalid('flags is not valid'));
-        }
+    flags = validate_flags(flags);
+    if(!flags) {
+      deferred.reject(new EInvalid('flags is not valid'));
+    }
 
-        open_file(that, files, path, flags, check_result);
-        deferred.promise.then(
-          function(result) {
-            callback(undefined, result);
-          },
-          function(error) {
-            callback(error);
-          }
-        );
+    open_file(that, context, path, flags, check_result);
+    deferred.promise.then(
+      function(result) {
+        callback(undefined, result);
       },
-      function() {
-        callback(new EFileSystemError('unknown error'));
+      function(error) {
+        callback(error);
       }
     );
   };
@@ -1547,7 +1540,17 @@ define(function(require) {
   IndexedDBFileSystem.prototype = new FileSystem();
   IndexedDBFileSystem.prototype.constructor = IndexedDBFileSystem;
   IndexedDBFileSystem.prototype.open = function open(path, flags, callback) {
-    this._open(path, flags, callback);
+    var fs = this;
+    this.promise.then(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        fs._open(files, path, flags, callback);
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   }
   IndexedDBFileSystem.prototype.close = function close(fd, callback) {
     this._close(fd, callback);
@@ -1592,8 +1595,8 @@ define(function(require) {
     this._rename(oldpath, newpath, callback);
   }
 
+  // FIXME: this needs implementation
   function WebSQLFileSystem(name, flags) {
-    // FIXME: NOT IMPLEMENTED
   }
   WebSQLFileSystem.prototype = new FileSystem();
   IndexedDBFileSystem.prototype.constructor = WebSQLFileSystem;
