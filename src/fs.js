@@ -821,8 +821,6 @@ define(function(require) {
   FileSystem.prototype._open = function _open(context, path, flags, callback) {
     var that = this;
     var deferred = when.defer();
-    // var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-    // var files = transaction.objectStore(FILE_STORE_NAME);
 
     function check_result(error, fileNode) {
       if(error) {
@@ -847,6 +845,7 @@ define(function(require) {
     }
 
     open_file(that, context, path, flags, check_result);
+
     deferred.promise.then(
       function(result) {
         callback(undefined, result);
@@ -875,324 +874,254 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype._mkdir = function _mkdir(path, callback) {
+  FileSystem.prototype._mkdir = function _mkdir(context, path, callback) {
     var that = this;
-    this.promise.then(
+    var deferred = when.defer();
+
+    function check_result(error) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    }
+
+    make_directory(context, path, check_result);
+
+    deferred.promise.then(
       function() {
-        var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
-
-        function check_result(error) {
-          if(error) {
-            // if(transaction.error) transaction.abort();
-            deferred.reject(error);
-          } else {
-            deferred.resolve();
-          }
-        }
-
-        make_directory(files, path, check_result);
-        deferred.promise.then(
-          function() {
-            callback();
-          },
-          function(error) {
-            callback(error);
-          }
-        );
+        callback();
       },
-      function() {
-        callback(new EFileSystemError('unknown error'));
+      function(error) {
+        callback(error);
       }
     );
   };
-  FileSystem.prototype._rmdir = function _rmdir(path, callback) {
+  FileSystem.prototype._rmdir = function _rmdir(context, path, callback) {
     var that = this;
-    this.promise.then(
+    var deferred = when.defer();
+
+    function check_result(error) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    }
+
+    remove_directory(context, path, check_result);
+
+    deferred.promise.then(
       function() {
-        var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
-
-        function check_result(error) {
-          if(error) {
-            // if(transaction.error) transaction.abort();
-            deferred.reject(error);
-          } else {
-            deferred.resolve();
-          }
-        }
-
-        remove_directory(files, path, check_result);
-        deferred.promise.then(
-          function() {
-            callback();
-          },
-          function(error) {
-            callback(error);
-          }
-        );
+        callback();
       },
-      function() {
-        callback(new EFileSystemError('unknown error'));
+      function(error) {
+        callback(error);
       }
     );
   };
-  FileSystem.prototype._stat = function _stat(path, callback) {
+  FileSystem.prototype._stat = function _stat(context, path, callback) {
     var that = this;
-    this.promise.then(
-      function() {
-        var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
+    var deferred = when.defer();
 
-        function check_result(error, result) {
-          if(error) {
-            // if(transaction.error) transaction.abort();
-            deferred.reject(error);
-          } else {
-            var stats = new Stats(result, that.name);
-            deferred.resolve(stats);
-          }
-        }
+    function check_result(error, result) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        var stats = new Stats(result, that.name);
+        deferred.resolve(stats);
+      }
+    }
 
-        stat_file(files, path, check_result);
+    stat_file(context, path, check_result);
 
-        deferred.promise.then(
-          function(result) {
-            callback(undefined, result);
-          },
-          function(error) {
-            callback(error);
-          }
-        );
+    deferred.promise.then(
+      function(result) {
+        callback(undefined, result);
       },
-      function() {
-        callback(new EFileSystemError('unknown error'));
+      function(error) {
+        callback(error);
       }
     );
   };
-  FileSystem.prototype._fstat = function _fstat(fd, callback) {
+  FileSystem.prototype._fstat = function _fstat(context, fd, callback) {
     var that = this;
-    this.promise.then(
-      function() {
-        var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
+    var deferred = when.defer();
 
-        function check_result(error, result) {
-          if(error) {
-            // if(transaction.error) transaction.abort();
-            deferred.reject(error);
-          } else {
-            var stats = new Stats(result, that.name);
-            deferred.resolve(stats);
-          }
-        }
+    function check_result(error, result) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        var stats = new Stats(result, that.name);
+        deferred.resolve(stats);
+      }
+    }
 
-        var ofd = that.openFiles[fd];
+    var ofd = that.openFiles[fd];
 
-        if(!ofd) {
-          deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
-        } else {
-          fstat_file(files, ofd, check_result);
-        }
+    if(!ofd) {
+      deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+    } else {
+      fstat_file(context, ofd, check_result);
+    }
 
-        deferred.promise.then(
-          function(result) {
-            callback(undefined, result);
-          },
-          function(error) {
-            callback(error);
-          }
-        );
+    deferred.promise.then(
+      function(result) {
+        callback(undefined, result);
       },
-      function() {
-        callback(new EFileSystemError('unknown error'));
+      function(error) {
+        callback(error);
       }
     );
   };
-  FileSystem.prototype._link = function _link(oldpath, newpath, callback) {
+  FileSystem.prototype._link = function _link(context, oldpath, newpath, callback) {
     var that = this;
-    this.promise.then(
-      function() {
-        var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
+    var deferred = when.defer();
 
-        function check_result(error) {
-          if(error) {
-            // if(transaction.error) transaction.abort();
-            deferred.reject(error);
-          } else {
-            deferred.resolve();
-          }
-        }
+    function check_result(error) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    }
 
-        link_node(files, oldpath, newpath, check_result);
+    link_node(context, oldpath, newpath, check_result);
 
-        deferred.promise.then(
-          function(result) {
-            callback();
-          },
-          function(error) {
-            callback(error);
-          }
-        );
+    deferred.promise.then(
+      function(result) {
+        callback();
       },
-      function() {
-        callback(new EFileSystemError('unknown error'));
+      function(error) {
+        callback(error);
       }
     );
   };
-  FileSystem.prototype._unlink = function _unlink(path, callback) {
+  FileSystem.prototype._unlink = function _unlink(context, path, callback) {
     var that = this;
-    this.promise.then(
-      function() {
-        var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
+    var deferred = when.defer();
 
-        function check_result(error) {
-          if(error) {
-            // if(transaction.error) transaction.abort();
-            deferred.reject(error);
-          } else {
-            deferred.resolve();
-          }
-        }
+    function check_result(error) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    }
 
-        unlink_node(files, path, check_result);
+    unlink_node(context, path, check_result);
 
-        deferred.promise.then(
-          function(result) {
-            callback();
-          },
-          function(error) {
-            callback(error);
-          }
-        );
+    deferred.promise.then(
+      function(result) {
+        callback();
       },
-      function() {
-        callback(new EFileSystemError('unknown error'));
+      function(error) {
+        callback(error);
       }
     );
   };
-  FileSystem.prototype._read = function _read(fd, buffer, offset, length, position, callback) {
+  FileSystem.prototype._read = function _read(context, fd, buffer, offset, length, position, callback) {
     var that = this;
-    this.promise.then(
-      function() {
-        var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RW);
-        var files = transaction.objectStore(FILE_STORE_NAME);
+    var deferred = when.defer();
 
-        offset = (undefined === offset) ? 0 : offset;
-        length = (undefined === length) ? buffer.length - offset : length;
+    offset = (undefined === offset) ? 0 : offset;
+    length = (undefined === length) ? buffer.length - offset : length;
 
-        function check_result(error, nbytes) {
-          if(error) {
-            // if(transaction.error) transaction.abort();
-            deferred.reject(error);
-          } else {
-            deferred.resolve(nbytes);
-          }
-        }
+    function check_result(error, nbytes) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        deferred.reject(error);
+      } else {
+        deferred.resolve(nbytes);
+      }
+    }
 
-        var ofd = that.openFiles[fd];
+    var ofd = that.openFiles[fd];
 
-        if(!ofd) {
-          deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
-        } else if(!_(ofd.flags).contains(O_READ)) {
-          deferred.reject(new EBadFileDescriptor('descriptor does not permit reading'));
-        } else {
-          read_data(files, ofd, buffer, offset, length, position, check_result);
-        }
+    if(!ofd) {
+      deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+    } else if(!_(ofd.flags).contains(O_READ)) {
+      deferred.reject(new EBadFileDescriptor('descriptor does not permit reading'));
+    } else {
+      read_data(context, ofd, buffer, offset, length, position, check_result);
+    }
 
-        deferred.promise.then(
-          function(result) {
-            callback(undefined, result);
-          },
-          function(error) {
-            callback(error);
-          }
-        );
+    deferred.promise.then(
+      function(result) {
+        callback(undefined, result);
       },
-      function() {
-        callback(new EFileSystemError('unknown error'));
+      function(error) {
+        callback(error);
       }
     );
   };
-  FileSystem.prototype._readFile = function _readFile(path, options, callback) {
+  FileSystem.prototype._readFile = function _readFile(context, path, options, callback) {
     var that = this;
-    this.promise.then(
-      function() {
-        var deferred = when.defer();
-        var transaction = that.db.transaction([FILE_STORE_NAME], IDB_RO);
-        var files = transaction.objectStore(FILE_STORE_NAME);
+    var deferred = when.defer();
 
-        if(!options) {
-          options = { encoding: null, flag: 'r' };
-        } else if(typeof options === "function") {
-          callback = options;
-          options = { encoding: null, flag: 'r' };
-        } else if(typeof options === "string") {
-          options = { encoding: options, flag: 'r' };
+    if(!options) {
+      options = { encoding: null, flag: 'r' };
+    } else if(typeof options === "function") {
+      callback = options;
+      options = { encoding: null, flag: 'r' };
+    } else if(typeof options === "string") {
+      options = { encoding: options, flag: 'r' };
+    }
+
+    var flags = validate_flags(options.flag || 'r');
+    if(!flags) {
+      deferred.reject(new EInvalid('flags is not valid'));
+    }
+
+    open_file(that, context, path, flags, function(err, fileNode) {
+      if(err) {
+        // TODO: abort transaction?
+        return deferred.reject(err);
+      }
+      var ofd = new OpenFileDescription(fileNode.id, flags, 0);
+      var fd = that._allocate_descriptor(ofd);
+
+      fstat_file(context, ofd, function(err2, fstatResult) {
+        if(err2) {
+          // TODO: abort transaction?
+          return deferred.reject(err2);
         }
 
-        var flags = validate_flags(options.flag || 'r');
-        if(!flags) {
-          deferred.reject(new EInvalid('flags is not valid'));
-        }
+        var stats = new Stats(fstatResult, that.name);
+        var size = stats.size;
+        var buffer = new Uint8Array(size);
 
-        open_file(that, files, path, flags, function(err, fileNode) {
-          if(err) {
+        read_data(context, ofd, buffer, 0, size, 0, function(err3, nbytes) {
+          if(err3) {
             // TODO: abort transaction?
-            return deferred.reject(err);
+            return deferred.reject(err3);
           }
-          var ofd = new OpenFileDescription(fileNode.id, flags, 0);
-          var fd = that._allocate_descriptor(ofd);
+          that._release_descriptor(fd);
 
-          fstat_file(files, ofd, function(err2, fstatResult) {
-            if(err2) {
-              // TODO: abort transaction?
-              return deferred.reject(err2);
-            }
-
-            var stats = new Stats(fstatResult, that.name);
-            var size = stats.size;
-            var buffer = new Uint8Array(size);
-
-            read_data(files, ofd, buffer, 0, size, 0, function(err3, nbytes) {
-              if(err3) {
-                // TODO: abort transaction?
-                return deferred.reject(err3);
-              }
-              that._release_descriptor(fd);
-
-              var data;
-              if(options.encoding === 'utf8') {
-                data = new TextDecoder('utf-8').decode(buffer);
-              } else {
-                data = buffer;
-              }
-              deferred.resolve(data);
-            });
-          });
-
+          var data;
+          if(options.encoding === 'utf8') {
+            data = new TextDecoder('utf-8').decode(buffer);
+          } else {
+            data = buffer;
+          }
+          deferred.resolve(data);
         });
+      });
 
-        deferred.promise.then(
-          function(result) {
-            callback(undefined, result);
-          },
-          function(error) {
-            callback(error);
-          }
-        );
+    });
+
+    deferred.promise.then(
+      function(result) {
+        callback(undefined, result);
       },
-      function() {
-        callback(new EFileSystemError('unknown error'));
+      function(error) {
+        callback(error);
       }
     );
   };
@@ -1556,28 +1485,108 @@ define(function(require) {
     this._close(fd, callback);
   }
   IndexedDBFileSystem.prototype.mkdir = function mkdir(path, callback) {
-    this._mkdir(path, callback);
+    var fs = this;
+    this.promise.then(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        fs._mkdir(files, path, callback);
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   }
   IndexedDBFileSystem.prototype.rmdir = function rmdir(path, callback) {
-    this._rmdir(path, callback);
+    var fs = this;
+    this.promise.then(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        fs._rmdir(files, path, callback);
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   }
   IndexedDBFileSystem.prototype.stat = function stat(path, callback) {
-    this._stat(path, callback);
+    var fs = this;
+    this.promise.then(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        fs._stat(files, path, callback);
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   }
   IndexedDBFileSystem.prototype.fstat = function fstat(fd, callback) {
-    this._fstat(fd, callback);
+    var fs = this;
+    this.promise.then(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        fs._fstat(files, fd, callback);
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   }
   IndexedDBFileSystem.prototype.link = function link(oldpath, newpath, callback) {
-    this._link(oldpath, newpath, callback);
+    var fs = this;
+    this.promise.then(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        fs._link(files, oldpath, newpath, callback);
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   }
   IndexedDBFileSystem.prototype.unlink = function unlink(path, callback) {
-    this._unlink(path, callback);
+    var fs = this;
+    this.promise.then(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        fs._unlink(files, path, callback);
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   }
   IndexedDBFileSystem.prototype.read = function read(fd, buffer, offset, length, position, callback) {
-    this._read(fd, buffer, offset, length, position, callback);
+    var fs = this;
+    this.promise.then(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        fs._read(files, fd, buffer, offset, length, position, callback);
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   }
   IndexedDBFileSystem.prototype.readFile = function readFile(path, options, callback) {
-    this._readFile(path, options, callback);
+    var fs = this;
+    this.promise.then(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        fs._readFile(files, path, options, callback);
+      },
+      function() {
+        callback(new EFileSystemError('unknown error'));
+      }
+    );
   }
   IndexedDBFileSystem.prototype.write = function write(fd, buffer, offset, length, position, callback) {
     this._write(fd, buffer, offset, length, position, callback);
