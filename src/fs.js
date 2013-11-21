@@ -777,12 +777,11 @@ define(function(require) {
   };
   FileSystem.prototype._open = function _open(context, path, flags, callback) {
     var that = this;
-    var deferred = when.defer();
 
     function check_result(error, fileNode) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
         var position;
         if(_(flags).contains(O_APPEND)) {
@@ -792,200 +791,119 @@ define(function(require) {
         }
         var openFileDescription = new  OpenFileDescription(fileNode.id, flags, position);
         var fd = that._allocate_descriptor(openFileDescription);
-        deferred.resolve(fd);
+        callback(undefined, fd);
       }
     }
 
     flags = validate_flags(flags);
     if(!flags) {
-      deferred.reject(new EInvalid('flags is not valid'));
+      callback(new EInvalid('flags is not valid'));
     }
 
     open_file(that, context, path, flags, check_result);
-
-    deferred.promise.then(
-      function(result) {
-        callback(undefined, result);
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._close = function _close(fd, callback) {
-    var deferred = when.defer();
-
     if(!_(this.openFiles).has(fd)) {
-      deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new EBadFileDescriptor('invalid file descriptor'));
     } else {
       this._release_descriptor(fd);
-      deferred.resolve();
+      callback(undefined);
     }
-
-    deferred.promise.then(
-      function() {
-        callback();
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._mkdir = function _mkdir(context, path, callback) {
     var that = this;
-    var deferred = when.defer();
 
     function check_result(error) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
-        deferred.resolve();
+        callback(undefined);
       }
     }
 
     make_directory(context, path, check_result);
-
-    deferred.promise.then(
-      function() {
-        callback();
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._rmdir = function _rmdir(context, path, callback) {
     var that = this;
-    var deferred = when.defer();
 
     function check_result(error) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
-        deferred.resolve();
+        callback(undefined);
       }
     }
 
     remove_directory(context, path, check_result);
-
-    deferred.promise.then(
-      function() {
-        callback();
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._stat = function _stat(context, path, callback) {
     var that = this;
-    var deferred = when.defer();
 
     function check_result(error, result) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
         var stats = new Stats(result, that.name);
-        deferred.resolve(stats);
+        callback(undefined, stats);
       }
     }
 
     stat_file(context, path, check_result);
-
-    deferred.promise.then(
-      function(result) {
-        callback(undefined, result);
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._fstat = function _fstat(context, fd, callback) {
     var that = this;
-    var deferred = when.defer();
 
     function check_result(error, result) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
         var stats = new Stats(result, that.name);
-        deferred.resolve(stats);
+        callback(undefined, stats);
       }
     }
 
     var ofd = that.openFiles[fd];
 
     if(!ofd) {
-      deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new EBadFileDescriptor('invalid file descriptor'));
     } else {
       fstat_file(context, ofd, check_result);
     }
-
-    deferred.promise.then(
-      function(result) {
-        callback(undefined, result);
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._link = function _link(context, oldpath, newpath, callback) {
     var that = this;
-    var deferred = when.defer();
 
     function check_result(error) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
-        deferred.resolve();
+        callback(undefined);
       }
     }
 
     link_node(context, oldpath, newpath, check_result);
-
-    deferred.promise.then(
-      function(result) {
-        callback();
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._unlink = function _unlink(context, path, callback) {
     var that = this;
-    var deferred = when.defer();
 
     function check_result(error) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
-        deferred.resolve();
+        callback(undefined);
       }
     }
 
     unlink_node(context, path, check_result);
-
-    deferred.promise.then(
-      function(result) {
-        callback();
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._read = function _read(context, fd, buffer, offset, length, position, callback) {
     var that = this;
-    var deferred = when.defer();
 
     offset = (undefined === offset) ? 0 : offset;
     length = (undefined === length) ? buffer.length - offset : length;
@@ -993,34 +911,24 @@ define(function(require) {
     function check_result(error, nbytes) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
-        deferred.resolve(nbytes);
+        callback(undefined, nbytes);
       }
     }
 
     var ofd = that.openFiles[fd];
 
     if(!ofd) {
-      deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new EBadFileDescriptor('invalid file descriptor'));
     } else if(!_(ofd.flags).contains(O_READ)) {
-      deferred.reject(new EBadFileDescriptor('descriptor does not permit reading'));
+      callback(new EBadFileDescriptor('descriptor does not permit reading'));
     } else {
       read_data(context, ofd, buffer, offset, length, position, check_result);
     }
-
-    deferred.promise.then(
-      function(result) {
-        callback(undefined, result);
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._readFile = function _readFile(context, path, options, callback) {
     var that = this;
-    var deferred = when.defer();
 
     if(!options) {
       options = { encoding: null, flag: 'r' };
@@ -1033,13 +941,13 @@ define(function(require) {
 
     var flags = validate_flags(options.flag || 'r');
     if(!flags) {
-      deferred.reject(new EInvalid('flags is not valid'));
+      callback(new EInvalid('flags is not valid'));
     }
 
     open_file(that, context, path, flags, function(err, fileNode) {
       if(err) {
         // TODO: abort transaction?
-        return deferred.reject(err);
+        return callback(err);
       }
       var ofd = new OpenFileDescription(fileNode.id, flags, 0);
       var fd = that._allocate_descriptor(ofd);
@@ -1047,7 +955,7 @@ define(function(require) {
       fstat_file(context, ofd, function(err2, fstatResult) {
         if(err2) {
           // TODO: abort transaction?
-          return deferred.reject(err2);
+          return callback(err2);
         }
 
         var stats = new Stats(fstatResult, that.name);
@@ -1057,7 +965,7 @@ define(function(require) {
         read_data(context, ofd, buffer, 0, size, 0, function(err3, nbytes) {
           if(err3) {
             // TODO: abort transaction?
-            return deferred.reject(err3);
+            return callback(err3);
           }
           that._release_descriptor(fd);
 
@@ -1067,60 +975,40 @@ define(function(require) {
           } else {
             data = buffer;
           }
-          deferred.resolve(data);
+          callback(undefined, data);
         });
       });
 
     });
-
-    deferred.promise.then(
-      function(result) {
-        callback(undefined, result);
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._write = function _write(context, fd, buffer, offset, length, position, callback) {
     var that = this;
-    var deferred = when.defer();
 
     offset = (undefined === offset) ? 0 : offset;
     length = (undefined === length) ? buffer.length - offset : length;
 
     function check_result(error, nbytes) {
       if(error) {
-        deferred.reject(error);
+        callback(error);
       } else {
-        deferred.resolve(nbytes);
+        callback(undefined, nbytes);
       }
     }
 
     var ofd = that.openFiles[fd];
 
     if(!ofd) {
-      deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new EBadFileDescriptor('invalid file descriptor'));
     } else if(!_(ofd.flags).contains(O_WRITE)) {
-      deferred.reject(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new EBadFileDescriptor('descriptor does not permit writing'));
     } else if(buffer.length - offset < length) {
-      deferred.reject(new EIO('intput buffer is too small'));
+      callback(new EIO('intput buffer is too small'));
     } else {
       write_data(context, ofd, buffer, offset, length, position, check_result);
     }
-
-    deferred.promise.then(
-      function(result) {
-        callback(undefined, result);
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._writeFile = function _writeFile(context, path, data, options, callback) {
     var that = this;
-    var deferred = when.defer();
 
     if(!options) {
       options = { encoding: 'utf8', flag: 'w' };
@@ -1133,7 +1021,7 @@ define(function(require) {
 
     var flags = validate_flags(options.flag || 'w');
     if(!flags) {
-      deferred.reject(new EInvalid('flags is not valid'));
+      callback(new EInvalid('flags is not valid'));
     }
 
     if(typeof data === "string" && options.encoding === 'utf8') {
@@ -1143,7 +1031,7 @@ define(function(require) {
     open_file(that, context, path, flags, function(err, fileNode) {
       if(err) {
         // TODO: abort transaction?
-        return deferred.reject(err);
+        return callback(err);
       }
       var ofd = new OpenFileDescription(fileNode.id, flags, 0);
       var fd = that._allocate_descriptor(ofd);
@@ -1151,21 +1039,12 @@ define(function(require) {
       write_data(context, ofd, data, 0, data.length, 0, function(err2, nbytes) {
         if(err2) {
           // TODO: abort transaction?
-          return deferred.reject(err2);
+          return callback(err2);
         }
         that._release_descriptor(fd);
-        deferred.resolve();
+        callback(undefined);
       });
     });
-
-    deferred.promise.then(
-      function() {
-        callback(undefined);
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._getxattr = function _getxattr(path, name, callback) {
 
@@ -1175,25 +1054,24 @@ define(function(require) {
   };
   FileSystem.prototype._lseek = function _lseek(context, fd, offset, whence, callback) {
     var that = this;
-    var deferred = when.defer();
 
     function check_result(error, offset) {
       if(error) {
-        deferred.reject(error);
+        callback(error);
       } else {
-        deferred.resolve(offset);
+        callback(offset);
       }
     }
 
     function update_descriptor_position(error, stats) {
       if(error) {
-        deferred.reject(error);
+        callback(error);
       } else {
         if(stats.size + offset < 0) {
-          deferred.reject(new EInvalid('resulting file offset would be negative'));
+          callback(new EInvalid('resulting file offset would be negative'));
         } else {
           ofd.position = stats.size + offset;
-          deferred.resolve(ofd.position);
+          callback(undefined, ofd.position);
         }
       }
     }
@@ -1201,75 +1079,55 @@ define(function(require) {
     var ofd = that.openFiles[fd];
 
     if(!ofd) {
-      deferred.reject(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new EBadFileDescriptor('invalid file descriptor'));
     }
 
     if('SET' === whence) {
       if(offset < 0) {
-        deferred.reject(new EInvalid('resulting file offset would be negative'));
+        callback(new EInvalid('resulting file offset would be negative'));
       } else {
         ofd.position = offset;
-        deferred.resolve(ofd.position);
+        callback(undefined, ofd.position);
       }
     } else if('CUR' === whence) {
       if(ofd.position + offset < 0) {
-        deferred.reject(new EInvalid('resulting file offset would be negative'));
+        callback(new EInvalid('resulting file offset would be negative'));
       } else {
         ofd.position += offset;
-        deferred.resolve(ofd.position);
+        callback(undefined, ofd.position);
       }
     } else if('END' === whence) {
       fstat_file(context, ofd, update_descriptor_position);
     } else {
-      deferred.reject(new EInvalid('whence argument is not a proper value'));
+      callback(new EInvalid('whence argument is not a proper value'));
     }
-
-    deferred.promise.then(
-      function(result) {
-        callback(undefined, result);
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._readdir = function _readdir(context, path, callback) {
     var that = this;
-    var deferred = when.defer();
 
     function check_result(error, files) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
-        deferred.resolve(files);
+        callback(undefined, files);
       }
     }
 
     read_directory(context, path, check_result);
-
-    deferred.promise.then(
-      function(result) {
-        callback(undefined, result);
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._utimes = function _utimes(path, atime, mtime, callback) {
 
   };
   FileSystem.prototype._rename = function _rename(context, oldpath, newpath, callback) {
     var that = this;
-    var deferred = when.defer();
 
     link_node(context, oldpath, newpath, unlink_old_node);
 
     function unlink_old_node(error) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
         unlink_node(context, oldpath, check_result);
       }
@@ -1278,20 +1136,11 @@ define(function(require) {
     function check_result(error) {
       if(error) {
         // if(transaction.error) transaction.abort();
-        deferred.reject(error);
+        callback(error);
       } else {
-        deferred.resolve();
+        callback(undefined);
       }
     }
-
-    deferred.promise.then(
-      function(result) {
-        callback();
-      },
-      function(error) {
-        callback(error);
-      }
-    );
   };
   FileSystem.prototype._truncate = function _truncate(path, length, callback) {
 
