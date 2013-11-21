@@ -794,70 +794,21 @@ define(function(require) {
    * FileSystem
    */
 
+  function IndexedDBDatabase(db) {
+    this.db = db;
+  }
+  function transaction(stores, mode, callback) {
+    var tx = this.db.transaction(stores, mode);
+  }
+
+  function WebSQLDatabase(db) {
+    this.db = db;
+  }
+  function transaction() {
+
+  }
+
   function FileSystem(name, flags) {
-    var format = _(flags).contains(FS_FORMAT);
-    var that = this;
-
-    var deferred = when.defer();
-    this.promise = deferred.promise;
-
-    var openRequest = indexedDB.open(name);
-    openRequest.onupgradeneeded = function onupgradeneeded(event) {
-      var db = event.target.result;
-
-      if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
-        db.deleteObjectStore(FILE_STORE_NAME);
-      }
-      var files = db.createObjectStore(FILE_STORE_NAME);
-
-      if(db.objectStoreNames.contains(METADATA_STORE_NAME)) {
-        db.deleteObjectStore(METADATA_STORE_NAME);
-      }
-      var metadata = db.createObjectStore(METADATA_STORE_NAME);
-
-      format = true;
-    };
-    openRequest.onsuccess = function onsuccess(event) {
-      var db = event.target.result;
-      var transaction = db.transaction([FILE_STORE_NAME], IDB_RW);
-      var files = transaction.objectStore(FILE_STORE_NAME);
-
-      function complete(error) {
-        that.db = db;
-        if(error) {
-          that.readyState = FS_ERROR;
-          deferred.reject(error);
-        } else {
-          that.readyState = FS_READY;
-          deferred.resolve();
-        }
-      }
-
-      if(format) {
-        var clearRequest = files.clear();
-        clearRequest.onsuccess = function onsuccess(event) {
-          make_root_directory(files, complete);
-        };
-        clearRequest.onerror = function onerror(error) {
-          complete(error);
-        };
-      } else {
-        complete();
-      }
-    };
-    openRequest.onerror = function onerror(error) {
-      this.readyState = FS_ERROR;
-      deferred.reject(error);
-    };
-
-    var nextDescriptor = 1;
-    var openFiles = {};
-
-    this.readyState = FS_PENDING;
-    this.db = null;
-    this.nextDescriptor = nextDescriptor;
-    this.openFiles = openFiles;
-    this.name = name;
   }
   FileSystem.prototype._allocate_descriptor = function _allocate_descriptor(openFileDescription) {
     var fd = this.nextDescriptor ++;
@@ -867,7 +818,7 @@ define(function(require) {
   FileSystem.prototype._release_descriptor = function _release_descriptor(fd) {
     delete this.openFiles[fd];
   };
-  FileSystem.prototype.open = function open(path, flags, callback) {
+  FileSystem.prototype._open = function _open(path, flags, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -912,7 +863,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.close = function close(fd, callback) {
+  FileSystem.prototype._close = function _close(fd, callback) {
     var deferred = when.defer();
 
     if(!_(this.openFiles).has(fd)) {
@@ -931,7 +882,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.mkdir = function mkdir(path, callback) {
+  FileSystem.prototype._mkdir = function _mkdir(path, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -963,7 +914,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.rmdir = function rmdir(path, callback) {
+  FileSystem.prototype._rmdir = function _rmdir(path, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -995,7 +946,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.stat = function stat(path, callback) {
+  FileSystem.prototype._stat = function _stat(path, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1029,7 +980,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.fstat = function fstat(fd, callback) {
+  FileSystem.prototype._fstat = function _fstat(fd, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1069,7 +1020,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.link = function link(oldpath, newpath, callback) {
+  FileSystem.prototype._link = function _link(oldpath, newpath, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1102,7 +1053,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.unlink = function unlink(path, callback) {
+  FileSystem.prototype._unlink = function _unlink(path, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1135,7 +1086,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.read = function read(fd, buffer, offset, length, position, callback) {
+  FileSystem.prototype._read = function _read(fd, buffer, offset, length, position, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1179,7 +1130,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.readFile = function readFile(path, options, callback) {
+  FileSystem.prototype._readFile = function _readFile(path, options, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1252,7 +1203,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.write = function write(fd, buffer, offset, length, position, callback) {
+  FileSystem.prototype._write = function _write(fd, buffer, offset, length, position, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1297,7 +1248,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.writeFile = function writeFile(path, data, options, callback) {
+  FileSystem.prototype._writeFile = function _writeFile(path, data, options, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1355,13 +1306,13 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.getxattr = function getxattr(path, name, callback) {
+  FileSystem.prototype._getxattr = function _getxattr(path, name, callback) {
 
   };
-  FileSystem.prototype.setxattr = function setxattr(path, name, value, callback) {
+  FileSystem.prototype._setxattr = function _setxattr(path, name, value, callback) {
 
   };
-  FileSystem.prototype.lseek = function lseek(fd, offset, whence, callback) {
+  FileSystem.prototype._lseek = function _lseek(fd, offset, whence, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1431,7 +1382,7 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.readdir = function readdir(path, callback) {
+  FileSystem.prototype._readdir = function _readdir(path, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1464,10 +1415,10 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.utimes = function utimes(path, atime, mtime, callback) {
+  FileSystem.prototype._utimes = function _utimes(path, atime, mtime, callback) {
 
   };
-  FileSystem.prototype.rename = function rename(oldpath, newpath, callback) {
+  FileSystem.prototype._rename = function _rename(oldpath, newpath, callback) {
     var that = this;
     this.promise.then(
       function() {
@@ -1509,28 +1460,146 @@ define(function(require) {
       }
     );
   };
-  FileSystem.prototype.truncate = function truncate(path, length, callback) {
+  FileSystem.prototype._truncate = function _truncate(path, length, callback) {
 
   };
-  FileSystem.prototype.ftruncate = function ftruncate(fd, length, callback) {
+  FileSystem.prototype._ftruncate = function _ftruncate(fd, length, callback) {
 
   };
-  FileSystem.prototype.symlink = function symlink(fd, length, callback) {
+  FileSystem.prototype._symlink = function _symlink(fd, length, callback) {
 
   };
-  FileSystem.prototype.readlink = function readlink(fd, length, callback) {
+  FileSystem.prototype._readlink = function _readlink(fd, length, callback) {
 
   };
-  FileSystem.prototype.realpath = function realpath(fd, length, callback) {
+  FileSystem.prototype._realpath = function _realpath(fd, length, callback) {
 
   };
-  FileSystem.prototype.lstat = function lstat(fd, length, callback) {
+  FileSystem.prototype._lstat = function _lstat(fd, length, callback) {
 
   };
 
+  function IndexedDBFileSystem(name, flags) {
+    var format = _(flags).contains(FS_FORMAT);
+    var that = this;
+
+    var deferred = when.defer();
+    this.promise = deferred.promise;
+
+    var openRequest = indexedDB.open(name);
+    openRequest.onupgradeneeded = function onupgradeneeded(event) {
+      var db = event.target.result;
+
+      if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
+        db.deleteObjectStore(FILE_STORE_NAME);
+      }
+      var files = db.createObjectStore(FILE_STORE_NAME);
+
+      if(db.objectStoreNames.contains(METADATA_STORE_NAME)) {
+        db.deleteObjectStore(METADATA_STORE_NAME);
+      }
+      var metadata = db.createObjectStore(METADATA_STORE_NAME);
+
+      format = true;
+    };
+    openRequest.onsuccess = function onsuccess(event) {
+      var db = event.target.result;
+      var transaction = db.transaction([FILE_STORE_NAME], IDB_RW);
+      var files = transaction.objectStore(FILE_STORE_NAME);
+
+      function complete(error) {
+        that.db = db;
+        if(error) {
+          that.readyState = FS_ERROR;
+          deferred.reject(error);
+        } else {
+          that.readyState = FS_READY;
+          deferred.resolve();
+        }
+      }
+
+      if(format) {
+        var clearRequest = files.clear();
+        clearRequest.onsuccess = function onsuccess(event) {
+          make_root_directory(files, complete);
+        };
+        clearRequest.onerror = function onerror(error) {
+          complete(error);
+        };
+      } else {
+        complete();
+      }
+    };
+    openRequest.onerror = function onerror(error) {
+      this.readyState = FS_ERROR;
+      deferred.reject(error);
+    };
+
+    var nextDescriptor = 1;
+    var openFiles = {};
+
+    this.readyState = FS_PENDING;
+    this.db = null;
+    this.nextDescriptor = nextDescriptor;
+    this.openFiles = openFiles;
+    this.name = name;
+  }
+  IndexedDBFileSystem.prototype = new FileSystem();
+  IndexedDBFileSystem.prototype.constructor = IndexedDBFileSystem;
+  IndexedDBFileSystem.prototype.open = function open(path, flags, callback) {
+    this._open(path, flags, callback);
+  }
+  IndexedDBFileSystem.prototype.close = function close(fd, callback) {
+    this._close(fd, callback);
+  }
+  IndexedDBFileSystem.prototype.mkdir = function mkdir(path, callback) {
+    this._mkdir(path, callback);
+  }
+  IndexedDBFileSystem.prototype.rmdir = function rmdir(path, callback) {
+    this._rmdir(path, callback);
+  }
+  IndexedDBFileSystem.prototype.stat = function stat(path, callback) {
+    this._stat(path, callback);
+  }
+  IndexedDBFileSystem.prototype.fstat = function fstat(fd, callback) {
+    this._fstat(fd, callback);
+  }
+  IndexedDBFileSystem.prototype.link = function link(oldpath, newpath, callback) {
+    this._link(oldpath, newpath, callback);
+  }
+  IndexedDBFileSystem.prototype.unlink = function unlink(path, callback) {
+    this._unlink(path, callback);
+  }
+  IndexedDBFileSystem.prototype.read = function read(fd, buffer, offset, length, position, callback) {
+    this._read(fd, buffer, offset, length, position, callback);
+  }
+  IndexedDBFileSystem.prototype.readFile = function readFile(path, options, callback) {
+    this._readFile(path, options, callback);
+  }
+  IndexedDBFileSystem.prototype.write = function write(fd, buffer, offset, length, position, callback) {
+    this._write(fd, buffer, offset, length, position, callback);
+  }
+  IndexedDBFileSystem.prototype.writeFile = function writeFile(path, data, options, callback) {
+    this._writeFile(path, data, options, callback);
+  }
+  IndexedDBFileSystem.prototype.lseek = function lseek(fd, offset, whence, callback) {
+    this._lseek(fd, offset, whence, callback);
+  }
+  IndexedDBFileSystem.prototype.readdir = function readdir(path, callback) {
+    this._readdir(path, callback);
+  }
+  IndexedDBFileSystem.prototype.rename = function rename(oldpath, newpath, callback) {
+    this._rename(oldpath, newpath, callback);
+  }
+
+  function WebSQLFileSystem(name, flags) {
+    // FIXME: NOT IMPLEMENTED
+  }
+  WebSQLFileSystem.prototype = new FileSystem();
+  IndexedDBFileSystem.prototype.constructor = WebSQLFileSystem;
 
   return {
-    FileSystem: FileSystem
+    FileSystem: IndexedDBFileSystem
   };
 
 });
