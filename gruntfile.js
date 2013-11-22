@@ -18,7 +18,14 @@ module.exports = function(grunt) {
 
     jshint: {
       // Don't bother with src/path.js
-      all: ['gruntfile.js', 'src/constants.js', 'src/error.js', 'src/fs.js', 'srs/shared.js']
+      all: ['gruntfile.js',
+            'src/constants.js',
+            'src/error.js',
+            'src/fs.js',
+            'src/shared.js',
+            'src/providers/**/*.js',
+            'src/filesystems-manager.js'
+           ]
     },
 
     requirejs: {
