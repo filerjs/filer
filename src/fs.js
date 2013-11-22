@@ -3,7 +3,6 @@ define(function(require) {
   var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 
   var _ = require('lodash');
-  var when = require('when');
 
   // TextEncoder and TextDecoder will either already be present, or use this shim.
   // Because of the way the spec is defined, we need to get them off the global.
@@ -775,6 +774,25 @@ define(function(require) {
   FileSystem.prototype._release_descriptor = function _release_descriptor(fd) {
     delete this.openFiles[fd];
   };
+  FileSystem.prototype._queueOrRun = function _queueOrRun(operation) {
+    var error = undefined;
+
+    if(FS_READY == this.readyState) {
+      operation.call(this);
+    } else if(FS_ERROR == this.readyState) {
+      error = new EFileSystemError('unknown error');
+    } else {
+      this.queue.push(operation);
+    }
+
+    return error;
+  };
+  FileSystem.prototype._runQueued = function _runQueued() {
+    this.queue.forEach(function(operation) {
+      operation.call(this);
+    }.bind(this));
+    this.queue = null;
+  };
   FileSystem.prototype._open = function _open(context, path, flags, callback) {
     var that = this;
 
@@ -1207,9 +1225,6 @@ define(function(require) {
     var format = _(flags).contains(FS_FORMAT);
     var that = this;
 
-    var deferred = when.defer();
-    this.promise = deferred.promise;
-
     var openRequest = indexedDB.open(name);
     openRequest.onupgradeneeded = function onupgradeneeded(event) {
       var db = event.target.result;
@@ -1236,10 +1251,9 @@ define(function(require) {
         that.db = db;
         if(error) {
           that.readyState = FS_ERROR;
-          deferred.reject(error);
         } else {
           that.readyState = FS_READY;
-          deferred.resolve();
+          that._runQueued();
         }
       }
 
@@ -1257,7 +1271,7 @@ define(function(require) {
     };
     openRequest.onerror = function onerror(error) {
       this.readyState = FS_ERROR;
-      deferred.reject(error);
+      this.error = error;
     };
 
     var nextDescriptor = 1;
@@ -1268,207 +1282,181 @@ define(function(require) {
     this.nextDescriptor = nextDescriptor;
     this.openFiles = openFiles;
     this.name = name;
+    this.error = null;
+    this.queue = [];
   }
   IndexedDBFileSystem.prototype = new FileSystem();
   IndexedDBFileSystem.prototype.constructor = IndexedDBFileSystem;
   IndexedDBFileSystem.prototype.open = function open(path, flags, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._open(context, path, flags, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.close = function close(fd, callback) {
     this._close(fd, callback);
   };
   IndexedDBFileSystem.prototype.mkdir = function mkdir(path, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._mkdir(context, path, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.rmdir = function rmdir(path, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._rmdir(context, path, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.stat = function stat(path, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._stat(context, path, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.fstat = function fstat(fd, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._fstat(context, fd, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.link = function link(oldpath, newpath, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._link(context, oldpath, newpath, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.unlink = function unlink(path, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._unlink(context, path, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.read = function read(fd, buffer, offset, length, position, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._read(context, fd, buffer, offset, length, position, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.readFile = function readFile(path, options, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._readFile(context, path, options, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.write = function write(fd, buffer, offset, length, position, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._write(context, fd, buffer, offset, length, position, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.writeFile = function writeFile(path, data, options, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._writeFile(context, path, data, options, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.lseek = function lseek(fd, offset, whence, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._lseek(context, fd, offset, whence, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.readdir = function readdir(path, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._readdir(context, path, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
   IndexedDBFileSystem.prototype.rename = function rename(oldpath, newpath, callback) {
     var fs = this;
-    this.promise.then(
+    var error = this._queueOrRun(
       function() {
         var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._rename(context, oldpath, newpath, callback);
-      },
-      function() {
-        callback(new EFileSystemError('unknown error'));
       }
     );
+    if(error) callback(error);
   };
 
   // FIXME: WebSQL stuff, this needs implementation
