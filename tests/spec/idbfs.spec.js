@@ -1063,6 +1063,36 @@ describe('fs.writeFile, fs.readFile', function() {
     });
   });
 
+  it('should follow symbolic links', function () {
+    var complete = false;
+    var _result;
+    var that = this;
+
+    var contents = "This is a file.";
+
+    that.fs.writeFile('/myfile', '', { encoding: 'utf8' }, function(error) {
+      if(error) throw error;
+      that.fs.symlink('/myfile', '/myFileLink', function (error) {
+        if (error) throw error;
+        that.fs.writeFile('/myFileLink', contents, 'utf8', function (error) {
+          if (error) throw error;
+          that.fs.readFile('/myFileLink', 'utf8', function(error, data) {
+            if(error) throw error;
+            _result = data;
+            complete = true;
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).toEqual(contents);
+    });
+  });
 });
 
 describe('fs.read', function() {

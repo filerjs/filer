@@ -414,6 +414,8 @@ define(function(require) {
     var fileNode;
     var fileData;
 
+    var followedCount = 0;
+
     if(ROOT_DIRECTORY_NAME == name) {
       if(_(flags).contains(O_WRITE)) {
         callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
@@ -446,7 +448,7 @@ define(function(require) {
             if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
               callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
             } else {
-              read_object(objectStore, directoryEntry.id, set_file_node);
+              read_object(objectStore, directoryEntry.id, check_if_symbolic_link);
             }
           }
         } else {
@@ -457,6 +459,38 @@ define(function(require) {
           }
         }
       }
+    }
+
+    function check_if_symbolic_link(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        var node = result;
+        if(node.mode == MODE_SYMBOLIC_LINK) {
+          followedCount++;
+          if(followedCount > SYMLOOP_MAX){
+            callback(new ELoop('too many symbolic links were encountered'));
+          } else {
+            follow_symbolic_link(node.data);
+          }
+        } else {
+          set_file_node(undefined, node);
+        }
+      }
+    }
+
+    function follow_symbolic_link(data) {
+      data = normalize(data);
+      parentPath = dirname(data);
+      name = basename(data);
+      if(ROOT_DIRECTORY_NAME == name) {
+        if(_(flags).contains(O_WRITE)) {
+          callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
+        } else {
+          find_node(objectStore, path, set_file_node);
+        }
+      }
+      find_node(objectStore, parentPath, read_directory_data);
     }
 
     function set_file_node(error, result) {
