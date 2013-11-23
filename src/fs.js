@@ -33,6 +33,7 @@ define(function(require) {
   var FS_FORMAT = require('src/constants').FS_FORMAT;
   var MODE_FILE = require('src/constants').MODE_FILE;
   var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
+  var MODE_SYMBOLIC_LINK = require('src/constants').MODE_SYMBOLIC_LINK;
   var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
   var ROOT_NODE_ID = require('src/constants').ROOT_NODE_ID;
   var IDB_RW = require('src/constants').IDB_RW;
@@ -752,6 +753,51 @@ define(function(require) {
     }
   }
 
+  function read_link(objectStore, path, callback) {
+    path = normalize(path);
+    var name = basename(path);
+    var parentPath = dirname(path);
+
+    var directoryNode;
+    var directoryData;
+
+    find_node(objectStore, parentPath, read_directory_data);
+
+    function read_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryNode = result;
+        read_object(objectStore, directoryNode.data, check_if_file_exists);
+      }
+    }
+
+    function check_if_file_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = result;
+        if(!_(directoryData).has(name)) {
+          callback(new ENoEntry('a component of the path does not name an existing file'));
+        } else {
+          read_object(objectStore, directoryData[name].id, check_if_symbolic);
+        }
+      }
+    }
+
+    function check_if_symbolic(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        if(result.mode != MODE_SYMBOLIC_LINK) {
+          callback(new EInvalid("path not a symbolic link"));
+        } else {
+            callback(undefined, result.data);
+        }
+      }
+    }
+  }
+
   function validate_flags(flags) {
     if(!_(O_FLAGS).has(flags)) {
       return null;
@@ -1169,8 +1215,19 @@ define(function(require) {
   FileSystem.prototype._symlink = function _symlink(fd, length, callback) {
 
   };
-  FileSystem.prototype._readlink = function _readlink(fd, length, callback) {
+  FileSystem.prototype._readlink = function _readlink(context, path, callback) {
+    var that = this;
 
+    function check_result(error, result) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        callback(error);
+      } else {
+        callback(undefined, result);
+      }
+    }
+
+    read_link(context, path, check_result);
   };
   FileSystem.prototype._realpath = function _realpath(fd, length, callback) {
 
@@ -1454,6 +1511,18 @@ define(function(require) {
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._rename(context, oldpath, newpath, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  IndexedDBFileSystem.prototype.readlink = function readlink(path, callback) {
+    var fs = this;
+    var error = this._queueOrRun(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        var context = new IndexedDBContext(files);
+        fs._readlink(context, path, callback);
       }
     );
     if(error) callback(error);
