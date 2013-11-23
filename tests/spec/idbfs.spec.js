@@ -148,6 +148,45 @@ describe('fs.stat', function() {
       expect(_result['type']).toBeDefined();
     });
   });
+
+  it('should follow symbolic links and return a stat object for the resulting path', function() {
+    var complete = false;
+    var _error, _node, _result;
+    var that = this;
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+      var fd = result;
+      that.fs.close(fd, function(error) {
+        if(error) throw error;
+        that.fs.stat('/myfile', function(error, result) {
+          if(error) throw error;
+
+          _node = result['node'];
+          that.fs.symlink('/myfile', '/myfilelink', function(error) {
+            if(error) throw error;
+
+            that.fs.stat('/myfilelink', function(error, result) {
+              _error = error;
+              _result = result;
+              complete = true;
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).toBeDefined();
+      expect(_node).toBeDefined();
+      expect(_error).not.toBeDefined();
+      expect(_result['node']).toEqual(_node);
+    });
+  });
 });
 
 describe('fs.fstat', function() {
