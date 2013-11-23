@@ -468,6 +468,35 @@ describe('fs.readdir', function() {
       expect(_files[0]).toEqual('tmp');
     });
   });
+
+  it('should follow symbolic links', function() {
+    var complete = false;
+    var _error, _files;
+    var that = this;
+
+    that.fs.mkdir('/tmp', function(error) {
+      if(error) throw error;
+      that.fs.symlink('/', '/tmp/dirLink', function(error) {
+        if(error) throw error;
+        that.fs.readdir('/tmp/dirLink', function(error, result) {
+          _error = error;
+          _files = result;
+
+          complete = true;
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_files.length).toEqual(1);
+      expect(_files[0]).toEqual('tmp');
+    });
+  });
 });
 
 describe('fs.rmdir', function() {
