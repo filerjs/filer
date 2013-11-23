@@ -332,13 +332,34 @@ define(function(require) {
     var parentDirectoryNode;
     var parentDirectoryData;
 
-    function check_if_directory_exists(error, result) {
+    function read_parent_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        parentDirectoryNode = result;
+        read_object(objectStore, parentDirectoryNode.data, check_if_node_exists);
+      }
+    }
+
+    function check_if_node_exists(error, result) {
       if(error) {
         callback(error);
       } else if(ROOT_DIRECTORY_NAME == name) {
         callback(new EBusy());
-      } else if(!result) {
+      } else if(!_(result).has(name)) {
         callback(new ENoEntry());
+      } else {
+        parentDirectoryData = result;
+        directoryNode = parentDirectoryData[name].id;
+        read_object(objectStore, directoryNode, check_if_node_is_directory);
+      }
+    }
+
+    function check_if_node_is_directory(error, result) {
+      if(error) {
+        callback(error);
+      } else if(result.mode != MODE_DIRECTORY) {
+        callback(new ENotDirectory());
       } else {
         directoryNode = result;
         read_object(objectStore, directoryNode.data, check_if_directory_is_empty);
@@ -353,28 +374,14 @@ define(function(require) {
         if(_(directoryData).size() > 0) {
           callback(new ENotEmpty());
         } else {
-          find_node(objectStore, parentPath, read_parent_directory_data);
+          remove_directory_entry_from_parent_directory_node();
         }
       }
     }
 
-    function read_parent_directory_data(error, result) {
-      if(error) {
-        callback(error);
-      } else {
-        parentDirectoryNode = result;
-        read_object(objectStore, parentDirectoryNode.data, remove_directory_entry_from_parent_directory_node);
-      }
-    }
-
-    function remove_directory_entry_from_parent_directory_node(error, result) {
-      if(error) {
-        callback(error);
-      } else {
-        parentDirectoryData = result;
-        delete parentDirectoryData[name];
-        write_object(objectStore, parentDirectoryData, parentDirectoryNode.data, remove_directory_node);
-      }
+    function remove_directory_entry_from_parent_directory_node() {
+      delete parentDirectoryData[name];
+      write_object(objectStore, parentDirectoryData, parentDirectoryNode.data, remove_directory_node);
     }
 
     function remove_directory_node(error) {
@@ -393,7 +400,7 @@ define(function(require) {
       }
     }
 
-    find_node(objectStore, path, check_if_directory_exists);
+    find_node(objectStore, parentPath, read_parent_directory_data);
   }
 
   function open_file(fs, objectStore, path, flags, callback) {

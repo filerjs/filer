@@ -578,6 +578,56 @@ describe('fs.rmdir', function() {
     });
   });
 
+  it('should return an error if the path is not a directory', function() {
+    var complete = false;
+    var _error;
+    var that = this;
+
+    that.fs.mkdir('/tmp', function(error) {
+      that.fs.open('/tmp/myfile', 'w', function(error, fd) {
+        that.fs.close(fd, function(error) {
+          that.fs.rmdir('/tmp/myfile', function(error) {
+            _error = error;
+
+            complete = true;
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+    });
+  });
+
+  it('should return an error if the path is a symbolic link', function () {
+    var complete = false;
+    var _error;
+    var that = this;
+
+    that.fs.mkdir('/tmp', function (error) {
+      that.fs.symlink('/tmp', '/tmp/myfile', function (error) {
+        that.fs.rmdir('/tmp/myfile', function (error) {
+          _error = error;
+
+          complete = true;
+        });
+      });
+    });
+
+    waitsFor(function () {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function () {
+      expect(_error).toBeDefined();
+    });
+  });
+
   it('should remove an existing directory', function() {
     var complete = false;
     var _error, _stat;
