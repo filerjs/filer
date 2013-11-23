@@ -28,6 +28,7 @@ define(function(require) {
   var ENotMounted = require('src/error').ENotMounted;
   var EInvalid = require('src/error').EInvalid;
   var EIO = require('src/error').EIO;
+  var ELoop = require('src/error').ELoop;
   var EFileSystemError = require('src/error').EFileSystemError;
 
   var FS_FORMAT = require('src/constants').FS_FORMAT;
@@ -40,6 +41,7 @@ define(function(require) {
   var IDB_RO = require('src/constants').IDB_RO;
   var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
   var METADATA_STORE_NAME = require('src/constants').METADATA_STORE_NAME;
+  var SYMLOOP_MAX = require('src/constants').SYMLOOP_MAX;
   var FS_READY = require('src/constants').FS_READY;
   var FS_PENDING = require('src/constants').FS_PENDING;
   var FS_ERROR = require('src/constants').FS_ERROR;
@@ -120,6 +122,7 @@ define(function(require) {
     }
     var name = basename(path);
     var parentPath = dirname(path);
+    var followedCount = 0;
 
     function check_root_directory_node(error, rootDirectoryNode) {
       if(error) {
@@ -139,13 +142,13 @@ define(function(require) {
       } else if(parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
         callback(new ENotDirectory('a component of the path prefix is not a directory'));
       } else {
-        read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
+        read_object(objectStore, parentDirectoryNode.data, get_node_from_parent_directory_data);
       }
     }
 
     // in: parent directory data
-    // out: searched node id
-    function get_node_id_from_parent_directory_data(error, parentDirectoryData) {
+    // out: searched node
+    function get_node_from_parent_directory_data(error, parentDirectoryData) {
       if(error) {
         callback(error);
       } else {
@@ -153,8 +156,36 @@ define(function(require) {
           callback(new ENoEntry('path does not exist'));
         } else {
           var nodeId = parentDirectoryData[name].id;
-          read_object(objectStore, nodeId, callback);
+          read_object(objectStore, nodeId, is_symbolic_link);
         }
+      }
+    }
+
+    function is_symbolic_link(error, node) {
+      if(error) {
+        callback(error);
+      } else {
+        if(node.mode == MODE_SYMBOLIC_LINK) {
+          followedCount++;
+          if(followedCount > SYMLOOP_MAX){
+            callback(new ELoop('too many symbolic links were encountered'));
+          } else {
+            follow_symbolic_link(node.data);
+          }
+        } else {
+          callback(undefined, node);
+        }
+      }
+    }
+
+    function follow_symbolic_link(data) {
+      data = normalize(data);
+      parentPath = dirname(data);
+      name = basename(data);
+      if(ROOT_DIRECTORY_NAME == name) {
+        read_object(objectStore, ROOT_NODE_ID, check_root_directory_node);
+      } else {
+        find_node(objectStore, parentPath, read_parent_directory_data);
       }
     }
 

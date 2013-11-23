@@ -91,6 +91,13 @@ define(function(require) {
   EIO.prototype.name = "EIO";
   EIO.prototype.constructor = EIO;
 
+  function ELoop(message){
+    this.message = message || '';
+  }
+  ELoop.prototype = new Error();
+  ELoop.prototype.name = "ELoop";
+  ELoop.prototype.constructor = ELoop;
+
   function EFileSystemError(message){
     this.message = message || '';
   }
@@ -109,7 +116,8 @@ define(function(require) {
     ENotImplemented: ENotImplemented,
     ENotMounted: ENotMounted,
     EInvalid: EInvalid,
-    EIO: EIO
+    EIO: EIO,
+    ELoop: ELoop
   };
 
 });
