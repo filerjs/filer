@@ -609,6 +609,51 @@ define(function(require) {
     }
   }
 
+  function lstat_file(objectStore, path, callback) {
+    path = normalize(path);
+    var name = basename(path);
+    var parentPath = dirname(path);
+
+    var directoryNode;
+    var directoryData;
+
+    if(ROOT_DIRECTORY_NAME == name) {
+      read_object(objectStore, ROOT_NODE_ID, check_file);
+    } else {
+      find_node(objectStore, parentPath, read_directory_data);
+    }
+
+    function read_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryNode = result;
+        read_object(objectStore, directoryNode.data, check_if_file_exists);
+      }
+    }
+
+    function check_if_file_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = result;
+        if(!_(directoryData).has(name)) {
+          callback(new ENoEntry('a component of the path does not name an existing file'));
+        } else {
+          read_object(objectStore, directoryData[name].id, check_file);
+        }
+      }
+    }
+
+    function check_file(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        callback(undefined, result);
+      }
+    }
+  }
+
   function link_node(objectStore, oldpath, newpath, callback) {
     oldpath = normalize(oldpath);
     var oldname = basename(oldpath);
@@ -1329,8 +1374,20 @@ define(function(require) {
   FileSystem.prototype._realpath = function _realpath(fd, length, callback) {
 
   };
-  FileSystem.prototype._lstat = function _lstat(fd, length, callback) {
+  FileSystem.prototype._lstat = function _lstat(context, path, callback) {
+    var that = this;
 
+    function check_result(error, result) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        callback(error);
+      } else {
+        var stats = new Stats(result, that.name);
+        callback(undefined, stats);
+      }
+    }
+
+    lstat_file(context, path, check_result);
   };
 
   function IndexedDBContext(objectStore) {
@@ -1632,6 +1689,18 @@ define(function(require) {
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._symlink(context, srcpath, dstpath, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  IndexedDBFileSystem.prototype.lstat = function lstat(path, callback) {
+    var fs = this;
+    var error = this._queueOrRun(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        var context = new IndexedDBContext(files);
+        fs._lstat(context, path, callback);
       }
     );
     if(error) callback(error);

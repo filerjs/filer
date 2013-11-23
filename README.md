@@ -170,3 +170,7 @@ Unlike node.js, IDBFS does not accept the optional `type` parameter.
 #### fs.readlink(path, callback)
 
 Asynchronous readlink(2). Callback gets `(error, linkContents)`, where `linkContents` is a string containing the path to which the symbolic link links to.
+
+#### fs.lstat(path, callback)
+
+Asynchronous lstat(2). Callback gets `(error, stats)`, See `fs.stat`.
