@@ -744,8 +744,8 @@ define(function(require) {
 
   function unlink_node(objectStore, path, callback) {
     path = normalize(path);
-    name = basename(path);
-    parentPath = dirname(path);
+    var name = basename(path);
+    var parentPath = dirname(path);
 
     var directoryNode;
     var directoryData;
