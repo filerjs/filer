@@ -1357,6 +1357,49 @@ describe('fs.unlink', function() {
       expect(_stats.nlinks).toEqual(1);
     });
   });
+
+  it('should not follow symbolic links', function () {
+    var complete = false;
+    var _error, _stats1, _stats2;
+    var that = this;
+
+    that.fs.symlink('/', '/myFileLink', function (error) {
+      if (error) throw error;
+
+      that.fs.link('/myFileLink', '/myotherfile', function (error) {
+        if (error) throw error;
+
+        that.fs.unlink('/myFileLink', function (error) {
+          if (error) throw error;
+
+          that.fs.lstat('/myFileLink', function (error, result) {
+            _error = error;
+
+            that.fs.lstat('/myotherfile', function (error, result) {
+              if (error) throw error;
+              _stats1 = result;
+
+              that.fs.stat('/', function (error, result) {
+                if (error) throw error;
+                _stats2 = result;
+                complete = true;
+              });
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function () {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function () {
+      expect(_error).toBeDefined();
+      expect(_stats1.nlinks).toEqual(1);
+      expect(_stats2.nlinks).toEqual(1);
+    });
+  });
 });
 
 describe('fs.rename', function() {
