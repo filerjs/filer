@@ -148,6 +148,45 @@ describe('fs.stat', function() {
       expect(_result['type']).toBeDefined();
     });
   });
+
+  it('should follow symbolic links and return a stat object for the resulting path', function() {
+    var complete = false;
+    var _error, _node, _result;
+    var that = this;
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+      var fd = result;
+      that.fs.close(fd, function(error) {
+        if(error) throw error;
+        that.fs.stat('/myfile', function(error, result) {
+          if(error) throw error;
+
+          _node = result['node'];
+          that.fs.symlink('/myfile', '/myfilelink', function(error) {
+            if(error) throw error;
+
+            that.fs.stat('/myfilelink', function(error, result) {
+              _error = error;
+              _result = result;
+              complete = true;
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).toBeDefined();
+      expect(_node).toBeDefined();
+      expect(_error).not.toBeDefined();
+      expect(_result['node']).toEqual(_node);
+    });
+  });
 });
 
 describe('fs.fstat', function() {
@@ -197,6 +236,92 @@ describe('fs.fstat', function() {
       expect(_result['mtime']).toEqual(jasmine.any(Number));
       expect(_result['ctime']).toEqual(jasmine.any(Number));
       expect(_result['type']).toBeDefined();
+    });
+  });
+});
+
+describe('fs.lstat', function() {
+  beforeEach(function() {
+    this.db_name = mk_db_name();
+    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+  });
+
+  afterEach(function() {
+    indexedDB.deleteDatabase(this.db_name);
+    delete this.fs;
+  });
+
+  it('should be a function', function() {
+    expect(typeof this.fs.lstat).toEqual('function');
+  });
+
+  it('should return an error if path does not exist', function() {
+    var complete = false;
+    var _error, _result;
+
+    this.fs.lstat('/tmp', function(error, result) {
+      _error = error;
+      _result = result;
+
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+      expect(_result).not.toBeDefined();
+    });
+  });
+
+  it('should return a stat object if path is not a symbolic link', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.lstat('/', function(error, result) {
+      _error = error;
+      _result = result;
+
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result).toBeDefined();
+    });
+  });
+
+
+  it('should return a stat object if path is a symbolic link', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.symlink('/', '/mylink', function(error) {
+      if(error) throw error;
+
+      that.fs.lstat('/mylink', function(error, result) {
+        _error = error;
+        _result = result;
+
+        complete = true;
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result).toBeDefined();
     });
   });
 });
@@ -343,6 +468,35 @@ describe('fs.readdir', function() {
       expect(_files[0]).toEqual('tmp');
     });
   });
+
+  it('should follow symbolic links', function() {
+    var complete = false;
+    var _error, _files;
+    var that = this;
+
+    that.fs.mkdir('/tmp', function(error) {
+      if(error) throw error;
+      that.fs.symlink('/', '/tmp/dirLink', function(error) {
+        if(error) throw error;
+        that.fs.readdir('/tmp/dirLink', function(error, result) {
+          _error = error;
+          _files = result;
+
+          complete = true;
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_files.length).toEqual(1);
+      expect(_files[0]).toEqual('tmp');
+    });
+  });
 });
 
 describe('fs.rmdir', function() {
@@ -420,6 +574,56 @@ describe('fs.rmdir', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
+      expect(_error).toBeDefined();
+    });
+  });
+
+  it('should return an error if the path is not a directory', function() {
+    var complete = false;
+    var _error;
+    var that = this;
+
+    that.fs.mkdir('/tmp', function(error) {
+      that.fs.open('/tmp/myfile', 'w', function(error, fd) {
+        that.fs.close(fd, function(error) {
+          that.fs.rmdir('/tmp/myfile', function(error) {
+            _error = error;
+
+            complete = true;
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+    });
+  });
+
+  it('should return an error if the path is a symbolic link', function () {
+    var complete = false;
+    var _error;
+    var that = this;
+
+    that.fs.mkdir('/tmp', function (error) {
+      that.fs.symlink('/tmp', '/tmp/myfile', function (error) {
+        that.fs.rmdir('/tmp/myfile', function (error) {
+          _error = error;
+
+          complete = true;
+        });
+      });
+    });
+
+    waitsFor(function () {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function () {
       expect(_error).toBeDefined();
     });
   });
@@ -859,6 +1063,36 @@ describe('fs.writeFile, fs.readFile', function() {
     });
   });
 
+  it('should follow symbolic links', function () {
+    var complete = false;
+    var _result;
+    var that = this;
+
+    var contents = "This is a file.";
+
+    that.fs.writeFile('/myfile', '', { encoding: 'utf8' }, function(error) {
+      if(error) throw error;
+      that.fs.symlink('/myfile', '/myFileLink', function (error) {
+        if (error) throw error;
+        that.fs.writeFile('/myFileLink', contents, 'utf8', function (error) {
+          if (error) throw error;
+          that.fs.readFile('/myFileLink', 'utf8', function(error, data) {
+            if(error) throw error;
+            _result = data;
+            complete = true;
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).toEqual(contents);
+    });
+  });
 });
 
 describe('fs.read', function() {
@@ -1054,7 +1288,45 @@ describe('fs.link', function() {
       expect(_newstats).toEqual(_oldstats);
     });
   });
+
+  it('should not follow symbolic links', function () {
+    var complete = false;
+    var _error, _oldstats, _linkstats, _newstats;
+    var that = this;
+
+    that.fs.stat('/', function (error, result) {
+      if (error) throw error;
+      _oldstats = result;
+      that.fs.symlink('/', '/myfileLink', function (error) {
+        if (error) throw error;
+        that.fs.link('/myfileLink', '/myotherfile', function (error) {
+          if (error) throw error;
+          that.fs.lstat('/myfileLink', function (error, result) {
+            if (error) throw error;
+            _linkstats = result;
+            that.fs.lstat('/myotherfile', function (error, result) {
+              if (error) throw error;
+              _newstats = result;
+              complete = true;
+            });
+          });
+        });
+      });
+    });
+
+   waitsFor(function () {
+     return complete;
+   }, 'test to complete', DEFAULT_TIMEOUT);
+
+   runs(function () {
+     expect(_error).not.toBeDefined();
+     expect(_newstats.node).toEqual(_linkstats.node);
+     expect(_newstats.node).toNotEqual(_oldstats.node);
+     expect(_newstats.nlinks).toEqual(2);
+     expect(_newstats).toEqual(_linkstats);
+   });
 });
+  });
 
 describe('fs.unlink', function() {
   beforeEach(function() {
@@ -1115,6 +1387,49 @@ describe('fs.unlink', function() {
       expect(_stats.nlinks).toEqual(1);
     });
   });
+
+  it('should not follow symbolic links', function () {
+    var complete = false;
+    var _error, _stats1, _stats2;
+    var that = this;
+
+    that.fs.symlink('/', '/myFileLink', function (error) {
+      if (error) throw error;
+
+      that.fs.link('/myFileLink', '/myotherfile', function (error) {
+        if (error) throw error;
+
+        that.fs.unlink('/myFileLink', function (error) {
+          if (error) throw error;
+
+          that.fs.lstat('/myFileLink', function (error, result) {
+            _error = error;
+
+            that.fs.lstat('/myotherfile', function (error, result) {
+              if (error) throw error;
+              _stats1 = result;
+
+              that.fs.stat('/', function (error, result) {
+                if (error) throw error;
+                _stats2 = result;
+                complete = true;
+              });
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function () {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function () {
+      expect(_error).toBeDefined();
+      expect(_stats1.nlinks).toEqual(1);
+      expect(_stats2.nlinks).toEqual(1);
+    });
+  });
 });
 
 describe('fs.rename', function() {
@@ -1169,6 +1484,54 @@ describe('fs.rename', function() {
 
     runs(function() {
       expect(_error).toBeDefined();
+      expect(_stats.nlinks).toEqual(1);
+    });
+  });
+
+  it('should not follow symbolic links', function () {
+    var complete = false;
+    var _error, _stats;
+    var that = this;
+
+    that.fs.open('/myfile', 'w', function (error, result) {
+      if (error) throw error;
+
+      var fd = result;
+      that.fs.close(fd, function (error) {
+        if (error) throw error;
+
+        that.fs.symlink('/myfile', '/myFileLink', function (error) {
+          if (error) throw error;
+
+          that.fs.rename('/myFileLink', '/myOtherFileLink', function (error) {
+            if (error) throw error;
+
+            that.fs.stat('/myfile', function (error, result) {
+              _error1 = error;
+
+              that.fs.lstat('/myFileLink', function (error, result) {
+                _error2 = error;
+
+                that.fs.stat('/myOtherFileLink', function (error, result) {
+                  if (error) throw error;
+
+                  _stats = result;
+                  complete = true;
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function () {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function () {
+      expect(_error1).not.toBeDefined();
+      expect(_error2).toBeDefined();
       expect(_stats.nlinks).toEqual(1);
     });
   });
@@ -1347,6 +1710,509 @@ describe('fs.lseek', function() {
       expect(_stats.size).toEqual(offset + 2 * buffer.length);
       var expected = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
       expect(typed_array_equal(result_buffer, expected)).toEqual(true);
+    });
+  });
+});
+
+describe('fs.symlink', function() {
+  beforeEach(function() {
+    this.db_name = mk_db_name();
+    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+  });
+
+  afterEach(function() {
+    indexedDB.deleteDatabase(this.db_name);
+    delete this.fs;
+  });
+
+  it('should be a function', function() {
+    expect(typeof this.fs.symlink).toEqual('function');
+  });
+
+  it('should return an error if part of the parent destination path does not exist', function() {
+    var complete = false;
+    var _error;
+    var that = this;
+
+    that.fs.symlink('/', '/tmp/mydir', function(error) {
+      _error = error;
+
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+    });
+  });
+
+  it('should return an error if the destination path already exists', function() {
+    var complete = false;
+    var _error;
+    var that = this;
+
+    that.fs.symlink('/tmp', '/', function(error) {
+      _error = error;
+
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+    });
+  });
+
+  it('should create a symlink', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.symlink('/', '/myfile', function(error, result) {
+      _error = error;
+      _result = result;
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result).not.toBeDefined();
+     });
+  });
+});
+
+describe('fs.readlink', function() {
+  beforeEach(function() {
+    this.db_name = mk_db_name();
+    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+  });
+
+  afterEach(function() {
+    indexedDB.deleteDatabase(this.db_name);
+    delete this.fs;
+  });
+
+  it('should be a function', function() {
+    expect(typeof this.fs.readlink).toEqual('function');
+  });
+
+  it('should return an error if part of the parent destination path does not exist', function() {
+    var complete = false;
+    var _error;
+    var that = this;
+
+    that.fs.readlink('/tmp/mydir', function(error) {
+      _error = error;
+
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+    });
+  });
+
+  it('should return an error if the path is not a symbolic link', function() {
+    var complete = false;
+    var _error;
+    var that = this;
+
+    that.fs.readlink('/', function(error) {
+      _error = error;
+
+      complete = true;
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+    });
+  });
+
+  it('should return the contents of a symbolic link', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.symlink('/', '/myfile', function(error) {
+      if(error) throw error;
+
+      that.fs.readlink('/myfile', function(error, result) {
+        _error = error;
+        _result = result;
+        complete = true;
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).not.toBeDefined();
+      expect(_result).toEqual('/');
+     });
+  });
+});
+
+describe('path resolution', function() {
+  beforeEach(function() {
+    this.db_name = mk_db_name();
+    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+  });
+
+  afterEach(function() {
+    indexedDB.deleteDatabase(this.db_name);
+    delete this.fs;
+  });
+
+  it('should follow a symbolic link to the root directory', function() {
+    var complete = false;
+    var _error, _node, _result;
+    var that = this;
+
+    that.fs.symlink('/', '/mydirectorylink', function(error) {
+      if(error) throw error;
+
+      that.fs.stat('/', function(error, result) {
+        if(error) throw error;
+
+          _node = result['node'];
+          that.fs.stat('/mydirectorylink', function(error, result) {
+            _error = error;
+            _result = result;
+            complete = true;
+          });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).toBeDefined();
+      expect(_node).toBeDefined();
+      expect(_error).not.toBeDefined();
+      expect(_result['node']).toEqual(_node);
+    });
+  });
+
+  it('should follow a symbolic link to a directory', function() {
+    var complete = false;
+    var _error, _node, _result;
+    var that = this;
+
+    that.fs.mkdir('/mydir', function(error) {
+      that.fs.symlink('/mydir', '/mydirectorylink', function(error) {
+        if(error) throw error;
+
+        that.fs.stat('/mydir', function(error, result) {
+          if(error) throw error;
+
+            _node = result['node'];
+            that.fs.stat('/mydirectorylink', function(error, result) {
+              _error = error;
+              _result = result;
+              complete = true;
+            });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).toBeDefined();
+      expect(_node).toBeDefined();
+      expect(_error).not.toBeDefined();
+      expect(_result['node']).toEqual(_node);
+    });
+  });
+
+  it('should follow a symbolic link to a file', function() {
+    var complete = false;
+    var _error, _node, _result;
+    var that = this;
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+      var fd = result;
+      that.fs.close(fd, function(error) {
+        if(error) throw error;
+        that.fs.stat('/myfile', function(error, result) {
+          if(error) throw error;
+
+          _node = result['node'];
+          that.fs.symlink('/myfile', '/myfilelink', function(error) {
+            if(error) throw error;
+
+            that.fs.stat('/myfilelink', function(error, result) {
+              _error = error;
+              _result = result;
+              complete = true;
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).toBeDefined();
+      expect(_node).toBeDefined();
+      expect(_error).not.toBeDefined();
+      expect(_result['node']).toEqual(_node);
+    });
+  });
+
+  it('should follow multiple symbolic links to a file', function() {
+    var complete = false;
+    var _error, _node, _result;
+    var that = this;
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+      var fd = result;
+      that.fs.close(fd, function(error) {
+        if(error) throw error;
+        that.fs.stat('/myfile', function(error, result) {
+          if(error) throw error;
+
+          _node = result['node'];
+          that.fs.symlink('/myfile', '/myfilelink1', function(error) {
+            if(error) throw error;
+            that.fs.symlink('/myfilelink1', '/myfilelink2', function(error) {
+              if(error) throw error;
+
+              that.fs.stat('/myfilelink2', function(error, result) {
+                _error = error;
+                _result = result;
+                complete = true;
+              });
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).toBeDefined();
+      expect(_node).toBeDefined();
+      expect(_error).not.toBeDefined();
+      expect(_result['node']).toEqual(_node);
+    });
+  });
+
+  it('should error if symbolic link leads to itself', function() {
+    var complete = false;
+    var _error, _node, _result;
+    var that = this;
+
+    that.fs.symlink('/mylink1', '/mylink2', function(error) {
+      if(error) throw error;
+
+      that.fs.symlink('/mylink2', '/mylink1', function(error) {
+        if(error) throw error;
+
+        that.fs.stat('/myfilelink1', function(error, result) {
+          _error = error;
+          _result = result;
+          complete = true;
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+      expect(_result).not.toBeDefined();
+    });
+  });
+
+  it('should error if it follows more than 10 symbolic links', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+      var fd = result;
+      that.fs.close(fd, function(error) {
+        if(error) throw error;
+        that.fs.stat('/myfile', function(error, result) {
+          if(error) throw error;
+
+          that.fs.symlink('/myfile', '/myfilelink1', function(error) {
+            if(error) throw error;
+            that.fs.symlink('/myfilelink1', '/myfilelink2', function(error) {
+              if(error) throw error;
+
+              that.fs.symlink('/myfilelink2', '/myfilelink3', function(error) {
+                if(error) throw error;
+
+                that.fs.symlink('/myfilelink3', '/myfilelink4', function(error) {
+                  if(error) throw error;
+
+                  that.fs.symlink('/myfilelink4', '/myfilelink5', function(error) {
+                    if(error) throw error;
+
+                    that.fs.symlink('/myfilelink5', '/myfilelink6', function(error) {
+                      if(error) throw error;
+
+                      that.fs.symlink('/myfilelink6', '/myfilelink7', function(error) {
+                        if(error) throw error;
+
+                        that.fs.symlink('/myfilelink7', '/myfilelink8', function(error) {
+                          if(error) throw error;
+
+                          that.fs.symlink('/myfilelink8', '/myfilelink9', function(error) {
+                            if(error) throw error;
+
+                            that.fs.symlink('/myfilelink9', '/myfilelink10', function(error) {
+                              if(error) throw error;
+
+                              that.fs.symlink('/myfilelink10', '/myfilelink11', function(error) {
+                                if(error) throw error;
+
+                                that.fs.stat('/myfilelink11', function(error, result) {
+                                  _error = error;
+                                  _result = result;
+                                  complete = true;
+                                });
+                              });
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).not.toBeDefined();
+      expect(_error).toBeDefined();
+    });
+  });
+
+  it('should follow a symbolic link in the path to a file', function() {
+    var complete = false;
+    var _error, _node, _result;
+    var that = this;
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+      var fd = result;
+      that.fs.close(fd, function(error) {
+        if(error) throw error;
+        that.fs.stat('/myfile', function(error, result) {
+          if(error) throw error;
+
+          _node = result['node'];
+          that.fs.symlink('/', '/mydirlink', function(error) {
+            if(error) throw error;
+
+            that.fs.stat('/mydirlink/myfile', function(error, result) {
+              _error = error;
+              _result = result;
+              complete = true;
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_result).toBeDefined();
+      expect(_node).toBeDefined();
+      expect(_error).not.toBeDefined();
+      expect(_result['node']).toEqual(_node);
+    });
+  });
+
+  it('should error if a symbolic link in the path to a file is itself a file', function() {
+    var complete = false;
+    var _error, _result;
+    var that = this;
+
+    that.fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+      var fd = result;
+      that.fs.close(fd, function(error) {
+        if(error) throw error;
+        that.fs.stat('/myfile', function(error, result) {
+          if(error) throw error;
+
+          that.fs.open('/myfile2', 'w', function(error, result) {
+            if(error) throw error;
+            var fd = result;
+            that.fs.close(fd, function(error) {
+              if(error) throw error;
+              that.fs.symlink('/myfile2', '/mynotdirlink', function(error) {
+                if(error) throw error;
+
+                that.fs.stat('/mynotdirlink/myfile', function(error, result) {
+                  _error = error;
+                  _result = result;
+                  complete = true;
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    waitsFor(function() {
+      return complete;
+    }, 'test to complete', DEFAULT_TIMEOUT);
+
+    runs(function() {
+      expect(_error).toBeDefined();
+      expect(_result).not.toBeDefined();
     });
   });
 });

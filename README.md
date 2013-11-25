@@ -160,3 +160,17 @@ Asynchronous lseek(2), where `whence` can be `SET`, `CUR`, or `END`. Callback ge
 #### fs.readdir(path, callback)
 
 Asynchronous readdir(3). Reads the contents of a directory. Callback gets `(error, files)`, where `files` is an array containing the names of each file in the directory, excluding `.` and `..`.
+
+#### fs.symlink(srcPath, dstPath, callback)
+
+Asynchronous symlink(2). Callback gets no additional arguments.
+
+Unlike node.js, IDBFS does not accept the optional `type` parameter.
+
+#### fs.readlink(path, callback)
+
+Asynchronous readlink(2). Callback gets `(error, linkContents)`, where `linkContents` is a string containing the path to which the symbolic link links to.
+
+#### fs.lstat(path, callback)
+
+Asynchronous lstat(2). Callback gets `(error, stats)`, See `fs.stat`.

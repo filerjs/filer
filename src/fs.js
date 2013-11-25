@@ -28,17 +28,20 @@ define(function(require) {
   var ENotMounted = require('src/error').ENotMounted;
   var EInvalid = require('src/error').EInvalid;
   var EIO = require('src/error').EIO;
+  var ELoop = require('src/error').ELoop;
   var EFileSystemError = require('src/error').EFileSystemError;
 
   var FS_FORMAT = require('src/constants').FS_FORMAT;
   var MODE_FILE = require('src/constants').MODE_FILE;
   var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
+  var MODE_SYMBOLIC_LINK = require('src/constants').MODE_SYMBOLIC_LINK;
   var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
   var ROOT_NODE_ID = require('src/constants').ROOT_NODE_ID;
   var IDB_RW = require('src/constants').IDB_RW;
   var IDB_RO = require('src/constants').IDB_RO;
   var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
   var METADATA_STORE_NAME = require('src/constants').METADATA_STORE_NAME;
+  var SYMLOOP_MAX = require('src/constants').SYMLOOP_MAX;
   var FS_READY = require('src/constants').FS_READY;
   var FS_PENDING = require('src/constants').FS_PENDING;
   var FS_ERROR = require('src/constants').FS_ERROR;
@@ -119,6 +122,7 @@ define(function(require) {
     }
     var name = basename(path);
     var parentPath = dirname(path);
+    var followedCount = 0;
 
     function check_root_directory_node(error, rootDirectoryNode) {
       if(error) {
@@ -138,13 +142,13 @@ define(function(require) {
       } else if(parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
         callback(new ENotDirectory('a component of the path prefix is not a directory'));
       } else {
-        read_object(objectStore, parentDirectoryNode.data, get_node_id_from_parent_directory_data);
+        read_object(objectStore, parentDirectoryNode.data, get_node_from_parent_directory_data);
       }
     }
 
     // in: parent directory data
-    // out: searched node id
-    function get_node_id_from_parent_directory_data(error, parentDirectoryData) {
+    // out: searched node
+    function get_node_from_parent_directory_data(error, parentDirectoryData) {
       if(error) {
         callback(error);
       } else {
@@ -152,8 +156,36 @@ define(function(require) {
           callback(new ENoEntry('path does not exist'));
         } else {
           var nodeId = parentDirectoryData[name].id;
-          read_object(objectStore, nodeId, callback);
+          read_object(objectStore, nodeId, is_symbolic_link);
         }
+      }
+    }
+
+    function is_symbolic_link(error, node) {
+      if(error) {
+        callback(error);
+      } else {
+        if(node.mode == MODE_SYMBOLIC_LINK) {
+          followedCount++;
+          if(followedCount > SYMLOOP_MAX){
+            callback(new ELoop('too many symbolic links were encountered'));
+          } else {
+            follow_symbolic_link(node.data);
+          }
+        } else {
+          callback(undefined, node);
+        }
+      }
+    }
+
+    function follow_symbolic_link(data) {
+      data = normalize(data);
+      parentPath = dirname(data);
+      name = basename(data);
+      if(ROOT_DIRECTORY_NAME == name) {
+        read_object(objectStore, ROOT_NODE_ID, check_root_directory_node);
+      } else {
+        find_node(objectStore, parentPath, read_parent_directory_data);
       }
     }
 
@@ -300,13 +332,34 @@ define(function(require) {
     var parentDirectoryNode;
     var parentDirectoryData;
 
-    function check_if_directory_exists(error, result) {
+    function read_parent_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        parentDirectoryNode = result;
+        read_object(objectStore, parentDirectoryNode.data, check_if_node_exists);
+      }
+    }
+
+    function check_if_node_exists(error, result) {
       if(error) {
         callback(error);
       } else if(ROOT_DIRECTORY_NAME == name) {
         callback(new EBusy());
-      } else if(!result) {
+      } else if(!_(result).has(name)) {
         callback(new ENoEntry());
+      } else {
+        parentDirectoryData = result;
+        directoryNode = parentDirectoryData[name].id;
+        read_object(objectStore, directoryNode, check_if_node_is_directory);
+      }
+    }
+
+    function check_if_node_is_directory(error, result) {
+      if(error) {
+        callback(error);
+      } else if(result.mode != MODE_DIRECTORY) {
+        callback(new ENotDirectory());
       } else {
         directoryNode = result;
         read_object(objectStore, directoryNode.data, check_if_directory_is_empty);
@@ -321,28 +374,14 @@ define(function(require) {
         if(_(directoryData).size() > 0) {
           callback(new ENotEmpty());
         } else {
-          find_node(objectStore, parentPath, read_parent_directory_data);
+          remove_directory_entry_from_parent_directory_node();
         }
       }
     }
 
-    function read_parent_directory_data(error, result) {
-      if(error) {
-        callback(error);
-      } else {
-        parentDirectoryNode = result;
-        read_object(objectStore, parentDirectoryNode.data, remove_directory_entry_from_parent_directory_node);
-      }
-    }
-
-    function remove_directory_entry_from_parent_directory_node(error, result) {
-      if(error) {
-        callback(error);
-      } else {
-        parentDirectoryData = result;
-        delete parentDirectoryData[name];
-        write_object(objectStore, parentDirectoryData, parentDirectoryNode.data, remove_directory_node);
-      }
+    function remove_directory_entry_from_parent_directory_node() {
+      delete parentDirectoryData[name];
+      write_object(objectStore, parentDirectoryData, parentDirectoryNode.data, remove_directory_node);
     }
 
     function remove_directory_node(error) {
@@ -361,7 +400,7 @@ define(function(require) {
       }
     }
 
-    find_node(objectStore, path, check_if_directory_exists);
+    find_node(objectStore, parentPath, read_parent_directory_data);
   }
 
   function open_file(fs, objectStore, path, flags, callback) {
@@ -374,6 +413,8 @@ define(function(require) {
     var directoryEntry;
     var fileNode;
     var fileData;
+
+    var followedCount = 0;
 
     if(ROOT_DIRECTORY_NAME == name) {
       if(_(flags).contains(O_WRITE)) {
@@ -407,7 +448,7 @@ define(function(require) {
             if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
               callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
             } else {
-              read_object(objectStore, directoryEntry.id, set_file_node);
+              read_object(objectStore, directoryEntry.id, check_if_symbolic_link);
             }
           }
         } else {
@@ -418,6 +459,38 @@ define(function(require) {
           }
         }
       }
+    }
+
+    function check_if_symbolic_link(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        var node = result;
+        if(node.mode == MODE_SYMBOLIC_LINK) {
+          followedCount++;
+          if(followedCount > SYMLOOP_MAX){
+            callback(new ELoop('too many symbolic links were encountered'));
+          } else {
+            follow_symbolic_link(node.data);
+          }
+        } else {
+          set_file_node(undefined, node);
+        }
+      }
+    }
+
+    function follow_symbolic_link(data) {
+      data = normalize(data);
+      parentPath = dirname(data);
+      name = basename(data);
+      if(ROOT_DIRECTORY_NAME == name) {
+        if(_(flags).contains(O_WRITE)) {
+          callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
+        } else {
+          find_node(objectStore, path, set_file_node);
+        }
+      }
+      find_node(objectStore, parentPath, read_directory_data);
     }
 
     function set_file_node(error, result) {
@@ -577,6 +650,51 @@ define(function(require) {
     }
   }
 
+  function lstat_file(objectStore, path, callback) {
+    path = normalize(path);
+    var name = basename(path);
+    var parentPath = dirname(path);
+
+    var directoryNode;
+    var directoryData;
+
+    if(ROOT_DIRECTORY_NAME == name) {
+      read_object(objectStore, ROOT_NODE_ID, check_file);
+    } else {
+      find_node(objectStore, parentPath, read_directory_data);
+    }
+
+    function read_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryNode = result;
+        read_object(objectStore, directoryNode.data, check_if_file_exists);
+      }
+    }
+
+    function check_if_file_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = result;
+        if(!_(directoryData).has(name)) {
+          callback(new ENoEntry('a component of the path does not name an existing file'));
+        } else {
+          read_object(objectStore, directoryData[name].id, check_file);
+        }
+      }
+    }
+
+    function check_file(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        callback(undefined, result);
+      }
+    }
+  }
+
   function link_node(objectStore, oldpath, newpath, callback) {
     oldpath = normalize(oldpath);
     var oldname = basename(oldpath);
@@ -660,8 +778,8 @@ define(function(require) {
 
   function unlink_node(objectStore, path, callback) {
     path = normalize(path);
-    name = basename(path);
-    parentPath = dirname(path);
+    var name = basename(path);
+    var parentPath = dirname(path);
 
     var directoryNode;
     var directoryData;
@@ -748,6 +866,106 @@ define(function(require) {
         directoryData = result;
         var files = Object.keys(directoryData);
         callback(undefined, files);
+      }
+    }
+  }
+
+  function make_symbolic_link(objectStore, srcpath, dstpath, callback) {
+    dstpath = normalize(dstpath);
+    var name = basename(dstpath);
+    var parentPath = dirname(dstpath);
+
+    var directoryNode;
+    var directoryData;
+    var fileNode;
+
+    if(ROOT_DIRECTORY_NAME == name) {
+      callback(new EExists('the destination path already exists'));
+    } else {
+      find_node(objectStore, parentPath, read_directory_data);
+    }
+
+    function read_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryNode = result;
+        read_object(objectStore, directoryNode.data, check_if_file_exists);
+      }
+    }
+
+    function check_if_file_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = result;
+        if(_(directoryData).has(name)) {
+          callback(new EExists('the destination path already exists'));
+        } else {
+          write_file_node();
+        }
+      }
+    }
+
+    function write_file_node() {
+      fileNode = new Node(undefined, MODE_SYMBOLIC_LINK);
+      fileNode.nlinks += 1;
+      fileNode.size = srcpath.length;
+      fileNode.data = srcpath;
+      write_object(objectStore, fileNode, fileNode.id, update_directory_data);
+    }
+
+    function update_directory_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData[name] = new DirectoryEntry(fileNode.id, MODE_SYMBOLIC_LINK);
+        write_object(objectStore, directoryData, directoryNode.data, callback);
+      }
+    }
+  }
+
+  function read_link(objectStore, path, callback) {
+    path = normalize(path);
+    var name = basename(path);
+    var parentPath = dirname(path);
+
+    var directoryNode;
+    var directoryData;
+
+    find_node(objectStore, parentPath, read_directory_data);
+
+    function read_directory_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryNode = result;
+        read_object(objectStore, directoryNode.data, check_if_file_exists);
+      }
+    }
+
+    function check_if_file_exists(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryData = result;
+        if(!_(directoryData).has(name)) {
+          callback(new ENoEntry('a component of the path does not name an existing file'));
+        } else {
+          read_object(objectStore, directoryData[name].id, check_if_symbolic);
+        }
+      }
+    }
+
+    function check_if_symbolic(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        if(result.mode != MODE_SYMBOLIC_LINK) {
+          callback(new EInvalid("path not a symbolic link"));
+        } else {
+            callback(undefined, result.data);
+        }
       }
     }
   }
@@ -1166,17 +1384,51 @@ define(function(require) {
   FileSystem.prototype._ftruncate = function _ftruncate(fd, length, callback) {
 
   };
-  FileSystem.prototype._symlink = function _symlink(fd, length, callback) {
+  FileSystem.prototype._symlink = function _symlink(context, srcpath, dstpath, callback) {
+    var that = this;
 
+    function check_result(error) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        callback(error);
+      } else {
+        callback(undefined);
+      }
+    }
+
+    make_symbolic_link(context, srcpath, dstpath, check_result);
   };
-  FileSystem.prototype._readlink = function _readlink(fd, length, callback) {
+  FileSystem.prototype._readlink = function _readlink(context, path, callback) {
+    var that = this;
 
+    function check_result(error, result) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        callback(error);
+      } else {
+        callback(undefined, result);
+      }
+    }
+
+    read_link(context, path, check_result);
   };
   FileSystem.prototype._realpath = function _realpath(fd, length, callback) {
 
   };
-  FileSystem.prototype._lstat = function _lstat(fd, length, callback) {
+  FileSystem.prototype._lstat = function _lstat(context, path, callback) {
+    var that = this;
 
+    function check_result(error, result) {
+      if(error) {
+        // if(transaction.error) transaction.abort();
+        callback(error);
+      } else {
+        var stats = new Stats(result, that.name);
+        callback(undefined, stats);
+      }
+    }
+
+    lstat_file(context, path, check_result);
   };
 
   function IndexedDBContext(objectStore) {
@@ -1454,6 +1706,42 @@ define(function(require) {
         var files = transaction.objectStore(FILE_STORE_NAME);
         var context = new IndexedDBContext(files);
         fs._rename(context, oldpath, newpath, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  IndexedDBFileSystem.prototype.readlink = function readlink(path, callback) {
+    var fs = this;
+    var error = this._queueOrRun(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        var context = new IndexedDBContext(files);
+        fs._readlink(context, path, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  IndexedDBFileSystem.prototype.symlink = function symlink(srcpath, dstpath, callback) {
+    var fs = this;
+    var error = this._queueOrRun(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        var context = new IndexedDBContext(files);
+        fs._symlink(context, srcpath, dstpath, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  IndexedDBFileSystem.prototype.lstat = function lstat(path, callback) {
+    var fs = this;
+    var error = this._queueOrRun(
+      function() {
+        var transaction = fs.db.transaction([FILE_STORE_NAME], IDB_RW);
+        var files = transaction.objectStore(FILE_STORE_NAME);
+        var context = new IndexedDBContext(files);
+        fs._lstat(context, path, callback);
       }
     );
     if(error) callback(error);

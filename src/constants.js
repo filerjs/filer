@@ -18,6 +18,8 @@ define(function(require) {
     MODE_DIRECTORY: 'DIRECTORY',
     MODE_SYMBOLIC_LINK: 'SYMLINK',
 
+    SYMLOOP_MAX: 10,
+
     BINARY_MIME_TYPE: 'application/octet-stream',
     JSON_MIME_TYPE: 'application/json',
 
