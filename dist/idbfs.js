@@ -8499,6 +8499,16 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
     return O_FLAGS[flags];
   }
 
+  // nullCheck from https://github.com/joyent/node/blob/master/lib/fs.js
+  function nullCheck(path, callback) {
+    if (('' + path).indexOf('\u0000') !== -1) {
+      var er = new Error('Path must be a string without null bytes.');
+      callback(er);
+      return false;
+    }
+    return true;
+  }
+
   /*
    * FileSystem
    *
@@ -8613,6 +8623,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   FileSystem.providers = providers;
 
   function _open(fs, context, path, flags, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, fileNode) {
       if(error) {
         callback(error);
@@ -8647,6 +8659,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   }
 
   function _mkdir(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -8659,6 +8673,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   }
 
   function _rmdir(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -8671,6 +8687,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   }
 
   function _stat(context, name, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, result) {
       if(error) {
         callback(error);
@@ -8703,6 +8721,9 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   }
 
   function _link(context, oldpath, newpath, callback) {
+    if(!nullCheck(oldpath, callback)) return;
+    if(!nullCheck(newpath, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -8715,6 +8736,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   }
 
   function _unlink(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -8758,6 +8781,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
     } else if(typeof options === "string") {
       options = { encoding: options, flag: 'r' };
     }
+
+    if(!nullCheck(path, callback)) return;
 
     var flags = validate_flags(options.flag || 'r');
     if(!flags) {
@@ -8834,6 +8859,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
       options = { encoding: options, flag: 'w' };
     }
 
+    if(!nullCheck(path, callback)) return;
+
     var flags = validate_flags(options.flag || 'w');
     if(!flags) {
       callback(new EInvalid('flags is not valid'));
@@ -8862,10 +8889,12 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
 
   function _getxattr(path, name, callback) {
     // TODO
+    //     if(!nullCheck(path, callback)) return;
   }
 
   function _setxattr(path, name, value, callback) {
     // TODO
+    //    if(!nullCheck(path, callback)) return;
   }
 
   function _lseek(fs, context, fd, offset, whence, callback) {
@@ -8918,6 +8947,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   }
 
   function _readdir(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, files) {
       if(error) {
         callback(error);
@@ -8931,9 +8962,13 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
 
   function _utimes(path, atime, mtime, callback) {
     // TODO
+    //     if(!nullCheck(path, callback)) return;
   }
 
   function _rename(context, oldpath, newpath, callback) {
+    if(!nullCheck(oldpath, callback)) return;
+    if(!nullCheck(newpath, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -8954,6 +8989,9 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   }
 
   function _symlink(context, srcpath, dstpath, callback) {
+    if(!nullCheck(srcpath, callback)) return;
+    if(!nullCheck(dstpath, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -8966,6 +9004,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   }
 
   function _readlink(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, result) {
       if(error) {
         callback(error);
@@ -8982,6 +9022,8 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   }
 
   function _lstat(fs, context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, result) {
       if(error) {
         callback(error);
@@ -8996,10 +9038,12 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
 
   function _truncate(path, length, callback) {
     // TODO
+    //     if(!nullCheck(path, callback)) return;
   }
 
   function _ftruncate(fd, length, callback) {
     // TODO
+    //     if(!nullCheck(path, callback)) return;
   }
 
 
@@ -9020,7 +9064,11 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   FileSystem.prototype.close = function(fd, callback) {
     _close(this, fd, callback);
   };
-  FileSystem.prototype.mkdir = function(path, callback) {
+  FileSystem.prototype.mkdir = function(path, mode, callback) {
+    // Support passing a mode arg, but we ignore it internally for now.
+    if(typeof mode === 'function') {
+      callback = mode;
+    }
     var fs = this;
     var error = fs.queueOrRun(
       function() {
