@@ -1317,6 +1317,10 @@ define(function(require) {
       callback(new EInvalid('flags is not valid'));
     }
 
+    data = data || '';
+    if(typeof data === "number") {
+      data = '' + data;
+    }
     if(typeof data === "string" && options.encoding === 'utf8') {
       data = new TextEncoder('utf-8').encode(data);
     }

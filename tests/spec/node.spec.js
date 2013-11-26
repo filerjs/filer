@@ -108,7 +108,9 @@ describe("node.js tests from https://github.com/joyent/node/blob/master/test", f
     check(fs.symlink,     'foo\u0000bar', 'foobar');
     check(fs.symlink,     'foobar', 'foo\u0000bar');
     check(fs.unlink,      'foo\u0000bar');
-    check(fs.writeFile,   'foo\u0000bar');
+    // NOTE: the node.js test doesn't pass anything for the data arg
+    // but this just seems wrong based on their docs. Here I use one.
+    check(fs.writeFile,   'foo\u0000bar', 'foobar');
 // TODO - need to be implemented still...
 //  check(fs.appendFile,  'foo\u0000bar');
 //  check(fs.realpath,    'foo\u0000bar');
