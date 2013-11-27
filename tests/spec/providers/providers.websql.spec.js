@@ -2,18 +2,16 @@ define(["IDBFS"], function(IDBFS) {
 
   var WEBSQL_NAME = "websql-test-db";
 
-  function wipeDB() {
-    var provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
-    provider.open(function(err, firstAccess) {
-      if(err) {
-        console.error("Problem clearing WebSQL db: " + err);
-        return;
-      }
-      var context = provider.getReadWriteContext();
-      context.clear(function(err) {
-        console.error("Problem clearing WebSQL db: " + err);
-      });
+  function wipeDB(provider) {
+    var context = provider.getReadWriteContext();
+    context.clear(function(err) {
+      console.error("Problem clearing WebSQL db: " + err);
     });
+  }
+
+  if(!IDBFS.FileSystem.providers.WebSQL.isSupported()) {
+    console.log("Skipping IDBFS.FileSystem.providers.WebSQL tests, since WebSQL isn't supported.");
+    return;
   }
 
   describe("IDBFS.FileSystem.providers.WebSQL", function() {
@@ -29,19 +27,15 @@ define(["IDBFS"], function(IDBFS) {
     });
 
     describe("open an WebSQL provider", function() {
-      beforeEach(function() {
-        wipeDB();
-      });
-
       afterEach(function() {
-        wipeDB();
+        wipeDB(this.provider);
       });
 
       it("should open a new WebSQL database", function() {
         var complete = false;
         var _error, _result;
 
-        var provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
           _result = firstAccess;
@@ -60,19 +54,15 @@ define(["IDBFS"], function(IDBFS) {
     });
 
     describe("Read/Write operations on an WebSQL provider", function() {
-      beforeEach(function() {
-        wipeDB();
-      });
-
       afterEach(function() {
-        wipeDB();
+        wipeDB(this.provider);
       });
 
       it("should allow put() and get()", function() {
         var complete = false;
         var _error, _result;
 
-        var provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
 
@@ -102,7 +92,7 @@ define(["IDBFS"], function(IDBFS) {
         var complete = false;
         var _error, _result;
 
-        var provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
 
@@ -135,7 +125,7 @@ define(["IDBFS"], function(IDBFS) {
         var complete = false;
         var _error, _result1, _result2;
 
-        var provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
 
@@ -179,7 +169,7 @@ define(["IDBFS"], function(IDBFS) {
         var complete = false;
         var _error, _result;
 
-        var provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
 

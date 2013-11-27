@@ -55,7 +55,7 @@ define(function(require) {
       callback(error);
     }
     this.getTransaction(function(transaction) {
-      transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data)",
+      transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data) VALUES (?, ?)",
                              [key, value], onSuccess, onError);
     });
   };
