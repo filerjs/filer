@@ -9154,9 +9154,10 @@ define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','sr
   };
   FileSystem.prototype.read = function(fd, buffer, offset, length, position, callback) {
     // Follow how node.js does this
+    callback = maybeCallback(callback);
     function wrapper(err, bytesRead) {
       // Retain a reference to buffer so that it can't be GC'ed too soon.
-      callback && callback(err, bytesRead || 0, buffer);
+      callback(err, bytesRead || 0, buffer);
     }
     var fs = this;
     var error = fs.queueOrRun(
