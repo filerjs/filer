@@ -4,7 +4,6 @@ define(function(require) {
 
   // TextEncoder and TextDecoder will either already be present, or use this shim.
   // Because of the way the spec is defined, we need to get them off the global.
-  require('encoding-indexes');
   require('encoding');
 
   var normalize = require('src/path').normalize;
@@ -950,6 +949,29 @@ define(function(require) {
     return O_FLAGS[flags];
   }
 
+  // nullCheck from https://github.com/joyent/node/blob/master/lib/fs.js
+  function nullCheck(path, callback) {
+    if (('' + path).indexOf('\u0000') !== -1) {
+      var er = new Error('Path must be a string without null bytes.');
+      callback(er);
+      return false;
+    }
+    return true;
+  }
+
+  // node.js supports a calling pattern that leaves off a callback.
+  function maybeCallback(callback) {
+    if(typeof callback === "function") {
+      return callback;
+    }
+    return function(err) {
+      if(err) {
+        throw err;
+      }
+    };
+  }
+
+
   /*
    * FileSystem
    *
@@ -1064,6 +1086,8 @@ define(function(require) {
   FileSystem.providers = providers;
 
   function _open(fs, context, path, flags, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, fileNode) {
       if(error) {
         callback(error);
@@ -1098,6 +1122,8 @@ define(function(require) {
   }
 
   function _mkdir(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -1110,6 +1136,8 @@ define(function(require) {
   }
 
   function _rmdir(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -1122,6 +1150,8 @@ define(function(require) {
   }
 
   function _stat(context, name, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, result) {
       if(error) {
         callback(error);
@@ -1154,6 +1184,9 @@ define(function(require) {
   }
 
   function _link(context, oldpath, newpath, callback) {
+    if(!nullCheck(oldpath, callback)) return;
+    if(!nullCheck(newpath, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -1166,6 +1199,8 @@ define(function(require) {
   }
 
   function _unlink(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -1204,11 +1239,12 @@ define(function(require) {
     if(!options) {
       options = { encoding: null, flag: 'r' };
     } else if(typeof options === "function") {
-      callback = options;
       options = { encoding: null, flag: 'r' };
     } else if(typeof options === "string") {
       options = { encoding: options, flag: 'r' };
     }
+
+    if(!nullCheck(path, callback)) return;
 
     var flags = validate_flags(options.flag || 'r');
     if(!flags) {
@@ -1279,17 +1315,22 @@ define(function(require) {
     if(!options) {
       options = { encoding: 'utf8', flag: 'w' };
     } else if(typeof options === "function") {
-      callback = options;
       options = { encoding: 'utf8', flag: 'w' };
     } else if(typeof options === "string") {
       options = { encoding: options, flag: 'w' };
     }
+
+    if(!nullCheck(path, callback)) return;
 
     var flags = validate_flags(options.flag || 'w');
     if(!flags) {
       callback(new EInvalid('flags is not valid'));
     }
 
+    data = data || '';
+    if(typeof data === "number") {
+      data = '' + data;
+    }
     if(typeof data === "string" && options.encoding === 'utf8') {
       data = new TextEncoder('utf-8').encode(data);
     }
@@ -1313,10 +1354,12 @@ define(function(require) {
 
   function _getxattr(path, name, callback) {
     // TODO
+    //     if(!nullCheck(path, callback)) return;
   }
 
   function _setxattr(path, name, value, callback) {
     // TODO
+    //    if(!nullCheck(path, callback)) return;
   }
 
   function _lseek(fs, context, fd, offset, whence, callback) {
@@ -1369,6 +1412,8 @@ define(function(require) {
   }
 
   function _readdir(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, files) {
       if(error) {
         callback(error);
@@ -1382,9 +1427,13 @@ define(function(require) {
 
   function _utimes(path, atime, mtime, callback) {
     // TODO
+    //     if(!nullCheck(path, callback)) return;
   }
 
   function _rename(context, oldpath, newpath, callback) {
+    if(!nullCheck(oldpath, callback)) return;
+    if(!nullCheck(newpath, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -1405,6 +1454,9 @@ define(function(require) {
   }
 
   function _symlink(context, srcpath, dstpath, callback) {
+    if(!nullCheck(srcpath, callback)) return;
+    if(!nullCheck(dstpath, callback)) return;
+
     function check_result(error) {
       if(error) {
         callback(error);
@@ -1417,6 +1469,8 @@ define(function(require) {
   }
 
   function _readlink(context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, result) {
       if(error) {
         callback(error);
@@ -1433,6 +1487,8 @@ define(function(require) {
   }
 
   function _lstat(fs, context, path, callback) {
+    if(!nullCheck(path, callback)) return;
+
     function check_result(error, result) {
       if(error) {
         callback(error);
@@ -1447,10 +1503,12 @@ define(function(require) {
 
   function _truncate(path, length, callback) {
     // TODO
+    //     if(!nullCheck(path, callback)) return;
   }
 
   function _ftruncate(fd, length, callback) {
     // TODO
+    //     if(!nullCheck(path, callback)) return;
   }
 
 
@@ -1458,7 +1516,10 @@ define(function(require) {
    * Public API for FileSystem
    */
 
-  FileSystem.prototype.open = function(path, flags, callback) {
+  FileSystem.prototype.open = function(path, flags, mode, callback) {
+    // We support the same signature as node with a `mode` arg, but
+    // ignore it. Find the callback.
+    callback = maybeCallback(arguments[arguments.length - 1]);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1469,9 +1530,14 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.close = function(fd, callback) {
-    _close(this, fd, callback);
+    _close(this, fd, maybeCallback(callback));
   };
-  FileSystem.prototype.mkdir = function(path, callback) {
+  FileSystem.prototype.mkdir = function(path, mode, callback) {
+    // Support passing a mode arg, but we ignore it internally for now.
+    if(typeof mode === 'function') {
+      callback = mode;
+    }
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1482,6 +1548,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.rmdir = function(path, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1492,6 +1559,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.stat = function(path, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1502,6 +1570,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.fstat = function(fd, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1512,6 +1581,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.link = function(oldpath, newpath, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1522,6 +1592,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.unlink = function(path, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1532,16 +1603,23 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.read = function(fd, buffer, offset, length, position, callback) {
+    // Follow how node.js does this
+    callback = maybeCallback(callback);
+    function wrapper(err, bytesRead) {
+      // Retain a reference to buffer so that it can't be GC'ed too soon.
+      callback(err, bytesRead || 0, buffer);
+    }
     var fs = this;
     var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
-        _read(fs, context, fd, buffer, offset, length, position, callback);
+        _read(fs, context, fd, buffer, offset, length, position, wrapper);
       }
     );
     if(error) callback(error);
   };
-  FileSystem.prototype.readFile = function(path, options, callback) {
+  FileSystem.prototype.readFile = function(path, options, callback_) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1552,6 +1630,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.write = function(fd, buffer, offset, length, position, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1562,7 +1641,8 @@ define(function(require) {
 
     if(error) callback(error);
   };
-  FileSystem.prototype.writeFile = function(path, data, options, callback) {
+  FileSystem.prototype.writeFile = function(path, data, options, callback_) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1573,6 +1653,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.lseek = function(fd, offset, whence, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1583,6 +1664,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.readdir = function(path, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1593,6 +1675,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.rename = function(oldpath, newpath, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1603,6 +1686,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.readlink = function(path, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1612,7 +1696,9 @@ define(function(require) {
     );
     if(error) callback(error);
   };
-  FileSystem.prototype.symlink = function(srcpath, dstpath, callback) {
+  FileSystem.prototype.symlink = function(srcpath, dstpath, type, callback_) {
+    // Follow node.js in allowing the `type` arg to be passed, but we ignore it.
+    var callback = maybeCallback(arguments[arguments.length - 1]);
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -1623,6 +1709,7 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.lstat = function(path, callback) {
+    callback = maybeCallback(callback);
     var fs = this;
     var error = fs.queueOrRun(
       function() {

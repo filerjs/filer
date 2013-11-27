@@ -43,10 +43,16 @@ module.exports = function(grunt) {
           wrap: {
             startFile: 'build/wrap.start',
             endFile: 'build/wrap.end'
+          },
+          shim: {
+            // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first.
+            "encoding": {
+              deps: ["encoding-indexes"]
+            }
           }
         }
       }
-    },
+    }
   });
 
   grunt.loadNpmTasks('grunt-contrib-clean');
