@@ -7001,7 +7001,7 @@ define("encoding-indexes", function(){});
   global['TextDecoder'] = global['TextDecoder'] || TextDecoder;
 }(this));
 
-define("encoding", function(){});
+define("encoding", ["encoding-indexes"], function(){});
 
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7547,13 +7547,12 @@ define('src/providers/providers',['require','src/providers/indexeddb','src/provi
   };
 });
 
-define('src/fs',['require','lodash','encoding-indexes','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers'],function(require) {
+define('src/fs',['require','lodash','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers'],function(require) {
 
   var _ = require('lodash');
 
   // TextEncoder and TextDecoder will either already be present, or use this shim.
   // Because of the way the spec is defined, we need to get them off the global.
-  require('encoding-indexes');
   require('encoding');
 
   var normalize = require('src/path').normalize;

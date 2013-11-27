@@ -11,7 +11,13 @@ require.config({
     "IDBFS": "../src/fs"
   },
   baseUrl: "../lib",
-  optimize: "none"
+  optimize: "none",
+  shim: {
+    // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first.
+    "encoding": {
+      deps: ["encoding-indexes"]
+    }
+  }
 });
 
 require(["tests/test-manifest"], function() {

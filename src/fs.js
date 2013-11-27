@@ -4,7 +4,6 @@ define(function(require) {
 
   // TextEncoder and TextDecoder will either already be present, or use this shim.
   // Because of the way the spec is defined, we need to get them off the global.
-  require('encoding-indexes');
   require('encoding');
 
   var normalize = require('src/path').normalize;
