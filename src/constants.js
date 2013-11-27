@@ -8,7 +8,8 @@ define(function(require) {
   var O_APPEND = 'APPEND';
 
   return {
-    METADATA_STORE_NAME: 'metadata',
+    FILE_SYSTEM_NAME: 'local',
+
     FILE_STORE_NAME: 'files',
 
     IDB_RO: 'readonly',
@@ -45,7 +46,7 @@ define(function(require) {
       'a': [O_WRITE, O_CREATE, O_APPEND],
       'a+': [O_WRITE, O_READ, O_CREATE, O_APPEND],
       'ax': [O_WRITE, O_CREATE, O_EXCLUSIVE, O_APPEND],
-      'ax+': [O_WRITE, O_READ, O_CREATE, O_EXCLUSIVE, O_APPEND],
+      'ax+': [O_WRITE, O_READ, O_CREATE, O_EXCLUSIVE, O_APPEND]
     },
 
     FS_READY: 'READY',

@@ -1,43 +1,3 @@
-var TEST_DATABASE_NAME = '__test';
-var DEFAULT_TIMEOUT = 5000;
-
-var test_database_names = [];
-window.onbeforeunload = function() {
-  test_database_names.forEach(function(name) {
-    indexedDB.deleteDatabase(name);
-  });
-};
-
-function mk_id(length) {
-  var text = '';
-  var tokens = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-  for( var i=0; i < length; i++ )
-      text += tokens.charAt(Math.floor(Math.random() * tokens.length));
-
-  return text;
-};
-
-function mk_db_name() {
-  var name = TEST_DATABASE_NAME + mk_id(5) + Date.now();
-  test_database_names.push(name);
-  return name;
-};
-
-function typed_array_equal(left, right) {
-  if(left.length !== right.length) {
-    return false;
-  }
-
-  for(var i = 0; i < left.length; ++ i) {
-    if(left[i] !== right[i]) {
-      return false;
-    }
-  }
-
-  return true;
-};
-
 describe("IDBFS", function() {
   it("is defined", function() {
     expect(typeof IDBFS).not.toEqual(undefined);
@@ -51,7 +11,10 @@ describe("IDBFS", function() {
 describe("fs", function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -86,7 +49,10 @@ describe("fs", function() {
 describe('fs.stat', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -137,7 +103,7 @@ describe('fs.stat', function() {
 
     runs(function() {
       expect(_result).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toBeDefined();
       expect(_result['dev']).toEqual(that.db_name);
       expect(_result['size']).toBeDefined();
@@ -183,7 +149,7 @@ describe('fs.stat', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -192,7 +158,10 @@ describe('fs.stat', function() {
 describe('fs.fstat', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -227,7 +196,7 @@ describe('fs.fstat', function() {
 
     runs(function() {
       expect(_result).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toBeDefined();
       expect(_result['dev']).toEqual(that.db_name);
       expect(_result['size']).toBeDefined();
@@ -243,7 +212,10 @@ describe('fs.fstat', function() {
 describe('fs.lstat', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -293,7 +265,7 @@ describe('fs.lstat', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toBeDefined();
     });
   });
@@ -320,7 +292,7 @@ describe('fs.lstat', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toBeDefined();
     });
   });
@@ -329,7 +301,10 @@ describe('fs.lstat', function() {
 describe('fs.mkdir', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -402,7 +377,7 @@ describe('fs.mkdir', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).not.toBeDefined();
       expect(_stat).toBeDefined();
     });
@@ -412,7 +387,10 @@ describe('fs.mkdir', function() {
 describe('fs.readdir', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -463,7 +441,7 @@ describe('fs.readdir', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_files.length).toEqual(1);
       expect(_files[0]).toEqual('tmp');
     });
@@ -492,7 +470,7 @@ describe('fs.readdir', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_files.length).toEqual(1);
       expect(_files[0]).toEqual('tmp');
     });
@@ -502,7 +480,10 @@ describe('fs.readdir', function() {
 describe('fs.rmdir', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -649,7 +630,7 @@ describe('fs.rmdir', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_stat).not.toBeDefined();
     });
   });
@@ -658,7 +639,10 @@ describe('fs.rmdir', function() {
 describe('fs.open', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -791,7 +775,7 @@ describe('fs.open', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result1).toBeDefined();
       expect(_result2).toBeDefined();
       expect(_result1).not.toEqual(_result2);
@@ -818,7 +802,7 @@ describe('fs.open', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toBeDefined();
     });
   });
@@ -827,7 +811,10 @@ describe('fs.open', function() {
 describe('fs.write', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -869,7 +856,7 @@ describe('fs.write', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(buffer.length);
       expect(_stats.size).toEqual(buffer.length);
     });
@@ -911,7 +898,7 @@ describe('fs.write', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(2 * buffer.length);
       expect(_stats.size).toEqual(_result);
     });
@@ -921,7 +908,10 @@ describe('fs.write', function() {
 describe('fs.writeFile, fs.readFile', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -978,7 +968,7 @@ describe('fs.writeFile, fs.readFile', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(contents);
     });
   });
@@ -1004,7 +994,7 @@ describe('fs.writeFile, fs.readFile', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(contents);
     });
   });
@@ -1030,7 +1020,7 @@ describe('fs.writeFile, fs.readFile', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(contents);
     });
   });
@@ -1058,7 +1048,7 @@ describe('fs.writeFile, fs.readFile', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(binary);
     });
   });
@@ -1098,7 +1088,10 @@ describe('fs.writeFile, fs.readFile', function() {
 describe('fs.read', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -1139,7 +1132,7 @@ describe('fs.read', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(rbuffer.length);
       expect(typed_array_equal(wbuffer, rbuffer)).toEqual(true);
     });
@@ -1180,7 +1173,7 @@ describe('fs.read', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(rbuffer.length);
       expect(typed_array_equal(wbuffer.buffer, rbuffer.buffer)).toEqual(true);
     });
@@ -1190,7 +1183,10 @@ describe('fs.read', function() {
 describe('fs.close', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -1234,7 +1230,10 @@ describe('fs.close', function() {
 describe('fs.link', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -1282,7 +1281,7 @@ describe('fs.link', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_newstats.node).toEqual(_oldstats.node);
       expect(_newstats.nlinks).toEqual(2);
       expect(_newstats).toEqual(_oldstats);
@@ -1319,7 +1318,7 @@ describe('fs.link', function() {
    }, 'test to complete', DEFAULT_TIMEOUT);
 
    runs(function () {
-     expect(_error).not.toBeDefined();
+     expect(_error).toEqual(null);
      expect(_newstats.node).toEqual(_linkstats.node);
      expect(_newstats.node).toNotEqual(_oldstats.node);
      expect(_newstats.nlinks).toEqual(2);
@@ -1331,7 +1330,10 @@ describe('fs.link', function() {
 describe('fs.unlink', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -1435,7 +1437,10 @@ describe('fs.unlink', function() {
 describe('fs.rename', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -1487,6 +1492,25 @@ describe('fs.rename', function() {
       expect(_stats.nlinks).toEqual(1);
     });
   });
+});
+
+describe('fs.lseek', function() {
+  beforeEach(function() {
+    this.db_name = mk_db_name();
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
+  });
+
+  afterEach(function() {
+    indexedDB.deleteDatabase(this.db_name);
+    delete this.fs;
+  });
+
+  it('should be a function', function() {
+    expect(typeof this.fs.lseek).toEqual('function');
+  });
 
   it('should not follow symbolic links', function () {
     var complete = false;
@@ -1530,7 +1554,7 @@ describe('fs.rename', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function () {
-      expect(_error1).not.toBeDefined();
+      expect(_error1).toEqual(null);
       expect(_error2).toBeDefined();
       expect(_stats.nlinks).toEqual(1);
     });
@@ -1540,7 +1564,10 @@ describe('fs.rename', function() {
 describe('fs.lseek', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -1596,7 +1623,7 @@ describe('fs.lseek', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(offset);
       expect(_stats.size).toEqual(offset + buffer.length);
       var expected = new Uint8Array([1, 2, 3, 1, 2, 3, 4, 5, 6, 7, 8]);
@@ -1648,7 +1675,7 @@ describe('fs.lseek', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(offset + buffer.length);
       expect(_stats.size).toEqual(offset + 2 * buffer.length);
       var expected = new Uint8Array([1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 7, 8]);
@@ -1705,7 +1732,7 @@ describe('fs.lseek', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(offset + buffer.length);
       expect(_stats.size).toEqual(offset + 2 * buffer.length);
       var expected = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
@@ -1717,7 +1744,10 @@ describe('fs.lseek', function() {
 describe('fs.symlink', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -1785,7 +1815,7 @@ describe('fs.symlink', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).not.toBeDefined();
      });
   });
@@ -1794,7 +1824,10 @@ describe('fs.symlink', function() {
 describe('fs.readlink', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -1866,7 +1899,7 @@ describe('fs.readlink', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual('/');
      });
   });
@@ -1875,7 +1908,10 @@ describe('fs.readlink', function() {
 describe('path resolution', function() {
   beforeEach(function() {
     this.db_name = mk_db_name();
-    this.fs = new IDBFS.FileSystem(this.db_name, 'FORMAT');
+    this.fs = new IDBFS.FileSystem({
+      name: this.db_name,
+      flags: 'FORMAT'
+    });
   });
 
   afterEach(function() {
@@ -1910,7 +1946,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -1944,7 +1980,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -1983,7 +2019,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -2025,7 +2061,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -2168,7 +2204,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
