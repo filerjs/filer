@@ -32,6 +32,7 @@ define([
   "spec/providers/providers.spec",
   "spec/providers/providers.memory.spec",
   "spec/providers/providers.indexeddb.spec",
+  "spec/providers/providers.websql.spec",
 
   // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
   "spec/node-js/simple/test-fs-mkdir",
