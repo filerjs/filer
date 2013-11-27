@@ -29,6 +29,7 @@ define(function(require) {
   var ELoop = require('src/error').ELoop;
   var EFileSystemError = require('src/error').EFileSystemError;
 
+  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
   var FS_FORMAT = require('src/constants').FS_FORMAT;
   var MODE_FILE = require('src/constants').MODE_FILE;
   var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
@@ -47,8 +48,7 @@ define(function(require) {
   var O_APPEND = require('src/constants').O_APPEND;
   var O_FLAGS = require('src/constants').O_FLAGS;
 
-  var Providers = require('src/providers/providers');
-  var FileSystemsManager = require('src/filesystems-manager');
+  var providers = require('src/providers/providers');
 
   /*
    * DirectoryEntry
@@ -127,7 +127,7 @@ define(function(require) {
       } else if(!rootDirectoryNode) {
         callback(new ENoEntry('path does not exist'));
       } else {
-        callback(undefined, rootDirectoryNode);
+        callback(null, rootDirectoryNode);
       }
     }
 
@@ -170,7 +170,7 @@ define(function(require) {
             follow_symbolic_link(node.data);
           }
         } else {
-          callback(undefined, node);
+          callback(null, node);
         }
       }
     }
@@ -471,7 +471,7 @@ define(function(require) {
         callback(error);
       } else {
         fileNode = result;
-        callback(undefined, fileNode);
+        callback(null, fileNode);
       }
     }
 
@@ -503,7 +503,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, fileNode);
+        callback(null, fileNode);
       }
     }
   }
@@ -516,7 +516,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, length);
+        callback(null, length);
       }
     }
 
@@ -580,7 +580,7 @@ define(function(require) {
         if(undefined === position) {
           ofd.position += length;
         }
-        callback(undefined, length);
+        callback(null, length);
       }
     }
 
@@ -604,7 +604,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, result);
+        callback(null, result);
       }
     }
 
@@ -616,7 +616,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, result);
+        callback(null, result);
       }
     }
 
@@ -663,7 +663,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, result);
+        callback(null, result);
       }
     }
   }
@@ -827,7 +827,7 @@ define(function(require) {
       } else {
         directoryData = result;
         var files = Object.keys(directoryData);
-        callback(undefined, files);
+        callback(null, files);
       }
     }
 
@@ -937,7 +937,7 @@ define(function(require) {
         if(result.mode != MODE_SYMBOLIC_LINK) {
           callback(new EInvalid("path not a symbolic link"));
         } else {
-          callback(undefined, result.data);
+          callback(null, result.data);
         }
       }
     }
@@ -962,34 +962,72 @@ define(function(require) {
    *        For example: "FORMAT" will cause the file system to be formatted.
    *        No explicit flags are set by default.
    *
-   * contextProvider: a explicit constructor function to use for the file
-   *                  system's database context provider.  A number of context
-   *                  providers are provided, and users can write one of their
-   *                  own and pass it in to be used.  By default an IndexedDB
-   *                  provider is used.
+   * provider: an explicit storage provider to use for the file
+   *           system's database context provider.  A number of context
+   *           providers are included (see /src/providers), and users
+   *           can write one of their own and pass it in to be used.
+   *           By default an IndexedDB provider is used.
    *
-   * onReady: a callback function to be executed when the file system becomes
-   *          ready for use. Depending on the context provider used, this might
-   *          be right away, or could take some time. The onReady callback should
-   *          check the file system's `readyState` and `error` properties to
-   *          make sure it is usable.
+   * callback: a callback function to be executed when the file system becomes
+   *           ready for use. Depending on the context provider used, this might
+   *           be right away, or could take some time. The callback should expect
+   *           an `error` argument, which will be null if everything worked.  Also
+   *           users should check the file system's `readyState` and `error`
+   *           properties to make sure it is usable.
    */
-  function FileSystem(options) {
+  function FileSystem(options, callback) {
     options = options || {};
+    callback = callback || nop;
 
-    var fs = this;
-    FileSystemsManager.register(fs);
-
-    var name = options.name || "local";
+    var name = options.name || FILE_SYSTEM_NAME;
     var flags = options.flags;
-    var provider = options.provider || new Providers.Default(name);
-    var onReady = options.onReady || nop;
+    var provider = options.provider || new providers.Default(name);
     var forceFormatting = _(flags).contains(FS_FORMAT);
 
+    var fs = this;
     fs.readyState = FS_PENDING;
     fs.name = name;
     fs.error = null;
 
+    // Safely expose the list of open files and file
+    // descriptor management functions
+    var openFiles = {};
+    var nextDescriptor = 1;
+    Object.defineProperty(this, "openFiles", {
+      get: function() { return openFiles; }
+    });
+    this.allocDescriptor = function(openFileDescription) {
+      var fd = nextDescriptor ++;
+      openFiles[fd] = openFileDescription;
+      return fd;
+    };
+    this.releaseDescriptor = function(fd) {
+      delete openFiles[fd];
+    };
+
+    // Safely expose the operation queue
+    var queue = [];
+    this.queueOrRun = function(operation) {
+      var error;
+
+      if(FS_READY == fs.readyState) {
+        operation.call(fs);
+      } else if(FS_ERROR == fs.readyState) {
+        error = new EFileSystemError('unknown error');
+      } else {
+        queue.push(operation);
+      }
+
+      return error;
+    };
+    function runQueued() {
+      queue.forEach(function(operation) {
+        operation.call(this);
+      }.bind(fs));
+      queue = null;
+    }
+
+    // Open file system storage provider
     provider.open(function(err, needsFormatting) {
       function complete(error) {
         fs.provider = provider;
@@ -997,9 +1035,9 @@ define(function(require) {
           fs.readyState = FS_ERROR;
         } else {
           fs.readyState = FS_READY;
-          FileSystemsManager.get(fs).runQueued();
+          runQueued();
         }
-        onReady();
+        callback(error);
       }
 
       if(err) {
@@ -1008,18 +1046,22 @@ define(function(require) {
 
       // If we don't need or want formatting, we're done
       if(!(forceFormatting || needsFormatting)) {
-        return complete();
+        return complete(null);
       }
       // otherwise format the fs first
       var context = provider.getReadWriteContext();
       context.clear(function(err) {
         if(err) {
-          return complete(err);
+          complete(err);
+          return;
         }
         make_root_directory(context, complete);
       });
     });
   }
+
+  // Expose storage providers on FileSystem constructor
+  FileSystem.providers = providers;
 
   function _open(fs, context, path, flags, callback) {
     function check_result(error, fileNode) {
@@ -1033,8 +1075,8 @@ define(function(require) {
           position = 0;
         }
         var openFileDescription = new OpenFileDescription(fileNode.id, flags, position);
-        var fd = FileSystemsManager.get(fs).allocDescriptor(openFileDescription);
-        callback(undefined, fd);
+        var fd = fs.allocDescriptor(openFileDescription);
+        callback(null, fd);
       }
     }
 
@@ -1047,12 +1089,11 @@ define(function(require) {
   }
 
   function _close(fs, fd, callback) {
-    var wrapped = FileSystemsManager.get(fs);
-    if(!_(wrapped.openFiles).has(fd)) {
+    if(!_(fs.openFiles).has(fd)) {
       callback(new EBadFileDescriptor('invalid file descriptor'));
     } else {
-      wrapped.releaseDescriptor(fd);
-      callback(undefined);
+      fs.releaseDescriptor(fd);
+      callback(null);
     }
   }
 
@@ -1061,7 +1102,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined);
+        callback(null);
       }
     }
 
@@ -1073,7 +1114,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined);
+        callback(null);
       }
     }
 
@@ -1086,7 +1127,7 @@ define(function(require) {
         callback(error);
       } else {
         var stats = new Stats(result, name);
-        callback(undefined, stats);
+        callback(null, stats);
       }
     }
 
@@ -1099,11 +1140,11 @@ define(function(require) {
         callback(error);
       } else {
         var stats = new Stats(result, fs.name);
-        callback(undefined, stats);
+        callback(null, stats);
       }
     }
 
-    var ofd = FileSystemsManager.get(fs).openFiles[fd];
+    var ofd = fs.openFiles[fd];
 
     if(!ofd) {
       callback(new EBadFileDescriptor('invalid file descriptor'));
@@ -1117,7 +1158,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined);
+        callback(null);
       }
     }
 
@@ -1129,7 +1170,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined);
+        callback(null);
       }
     }
 
@@ -1144,11 +1185,11 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, nbytes);
+        callback(null, nbytes);
       }
     }
 
-    var ofd = FileSystemsManager.get(fs).openFiles[fd];
+    var ofd = fs.openFiles[fd];
 
     if(!ofd) {
       callback(new EBadFileDescriptor('invalid file descriptor'));
@@ -1179,7 +1220,7 @@ define(function(require) {
         return callback(err);
       }
       var ofd = new OpenFileDescription(fileNode.id, flags, 0);
-      var fd = FileSystemsManager.get(fs).allocDescriptor(ofd);
+      var fd = fs.allocDescriptor(ofd);
 
       fstat_file(context, ofd, function(err2, fstatResult) {
         if(err2) {
@@ -1194,7 +1235,7 @@ define(function(require) {
           if(err3) {
             return callback(err3);
           }
-          FileSystemsManager.get(fs).releaseDescriptor(fd);
+          fs.releaseDescriptor(fd);
 
           var data;
           if(options.encoding === 'utf8') {
@@ -1202,7 +1243,7 @@ define(function(require) {
           } else {
             data = buffer;
           }
-          callback(undefined, data);
+          callback(null, data);
         });
       });
 
@@ -1217,11 +1258,11 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, nbytes);
+        callback(null, nbytes);
       }
     }
 
-    var ofd = FileSystemsManager.get(fs).openFiles[fd];
+    var ofd = fs.openFiles[fd];
 
     if(!ofd) {
       callback(new EBadFileDescriptor('invalid file descriptor'));
@@ -1258,14 +1299,14 @@ define(function(require) {
         return callback(err);
       }
       var ofd = new OpenFileDescription(fileNode.id, flags, 0);
-      var fd = FileSystemsManager.get(fs).allocDescriptor(ofd);
+      var fd = fs.allocDescriptor(ofd);
 
       write_data(context, ofd, data, 0, data.length, 0, function(err2, nbytes) {
         if(err2) {
           return callback(err2);
         }
-        FileSystemsManager.get(fs).releaseDescriptor(fd);
-        callback(undefined);
+        fs.releaseDescriptor(fd);
+        callback(null);
       });
     });
   }
@@ -1295,12 +1336,12 @@ define(function(require) {
           callback(new EInvalid('resulting file offset would be negative'));
         } else {
           ofd.position = stats.size + offset;
-          callback(undefined, ofd.position);
+          callback(null, ofd.position);
         }
       }
     }
 
-    var ofd = FileSystemsManager.get(fs).openFiles[fd];
+    var ofd = fs.openFiles[fd];
 
     if(!ofd) {
       callback(new EBadFileDescriptor('invalid file descriptor'));
@@ -1311,14 +1352,14 @@ define(function(require) {
         callback(new EInvalid('resulting file offset would be negative'));
       } else {
         ofd.position = offset;
-        callback(undefined, ofd.position);
+        callback(null, ofd.position);
       }
     } else if('CUR' === whence) {
       if(ofd.position + offset < 0) {
         callback(new EInvalid('resulting file offset would be negative'));
       } else {
         ofd.position += offset;
-        callback(undefined, ofd.position);
+        callback(null, ofd.position);
       }
     } else if('END' === whence) {
       fstat_file(context, ofd, update_descriptor_position);
@@ -1332,7 +1373,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, files);
+        callback(null, files);
       }
     }
 
@@ -1348,7 +1389,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined);
+        callback(null);
       }
     }
 
@@ -1368,7 +1409,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined);
+        callback(null);
       }
     }
 
@@ -1380,7 +1421,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        callback(undefined, result);
+        callback(null, result);
       }
     }
 
@@ -1397,7 +1438,7 @@ define(function(require) {
         callback(error);
       } else {
         var stats = new Stats(result, fs.name);
-        callback(undefined, stats);
+        callback(null, stats);
       }
     }
 
@@ -1419,7 +1460,7 @@ define(function(require) {
 
   FileSystem.prototype.open = function(path, flags, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _open(fs, context, path, flags, callback);
@@ -1432,7 +1473,7 @@ define(function(require) {
   };
   FileSystem.prototype.mkdir = function(path, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _mkdir(context, path, callback);
@@ -1442,7 +1483,7 @@ define(function(require) {
   };
   FileSystem.prototype.rmdir = function(path, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _rmdir(context, path, callback);
@@ -1452,7 +1493,7 @@ define(function(require) {
   };
   FileSystem.prototype.stat = function(path, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _stat(context, fs.name, path, callback);
@@ -1462,7 +1503,7 @@ define(function(require) {
   };
   FileSystem.prototype.fstat = function(fd, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _fstat(fs, context, fd, callback);
@@ -1472,7 +1513,7 @@ define(function(require) {
   };
   FileSystem.prototype.link = function(oldpath, newpath, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _link(context, oldpath, newpath, callback);
@@ -1482,7 +1523,7 @@ define(function(require) {
   };
   FileSystem.prototype.unlink = function(path, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _unlink(context, path, callback);
@@ -1492,7 +1533,7 @@ define(function(require) {
   };
   FileSystem.prototype.read = function(fd, buffer, offset, length, position, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _read(fs, context, fd, buffer, offset, length, position, callback);
@@ -1502,7 +1543,7 @@ define(function(require) {
   };
   FileSystem.prototype.readFile = function(path, options, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _readFile(fs, context, path, options, callback);
@@ -1512,7 +1553,7 @@ define(function(require) {
   };
   FileSystem.prototype.write = function(fd, buffer, offset, length, position, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _write(fs, context, fd, buffer, offset, length, position, callback);
@@ -1523,7 +1564,7 @@ define(function(require) {
   };
   FileSystem.prototype.writeFile = function(path, data, options, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _writeFile(fs, context, path, data, options, callback);
@@ -1533,7 +1574,7 @@ define(function(require) {
   };
   FileSystem.prototype.lseek = function(fd, offset, whence, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _lseek(fs, context, fd, offset, whence, callback);
@@ -1543,7 +1584,7 @@ define(function(require) {
   };
   FileSystem.prototype.readdir = function(path, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _readdir(context, path, callback);
@@ -1553,7 +1594,7 @@ define(function(require) {
   };
   FileSystem.prototype.rename = function(oldpath, newpath, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _rename(context, oldpath, newpath, callback);
@@ -1563,7 +1604,7 @@ define(function(require) {
   };
   FileSystem.prototype.readlink = function(path, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _readlink(context, path, callback);
@@ -1573,7 +1614,7 @@ define(function(require) {
   };
   FileSystem.prototype.symlink = function(srcpath, dstpath, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _symlink(context, srcpath, dstpath, callback);
@@ -1583,7 +1624,7 @@ define(function(require) {
   };
   FileSystem.prototype.lstat = function(path, callback) {
     var fs = this;
-    var error = FileSystemsManager.get(fs).queueOrRun(
+    var error = fs.queueOrRun(
       function() {
         var context = fs.provider.getReadWriteContext();
         _lstat(fs, context, path, callback);
@@ -1593,8 +1634,7 @@ define(function(require) {
   };
 
   return {
-    FileSystem: FileSystem,
-    Providers: Providers
+    FileSystem: FileSystem
   };
 
 });

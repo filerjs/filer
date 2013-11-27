@@ -1,4 +1,5 @@
 define(function(require) {
+  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
 
   function MemoryContext(db, readOnly) {
     this.readOnly = readOnly;
@@ -34,7 +35,7 @@ define(function(require) {
 
 
   function Memory(name) {
-    this.name = name || "local";
+    this.name = name || FILE_SYSTEM_NAME;
     this.db = {};
   }
   Memory.isSupported = function() {
@@ -42,7 +43,6 @@ define(function(require) {
   };
 
   Memory.prototype.open = function(callback) {
-    var that = this;
     callback(null, true);
   };
   Memory.prototype.getReadOnlyContext = function() {

@@ -8,6 +8,8 @@ define(function(require) {
   var O_APPEND = 'APPEND';
 
   return {
+    FILE_SYSTEM_NAME: 'local',
+
     FILE_STORE_NAME: 'files',
 
     IDB_RO: 'readonly',

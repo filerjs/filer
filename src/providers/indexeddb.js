@@ -1,4 +1,5 @@
 define(function(require) {
+  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
   var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
 
   var indexedDB = window.indexedDB       ||
@@ -72,7 +73,7 @@ define(function(require) {
 
 
   function IndexedDB(name) {
-    this.name = name || "local";
+    this.name = name || FILE_SYSTEM_NAME;
     this.db = null;
   }
   IndexedDB.isSupported = function() {

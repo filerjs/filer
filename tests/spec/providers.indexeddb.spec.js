@@ -1,10 +1,10 @@
-describe("IDBFS.Providers.IndexedDB", function() {
+describe("IDBFS.FileSystem.providers.IndexedDB", function() {
   it("is supported -- if it isn't, none of these tests can run.", function() {
-    expect(IDBFS.Providers.IndexedDB.isSupported()).toEqual(true);
+    expect(IDBFS.FileSystem.providers.IndexedDB.isSupported()).toEqual(true);
   });
 
   it("has open, getReadOnlyContext, and getReadWriteContext instance methods", function() {
-    var indexedDBProvider = new IDBFS.Providers.IndexedDB();
+    var indexedDBProvider = new IDBFS.FileSystem.providers.IndexedDB();
     expect(typeof indexedDBProvider.open).toEqual('function');
     expect(typeof indexedDBProvider.getReadOnlyContext).toEqual('function');
     expect(typeof indexedDBProvider.getReadWriteContext).toEqual('function');
@@ -23,7 +23,7 @@ describe("IDBFS.Providers.IndexedDB", function() {
       var complete = false;
       var _error, _result;
 
-      var provider = new IDBFS.Providers.IndexedDB(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.IndexedDB(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
         _result = firstAccess;
@@ -54,7 +54,7 @@ describe("IDBFS.Providers.IndexedDB", function() {
       var complete = false;
       var _error, _result;
 
-      var provider = new IDBFS.Providers.IndexedDB(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.IndexedDB(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
 
@@ -84,7 +84,7 @@ describe("IDBFS.Providers.IndexedDB", function() {
       var complete = false;
       var _error, _result;
 
-      var provider = new IDBFS.Providers.IndexedDB(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.IndexedDB(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
 
@@ -117,7 +117,7 @@ describe("IDBFS.Providers.IndexedDB", function() {
       var complete = false;
       var _error, _result1, _result2;
 
-      var provider = new IDBFS.Providers.IndexedDB(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.IndexedDB(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
 
@@ -161,7 +161,7 @@ describe("IDBFS.Providers.IndexedDB", function() {
       var complete = false;
       var _error, _result;
 
-      var provider = new IDBFS.Providers.IndexedDB(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.IndexedDB(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
 

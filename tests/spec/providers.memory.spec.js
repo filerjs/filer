@@ -1,10 +1,10 @@
-describe("IDBFS.Providers.Memory", function() {
+describe("IDBFS.FileSystem.providers.Memory", function() {
   it("is supported -- if it isn't, none of these tests can run.", function() {
-    expect(IDBFS.Providers.Memory.isSupported()).toEqual(true);
+    expect(IDBFS.FileSystem.providers.Memory.isSupported()).toEqual(true);
   });
 
   it("has open, getReadOnlyContext, and getReadWriteContext instance methods", function() {
-    var indexedDBProvider = new IDBFS.Providers.Memory();
+    var indexedDBProvider = new IDBFS.FileSystem.providers.Memory();
     expect(typeof indexedDBProvider.open).toEqual('function');
     expect(typeof indexedDBProvider.getReadOnlyContext).toEqual('function');
     expect(typeof indexedDBProvider.getReadWriteContext).toEqual('function');
@@ -15,7 +15,7 @@ describe("IDBFS.Providers.Memory", function() {
       var complete = false;
       var _error, _result;
 
-      var provider = new IDBFS.Providers.Memory(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.Memory(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
         _result = firstAccess;
@@ -38,7 +38,7 @@ describe("IDBFS.Providers.Memory", function() {
       var complete = false;
       var _error, _result;
 
-      var provider = new IDBFS.Providers.Memory(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.Memory(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
 
@@ -68,7 +68,7 @@ describe("IDBFS.Providers.Memory", function() {
       var complete = false;
       var _error, _result;
 
-      var provider = new IDBFS.Providers.Memory(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.Memory(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
 
@@ -101,7 +101,7 @@ describe("IDBFS.Providers.Memory", function() {
       var complete = false;
       var _error, _result1, _result2;
 
-      var provider = new IDBFS.Providers.Memory(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.Memory(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
 
@@ -145,7 +145,7 @@ describe("IDBFS.Providers.Memory", function() {
       var complete = false;
       var _error, _result;
 
-      var provider = new IDBFS.Providers.Memory(this.db_name);
+      var provider = new IDBFS.FileSystem.providers.Memory(this.db_name);
       provider.open(function(err, firstAccess) {
         _error = err;
 

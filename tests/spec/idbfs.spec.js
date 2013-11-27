@@ -103,7 +103,7 @@ describe('fs.stat', function() {
 
     runs(function() {
       expect(_result).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toBeDefined();
       expect(_result['dev']).toEqual(that.db_name);
       expect(_result['size']).toBeDefined();
@@ -149,7 +149,7 @@ describe('fs.stat', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -196,7 +196,7 @@ describe('fs.fstat', function() {
 
     runs(function() {
       expect(_result).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toBeDefined();
       expect(_result['dev']).toEqual(that.db_name);
       expect(_result['size']).toBeDefined();
@@ -265,7 +265,7 @@ describe('fs.lstat', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toBeDefined();
     });
   });
@@ -292,7 +292,7 @@ describe('fs.lstat', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toBeDefined();
     });
   });
@@ -377,7 +377,7 @@ describe('fs.mkdir', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).not.toBeDefined();
       expect(_stat).toBeDefined();
     });
@@ -441,7 +441,7 @@ describe('fs.readdir', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_files.length).toEqual(1);
       expect(_files[0]).toEqual('tmp');
     });
@@ -470,7 +470,7 @@ describe('fs.readdir', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_files.length).toEqual(1);
       expect(_files[0]).toEqual('tmp');
     });
@@ -630,7 +630,7 @@ describe('fs.rmdir', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_stat).not.toBeDefined();
     });
   });
@@ -775,7 +775,7 @@ describe('fs.open', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result1).toBeDefined();
       expect(_result2).toBeDefined();
       expect(_result1).not.toEqual(_result2);
@@ -802,7 +802,7 @@ describe('fs.open', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toBeDefined();
     });
   });
@@ -856,7 +856,7 @@ describe('fs.write', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(buffer.length);
       expect(_stats.size).toEqual(buffer.length);
     });
@@ -898,7 +898,7 @@ describe('fs.write', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(2 * buffer.length);
       expect(_stats.size).toEqual(_result);
     });
@@ -968,7 +968,7 @@ describe('fs.writeFile, fs.readFile', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(contents);
     });
   });
@@ -994,7 +994,7 @@ describe('fs.writeFile, fs.readFile', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(contents);
     });
   });
@@ -1020,7 +1020,7 @@ describe('fs.writeFile, fs.readFile', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(contents);
     });
   });
@@ -1048,7 +1048,7 @@ describe('fs.writeFile, fs.readFile', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(binary);
     });
   });
@@ -1132,7 +1132,7 @@ describe('fs.read', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(rbuffer.length);
       expect(typed_array_equal(wbuffer, rbuffer)).toEqual(true);
     });
@@ -1173,7 +1173,7 @@ describe('fs.read', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(rbuffer.length);
       expect(typed_array_equal(wbuffer.buffer, rbuffer.buffer)).toEqual(true);
     });
@@ -1281,7 +1281,7 @@ describe('fs.link', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_newstats.node).toEqual(_oldstats.node);
       expect(_newstats.nlinks).toEqual(2);
       expect(_newstats).toEqual(_oldstats);
@@ -1318,7 +1318,7 @@ describe('fs.link', function() {
    }, 'test to complete', DEFAULT_TIMEOUT);
 
    runs(function () {
-     expect(_error).not.toBeDefined();
+     expect(_error).toEqual(null);
      expect(_newstats.node).toEqual(_linkstats.node);
      expect(_newstats.node).toNotEqual(_oldstats.node);
      expect(_newstats.nlinks).toEqual(2);
@@ -1554,7 +1554,7 @@ describe('fs.lseek', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function () {
-      expect(_error1).not.toBeDefined();
+      expect(_error1).toEqual(null);
       expect(_error2).toBeDefined();
       expect(_stats.nlinks).toEqual(1);
     });
@@ -1623,7 +1623,7 @@ describe('fs.lseek', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(offset);
       expect(_stats.size).toEqual(offset + buffer.length);
       var expected = new Uint8Array([1, 2, 3, 1, 2, 3, 4, 5, 6, 7, 8]);
@@ -1675,7 +1675,7 @@ describe('fs.lseek', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(offset + buffer.length);
       expect(_stats.size).toEqual(offset + 2 * buffer.length);
       var expected = new Uint8Array([1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 7, 8]);
@@ -1732,7 +1732,7 @@ describe('fs.lseek', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual(offset + buffer.length);
       expect(_stats.size).toEqual(offset + 2 * buffer.length);
       var expected = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
@@ -1815,7 +1815,7 @@ describe('fs.symlink', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).not.toBeDefined();
      });
   });
@@ -1899,7 +1899,7 @@ describe('fs.readlink', function() {
     }, 'test to complete', DEFAULT_TIMEOUT);
 
     runs(function() {
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result).toEqual('/');
      });
   });
@@ -1946,7 +1946,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -1980,7 +1980,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -2019,7 +2019,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -2061,7 +2061,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
@@ -2204,7 +2204,7 @@ describe('path resolution', function() {
     runs(function() {
       expect(_result).toBeDefined();
       expect(_node).toBeDefined();
-      expect(_error).not.toBeDefined();
+      expect(_error).toEqual(null);
       expect(_result['node']).toEqual(_node);
     });
   });
