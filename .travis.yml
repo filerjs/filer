@@ -1,0 +1,1 @@
+script: phantomjs --version && phantomjs ./tests/run-jasmine.js ./tests/index.html
