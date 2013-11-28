@@ -5,7 +5,9 @@ define(["IDBFS"], function(IDBFS) {
   function wipeDB(provider) {
     var context = provider.getReadWriteContext();
     context.clear(function(err) {
-      console.error("Problem clearing WebSQL db: " + err);
+      if(err) {
+        console.error("Problem clearing WebSQL db: [" + err.code + "] - " + err.message);
+      }
     });
   }
 
@@ -35,7 +37,7 @@ define(["IDBFS"], function(IDBFS) {
         var complete = false;
         var _error, _result;
 
-        var provider = this.provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
           _result = firstAccess;

@@ -13,7 +13,7 @@ define(function(require) {
         return;
       }
       // Either do readTransaction() (read-only) or transaction() (read/write)
-      db[isReadOnly ? 'transaction' : 'readTransaction'](function(transaction) {
+      db[isReadOnly ? 'readTransaction' : 'transaction'](function(transaction) {
         that.transaction = transaction;
         callback(transaction);
       });
@@ -33,8 +33,9 @@ define(function(require) {
   };
   WebSQLContext.prototype.get = function(key, callback) {
     function onSuccess(transaction, result) {
-      if(result.rows.length !== 1) {
-        callback("[WebSQLContext] Error: expected 1 row for get operation.");
+      if(result.rows.length === 0) {
+        // Key not found, return null
+        callback(null, null);
         return;
       }
       callback(null, result.rows.item(0).data);
@@ -43,7 +44,7 @@ define(function(require) {
       callback(error);
     }
     this.getTransaction(function(transaction) {
-      transaction.executeSql("SELECT * FROM " + FILE_STORE_NAME + " WHERE id = ?",
+      transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ? LIMIT 1",
                              [key], onSuccess, onError);
     });
   };
@@ -110,7 +111,7 @@ define(function(require) {
       }
       // Keep track of whether we're accessing this db for the first time
       // and therefore needs to get formatted.
-      transaction.executeSql("SELECT COUNT(id) AS count FROM " + FILE_STORE_NAME,
+      transaction.executeSql("SELECT COUNT(id) AS count FROM " + FILE_STORE_NAME + ";",
                              [], gotCount, onError);
     }
 
