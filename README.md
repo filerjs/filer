@@ -8,6 +8,29 @@ with the following differences:
 * No support (yet) for `fs.watchFile(), `fs.unwatchFile()`, `fs.watch()`.
 * No support for stream-based operations (e.g., `fs.ReadStream`, `fs.WriteStream`).
 
+### Contributing
+
+The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/js-platform/idbfs/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet. If you would like to have an issue assigned to you, please send me a message and I'll update it.
+
+The build system is based on [grunt](http://gruntjs.com/). To get a working build system
+do the following:
+
+```
+npm install
+npm install -g grunt-cli
+```
+
+You can now run the following grunt tasks:
+* `grunt check` will run [JSHint](http://www.jshint.com/) on your code (do this before submitting a pull request) to catch errors
+* `grunt develop` will create a single file version of the library for testing in `dist/idbfs.js`
+* `grunt release` like `develop` but will also create a minified version of the library in `dist/idbfs.min.js`
+
+Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If you're patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
+
+#### Tests
+
+You can run the tests from the project by opening the `tests` directory in your browser. You can also run them [here](http://js-platform.github.io/idbfs/tests/).
+
 ###Downloading
 
 Pre-built versions of the library are available in the repo:
@@ -40,29 +63,6 @@ fs.open('/myfile', 'w+', function(err, fd) {
 ```
 
 As with node.js, there is no guarantee that file system operations will be executed in the order they are invoked. Ensure proper ordering by chaining operations in callbacks.
-
-### Contributing
-
-The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/js-platform/idbfs/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet. If you would like to have an issue assigned to you, please send me a message and I'll update it.
-
-The build system is based on [grunt](http://gruntjs.com/). To get a working build system
-do the following:
-
-```
-npm install
-npm install -g grunt-cli
-``
-
-You can now run the following grunt tasks:
-* `grunt check` will run [JSHint](http://www.jshint.com/) on your code (do this before submitting a pull request) to catch errors
-* `grunt develop` will create a single file version of the library for testing in `dist/idbfs.js`
-* `grunt release` like `develop` but will also create a minified version of the library in `dist/idbfs.min.js`
-
-Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If you're patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
-
-#### Tests
-
-You can run the tests from the project by opening the `tests` directory in your browser. You can also run them [here](http://js-platform.github.io/idbfs/tests/).
 
 ### API Reference
 
