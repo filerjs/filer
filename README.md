@@ -1,13 +1,19 @@
-IDBFS is provides a POSIX-like file system interface for browser-based JavaScript.
+###IDBFS
+
+IDBFS is a POSIX-like file system interface for browser-based JavaScript.
+The API is as close to the node.js [fs module](http://nodejs.org/api/fs.html) as possible
+with the following differences:
+* No synchronous versions of methods (e.g., `mkdir()` but not `mkdirSync()`).
+* No permissions (e.g., no `chown()`, `chmod()`, etc.).
+* No support (yet) for `fs.watchFile(), `fs.unwatchFile()`, `fs.watch()`.
+* No support for stream-based operations (e.g., `fs.ReadStream`, `fs.WriteStream`).
+
+###Downloading
+
+Pre-built versions of the library are available in the repo:
 
 * [idbfs.js](https://raw.github.com/js-platform/idbfs/develop/dist/idbfs.js)
 * [idbfs.min.js](https://raw.github.com/js-platform/idbfs/develop/dist/idbfs.min.js)
-
-### Contributing
-
-The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/js-platform/idbfs/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet. If you would like to have an issue assigned to you, please send me a message and I'll update it.
-
-Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If you're patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
 
 ### Getting Started
 
@@ -19,50 +25,128 @@ For additional documentation, check out the `API Reference` below and have a loo
 
 #### Example
 
-````
-<script>
-  var fs = new IDBFS.FileSystem('local');
-  fs.open('/myfile', 'w+', function(err, fd) {
+```javascript
+var fs = new IDBFS.FileSystem();
+fs.open('/myfile', 'w+', function(err, fd) {
+  if (err) throw err;
+  fs.close(fd, function(err) {
     if (err) throw err;
-    fs.close(fd, function(err) {
+    fs.stat('/myfile', function(err, stats) {
       if (err) throw err;
-      fs.stat('/myfile', function(err, stats) {
-        if (err) throw err;
-        console.log('stats: ' + JSON.stringify(stats));
-      });
+      console.log('stats: ' + JSON.stringify(stats));
     });
   });
-</script>
-````
+});
+```
 
 As with node.js, there is no guarantee that file system operations will be executed in the order they are invoked. Ensure proper ordering by chaining operations in callbacks.
 
-### Tests
+### Contributing
+
+The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/js-platform/idbfs/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet. If you would like to have an issue assigned to you, please send me a message and I'll update it.
+
+The build system is based on [grunt](http://gruntjs.com/). To get a working build system
+do the following:
+
+```
+npm install
+npm install -g grunt-cli
+``
+
+You can now run the following grunt tasks:
+* `grunt check` will run [JSHint](http://www.jshint.com/) on your code (do this before submitting a pull request) to catch errors
+* `grunt develop` will create a single file version of the library for testing in `dist/idbfs.js`
+* `grunt release` like `develop` but will also create a minified version of the library in `dist/idbfs.min.js`
+
+Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If you're patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
+
+#### Tests
 
 You can run the tests from the project by opening the `tests` directory in your browser. You can also run them [here](http://js-platform.github.io/idbfs/tests/).
 
 ### API Reference
 
-Callbacks for methods that accept them are non-optional. The first callback parameter is reserved for passing errors. It will be `undefined` if no errors occurred and should always be checked.
+Like node.js, callbacks for methods that accept them are optional but suggested. The first callback parameter is reserved for passing errors. It will be `null` if no errors occurred and should always be checked.
 
-#### IDBFS.FileSystem(name, flags)
+#### IDBFS.FileSystem(options, callback)
 
-File system constructor, invoked to open an existing file system or create a new one. Accepts a name and optional flags. Use `'FORMAT'` to force IDBFS for format the file system.
+File system constructor, invoked to open an existing file system or create a new one. Accepts two arguments: an `options` object,
+and an optional `callback`.  The `options` object can specify a number of optional arguments, including:
+* `name`: the name of the file system, defaults to "local"
+* `flags`: one or more flags to use when creating/opening the file system. Use `'FORMAT'` to force IDBFS to format (i.e., erase) the file system
+* `provider`: an explicit storage provider to use for the file system's database context provider.  See below for details
+
+The `callback` function indicates when the file system is ready for use. Depending on the storage provider used, this might
+be right away, or could take some time. The callback should expect an `error` argument, which will be null if everything worked.
+Also users should check the file system's `readyState` and `error` properties to make sure it is usable.
+
+```javascript
+var fs;
+
+function fsReady(err) {
+  if(err) throw err;
+  // Safe to use fs now...
+}
+
+fs = new IDBFS.FileSystem({
+  name: "my-filesystem",
+  flags: 'FORMAT',
+  provider: new IDBFS.FileSystem.providers.Memory()
+});
+```
+
+###IDBFS.FileSystem.providers - Storage Providers
+
+IDBFS can be configured to use a number of different storage providers. The provider object encapsulates all aspects
+of data access, making it possible to swap in different backend storage options.  There are currently 4 different
+providers to choose from:
+* `FileSystem.providers.IndexedDB()` - uses IndexedDB
+* `FileSystem.providers.WebSQL()` - uses WebSQL
+* `FileSystem.providers.Fallback()` - attempts to use IndexedDB if possible, falling-back to WebSQL if necessary
+* `FileSystem.providers.Memory()` - uses memory (not suitable for data that needs to survive the current session)
+
+You can choose your provider when creating a `FileSystem`:
+
+```javascript
+var FileSystem = IDBFS.FileSystem;
+var providers = FileSystem.providers;
+
+// Example 1: Use the default provider (currently IndexedDB)
+var fs1 = new FileSystem();
+
+// Example 2: Explicitly use IndexedDB
+var fs2 = new FileSystem({ provider: new providers.IndexedDB() });
+
+// Example 3: Use one of IndexedDB or WebSQL, whichever is supported
+var fs3 = new FileSystem({ provider: new providers.Fallback() });
+```
+
+Every provider has an `isSupported()` method, which returns `true` if the browser supports this provider:
+
+```javascript
+if( IDBFS.FileSystem.providers.WebSQL.isSupported() ) {
+  ...
+}
+```
+
+You can also write your own provider if you need a different backend. See the code in `src/providers` for details.
 
 #### fs.stat(path, callback)
 
 Asynchronous stat(2). Callback gets `(error, stats)`, where `stats` is an object like
 
-        {
-          node: <string> // internal node id (unique)
-          dev: <string> // file system name
-          size: <number> // file size in bytes
-          nlinks: <number> // number of links
-          atime: <number> // last access time
-          mtime: <number> // last modified time
-          ctime: <number> // creation time
-          type: <string> // file type (FILE, DIRECTORY, ...)
-        }
+```
+{
+  node: <string> // internal node id (unique)
+  dev: <string> // file system name
+  size: <number> // file size in bytes
+  nlinks: <number> // number of links
+  atime: <number> // last access time
+  mtime: <number> // last modified time
+  ctime: <number> // creation time
+  type: <string> // file type (FILE, DIRECTORY, ...)
+}
+```
 
 #### fs.fstat(fd, callback)
 
