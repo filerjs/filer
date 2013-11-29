@@ -5,7 +5,7 @@ The API is as close to the node.js [fs module](http://nodejs.org/api/fs.html) as
 with the following differences:
 * No synchronous versions of methods (e.g., `mkdir()` but not `mkdirSync()`).
 * No permissions (e.g., no `chown()`, `chmod()`, etc.).
-* No support (yet) for `fs.watchFile(), `fs.unwatchFile()`, `fs.watch()`.
+* No support (yet) for `fs.watchFile()`, `fs.unwatchFile()`, `fs.watch()`.
 * No support for stream-based operations (e.g., `fs.ReadStream`, `fs.WriteStream`).
 
 ### Contributing
