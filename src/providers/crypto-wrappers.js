@@ -8,6 +8,7 @@ define(function(require) {
   // Rabbit, see http://code.google.com/p/crypto-js/#Rabbi
   require("crypto-js/rollups/rabbit");
 
+
   function CryptoWrappedContext(context, encrypt, decrypt) {
     this.context = context;
     this.encrypt = encrypt;
@@ -37,51 +38,6 @@ define(function(require) {
     this.context.delete(key, callback);
   };
 
-  // Custom formatting for encryption objects <-> strings
-  var formatter = {
-    stringify: function(cipherParams) {
-      // create json object with ciphertext
-      var jsonObj = {
-        ct: cipherParams.ciphertext.toString(CryptoJS.enc.Base64)
-      };
-
-      // cache iv and salt
-      if (cipherParams.iv) {
-        jsonObj.iv = cipherParams.iv.toString();
-      }
-      if (cipherParams.salt) {
-        jsonObj.s = cipherParams.salt.toString();
-      }
-
-      // stringify json object
-      return JSON.stringify(jsonObj);
-    },
-
-    parse: function(jsonString) {
-      // parse json string
-      var jsonObj;
-      try {
-        jsonObj = JSON.parse(jsonString);
-      } catch(e) {
-        throw e;
-      }
-
-      // extract ciphertext from json object, and create cipher params object
-      var cipherParams = CryptoJS.lib.CipherParams.create({
-        ciphertext: CryptoJS.enc.Base64.parse(jsonObj.ct)
-      });
-
-      // extract iv and salt
-      if (jsonObj.iv) {
-        cipherParams.iv = CryptoJS.enc.Hex.parse(jsonObj.iv);
-      }
-      if (jsonObj.s) {
-        cipherParams.salt = CryptoJS.enc.Hex.parse(jsonObj.s);
-      }
-
-      return cipherParams;
-    }
-  };
 
   function buildCryptoWrapper(encryptionType) {
     // It is up to the app using this wrapper how the passphrase is acquired, probably by
@@ -89,12 +45,12 @@ define(function(require) {
     function CryptoWrappedProvider(passphrase, provider) {
       this.provider = provider;
       this.encrypt = function(plain) {
-        console.log('encrypt', plain, CryptoJS[encryptionType].encrypt(plain, passphrase).toString());
-        return CryptoJS[encryptionType].encrypt(plain, passphrase, {format: formatter}).toString();
+        return CryptoJS[encryptionType].encrypt(plain, passphrase)
+                                       .toString();
       };
       this.decrypt = function(encrypted) {
-        console.log('decrypt', encrypted, CryptoJS[encryptionType].decrypt(encrypted, passphrase).toString());
-        return CryptoJS[encryptionType].decrypt(encrypted, passphrase, {format: formatter}).toString();
+        return CryptoJS[encryptionType].decrypt(encrypted, passphrase)
+                                       .toString(CryptoJS.enc.Utf8);
       };
     }
     CryptoWrappedProvider.isSupported = function() {
@@ -105,10 +61,14 @@ define(function(require) {
       this.provider.open(callback);
     };
     CryptoWrappedProvider.prototype.getReadOnlyContext = function() {
-      return new CryptoWrappedContext(this.provider.getReadOnlyContext(), this.encrypt, this.decrypt);
+      return new CryptoWrappedContext(this.provider.getReadOnlyContext(),
+                                      this.encrypt,
+                                      this.decrypt);
     };
     CryptoWrappedProvider.prototype.getReadWriteContext = function() {
-      return new CryptoWrappedContext(this.provider.getReadWriteContext(), this.encrypt, this.decrypt);
+      return new CryptoWrappedContext(this.provider.getReadWriteContext(),
+                                      this.encrypt,
+                                      this.decrypt);
     };
 
     return CryptoWrappedProvider;
