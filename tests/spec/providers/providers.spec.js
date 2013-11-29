@@ -16,6 +16,18 @@ define(["IDBFS"], function(IDBFS) {
       expect(typeof IDBFS.FileSystem.providers.Memory).toEqual('function');
     });
 
+    it("has an AESWrapper constructor", function() {
+      expect(typeof IDBFS.FileSystem.providers.AESWrapper).toEqual('function');
+    });
+
+    it("has a TripleDESWrapper constructor", function() {
+      expect(typeof IDBFS.FileSystem.providers.TripleDESWrapper).toEqual('function');
+    });
+
+    it("has a RabbitWrapper constructor", function() {
+      expect(typeof IDBFS.FileSystem.providers.RabbitWrapper).toEqual('function');
+    });
+
     it("has a Default constructor", function() {
       expect(typeof IDBFS.FileSystem.providers.Default).toEqual('function');
     });
