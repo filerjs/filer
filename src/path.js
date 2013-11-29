@@ -67,6 +67,7 @@ define(function() {
         resolvedAbsolute = false;
 
     for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+      // XXXidbfs: we don't have process.cwd() so we use '/' as a fallback
       var path = (i >= 0) ? arguments[i] : '/';
 
       // Skip empty and invalid entries
@@ -182,7 +183,7 @@ define(function() {
     if (ext && f.substr(-1 * ext.length) === ext) {
       f = f.substr(0, f.length - ext.length);
     }
-    // NOTE: node.js just does `return f`
+    // XXXidbfs: node.js just does `return f`
     return f === "" ? "/" : f;
   }
 
@@ -190,8 +191,8 @@ define(function() {
     return splitPath(path)[3];
   }
 
-  // NOTE: we don't support path.exists() or path.existsSync(), which are deprecated,
-  // and need a FileSystem instance to work.  Use fs.stat().
+  // XXXidbfs: we don't support path.exists() or path.existsSync(), which
+  // are deprecated, and need a FileSystem instance to work. Use fs.stat().
 
   return {
     normalize: normalize,
