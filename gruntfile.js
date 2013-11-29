@@ -23,8 +23,7 @@ module.exports = function(grunt) {
             'src/error.js',
             'src/fs.js',
             'src/shared.js',
-            'src/providers/**/*.js',
-            'src/filesystems-manager.js'
+            'src/providers/**/*.js'
            ]
     },
 
