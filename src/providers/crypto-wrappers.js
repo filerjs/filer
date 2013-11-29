@@ -18,8 +18,7 @@ define(function(require) {
   };
   CryptoWrappedContext.prototype.get = function(key, callback) {
     var that = this;
-    var encryptedKey = this.encrypt(key);
-    this.context.get(encryptedKey, function(err, value) {
+    this.context.get(key, function(err, value) {
       if(err) {
         callback(err);
         return;
@@ -31,13 +30,11 @@ define(function(require) {
     });
   };
   CryptoWrappedContext.prototype.put = function(key, value, callback) {
-    var encryptedKey = this.encrypt(key);
     var encryptedValue = this.encrypt(value);
-    this.context.put(encryptedKey, encryptedValue, callback);
+    this.context.put(key, encryptedValue, callback);
   };
   CryptoWrappedContext.prototype.delete = function(key, callback) {
-    var encryptedKey = this.encrypt(key);
-    this.context.delete(encryptedKey, callback);
+    this.context.delete(key, callback);
   };
 
   // Custom formatting for encryption objects <-> strings
