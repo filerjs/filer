@@ -1,5 +1,4 @@
 define(function(require) {
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
 
   // AES encryption, see http://code.google.com/p/crypto-js/#AES
   require("crypto-js/rollups/aes");
