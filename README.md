@@ -92,7 +92,7 @@ fs = new IDBFS.FileSystem({
   name: "my-filesystem",
   flags: 'FORMAT',
   provider: new IDBFS.FileSystem.providers.Memory()
-});
+}, fsReady);
 ```
 
 ###IDBFS.FileSystem.providers - Storage Providers
