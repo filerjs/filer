@@ -95,7 +95,7 @@ fs = new IDBFS.FileSystem({
 }, fsReady);
 ```
 
-###IDBFS.FileSystem.providers - Storage Providers
+####IDBFS.FileSystem.providers - Storage Providers
 
 IDBFS can be configured to use a number of different storage providers. The provider object encapsulates all aspects
 of data access, making it possible to swap in different backend storage options.  There are currently 4 different
@@ -130,6 +130,39 @@ if( IDBFS.FileSystem.providers.WebSQL.isSupported() ) {
 ```
 
 You can also write your own provider if you need a different backend. See the code in `src/providers` for details.
+
+####IDBFS.Path
+
+The node.js [path module](http://nodejs.org/api/path.html) is available via the `IDBFS.Path` object. It is
+identical to the node.js version with the following differences:
+* No support for `exits()` or `existsSync()`. Use `fs.stat()` instead.
+* No notion of a current working directory in `resolve` (the root dir is used instead)
+
+```javascript
+var path = IDBFS.Path;
+var dir = path.dirname('/foo/bar/baz/asdf/quux');
+// dir is now '/foo/bar/baz/asdf'
+
+var base = path.basename('/foo/bar/baz/asdf/quux.html');
+// base is now 'quux.html'
+
+var ext = path.extname('index.html');
+// ext is now '.html'
+
+var newpath = path.join('/foo', 'bar', 'baz/asdf', 'quux', '..');
+// new path is now '/foo/bar/baz/asdf'
+```
+
+For more info see the docs in the [path module](http://nodejs.org/api/path.html) for a particular method:
+* `path.normalize(p)`
+* `path.join([path1], [path2], [...])`
+* `path.resolve([from ...], to)`
+* `path.relative(from, to)`
+* `path.dirname(p)`
+* `path.basename(p, [ext])`
+* `path.extname(p)`
+* `path.sep`
+* `path.delimiter`
 
 #### fs.stat(path, callback)
 

@@ -1721,7 +1721,8 @@ define(function(require) {
   };
 
   return {
-    FileSystem: FileSystem
+    FileSystem: FileSystem,
+    Path: require('src/path')
   };
 
 });
