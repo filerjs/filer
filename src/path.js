@@ -67,7 +67,7 @@ define(function() {
         resolvedAbsolute = false;
 
     for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-      var path = arguments[i];
+      var path = (i >= 0) ? arguments[i] : '/';
 
       // Skip empty and invalid entries
       if (typeof path !== 'string' || !path) {
@@ -182,7 +182,8 @@ define(function() {
     if (ext && f.substr(-1 * ext.length) === ext) {
       f = f.substr(0, f.length - ext.length);
     }
-    return f;
+    // NOTE: node.js just does `return f`
+    return f === "" ? "/" : f;
   }
 
   function extname(path) {
