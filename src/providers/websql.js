@@ -20,11 +20,11 @@ define(function(require) {
     };
   }
   WebSQLContext.prototype.clear = function(callback) {
-    function onSuccess(transaction, result) {
-      callback(null);
-    }
     function onError(transaction, error) {
       callback(error);
+    }
+    function onSuccess(transaction, result) {
+      callback(null);
     }
     this.getTransaction(function(transaction) {
       transaction.executeSql("DELETE FROM " + FILE_STORE_NAME,
@@ -33,18 +33,15 @@ define(function(require) {
   };
   WebSQLContext.prototype.get = function(key, callback) {
     function onSuccess(transaction, result) {
-      if(result.rows.length === 0) {
-        // Key not found, return null
-        callback(null, null);
-        return;
-      }
-      callback(null, result.rows.item(0).data);
+      // If the key isn't found, return null
+      var value = result.rows.length === 0 ? null : result.rows.item(0).data;
+      callback(null, value);
     }
     function onError(transaction, error) {
       callback(error);
     }
     this.getTransaction(function(transaction) {
-      transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ? LIMIT 1",
+      transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ?",
                              [key], onSuccess, onError);
     });
   };
@@ -96,14 +93,15 @@ define(function(require) {
       callback("[WebSQL] Unable to open database.");
       return;
     }
-    that.db = db;
 
     function onError(transaction, error) {
       callback(error);
     }
     function onSuccess(transaction, result) {
+      that.db = db;
+
       function gotCount(transaction, result) {
-        var firstAccess = result.rows.item(0).count > 0;
+        var firstAccess = result.rows.item(0).count === 0;
         callback(null, firstAccess);
       }
       function onError(transaction, error) {

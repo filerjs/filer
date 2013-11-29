@@ -7,7 +7,6 @@ define(function(require) {
                   window.webkitIndexedDB ||
                   window.msIndexedDB;
 
-
   var IDB_RW = require('src/constants').IDB_RW;
   var IDB_RO = require('src/constants').IDB_RO;
 

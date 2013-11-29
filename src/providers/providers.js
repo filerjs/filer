@@ -9,8 +9,8 @@ define(function(require) {
     WebSQL: WebSQL,
     Memory: Memory,
     Default: IndexedDB,
-    // The Legacy provider does automatic fallback checks
-    Legacy: (function() {
+    // The Fallback provider does automatic fallback checks
+    Fallback: (function() {
       if(IndexedDB.isSupported()) {
         return IndexedDB;
       }

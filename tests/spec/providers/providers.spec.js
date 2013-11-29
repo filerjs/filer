@@ -20,8 +20,8 @@ define(["IDBFS"], function(IDBFS) {
       expect(typeof IDBFS.FileSystem.providers.Default).toEqual('function');
     });
 
-    it("has Legacy constructor", function() {
-      expect(typeof IDBFS.FileSystem.providers.Legacy).toEqual('function');
+    it("has Fallback constructor", function() {
+      expect(typeof IDBFS.FileSystem.providers.Fallback).toEqual('function');
     });
   });
 });
