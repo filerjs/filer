@@ -1,6 +1,6 @@
-###IDBFS
+###Filer
 
-IDBFS is a POSIX-like file system interface for browser-based JavaScript.
+Filer is a POSIX-like file system interface for browser-based JavaScript.
 The API is as close to the node.js [fs module](http://nodejs.org/api/fs.html) as possible
 with the following differences:
 * No synchronous versions of methods (e.g., `mkdir()` but not `mkdirSync()`).
@@ -10,7 +10,7 @@ with the following differences:
 
 ### Contributing
 
-The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/js-platform/idbfs/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet. If you would like to have an issue assigned to you, please send me a message and I'll update it.
+The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/js-platform/filer/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet. If you would like to have an issue assigned to you, please send me a message and I'll update it.
 
 The build system is based on [grunt](http://gruntjs.com/). To get a working build system
 do the following:
@@ -35,8 +35,8 @@ You can run the tests from the project by opening the `tests` directory in your 
 
 Pre-built versions of the library are available in the repo:
 
-* [idbfs.js](https://raw.github.com/js-platform/idbfs/develop/dist/idbfs.js)
-* [idbfs.min.js](https://raw.github.com/js-platform/idbfs/develop/dist/idbfs.min.js)
+* [idbfs.js](https://raw.github.com/js-platform/filer/develop/dist/idbfs.js)
+* [idbfs.min.js](https://raw.github.com/js-platform/filer/develop/dist/idbfs.min.js)
 
 ### Getting Started
 
