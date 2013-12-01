@@ -140,10 +140,10 @@ of storage providers without altering them in anway. An adapter can be used with
 adapters can be used together in order to compose complex functionality on top of a provider.
 
 There are currently 4 adapters available:
-# `FileSystem.adapters.AES(passphrase, provider)` - extends a provider with [AES encryption](http://code.google.com/p/crypto-js/#AES)
-# `FileSystem.adapters.TripleDES(passphrase, provider)` - extends a provider with [TripleDES encryption](http://code.google.com/p/crypto-js/#DES,_Triple_DES)
-# `FileSystem.adapters.Rabbit(passphrase, provider)` - extends a provider with [Rabbit encryption](http://code.google.com/p/crypto-js/#Rabbit)
-# `FileSystem.adapters.Encryption(passphrase, provider)` - a default encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
+* `FileSystem.adapters.AES(passphrase, provider)` - extends a provider with [AES encryption](http://code.google.com/p/crypto-js/#AES)
+* `FileSystem.adapters.TripleDES(passphrase, provider)` - extends a provider with [TripleDES encryption](http://code.google.com/p/crypto-js/#DES,_Triple_DES)
+* `FileSystem.adapters.Rabbit(passphrase, provider)` - extends a provider with [Rabbit encryption](http://code.google.com/p/crypto-js/#Rabbit)
+* `FileSystem.adapters.Encryption(passphrase, provider)` - a default encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
 
 ```javascript
 var FileSystem = IDBFS.FileSystem;
