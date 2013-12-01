@@ -133,6 +133,32 @@ if( IDBFS.FileSystem.providers.WebSQL.isSupported() ) {
 
 You can also write your own provider if you need a different backend. See the code in `src/providers` for details.
 
+####IDBFS.FileSystem.adapters - Adapters for Storage Providers
+
+IDBFS based file systems can acquire new functionality by using adapters. These wrapper objects extend the abilities
+of storage providers without altering them in anway. An adapter can be used with any provider, and multiple
+adapters can be used together in order to compose complex functionality on top of a provider.
+
+There are currently 4 adapters available:
+# `FileSystem.adapters.AES(passphrase, provider)` - extends a provider with [AES encryption](http://code.google.com/p/crypto-js/#AES)
+# `FileSystem.adapters.TripleDES(passphrase, provider)` - extends a provider with [TripleDES encryption](http://code.google.com/p/crypto-js/#DES,_Triple_DES)
+# `FileSystem.adapters.Rabbit(passphrase, provider)` - extends a provider with [Rabbit encryption](http://code.google.com/p/crypto-js/#Rabbit)
+# `FileSystem.adapters.Encryption(passphrase, provider)` - a default encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
+
+```javascript
+var FileSystem = IDBFS.FileSystem;
+var providers = FileSystem.providers;
+var adapters = FileSystem.adapters;
+
+// Create a WebSQL-based, Encrypted File System.
+var webSQLProvider = new providers.WebSQL();
+var encryptionAdatper = new adapters.Encryption('super-secret-passphrase', webSQLProvider);
+var fs1 = new FileSystem({ provider: encryptionAdapter });
+```
+
+You can also write your own adapter if you need to add new capabilities to the providers. Adapters share the same
+interface as providers.  See the code in `src/providers` and `src/adapters` for many examples.
+
 ####IDBFS.Path
 
 The node.js [path module](http://nodejs.org/api/path.html) is available via the `IDBFS.Path` object. It is

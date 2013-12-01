@@ -3,24 +3,11 @@ define(function(require) {
   var IndexedDB = require('src/providers/indexeddb');
   var WebSQL = require('src/providers/websql');
   var Memory = require('src/providers/memory');
-  var CryptoWrappers = require('src/providers/crypto-wrappers');
 
   return {
     IndexedDB: IndexedDB,
     WebSQL: WebSQL,
     Memory: Memory,
-
-    /**
-     * Wrappers for composing various types of providers
-     */
-
-    // Encryption Wrappers
-    AESWrapper: CryptoWrappers.AESWrapper,
-    TripleDESWrapper: CryptoWrappers.TripleDESWrapper,
-    RabbitWrapper: CryptoWrappers.RabbitWrapper,
-    // Convenience encryption wrapper
-    EncryptionWrapper: CryptoWrappers.AESWrapper,
-
 
     /**
      * Convenience Provider references

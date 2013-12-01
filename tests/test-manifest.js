@@ -33,7 +33,10 @@ define([
   "spec/providers/providers.memory.spec",
   "spec/providers/providers.indexeddb.spec",
   "spec/providers/providers.websql.spec",
-  "spec/providers/providers.crypto.spec",
+
+  // IDBFS.FileSystem.adapters.*
+  "spec/adapters/adapters.spec",
+  "spec/adapters/adapters.crypto.spec",
 
   // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
   "spec/node-js/simple/test-fs-mkdir",

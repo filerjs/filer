@@ -1,31 +1,31 @@
 define(["IDBFS"], function(IDBFS) {
 
-  // We reuse the same set of tests for all crypto providers.
+  // We reuse the same set of tests for all crypto adapters.
   // buildTestsFor() creates a set of tests bound to a crypto
-  // provider, and uses a Memory() provider internally.
+  // adapter, and uses a Memory() provider internally.
 
-  function buildTestsFor(wrapperName) {
+  function buildTestsFor(adapterName) {
     var passphrase = '' + Date.now();
 
     function createProvider() {
       var memoryProvider = new IDBFS.FileSystem.providers.Memory();
-      return new IDBFS.FileSystem.providers[wrapperName](passphrase, memoryProvider);
+      return new IDBFS.FileSystem.adapters[adapterName](passphrase, memoryProvider);
     }
 
-    describe("IDBFS.FileSystem.providers" + wrapperName, function() {
+    describe("IDBFS.FileSystem.adapters." + adapterName, function() {
       it("is supported -- if it isn't, none of these tests can run.", function() {
-        expect(IDBFS.FileSystem.providers[wrapperName].isSupported()).toEqual(true);
+        expect(IDBFS.FileSystem.adapters[adapterName].isSupported()).toEqual(true);
       });
 
       it("has open, getReadOnlyContext, and getReadWriteContext instance methods", function() {
-        var indexedDBProvider = createProvider();
-        expect(typeof indexedDBProvider.open).toEqual('function');
-        expect(typeof indexedDBProvider.getReadOnlyContext).toEqual('function');
-        expect(typeof indexedDBProvider.getReadWriteContext).toEqual('function');
+        var provider = createProvider();
+        expect(typeof provider.open).toEqual('function');
+        expect(typeof provider.getReadOnlyContext).toEqual('function');
+        expect(typeof provider.getReadWriteContext).toEqual('function');
       });
 
-      describe("open an Memory provider", function() {
-        it("should open a new Memory database", function() {
+      describe("open a Memory provider with an " + adapterName + " adapter", function() {
+        it("should open a new database", function() {
           var complete = false;
           var _error, _result;
 
@@ -47,7 +47,7 @@ define(["IDBFS"], function(IDBFS) {
         });
       });
 
-      describe("Read/Write operations on an Memory provider", function() {
+      describe("Read/Write operations on a Memory provider with an " + adapterName + "adapter", function() {
         it("should allow put() and get()", function() {
           var complete = false;
           var _error, _result;
@@ -185,8 +185,8 @@ define(["IDBFS"], function(IDBFS) {
     });
   }
 
-  buildTestsFor('AESWrapper');
-  buildTestsFor('TripleDESWrapper');
-  buildTestsFor('RabbitWrapper');
+  buildTestsFor('AES');
+  buildTestsFor('TripleDES');
+  buildTestsFor('Rabbit');
 
 });
