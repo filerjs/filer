@@ -8,7 +8,14 @@ define(function(require) {
     IndexedDB: IndexedDB,
     WebSQL: WebSQL,
     Memory: Memory,
+
+    /**
+     * Convenience Provider references
+     */
+
+    // The default provider to use when none is specified
     Default: IndexedDB,
+
     // The Fallback provider does automatic fallback checks
     Fallback: (function() {
       if(IndexedDB.isSupported()) {

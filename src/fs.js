@@ -48,6 +48,7 @@ define(function(require) {
   var O_FLAGS = require('src/constants').O_FLAGS;
 
   var providers = require('src/providers/providers');
+  var adapters = require('src/adapters/adapters');
 
   /*
    * DirectoryEntry
@@ -1084,6 +1085,9 @@ define(function(require) {
 
   // Expose storage providers on FileSystem constructor
   FileSystem.providers = providers;
+
+  // Expose adatpers on FileSystem constructor
+  FileSystem.adapters = adapters;
 
   function _open(fs, context, path, flags, callback) {
     if(!nullCheck(path, callback)) return;

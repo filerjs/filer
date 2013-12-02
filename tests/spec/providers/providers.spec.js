@@ -1,5 +1,5 @@
 define(["IDBFS"], function(IDBFS) {
-  describe("IDBFS.Providers", function() {
+  describe("IDBFS.FileSystem.providers", function() {
     it("is defined", function() {
       expect(typeof IDBFS.FileSystem.providers).not.toEqual(undefined);
     });
