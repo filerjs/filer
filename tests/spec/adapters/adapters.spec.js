@@ -19,5 +19,13 @@ define(["IDBFS"], function(IDBFS) {
     it("has a default Encryption constructor", function() {
       expect(typeof IDBFS.FileSystem.adapters.Encryption).toEqual('function');
     });
+
+    it("has a Zlib constructor", function() {
+      expect(typeof IDBFS.FileSystem.adapters.Zlib).toEqual('function');
+    });
+
+    it("has a default Compression constructor", function() {
+      expect(typeof IDBFS.FileSystem.adapters.Compression).toEqual('function');
+    });
   });
 });

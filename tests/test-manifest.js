@@ -36,7 +36,7 @@ define([
 
   // IDBFS.FileSystem.adapters.*
   "spec/adapters/adapters.spec",
-  "spec/adapters/adapters.crypto.spec",
+  "spec/adapters/adapters.general.spec",
 
   // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
   "spec/node-js/simple/test-fs-mkdir",

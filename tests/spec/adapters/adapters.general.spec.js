@@ -1,15 +1,23 @@
 define(["IDBFS"], function(IDBFS) {
 
-  // We reuse the same set of tests for all crypto adapters.
-  // buildTestsFor() creates a set of tests bound to a crypto
+  // We reuse the same set of tests for all adapters.
+  // buildTestsFor() creates a set of tests bound to an
   // adapter, and uses a Memory() provider internally.
 
-  function buildTestsFor(adapterName) {
-    var passphrase = '' + Date.now();
+  function buildTestsFor(adapterName, buildAdapter) {
+    function encode(str) {
+      // TextEncoder is either native, or shimmed by IDBFS
+      return (new TextEncoder("utf-8")).encode(str);
+    }
+
+    // Make some string + binary buffer versions of things we'll need
+    var valueStr  = "value", valueBuffer = encode(valueStr);
+    var value1Str = "value1", value1Buffer = encode(value1Str);
+    var value2Str = "value2", value2Buffer = encode(value2Str);
 
     function createProvider() {
       var memoryProvider = new IDBFS.FileSystem.providers.Memory();
-      return new IDBFS.FileSystem.adapters[adapterName](passphrase, memoryProvider);
+      return buildAdapter(memoryProvider);
     }
 
     describe("IDBFS.FileSystem.adapters." + adapterName, function() {
@@ -57,7 +65,7 @@ define(["IDBFS"], function(IDBFS) {
             _error = err;
 
             var context = provider.getReadWriteContext();
-            context.put("key", "value", function(err, result) {
+            context.put("key", valueBuffer, function(err, result) {
               _error = _error || err;
               context.get("key", function(err, result) {
                 _error = _error || err;
@@ -74,7 +82,7 @@ define(["IDBFS"], function(IDBFS) {
 
           runs(function() {
             expect(_error).toEqual(null);
-            expect(_result).toEqual("value");
+            expect(_result).toEqual(valueBuffer);
           });
         });
 
@@ -87,7 +95,7 @@ define(["IDBFS"], function(IDBFS) {
             _error = err;
 
             var context = provider.getReadWriteContext();
-            context.put("key", "value", function(err, result) {
+            context.put("key", valueBuffer, function(err, result) {
               _error = _error || err;
               context.delete("key", function(err, result) {
                 _error = _error || err;
@@ -120,9 +128,9 @@ define(["IDBFS"], function(IDBFS) {
             _error = err;
 
             var context = provider.getReadWriteContext();
-            context.put("key1", "value1", function(err, result) {
+            context.put("key1", value1Buffer, function(err, result) {
               _error = _error || err;
-              context.put("key2", "value2", function(err, result) {
+              context.put("key2", value2Buffer, function(err, result) {
                 _error = _error || err;
 
                 context.clear(function(err) {
@@ -164,7 +172,7 @@ define(["IDBFS"], function(IDBFS) {
             _error = err;
 
             var context = provider.getReadOnlyContext();
-            context.put("key1", "value1", function(err, result) {
+            context.put("key1", value1Buffer, function(err, result) {
               _error = _error || err;
               _result = result;
 
@@ -185,8 +193,24 @@ define(["IDBFS"], function(IDBFS) {
     });
   }
 
-  buildTestsFor('AES');
-  buildTestsFor('TripleDES');
-  buildTestsFor('Rabbit');
+
+  // Encryption
+  buildTestsFor('AES', function buildAdapter(provider) {
+    var passphrase = '' + Date.now();
+    return new IDBFS.FileSystem.adapters.AES(passphrase, provider);
+  });
+  buildTestsFor('TripleDES', function buildAdapter(provider) {
+    var passphrase = '' + Date.now();
+    return new IDBFS.FileSystem.adapters.TripleDES(passphrase, provider);
+  });
+  buildTestsFor('Rabbit', function buildAdapter(provider) {
+    var passphrase = '' + Date.now();
+    return new IDBFS.FileSystem.adapters.Rabbit(passphrase, provider);
+  });
+
+  // Compression
+  buildTestsFor('Zlib', function buildAdapter(provider) {
+    return new IDBFS.FileSystem.adapters.Zlib(provider);
+  });
 
 });
