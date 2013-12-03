@@ -7,6 +7,38 @@ define(function(require) {
   // Rabbit, see http://code.google.com/p/crypto-js/#Rabbit
   require("crypto-js/rollups/rabbit");
 
+  // Move back and forth from Uint8Arrays and CryptoJS' WordArray
+  // source: https://groups.google.com/forum/#!topic/crypto-js/TOb92tcJlU0
+  Uint8ArrayFormatter = {
+    fromWordArray: function (wordArray) {
+      // Shortcuts
+      var words = wordArray.words;
+      var sigBytes = wordArray.sigBytes;
+
+      // Convert
+      var u8 = new Uint8Array(sigBytes);
+      for (var i = 0; i < sigBytes; i++) {
+        var byte = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+        u8[i]=byte;
+      }
+console.log("stringify", wordArray, u8);
+      return u8;
+    },
+
+    toWordArray: function (u8arr) {
+      // Shortcut
+      var len = u8arr.length;
+
+      // Convert
+      var words = [];
+      for (var i = 0; i < len; i++) {
+        words[i >>> 2] |= (u8arr[i] & 0xff) << (24 - (i % 4) * 8);
+      }
+console.log("parse", u8arr, CryptoJS.lib.WordArray.create(words, len));
+      return CryptoJS.lib.WordArray.create(words, len);
+    }
+  };
+
 
   function CryptoContext(context, encrypt, decrypt) {
     this.context = context;
@@ -24,7 +56,7 @@ define(function(require) {
         return;
       }
       if(value) {
-        value = decrypt(value);
+        value = Uint8ArrayFormatter.fromWordArray(decrypt(value));
       }
       callback(null, value);
     });
@@ -37,37 +69,6 @@ define(function(require) {
     this.context.delete(key, callback);
   };
 
-  // Move back and forth from Uint8Arrays and CryptoJS' WordArray
-  // source: https://groups.google.com/forum/#!topic/crypto-js/TOb92tcJlU0
-  Uint8ArrayFormatter = {
-    stringify: function (wordArray) {
-      // Shortcuts
-      var words = wordArray.words;
-      var sigBytes = wordArray.sigBytes;
-
-      // Convert
-      var u8 = new Uint8Array(sigBytes);
-      for (var i = 0; i < sigBytes; i++) {
-        var byte = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-        u8[i]=byte;
-      }
-
-      return u8;
-    },
-
-    parse: function (u8arr) {
-      // Shortcut
-      var len = u8arr.length;
-
-      // Convert
-      var words = [];
-      for (var i = 0; i < len; i++) {
-        words[i >>> 2] |= (u8arr[i] & 0xff) << (24 - (i % 4) * 8);
-      }
-
-      return CryptoJS.lib.WordArray.create(words, len);
-    }
-  };
 
   function buildCryptoAdapter(encryptionType) {
     // It is up to the app using this wrapper how the passphrase is acquired, probably by
@@ -76,13 +77,13 @@ define(function(require) {
       this.provider = provider;
       this.encrypt = function(plain) {
         return CryptoJS[encryptionType]
-                 .encrypt(plain, passphrase, {format: Uint8ArrayFormatter})
+                 .encrypt(Uint8ArrayFormatter.toWordArray(plain), passphrase)
                  .toString();
       };
       this.decrypt = function(encrypted) {
         return CryptoJS[encryptionType]
-                 .decrypt(encrypted, passphrase, {format: Uint8ArrayFormatter})
-                 .toString(); //CryptoJS.enc.Utf8);
+                 .decrypt(encrypted, passphrase)
+                 .toString();
       };
     }
     CryptoAdapter.isSupported = function() {
