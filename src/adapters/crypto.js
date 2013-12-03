@@ -9,36 +9,30 @@ define(function(require) {
 
   // Move back and forth from Uint8Arrays and CryptoJS' WordArray
   // source: https://groups.google.com/forum/#!topic/crypto-js/TOb92tcJlU0
-  Uint8ArrayFormatter = {
-    fromWordArray: function (wordArray) {
-      // Shortcuts
-      var words = wordArray.words;
-      var sigBytes = wordArray.sigBytes;
-
-      // Convert
-      var u8 = new Uint8Array(sigBytes);
-      for (var i = 0; i < sigBytes; i++) {
-        var byte = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-        u8[i]=byte;
-      }
-console.log("stringify", wordArray, u8);
-      return u8;
-    },
-
-    toWordArray: function (u8arr) {
-      // Shortcut
-      var len = u8arr.length;
-
-      // Convert
-      var words = [];
-      for (var i = 0; i < len; i++) {
-        words[i >>> 2] |= (u8arr[i] & 0xff) << (24 - (i % 4) * 8);
-      }
-console.log("parse", u8arr, CryptoJS.lib.WordArray.create(words, len));
-      return CryptoJS.lib.WordArray.create(words, len);
+  var WordArray = CryptoJS.lib.WordArray;
+  function fromWordArray(wordArray) {
+    var words = wordArray.words;
+    var sigBytes = wordArray.sigBytes;
+    var u8 = new Uint8Array(sigBytes);
+    for (var i = 0; i < sigBytes; i++) {
+      var byte = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+      u8[i]=byte;
     }
-  };
+    return u8;
+  }
+  function toWordArray(u8arr) {
+    var len = u8arr.length;
+    var words = [];
+    for (var i = 0; i < len; i++) {
+      words[i >>> 2] |= (u8arr[i] & 0xff) << (24 - (i % 4) * 8);
+    }
+    return WordArray.create(words, len);
+  }
 
+  CryptoJS.enc.Uint8Array = {
+    stringify: fromWordArray,
+    parse: toWordArray
+  };
 
   function CryptoContext(context, encrypt, decrypt) {
     this.context = context;
@@ -56,7 +50,7 @@ console.log("parse", u8arr, CryptoJS.lib.WordArray.create(words, len));
         return;
       }
       if(value) {
-        value = Uint8ArrayFormatter.fromWordArray(decrypt(value));
+        value = decrypt(value);
       }
       callback(null, value);
     });
@@ -75,15 +69,30 @@ console.log("parse", u8arr, CryptoJS.lib.WordArray.create(words, len));
     // prompting the user to enter it when the file system is being opened.
     function CryptoAdapter(passphrase, provider) {
       this.provider = provider;
-      this.encrypt = function(plain) {
-        return CryptoJS[encryptionType]
-                 .encrypt(Uint8ArrayFormatter.toWordArray(plain), passphrase)
-                 .toString();
+      this.encrypt = function(buffer) {
+        var wordArray = toWordArray(buffer);
+//        return CryptoJS[encryptionType]
+//                 .encrypt(wordArray, passphrase)
+//                 .toString(CryptoJS.enc.Uint8Array);
+
+        var e = CryptoJS[encryptionType].encrypt(wordArray, passphrase);
+        var e2 = e.ciphertext.toString(CryptoJS.enc.Uint8Array);
+        console.log("encrypt", e, e2);
+        return e2;
       };
       this.decrypt = function(encrypted) {
-        return CryptoJS[encryptionType]
-                 .decrypt(encrypted, passphrase)
-                 .toString();
+debugger;
+        var wordArray = toWordArray(encrypted);
+//        return CryptoJS[encryptionType]
+//                 .decrypt(wordArray, passphrase)
+//                 .toString(CryptoJS.enc.Uint8Array);
+
+//     var cipherParams = CryptoJS.lib.CipherParams.create({
+//                ciphertext: CryptoJS.enc.Base64.parse(jsonObj.ct)
+//            });
+
+        var result = CryptoJS[encryptionType].decrypt({ciphertext:wordArray}, passphrase);
+        return result.toString(CryptoJS.enc.Uint8Array);
       };
     }
     CryptoAdapter.isSupported = function() {
