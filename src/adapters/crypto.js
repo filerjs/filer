@@ -7,16 +7,19 @@ define(function(require) {
   // Rabbit, see http://code.google.com/p/crypto-js/#Rabbit
   require("crypto-js/rollups/rabbit");
 
-  // Move back and forth from Uint8Arrays and CryptoJS' WordArray
-  // source: https://groups.google.com/forum/#!topic/crypto-js/TOb92tcJlU0
+
+  // Move back and forth from Uint8Arrays and CryptoJS WordArray
+  // See http://code.google.com/p/crypto-js/#The_Cipher_Input and
+  // https://groups.google.com/forum/#!topic/crypto-js/TOb92tcJlU0
   var WordArray = CryptoJS.lib.WordArray;
   function fromWordArray(wordArray) {
     var words = wordArray.words;
     var sigBytes = wordArray.sigBytes;
     var u8 = new Uint8Array(sigBytes);
+    var b;
     for (var i = 0; i < sigBytes; i++) {
-      var byte = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-      u8[i]=byte;
+      b = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+      u8[i] = b;
     }
     return u8;
   }
@@ -29,10 +32,16 @@ define(function(require) {
     return WordArray.create(words, len);
   }
 
-  CryptoJS.enc.Uint8Array = {
-    stringify: fromWordArray,
-    parse: toWordArray
-  };
+
+  // UTF8 Text De/Encoders
+  require('encoding');
+  function encode(str) {
+    return (new TextEncoder('utf-8')).encode(str);
+  }
+  function decode(u8arr) {
+    return (new TextDecoder('utf-8')).decode(u8arr);
+  }
+
 
   function CryptoContext(context, encrypt, decrypt) {
     this.context = context;
@@ -69,30 +78,34 @@ define(function(require) {
     // prompting the user to enter it when the file system is being opened.
     function CryptoAdapter(passphrase, provider) {
       this.provider = provider;
+
+      // Cache cipher algorithm we'll use in encrypt/decrypt
+      var cipher = CryptoJS[encryptionType];
+
+      // To encrypt:
+      //   1) accept a buffer (Uint8Array) containing binary data
+      //   2) convert the buffer to a CipherJS WordArray
+      //   3) encrypt the WordArray using the chosen cipher algorithm + passphrase
+      //   4) convert the resulting ciphertext to a UTF8 encoded Uint8Array and return
       this.encrypt = function(buffer) {
         var wordArray = toWordArray(buffer);
-//        return CryptoJS[encryptionType]
-//                 .encrypt(wordArray, passphrase)
-//                 .toString(CryptoJS.enc.Uint8Array);
-
-        var e = CryptoJS[encryptionType].encrypt(wordArray, passphrase);
-        var e2 = e.ciphertext.toString(CryptoJS.enc.Uint8Array);
-        console.log("encrypt", e, e2);
-        return e2;
+        var encrypted = cipher.encrypt(wordArray, passphrase);
+        var utf8EncodedBuf = encode(encrypted);
+        return utf8EncodedBuf;
       };
-      this.decrypt = function(encrypted) {
-debugger;
-        var wordArray = toWordArray(encrypted);
-//        return CryptoJS[encryptionType]
-//                 .decrypt(wordArray, passphrase)
-//                 .toString(CryptoJS.enc.Uint8Array);
 
-//     var cipherParams = CryptoJS.lib.CipherParams.create({
-//                ciphertext: CryptoJS.enc.Base64.parse(jsonObj.ct)
-//            });
-
-        var result = CryptoJS[encryptionType].decrypt({ciphertext:wordArray}, passphrase);
-        return result.toString(CryptoJS.enc.Uint8Array);
+      // To decrypt:
+      //   1) accept a buffer (Uint8Array) containing a UTF8 encoded Uint8Array
+      //   2) convert the buffer to string (i.e., the ciphertext we got from encrypting)
+      //   3) decrypt the ciphertext string
+      //   4) convert the decrypted cipherParam object to a UTF8 string
+      //   5) encode the UTF8 string to a Uint8Array buffer and return
+      this.decrypt = function(buffer) {
+        var encryptedStr = decode(buffer);
+        var decrypted = cipher.decrypt(encryptedStr, passphrase);
+        var decryptedUtf8 = decrypted.toString(CryptoJS.enc.Utf8);
+        var utf8EncodedBuf = encode(decryptedUtf8);
+        return utf8EncodedBuf;
       };
     }
     CryptoAdapter.isSupported = function() {

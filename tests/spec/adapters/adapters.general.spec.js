@@ -22,7 +22,10 @@ define(["IDBFS"], function(IDBFS) {
 
     describe("IDBFS.FileSystem.adapters." + adapterName, function() {
       it("is supported -- if it isn't, none of these tests can run.", function() {
-        expect(IDBFS.FileSystem.adapters[adapterName].isSupported()).toEqual(true);
+        // Allow for combined adapters (e.g., 'AES+Zlib') joined by '+'
+        adapterName.split('+').forEach(function(name) {
+          expect(IDBFS.FileSystem.adapters[name].isSupported()).toEqual(true);
+        });
       });
 
       it("has open, getReadOnlyContext, and getReadWriteContext instance methods", function() {
@@ -55,7 +58,7 @@ define(["IDBFS"], function(IDBFS) {
         });
       });
 
-      describe("Read/Write operations on a Memory provider with an " + adapterName + "adapter", function() {
+      describe("Read/Write operations on a Memory provider with an " + adapterName + " adapter", function() {
         it("should allow put() and get()", function() {
           var complete = false;
           var _error, _result;
@@ -211,6 +214,14 @@ define(["IDBFS"], function(IDBFS) {
   // Compression
   buildTestsFor('Zlib', function buildAdapter(provider) {
     return new IDBFS.FileSystem.adapters.Zlib(provider);
+  });
+
+  // AES + Zlib together
+  buildTestsFor('AES+Zlib', function buildAdapter(provider) {
+    var passphrase = '' + Date.now();
+    var zlib = new IDBFS.FileSystem.adapters.Zlib(provider);
+    var AESwithZlib = new IDBFS.FileSystem.adapters.AES(passphrase, zlib);
+    return AESwithZlib;
   });
 
 });

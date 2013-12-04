@@ -1,6 +1,6 @@
 define(function(require) {
 
-  // ZLib compression, see
+  // Zlib compression, see
   // https://github.com/imaya/zlib.js/blob/master/bin/zlib.min.js
   require("zlib");
 
@@ -43,7 +43,7 @@ define(function(require) {
 
 
   function ZlibAdapter(provider, inflate, deflate) {
-      this.provider = provider;
+    this.provider = provider;
   }
   ZlibAdapter.isSupported = function() {
     return true;
