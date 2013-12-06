@@ -143,21 +143,26 @@ IDBFS based file systems can acquire new functionality by using adapters. These 
 of storage providers without altering them in anway. An adapter can be used with any provider, and multiple
 adapters can be used together in order to compose complex functionality on top of a provider.
 
-There are currently 4 adapters available:
+There are currently 5 adapters available:
+* `FileSystem.adapters.Compression(provider)` - a default compression adapter that uses [Zlib](https://github.com/imaya/zlib.js)
+* `FileSystem.adapters.Encryption(passphrase, provider)` - a default encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
+
+You can also pick from other encryption cipher algorithms:
 * `FileSystem.adapters.AES(passphrase, provider)` - extends a provider with [AES encryption](http://code.google.com/p/crypto-js/#AES)
 * `FileSystem.adapters.TripleDES(passphrase, provider)` - extends a provider with [TripleDES encryption](http://code.google.com/p/crypto-js/#DES,_Triple_DES)
 * `FileSystem.adapters.Rabbit(passphrase, provider)` - extends a provider with [Rabbit encryption](http://code.google.com/p/crypto-js/#Rabbit)
-* `FileSystem.adapters.Encryption(passphrase, provider)` - a default encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
 
 ```javascript
 var FileSystem = IDBFS.FileSystem;
 var providers = FileSystem.providers;
 var adapters = FileSystem.adapters;
 
-// Create a WebSQL-based, Encrypted File System.
+// Create a WebSQL-based, Encrypted, Compressed File System by
+// composing a provider and adatpers.
 var webSQLProvider = new providers.WebSQL();
 var encryptionAdatper = new adapters.Encryption('super-secret-passphrase', webSQLProvider);
-var fs1 = new FileSystem({ provider: encryptionAdapter });
+var compressionAdatper = new adatpers.Compression(encryptionAdapter);
+var fs = new FileSystem({ provider: compressionAdapter });
 ```
 
 You can also write your own adapter if you need to add new capabilities to the providers. Adapters share the same

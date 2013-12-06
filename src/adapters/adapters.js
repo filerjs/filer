@@ -1,6 +1,7 @@
 define(function(require) {
 
   var CryptoAdapters = require('src/adapters/crypto');
+  var ZlibAdapter = require('src/adapters/zlib');
 
   return {
 
@@ -8,7 +9,12 @@ define(function(require) {
     AES: CryptoAdapters.AES,
     TripleDES: CryptoAdapters.TripleDES,
     Rabbit: CryptoAdapters.Rabbit,
-    // Convenience encryption wrapper (default to AES)
+
+    // Compression Adapters
+    Zlib: ZlibAdapter,
+
+    // Convenience adapters (provide default choices)
+    Compression: ZlibAdapter,
     Encryption: CryptoAdapters.AES
 
   };
