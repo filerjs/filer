@@ -328,3 +328,11 @@ Asynchronous readlink(2). Callback gets `(error, linkContents)`, where `linkCont
 #### fs.lstat(path, callback)
 
 Asynchronous lstat(2). Callback gets `(error, stats)`, See `fs.stat`.
+
+#### fs.truncate(path, length, callback)
+
+Asynchronous truncate(2). Callback gets no additional arguments.
+
+#### fs.ftruncate(fd, length, callback)
+
+Asynchronous ftruncate(2). Callback gets no additional arguments.

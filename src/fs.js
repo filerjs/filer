@@ -943,6 +943,96 @@ define(function(require) {
     }
   }
 
+  function truncate_file(context, path, length, callback) {
+    path = normalize(path);
+
+    var fileNode;
+
+    function read_file_data (error, node) {
+      if (error) {
+        callback(error);
+      } else if(node.mode == MODE_DIRECTORY ) {
+        callback(new EIsDirectory('the named file is a directory'));
+      } else{
+        fileNode = node;
+        context.get(fileNode.data, truncate_file_data);
+      }
+    }
+
+    function truncate_file_data(error, fileData) {
+      if (error) {
+        callback(error);
+      } else {
+        var data = new Uint8Array(length);
+        if(fileData) {
+          data.set(fileData.subarray(0, length));
+        }
+        context.put(fileNode.data, data, update_file_node);
+      }
+    }
+
+    function update_file_node (error) {
+      if(error) {
+        callback(error);
+      } else {
+        fileNode.size = length;
+        fileNode.mtime = Date.now();
+        fileNode.version += 1;
+        context.put(fileNode.id, fileNode, callback);
+      }
+    }
+
+    if(length < 0) {
+      callback(new EInvalid('length cannot be negative'));
+    } else {
+      find_node(context, path, read_file_data);
+    }
+  }
+
+  function ftruncate_file(context, ofd, length, callback) {
+    var fileNode;
+
+    function read_file_data (error, node) {
+      if (error) {
+        callback(error);
+      } else if(node.mode == MODE_DIRECTORY ) {
+        callback(new EIsDirectory('the named file is a directory'));
+      } else{
+        fileNode = node;
+        context.get(fileNode.data, truncate_file_data);
+      }
+    }
+
+    function truncate_file_data(error, fileData) {
+      if (error) {
+        callback(error);
+      } else {
+        var data = new Uint8Array(length);
+        if(fileData) {
+          data.set(fileData.subarray(0, length));
+        }
+        context.put(fileNode.data, data, update_file_node);
+      }
+    }
+
+    function update_file_node (error) {
+      if(error) {
+        callback(error);
+      } else {
+        fileNode.size = length;
+        fileNode.mtime = Date.now();
+        fileNode.version += 1;
+        context.put(fileNode.id, fileNode, callback);
+      }
+    }
+
+    if(length < 0) {
+      callback(new EInvalid('length cannot be negative'));
+    } else {
+      context.get(ofd.id, read_file_data);
+    }
+  }
+
   function validate_flags(flags) {
     if(!_(O_FLAGS).has(flags)) {
       return null;
@@ -1505,14 +1595,38 @@ define(function(require) {
     lstat_file(context, path, check_result);
   }
 
-  function _truncate(path, length, callback) {
-    // TODO
-    //     if(!nullCheck(path, callback)) return;
+  function _truncate(context, path, length, callback) {
+    if(!nullCheck(path, callback)) return;
+
+    function check_result(error) {
+      if(error) {
+        callback(error);
+      } else {
+        callback(null);
+      }
+    }
+
+    truncate_file(context, path, length, check_result);
   }
 
-  function _ftruncate(fd, length, callback) {
-    // TODO
-    //     if(!nullCheck(path, callback)) return;
+  function _ftruncate(fs, context, fd, length, callback) {
+    function check_result(error) {
+      if(error) {
+        callback(error);
+      } else {
+        callback(null);
+      }
+    }
+
+    var ofd = fs.openFiles[fd];
+
+    if(!ofd) {
+      callback(new EBadFileDescriptor('invalid file descriptor'));
+    } else if(!_(ofd.flags).contains(O_WRITE)) {
+      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+    } else {
+      ftruncate_file(context, ofd, length, check_result);
+    }
   }
 
 
@@ -1719,6 +1833,28 @@ define(function(require) {
       function() {
         var context = fs.provider.getReadWriteContext();
         _lstat(fs, context, path, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  FileSystem.prototype.truncate = function(path, length, callback) {
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function() {
+        var context = fs.provider.getReadWriteContext();
+        _truncate(context, path, length, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  FileSystem.prototype.ftruncate = function(fd, length, callback) {
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function() {
+        var context = fs.provider.getReadWriteContext();
+        _ftruncate(fs, context, fd, length, callback);
       }
     );
     if(error) callback(error);

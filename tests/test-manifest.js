@@ -26,6 +26,7 @@ define([
   "spec/fs.lseek.spec",
   "spec/fs.symlink.spec",
   "spec/fs.readlink.spec",
+  "spec/fs.truncate.spec",
   "spec/path-resolution.spec",
 
   // IDBFS.FileSystem.providers.*
