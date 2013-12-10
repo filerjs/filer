@@ -205,50 +205,23 @@ define(["IDBFS"], function(IDBFS) {
 
             that.fs.symlink('/myfile', '/myfilelink1', function(error) {
               if(error) throw error;
-              that.fs.symlink('/myfilelink1', '/myfilelink2', function(error) {
-                if(error) throw error;
 
-                that.fs.symlink('/myfilelink2', '/myfilelink3', function(error) {
-                  if(error) throw error;
-
-                  that.fs.symlink('/myfilelink3', '/myfilelink4', function(error) {
+              function createSymlinkChain(n) {
+                if(n>1) {
+                  that.fs.symlink('/myfilelink' + (n-1), '/myfilelink' + n, function(error) {
                     if(error) throw error;
 
-                    that.fs.symlink('/myfilelink4', '/myfilelink5', function(error) {
-                      if(error) throw error;
-
-                      that.fs.symlink('/myfilelink5', '/myfilelink6', function(error) {
-                        if(error) throw error;
-
-                        that.fs.symlink('/myfilelink6', '/myfilelink7', function(error) {
-                          if(error) throw error;
-
-                          that.fs.symlink('/myfilelink7', '/myfilelink8', function(error) {
-                            if(error) throw error;
-
-                            that.fs.symlink('/myfilelink8', '/myfilelink9', function(error) {
-                              if(error) throw error;
-
-                              that.fs.symlink('/myfilelink9', '/myfilelink10', function(error) {
-                                if(error) throw error;
-
-                                that.fs.symlink('/myfilelink10', '/myfilelink11', function(error) {
-                                  if(error) throw error;
-
-                                  that.fs.stat('/myfilelink11', function(error, result) {
-                                    _error = error;
-                                    _result = result;
-                                    complete = true;
-                                  });
-                                });
-                              });
-                            });
-                          });
-                        });
-                      });
-                    });
+                    createSymlinkChain(n-1);
                   });
-                });
+                }
+              };
+
+              createSymlinkChain(11);
+
+              that.fs.stat('/myfilelink11', function(error, result) {
+                _error = error;
+                _result = result;
+                complete = true;
               });
             });
           });
