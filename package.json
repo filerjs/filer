@@ -1,6 +1,16 @@
 {
   "name": "filer",
+  "description": "Node-like file system for browsers",
+  "keywords": ["fs", "node", "file", "system", "browser", "indexeddb", "idb", "websql"],
   "version": "0.0.3",
+  "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
+  "homepage": "http://js-platform.github.io/filer",
+  "bugs": "https://github.com/js-platform/filer/issues",
+  "license": "BSD",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/js-platform/filer.git"
+  },
   "devDependencies": {
     "grunt": "~0.4.0",
     "grunt-contrib-clean": "~0.4.0",
