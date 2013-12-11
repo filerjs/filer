@@ -1,4 +1,4 @@
-[![NPM](https://nodei.co/npm/filer.png?stars=true)](https://nodei.co/npm/filer/)
+[![NPM](https://nodei.co/npm/filer.png?downloads=true&stars=true)](https://nodei.co/npm/filer/)
 
 ###Filer
 
