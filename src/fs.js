@@ -1033,6 +1033,56 @@ define(function(require) {
     }
   }
 
+  //NOTE: utimes does follow symoblic links (safe to use find_node)
+  function utimes_file(context, path, atime, mtime, callback) {
+    path = normalize(path);
+
+    function update_times (error, node) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        node.atime = atime;
+        node.mtime = mtime;
+      }
+    }
+
+    //check if atime and mtime are integers and >= 0
+    if (typeof atime != 'number' || typeof mtime == 'number') {
+      callback(new EInvalid('Invalid DateTime values'));
+    }
+    else if (atime < 0 || mtime < 0) {
+      callback(new EInvalid('DateTime values cannot be negative'))
+    }
+    else {
+      find_node(context, path, update_times)
+    }
+  }
+
+  function futimes_file(context, ofd, atime, mtime, callback) {
+
+    function update_times (error, node) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        node.atime = atime;
+        node.mtime = mtime;
+      }
+    }
+
+    //check if atime and mtime are integers and >= 0
+    if (typeof atime != 'number' || typeof mtime == 'number') {
+      callback(new EInvalid('Invalid DateTime values'));
+    }
+    else if (atime < 0 || mtime < 0) {
+      callback(new EInvalid('DateTime values cannot be negative'))
+    }
+    else {
+      context.get(ofd.id, path, update_times)
+    }
+  }
+
   function validate_flags(flags) {
     if(!_(O_FLAGS).has(flags)) {
       return null;
@@ -1519,9 +1569,47 @@ define(function(require) {
     read_directory(context, path, check_result);
   }
 
-  function _utimes(path, atime, mtime, callback) {
-    // TODO
-    //     if(!nullCheck(path, callback)) return;
+  function _utimes(context, path, atime, mtime, callback) {
+    if(!nullCheck(path, callback)) return;
+
+    //set atime or mtime to the current time if they are null
+    atime = (atime) ? atime : Date.now();
+    mtime = (mtime) ? mtime : Date.now();
+
+    function check_result(error) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        callback(null);
+      }
+    }    
+    utimes_file(context, path, atime, mtime, check_result)
+  }
+
+  function _futimes(context, fd, atime, mtime, callback) {
+    function check_result(error) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        callback(null);
+      }
+    }
+
+    //set atime or mtime to the current time if they are null
+    atime = (atime) ? atime : Date.now();
+    mtime = (mtime) ? mtime : Date.now();
+
+    var ofd = fs.openFiles[fd];
+
+    if(!ofd) {
+      callback(new EBadFileDescriptor('invalid file descriptor'));
+    } else if(!_(ofd.flags).contains(O_WRITE)) {
+      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+    } else {
+      futimes_file(context, ofd, atime, mtime, check_result);
+    }    
   }
 
   function _rename(context, oldpath, newpath, callback) {
@@ -1858,6 +1946,26 @@ define(function(require) {
       }
     );
     if(error) callback(error);
+  };
+  FileSystem.prototype.utimes = function(path, atime, mtime, callback) {
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _utimes(context, path, atime, mtime, callback);
+      }
+    );
+  };
+  FileSystem.prototype.futimes = function(fd, atime, mtime, callback) {
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _futimes(context, fd, atime, mtime, callback);
+      }
+    );
   };
 
   return {
