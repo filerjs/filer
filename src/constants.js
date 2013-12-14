@@ -22,6 +22,7 @@ define(function(require) {
     MODE_FILE: 'FILE',
     MODE_DIRECTORY: 'DIRECTORY',
     MODE_SYMBOLIC_LINK: 'SYMLINK',
+    MODE_META: 'META',
 
     SYMLOOP_MAX: 10,
 
@@ -29,7 +30,6 @@ define(function(require) {
     JSON_MIME_TYPE: 'application/json',
 
     ROOT_DIRECTORY_NAME: '/', // basename(normalize(path))
-    ROOT_NODE_ID: '8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1', // sha256(ROOT_DIRECTORY_NAME)
 
     FS_FORMAT: 'FORMAT',
 
@@ -55,7 +55,9 @@ define(function(require) {
 
     FS_READY: 'READY',
     FS_PENDING: 'PENDING',
-    FS_ERROR: 'ERROR'
+    FS_ERROR: 'ERROR',
+
+    SUPER_NODE_ID: '00000000-0000-0000-0000-000000000000'
   };
 
 });

@@ -117,7 +117,8 @@ define(function(require) {
     ENotMounted: ENotMounted,
     EInvalid: EInvalid,
     EIO: EIO,
-    ELoop: ELoop
+    ELoop: ELoop,
+    EFileSystemError: EFileSystemError
   };
 
 });

@@ -6,50 +6,26 @@
 <body>
   <div id="stdout"></div>
 </body>
-<script src="../lib/require.js"></script>
+<script src="../dist/idbfs.js"></script>
 <script>
-require.config({
-  baseUrl: "../lib",
-  paths: {
-    "src": "../src"
-  }
-});
+window.IDBFS = IDBFS;
+var fs = new IDBFS.FileSystem({
+        name: 'local',
+        flags: ['FORMAT']
+      });
 
-require(["src/fs"], function(IDBFS) {
-
-var flags = 'FORMAT';
-//var flags;
-
-var fs = new IDBFS.FileSystem('local', flags);
-var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-console.log('buffer', buffer);
-var data = new Uint8Array(buffer.length);
+//var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+//console.log('buffer', buffer);
+//var data = new Uint8Array(buffer.length);
 
 try {
-fs.open('/tmp', 'w+', function(error, fd) {
+fs.stat('/', function(error, stats) {
   if(error) throw error;
-  console.log('descriptor:', fd);
-  fs.lseek(fd, 2, 'END', function(error, pos) {
-    if(error) throw error;
-    console.log('pos:', pos);
-    fs.close(fd, function(error) {
-      if(error) throw error;
-      console.log('closed');
-      fs.stat('/tmp', function(error, stats) {
-        if(error) throw error;
-        console.log('stats:', stats);
-        fs.rename('/tmp', '/tmp1', function(error) {
-          if(error) throw error;
-          console.log('done');
-        });
-      });
-    });
-  });
+  console.log('stats:', stats);
 });
 } catch(e) {
   console.error(e);
 }
 
-});
 </script>
 </html>
