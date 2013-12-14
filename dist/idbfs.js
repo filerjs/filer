@@ -3244,7 +3244,8 @@ define('src/error',['require'],function(require) {
     ENotMounted: ENotMounted,
     EInvalid: EInvalid,
     EIO: EIO,
-    ELoop: ELoop
+    ELoop: ELoop,
+    EFileSystemError: EFileSystemError
   };
 
 });
@@ -3273,6 +3274,7 @@ define('src/constants',['require'],function(require) {
     MODE_FILE: 'FILE',
     MODE_DIRECTORY: 'DIRECTORY',
     MODE_SYMBOLIC_LINK: 'SYMLINK',
+    MODE_META: 'META',
 
     SYMLOOP_MAX: 10,
 
@@ -3280,7 +3282,6 @@ define('src/constants',['require'],function(require) {
     JSON_MIME_TYPE: 'application/json',
 
     ROOT_DIRECTORY_NAME: '/', // basename(normalize(path))
-    ROOT_NODE_ID: '8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1', // sha256(ROOT_DIRECTORY_NAME)
 
     FS_FORMAT: 'FORMAT',
 
@@ -3306,7 +3307,9 @@ define('src/constants',['require'],function(require) {
 
     FS_READY: 'READY',
     FS_PENDING: 'PENDING',
-    FS_ERROR: 'ERROR'
+    FS_ERROR: 'ERROR',
+
+    SUPER_NODE_ID: '00000000-0000-0000-0000-000000000000'
   };
 
 });
@@ -4051,7 +4054,7 @@ define('src/adapters/adapters',['require','src/adapters/crypto','src/adapters/zl
   };
 });
 
-define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters','src/path'],function(require) {
+define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters','src/path'],function(require) {
 
   var _ = require('nodash');
 
@@ -4086,8 +4089,9 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   var MODE_FILE = require('src/constants').MODE_FILE;
   var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
   var MODE_SYMBOLIC_LINK = require('src/constants').MODE_SYMBOLIC_LINK;
+  var MODE_META = require('src/constants').MODE_META;
   var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
-  var ROOT_NODE_ID = require('src/constants').ROOT_NODE_ID;
+  var SUPER_NODE_ID = require('src/constants').SUPER_NODE_ID;
   var SYMLOOP_MAX = require('src/constants').SYMLOOP_MAX;
   var FS_READY = require('src/constants').FS_READY;
   var FS_PENDING = require('src/constants').FS_PENDING;
@@ -4123,13 +4127,28 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   /*
+   * SuperNode
+   */
+
+  function SuperNode(atime, ctime, mtime) {
+    var now = Date.now();
+
+    this.id = SUPER_NODE_ID;
+    this.mode = MODE_META;
+    this.atime = atime || now;
+    this.ctime = ctime || now;
+    this.mtime = mtime || now;
+    this.rnode = guid(); // root node id (randomly generated)
+  }
+
+  /*
    * Node
    */
 
   function Node(id, mode, size, atime, ctime, mtime, flags, xattrs, nlinks, version) {
     var now = Date.now();
 
-    this.id = id || hash(guid());
+    this.id = id || guid();
     this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
     this.size = size || 0; // size (bytes for files, entries for directories)
     this.atime = atime || now; // access time
@@ -4141,7 +4160,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     this.version = version || 0; // node version
     this.blksize = undefined; // block size
     this.nblocks = 1; // blocks count
-    this.data = hash(guid()); // id for data object
+    this.data = guid(); // id for data object
   }
 
   /*
@@ -4173,6 +4192,16 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var name = basename(path);
     var parentPath = dirname(path);
     var followedCount = 0;
+
+    function read_root_directory_node(error, superNode) {
+      if(error) {
+        callback(error);
+      } else if(!superNode || superNode.mode !== MODE_META || !superNode.rnode) {
+        callback(new EFileSystemError('missing super node'));
+      } else {
+        context.get(superNode.rnode, check_root_directory_node);
+      }
+    }
 
     function check_root_directory_node(error, rootDirectoryNode) {
       if(error) {
@@ -4233,14 +4262,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       parentPath = dirname(data);
       name = basename(data);
       if(ROOT_DIRECTORY_NAME == name) {
-        context.get(ROOT_NODE_ID, check_root_directory_node);
+        context.get(SUPER_NODE_ID, read_root_directory_node);
       } else {
         find_node(context, parentPath, read_parent_directory_data);
       }
     }
 
     if(ROOT_DIRECTORY_NAME == name) {
-      context.get(ROOT_NODE_ID, check_root_directory_node);
+      context.get(SUPER_NODE_ID, read_root_directory_node);
     } else {
       find_node(context, parentPath, read_parent_directory_data);
     }
@@ -4252,16 +4281,26 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
   // Note: this should only be invoked when formatting a new file system
   function make_root_directory(context, callback) {
+    var superNode;
     var directoryNode;
     var directoryData;
 
-    function write_directory_node(error, existingNode) {
+    function write_super_node(error, existingNode) {
       if(!error && existingNode) {
         callback(new EExists());
       } else if(error && !error instanceof ENoEntry) {
         callback(error);
       } else {
-        directoryNode = new Node(ROOT_NODE_ID, MODE_DIRECTORY);
+        superNode = new SuperNode();
+        context.put(superNode.id, superNode, write_directory_node);
+      }
+    }
+
+    function write_directory_node(error) {
+      if(error) {
+        callback(error);
+      } else {
+        directoryNode = new Node(superNode.rnode, MODE_DIRECTORY);
         directoryNode.nlinks += 1;
         context.put(directoryNode.id, directoryNode, write_directory_data);
       }
@@ -4276,7 +4315,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       }
     }
 
-    find_node(context, ROOT_DIRECTORY_NAME, write_directory_node);
+    context.get(SUPER_NODE_ID, write_super_node);
   }
 
   /*
@@ -4685,7 +4724,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var directoryData;
 
     if(ROOT_DIRECTORY_NAME == name) {
-      context.get(ROOT_NODE_ID, check_file);
+      find_node(context, path, check_file);
     } else {
       find_node(context, parentPath, read_directory_data);
     }
