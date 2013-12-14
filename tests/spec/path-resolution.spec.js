@@ -194,36 +194,32 @@ define(["IDBFS"], function(IDBFS) {
       var complete = false;
       var _error, _result;
       var that = this;
+      var nlinks = 11;
 
-      that.fs.open('/myfile', 'w', function(error, result) {
+      function createSymlinkChain(n, callback) {
+        if(n > nlinks) {
+          return callback();
+        }
+
+        that.fs.symlink('/myfile' + (n-1), '/myfile' + n, createSymlinkChain.bind(this, n+1, callback));
+      }
+
+      that.fs.open('/myfile0', 'w', function(error, result) {
         if(error) throw error;
         var fd = result;
         that.fs.close(fd, function(error) {
           if(error) throw error;
-          that.fs.stat('/myfile', function(error, result) {
+          that.fs.stat('/myfile0', function(error, result) {
             if(error) throw error;
 
-            that.fs.symlink('/myfile', '/myfilelink1', function(error) {
-              if(error) throw error;
-
-              function createSymlinkChain(n) {
-                if(n>1) {
-                  that.fs.symlink('/myfilelink' + (n-1), '/myfilelink' + n, function(error) {
-                    if(error) throw error;
-
-                    createSymlinkChain(n-1);
-                  });
-                }
-              };
-
-              createSymlinkChain(11);
-
-              that.fs.stat('/myfilelink11', function(error, result) {
+            createSymlinkChain(1, function() {
+              that.fs.stat('/myfile11', function(error, result) {
                 _error = error;
                 _result = result;
                 complete = true;
               });
             });
+
           });
         });
       });
@@ -235,6 +231,7 @@ define(["IDBFS"], function(IDBFS) {
       runs(function() {
         expect(_result).not.toBeDefined();
         expect(_error).toBeDefined();
+        expect(_error.name).toEqual('ELoop');
       });
     });
 
