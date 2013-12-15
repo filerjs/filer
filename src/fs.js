@@ -1043,16 +1043,8 @@ define(function(require) {
         callback(error);
       }
       else {
-        console.log(node);
         node.atime = atime;
         node.mtime = mtime;
-        console.log('updated times atime=' + node.atime + 'and mtime=' + node.mtime);
-
-        _stat (context, 'test', path, function (error, stat) {
-          if (error) console.log('error');
-          else console.log(stat);
-        });
-        // callback(null);
         context.put(node.id, node, callback);
       }
     }
