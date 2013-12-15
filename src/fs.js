@@ -1038,24 +1038,34 @@ define(function(require) {
     path = normalize(path);
 
     function update_times (error, node) {
+      //Note: Going by node.js' implementation, utimes works on directories
       if (error) {
         callback(error);
       }
       else {
+        console.log(node);
         node.atime = atime;
         node.mtime = mtime;
+        console.log('updated times atime=' + node.atime + 'and mtime=' + node.mtime);
+
+        _stat (context, 'test', path, function (error, stat) {
+          if (error) console.log('error');
+          else console.log(stat);
+        });
+        // callback(null);
+        context.put(node.id, node, callback);
       }
     }
 
     //check if atime and mtime are integers and >= 0
-    if (typeof atime != 'number' || typeof mtime == 'number') {
+    if (typeof atime != 'number' || typeof mtime != 'number') {
       callback(new EInvalid('Invalid DateTime values'));
     }
     else if (atime < 0 || mtime < 0) {
-      callback(new EInvalid('DateTime values cannot be negative'))
+      callback(new EInvalid('DateTime values cannot be negative'));
     }
     else {
-      find_node(context, path, update_times)
+      find_node(context, path, update_times);
     }
   }
 
@@ -1068,6 +1078,7 @@ define(function(require) {
       else {
         node.atime = atime;
         node.mtime = mtime;
+        context.put(node.id, node, callback);
       }
     }
 
@@ -1076,10 +1087,10 @@ define(function(require) {
       callback(new EInvalid('Invalid DateTime values'));
     }
     else if (atime < 0 || mtime < 0) {
-      callback(new EInvalid('DateTime values cannot be negative'))
+      callback(new EInvalid('DateTime values cannot be negative'));
     }
     else {
-      context.get(ofd.id, path, update_times)
+      context.get(ofd.id, path, update_times);
     }
   }
 
