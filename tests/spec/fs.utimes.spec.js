@@ -123,15 +123,12 @@ define(["IDBFS"], function(IDBFS) {
       that.fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        console.log('created file');
         that.fs.utimes('/testfile', atime, mtime, function (error) {
           _error = error;
 
-          console.log('getting stats');
           that.fs.stat('/testfile', function (error, rstat) {
             if (error) throw error;
 
-            console.log('got stats');
             stat = rstat;
             complete = true;
           });
