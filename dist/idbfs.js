@@ -4054,7 +4054,7 @@ define('src/adapters/adapters',['require','src/adapters/crypto','src/adapters/zl
   };
 });
 
-define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters','src/path'],function(require) {
+define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters'],function(require) {
 
   var _ = require('nodash');
 
@@ -5952,14 +5952,21 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     if(error) callback(error);
   };
 
-  return {
-    FileSystem: FileSystem,
-    Path: require('src/path')
-  };
+  return FileSystem;
 
 });
 
-  var IDBFS = require( "src/fs" );
+define('src/index',['require','src/fs','src/fs','src/path'],function(require) {
+
+  var fs = require('src/fs');
+
+  return {
+    FileSystem: require('src/fs'),
+    Path: require('src/path')
+  }
+
+});
+  var IDBFS = require( "src/index" );
 
   return IDBFS;
 

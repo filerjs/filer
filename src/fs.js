@@ -1896,9 +1896,6 @@ define(function(require) {
     if(error) callback(error);
   };
 
-  return {
-    FileSystem: FileSystem,
-    Path: require('src/path')
-  };
+  return FileSystem;
 
 });
