@@ -1075,14 +1075,14 @@ define(function(require) {
     }
 
     //check if atime and mtime are integers and >= 0
-    if (typeof atime != 'number' || typeof mtime == 'number') {
+    if (typeof atime != 'number' || typeof mtime != 'number') {
       callback(new EInvalid('Invalid DateTime values'));
     }
     else if (atime < 0 || mtime < 0) {
       callback(new EInvalid('DateTime values cannot be negative'));
     }
     else {
-      context.get(ofd.id, path, update_times);
+      context.get(ofd.id, update_times);
     }
   }
 
@@ -1590,7 +1590,7 @@ define(function(require) {
     utimes_file(context, path, atime, mtime, check_result)
   }
 
-  function _futimes(context, fd, atime, mtime, callback) {
+  function _futimes(fs, context, fd, atime, mtime, callback) {
     function check_result(error) {
       if (error) {
         callback(error);
@@ -1966,7 +1966,7 @@ define(function(require) {
     var error = fs.queueOrRun(
       function () {
         var context = fs.provider.getReadWriteContext();
-        _futimes(context, fd, atime, mtime, callback);
+        _futimes(fs, context, fd, atime, mtime, callback);
       }
     );
   };
