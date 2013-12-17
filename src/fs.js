@@ -1050,10 +1050,10 @@ define(function(require) {
 
     //check if atime and mtime are integers and >= 0
     if (typeof atime != 'number' || typeof mtime != 'number') {
-      callback(new EInvalid('Invalid DateTime values'));
+      callback(new EInvalid('atime and mtime must be number'));
     }
     else if (atime < 0 || mtime < 0) {
-      callback(new EInvalid('DateTime values cannot be negative'));
+      callback(new EInvalid('atime and mtime must be positive integers'));
     }
     else {
       find_node(context, path, update_times);
@@ -1075,10 +1075,10 @@ define(function(require) {
 
     //check if atime and mtime are integers and >= 0
     if (typeof atime != 'number' || typeof mtime != 'number') {
-      callback(new EInvalid('Invalid DateTime values'));
+      callback(new EInvalid('atime and mtime must be a number'));
     }
     else if (atime < 0 || mtime < 0) {
-      callback(new EInvalid('DateTime values cannot be negative'));
+      callback(new EInvalid('atime and mtime must be positive integers'));
     }
     else {
       context.get(ofd.id, update_times);
