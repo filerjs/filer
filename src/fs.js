@@ -1033,7 +1033,6 @@ define(function(require) {
     }
   }
 
-  //NOTE: utimes does follow symoblic links (safe to use find_node)
   function utimes_file(context, path, atime, mtime, callback) {
     path = normalize(path);
 
@@ -1575,9 +1574,9 @@ define(function(require) {
   function _utimes(context, path, atime, mtime, callback) {
     if(!nullCheck(path, callback)) return;
 
-    //set atime or mtime to the current time if they are null
-    atime = (atime) ? atime : Date.now();
-    mtime = (mtime) ? mtime : Date.now();
+    var currentTime = Date.now();
+    atime = (atime) ? atime : currentTime;
+    mtime = (mtime) ? mtime : currentTime;
 
     function check_result(error) {
       if (error) {
@@ -1600,9 +1599,9 @@ define(function(require) {
       }
     }
 
-    //set atime or mtime to the current time if they are null
-    atime = (atime) ? atime : Date.now();
-    mtime = (mtime) ? mtime : Date.now();
+    var currentTime = Date.now()
+    atime = (atime) ? atime : currentTime;
+    mtime = (mtime) ? mtime : currentTime;
 
     var ofd = fs.openFiles[fd];
 

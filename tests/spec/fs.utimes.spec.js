@@ -38,6 +38,7 @@ define(["IDBFS"], function(IDBFS) {
 
       runs(function () {
         expect(_error).toBeDefined();
+        expect(_error.name).toEqual('EInvalid');
       });
     });
 
@@ -61,10 +62,11 @@ define(["IDBFS"], function(IDBFS) {
 
       runs(function () {
         expect(_error).toBeDefined();
+        expect(_error.name).toEqual('EInvalid');
       });
     });
 
-    it('should error when atime is as invalid Datetime', function () {
+    it('should error when atime is as invalid number', function () {
       var complete = false;
       var _error;
       var that = this;
@@ -84,10 +86,34 @@ define(["IDBFS"], function(IDBFS) {
 
       runs(function () {
         expect(_error).toBeDefined();
+        expect(_error.name).toEqual('EInvalid');
       });
     });
 
-    it('should error when mtime is as invalid Datetime', function () {
+    it ('should error when path does not exist', function () {
+      var complete = false;
+      var _error;
+      var that = this;
+
+      var atime = Date.parse('1 Oct 2000 15:33:22');
+      var mtime = Date.parse('30 Sep 2000 06:43:54');
+      
+      that.fs.utimes('/pathdoesnotexist', atime, mtime, function (error) {
+        _error = error;
+        complete = true;
+      });
+
+      waitsFor(function () {
+        return complete;
+      }, 'test to complete', DEFAULT_TIMEOUT);
+
+      runs(function () {
+        expect(_error).toBeDefined();
+        expect(_error.name).toEqual('ENoEntry');
+      });
+    });
+
+    it('should error when mtime is an invalid number', function () {
       var complete = false;
       var _error;
       var that = this;
@@ -107,6 +133,30 @@ define(["IDBFS"], function(IDBFS) {
 
       runs(function () {
         expect(_error).toBeDefined();
+        expect(_error.name).toEqual('EInvalid');
+      });
+    });
+
+    it ('should error when file descriptor is invalid', function () {
+      var complete = false;
+      var _error;
+      var that = this;
+
+      var atime = Date.parse('1 Oct 2000 15:33:22');
+      var mtime = Date.parse('30 Sep 2000 06:43:54');
+
+      that.fs.futimes(1, atime, mtime, function (error) {
+        _error = error;
+        complete = true;
+      });
+
+      waitsFor(function () {
+        return complete;
+      }, 'test to complete', DEFAULT_TIMEOUT);
+
+      runs(function () {
+        expect(_error).toBeDefined();
+        expect(_error.name).toEqual('EBadFileDescriptor');
       });
     });
 
@@ -204,9 +254,7 @@ define(["IDBFS"], function(IDBFS) {
           _error = error;
 
           fs.stat('/testdir', function (error, stat) {
-            if (error) {          
-              throw error;
-            }
+            if (error) throw error;
 
             _stat = stat;
             complete = true;
@@ -223,6 +271,48 @@ define(["IDBFS"], function(IDBFS) {
         expect(_stat.atime).toEqual(atime);
         expect(_stat.mtime).toEqual(mtime);
         delete fs;
+      });
+    });
+
+    it ('should update atime and mtime if they are null', function () {
+      var complete = false;
+      var _error;
+      var that = this;
+
+      var atimeEst;
+      var mtimeEst;
+      var now;
+
+      that.fs.writeFile('/myfile', '', function (error) {
+        if (error) throw error;
+
+        that.fs.utimes('/myfile', null, null, function (error) {
+          _error = error;
+
+          now = Date.now();
+
+          that.fs.stat('/myfile', function (error, stat) {
+            if (error) throw error;
+            
+            atime = stat.atime;
+            mtime = stat.mtime;
+            atimeEst = now - stat.atime;
+            mtimeEst = now - stat.mtime;
+            complete = true;
+          });
+        });
+      });
+
+      waitsFor(function (){
+        return complete;
+      }, 'test to complete', DEFAULT_TIMEOUT);
+
+      runs(function () {
+        expect(_error).toEqual(null);
+        // Note: testing estimation as time may differ by a couple of milliseconds
+        // This number should be increased if tests are on slow systems
+        expect(atimeEst).toBeLessThan(10);
+        expect(mtimeEst).toBeLessThan(10);
       });
     });
   });
