@@ -294,8 +294,6 @@ define(["IDBFS"], function(IDBFS) {
           that.fs.stat('/myfile', function (error, stat) {
             if (error) throw error;
             
-            atime = stat.atime;
-            mtime = stat.mtime;
             atimeEst = now - stat.atime;
             mtimeEst = now - stat.mtime;
             complete = true;
