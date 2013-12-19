@@ -274,7 +274,7 @@ define(["IDBFS"], function(IDBFS) {
       });
     });
 
-    it ('should update atime and mtime if they are null', function () {
+    it ('should update atime and mtime when they are null', function () {
       var complete = false;
       var _error;
       var that = this;
