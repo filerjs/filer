@@ -1531,14 +1531,24 @@ define(function(require) {
     });
   }
 
-  function _getxattr(path, name, callback) {
-    // TODO
-    //     if(!nullCheck(path, callback)) return;
+  function _getxattr(context, path, name, callback) {
+    if(!nullCheck(path, callback)) return;
+
   }
 
-  function _setxattr(path, name, value, callback) {
-    // TODO
-    //    if(!nullCheck(path, callback)) return;
+  function _setxattr(context, path, name, value, callback) {
+    if(!nullCheck(path, callback)) return;
+
+    function check_result (error) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        callback(null);
+      }
+    };
+
+    setxattr_file (context, path, name, value, check_result);
   }
 
   function _lseek(fs, context, fd, offset, whence, callback) {
