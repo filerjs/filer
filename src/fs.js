@@ -1048,7 +1048,6 @@ define(function(require) {
       }
     }
 
-    //check if atime and mtime are integers and >= 0
     if (typeof atime != 'number' || typeof mtime != 'number') {
       callback(new EInvalid('atime and mtime must be number'));
     }
@@ -1073,7 +1072,6 @@ define(function(require) {
       }
     }
 
-    //check if atime and mtime are integers and >= 0
     if (typeof atime != 'number' || typeof mtime != 'number') {
       callback(new EInvalid('atime and mtime must be a number'));
     }
