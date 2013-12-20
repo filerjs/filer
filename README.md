@@ -336,3 +336,11 @@ Asynchronous truncate(2). Callback gets no additional arguments.
 #### fs.ftruncate(fd, length, callback)
 
 Asynchronous ftruncate(2). Callback gets no additional arguments.
+
+#### fs.utimes(path, atime, mtime, callback)
+
+Asynchronous utimes(3). Callback gets no additional arguments.
+
+#### fs.futimes(fd, atime, mtime, callback)
+
+Asynchronous futimes(3). Callback gets no additional arguments.
