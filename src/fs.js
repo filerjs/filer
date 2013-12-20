@@ -2076,7 +2076,32 @@ define(function(require) {
       }
     );
   };
-
+  FileSystem.prototype.setxattr = function (path, name, value, flag, callback) {
+    callback = maybeCallback(arguments[arguments.length - 1]);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _setxattr(context, path, name, value, flag, callback);
+      }
+    );
+    if (error) {
+      callback(error);
+    }
+  };
+  FileSystem.prototype.getxattr = function (path, name, callback) {
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _getxattr(context, path, name, callback);
+      }
+    );
+    if (error) {
+      callback(error);
+    }
+  };
   return FileSystem;
 
 });
