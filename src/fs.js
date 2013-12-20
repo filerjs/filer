@@ -47,6 +47,8 @@ define(function(require) {
   var O_TRUNCATE = require('src/constants').O_TRUNCATE;
   var O_APPEND = require('src/constants').O_APPEND;
   var O_FLAGS = require('src/constants').O_FLAGS;
+  var XATTR_CREATE = require('src/constants').XATTR_CREATE;
+  var XATTR_REPLACE = require('src/constants').XATTR_REPLACE;
 
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
@@ -1118,6 +1120,39 @@ define(function(require) {
     }
   }
 
+  function setxattr_file (context, path, name, value, flag, callback) {
+    path = normalize(path);
+
+    function set_xattr (error, node) {
+      if (flag == XATTR_CREATE && node[name]) {
+        callback(new EExists('attribute already exists'));
+      }
+      else if (flag == XATTR_REPLACE && !node[name]) {
+        callback(new ENoAttr('attribute does not exist'));
+      }
+      else {
+        node.xattr[name] = value;
+        context.put(node.id, node, callback);
+      }
+    }      
+
+    if (typeof name != 'string') {
+      callback(new EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new EInvalid('attribute name cannot be an empty string'));
+    }
+    else if (!value) {
+      callback(new EInvalid('value cannot be empty'));
+    }
+    else if (flag && flag != XATTR_CREATE && flag != XATTR_REPLACE) {
+      callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+    }
+    else {
+      find_node (context, path, set_xattr);
+    }
+  }
+
   function validate_flags(flags) {
     if(!_(O_FLAGS).has(flags)) {
       return null;
@@ -1536,7 +1571,7 @@ define(function(require) {
 
   }
 
-  function _setxattr(context, path, name, value, callback) {
+  function _setxattr(context, path, name, value, flag, callback) {
     if(!nullCheck(path, callback)) return;
 
     function check_result (error) {
@@ -1548,7 +1583,7 @@ define(function(require) {
       }
     };
 
-    setxattr_file (context, path, name, value, check_result);
+    setxattr_file (context, path, name, value, flags, check_result);
   }
 
   function _lseek(fs, context, fd, offset, whence, callback) {

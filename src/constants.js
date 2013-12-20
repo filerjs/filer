@@ -6,6 +6,8 @@ define(function(require) {
   var O_EXCLUSIVE = 'EXCLUSIVE';
   var O_TRUNCATE = 'TRUNCATE';
   var O_APPEND = 'APPEND';
+  var XATTR_CREATE = 'CREATE';
+  var XATTR_REPLACE = 'REPLACE';
 
   return {
     FILE_SYSTEM_NAME: 'local',
@@ -52,6 +54,9 @@ define(function(require) {
       'ax': [O_WRITE, O_CREATE, O_EXCLUSIVE, O_APPEND],
       'ax+': [O_WRITE, O_READ, O_CREATE, O_EXCLUSIVE, O_APPEND]
     },
+
+    XATTR_CREATE: XATTR_CREATE,
+    XATTR_REPLACE: XATTR_REPLACE,
 
     FS_READY: 'READY',
     FS_PENDING: 'PENDING',
