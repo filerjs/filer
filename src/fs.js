@@ -1991,6 +1991,10 @@ define(function(require) {
         _utimes(context, path, atime, mtime, callback);
       }
     );
+    
+    if (error) {
+      callback(error);
+    }
   };
   FileSystem.prototype.futimes = function(fd, atime, mtime, callback) {
     callback = maybeCallback(callback);
@@ -2001,6 +2005,10 @@ define(function(require) {
         _futimes(fs, context, fd, atime, mtime, callback);
       }
     );
+
+    if (error) {
+      callback(error);
+    }
   };
 
   return FileSystem;
