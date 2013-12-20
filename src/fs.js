@@ -1124,10 +1124,13 @@ define(function(require) {
     path = normalize(path);
 
     function set_xattr (error, node) {
-      if (flag == XATTR_CREATE && node[name]) {
+      if (error) {
+        callback (error);
+      }
+      else if (flag === XATTR_CREATE && node[name]) {
         callback(new EExists('attribute already exists'));
       }
-      else if (flag == XATTR_REPLACE && !node[name]) {
+      else if (flag === XATTR_REPLACE && !node[name]) {
         callback(new ENoAttr('attribute does not exist'));
       }
       else {
@@ -1145,11 +1148,37 @@ define(function(require) {
     else if (!value) {
       callback(new EInvalid('value cannot be empty'));
     }
-    else if (flag && flag != XATTR_CREATE && flag != XATTR_REPLACE) {
+    else if (!!flag && flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
       callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
     else {
       find_node (context, path, set_xattr);
+    }
+  }
+
+  function getxattr_file (context, path, name, callback) {
+    path = normalize(path);
+
+    function get_xattr(error, node) {
+      if (error) {
+        callback (error);
+      }
+      else if (!node.xattr[name]) {
+        callback(new ENoAttr('attribute does not exist'));
+      }
+      else {
+        callback(null, node.xattr[name]);
+      }
+    }
+
+    if (typeof name != 'string') {
+      callback(new EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new EInvalid('attribute name cannot be an empty string'));
+    }
+    else {
+      find_node(context, path, get_xattr);
     }
   }
 
