@@ -32,7 +32,7 @@ define(["IDBFS"], function(IDBFS) {
         });
       });
 
-      waitsFor(function () { 
+      waitsFor(function () {
         return complete;
       }, 'test to complete', DEFAULT_TIMEOUT);
 
@@ -56,7 +56,7 @@ define(["IDBFS"], function(IDBFS) {
         });
       });
 
-      waitsFor(function () { 
+      waitsFor(function () {
         return complete;
       }, 'test to complete', DEFAULT_TIMEOUT);
 
@@ -80,7 +80,7 @@ define(["IDBFS"], function(IDBFS) {
         });
       });
 
-      waitsFor(function () { 
+      waitsFor(function () {
         return complete;
       }, 'test to complete', DEFAULT_TIMEOUT);
 
@@ -97,7 +97,7 @@ define(["IDBFS"], function(IDBFS) {
 
       var atime = Date.parse('1 Oct 2000 15:33:22');
       var mtime = Date.parse('30 Sep 2000 06:43:54');
-      
+
       that.fs.utimes('/pathdoesnotexist', atime, mtime, function (error) {
         _error = error;
         complete = true;
@@ -127,7 +127,7 @@ define(["IDBFS"], function(IDBFS) {
         });
       });
 
-      waitsFor(function () { 
+      waitsFor(function () {
         return complete;
       }, 'test to complete', DEFAULT_TIMEOUT);
 
@@ -214,13 +214,13 @@ define(["IDBFS"], function(IDBFS) {
 
         that.fs.futimes(ofd, atime, mtime, function (error) {
           _error = error;
-          
+
           that.fs.fstat(ofd, function (error, stat) {
             if (error) throw error;
 
             _stat = stat;
             complete = true;
-          });  
+          });
         });
       });
 
@@ -274,7 +274,7 @@ define(["IDBFS"], function(IDBFS) {
       });
     });
 
-    it ('should update atime and mtime if they are null', function () {
+    it ('should update atime and mtime using current time if arguments are null', function () {
       var complete = false;
       var _error;
       var that = this;
@@ -293,7 +293,7 @@ define(["IDBFS"], function(IDBFS) {
 
           that.fs.stat('/myfile', function (error, stat) {
             if (error) throw error;
-            
+
             atimeEst = now - stat.atime;
             mtimeEst = now - stat.mtime;
             complete = true;

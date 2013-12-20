@@ -1037,7 +1037,6 @@ define(function(require) {
     path = normalize(path);
 
     function update_times (error, node) {
-      //Note: Going by node.js' implementation, utimes works on directories
       if (error) {
         callback(error);
       }
@@ -1048,7 +1047,6 @@ define(function(require) {
       }
     }
 
-    //check if atime and mtime are integers and >= 0
     if (typeof atime != 'number' || typeof mtime != 'number') {
       callback(new EInvalid('atime and mtime must be number'));
     }
@@ -1073,7 +1071,6 @@ define(function(require) {
       }
     }
 
-    //check if atime and mtime are integers and >= 0
     if (typeof atime != 'number' || typeof mtime != 'number') {
       callback(new EInvalid('atime and mtime must be a number'));
     }
@@ -1585,7 +1582,7 @@ define(function(require) {
       else {
         callback(null);
       }
-    }    
+    }
     utimes_file(context, path, atime, mtime, check_result)
   }
 
@@ -1611,7 +1608,7 @@ define(function(require) {
       callback(new EBadFileDescriptor('descriptor does not permit writing'));
     } else {
       futimes_file(context, ofd, atime, mtime, check_result);
-    }    
+    }
   }
 
   function _rename(context, oldpath, newpath, callback) {
