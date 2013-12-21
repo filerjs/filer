@@ -28,6 +28,7 @@ define([
   "spec/fs.readlink.spec",
   "spec/fs.truncate.spec",
   "spec/fs.utimes.spec",
+  "spec/fs.xattr.spec",
   "spec/path-resolution.spec",
 
   // IDBFS.FileSystem.providers.*

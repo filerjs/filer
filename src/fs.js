@@ -27,6 +27,7 @@ define(function(require) {
   var EIO = require('src/error').EIO;
   var ELoop = require('src/error').ELoop;
   var EFileSystemError = require('src/error').EFileSystemError;
+  var ENoAttr = require('src/error').ENoAttr;
 
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
   var FS_FORMAT = require('src/constants').FS_FORMAT;
@@ -1127,14 +1128,14 @@ define(function(require) {
       if (error) {
         callback (error);
       }
-      else if (flag === XATTR_CREATE && node[name]) {
+      else if (flag === XATTR_CREATE && node.xattrs[name]) {
         callback(new EExists('attribute already exists'));
       }
-      else if (flag === XATTR_REPLACE && !node[name]) {
+      else if (flag === XATTR_REPLACE && !node.xattrs[name]) {
         callback(new ENoAttr('attribute does not exist'));
       }
       else {
-        node.xattr[name] = value;
+        node.xattrs[name] = value;
         context.put(node.id, node, callback);
       }
     }      
@@ -1163,11 +1164,11 @@ define(function(require) {
       if (error) {
         callback (error);
       }
-      else if (!node.xattr[name]) {
+      else if (!node.xattrs[name]) {
         callback(new ENoAttr('attribute does not exist'));
       }
       else {
-        callback(null, node.xattr[name]);
+        callback(null, node.xattrs[name]);
       }
     }
 
@@ -1622,7 +1623,7 @@ define(function(require) {
       }
     };
 
-    setxattr_file (context, path, name, value, flags, check_result);
+    setxattr_file(context, path, name, value, flag, check_result);
   }
 
   function _lseek(fs, context, fd, offset, whence, callback) {
@@ -2087,14 +2088,16 @@ define(function(require) {
     );
   };
   FileSystem.prototype.setxattr = function (path, name, value, flag, callback) {
-    callback = maybeCallback(arguments[arguments.length - 1]);
+    var callback = maybeCallback(arguments[arguments.length - 1]);
+    var _flag = (typeof flag != 'function') ? flag : null;
     var fs = this;
     var error = fs.queueOrRun(
       function () {
         var context = fs.provider.getReadWriteContext();
-        _setxattr(context, path, name, value, flag, callback);
+        _setxattr(context, path, name, value, _flag, callback);
       }
     );
+
     if (error) {
       callback(error);
     }
@@ -2108,6 +2111,7 @@ define(function(require) {
         _getxattr(context, path, name, callback);
       }
     );
+
     if (error) {
       callback(error);
     }
