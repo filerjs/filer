@@ -1598,6 +1598,16 @@ define(function(require) {
   function _getxattr(context, path, name, callback) {
     if(!nullCheck(path, callback)) return;
 
+    function fetch_value(error, value) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        callback(null, value);
+      }
+    }
+
+    getxattr_file(context, path, name, fetch_value);
   }
 
   function _setxattr(context, path, name, value, flag, callback) {
