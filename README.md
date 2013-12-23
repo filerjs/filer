@@ -344,3 +344,27 @@ Asynchronous utimes(3). Callback gets no additional arguments.
 #### fs.futimes(fd, atime, mtime, callback)
 
 Asynchronous futimes(3). Callback gets no additional arguments.
+
+#### fs.setxattr(path, name, value, [flag], callback)
+
+Asynchronous setxattr(2). Sets an extended attribute of a file or directory. 
+
+The optional flag parameter can be set to the following:
+  XATTR_CREATE: ensures that the extended attribute with the given name will be new and not previously set. If  an attribute with the given name already exists, it will return EExists error to the callback.
+  XATTR_REPLACE: ensures that an extended attribute with the given name already exists. If an attribute with the given name does not exist, it will return an ENoAttr error to the callback.
+
+Callback gets no additional arguments.
+
+#### fs.getxattr(path, name, callback)
+
+Asynchronous getxattr(2). Gets an extended attribute value for a file or directory.
+
+Callback gets `(error, value)`, where value is the value for the extended attribute.
+
+#### fs.fsetxattr(fd, name, value, [flag], callback)
+
+Asynchronous fsetxattr(2). See `fs.setxattr` for flag options. Callback gets no additional arguments.
+
+#### fs.fgetxattr(fs, name, callback)
+
+Asynchronous fgetxattr(2). Callback gets `(error, value)`, See `fs.getxattr`.
