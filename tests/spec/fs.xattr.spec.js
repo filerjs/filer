@@ -303,6 +303,34 @@ define(["IDBFS"], function(IDBFS) {
       });
     });
 
+    it('should error when attempting to remove a non-existing attribute', function (error) {
+      var complete = false;
+      var _error;
+      var that = this;
+
+      that.fs.writeFile('/testfile', '', function (error) {
+        if (error) throw error;
+
+        that.fs.setxattr('/testfile', 'test', '', function (error) {
+          if (error) throw error;
+
+          that.fs.removexattr('/testfile', 'testenoattr', function (error) {
+            _error = error;
+            complete = true;
+          });
+        });
+      });
+
+      waitsFor(function () {
+        return complete;
+      }, 'test to complete', DEFAULT_TIMEOUT);
+
+      runs(function () {
+        expect(_error).toBeDefined();
+        expect(_error.name).toEqual('ENoAttr');
+      });
+    });
+
     it('should set and get an empty string as a value', function (error) {
       var complete = false;
       var _error;
@@ -369,7 +397,7 @@ define(["IDBFS"], function(IDBFS) {
       });
     });
 
-    it('should set/get an object to an extended attribute', function (error) {
+    it('should set and get an object to an extended attribute', function (error) {
       var complete = false;
       var _error;
       var that = this;
@@ -487,6 +515,47 @@ define(["IDBFS"], function(IDBFS) {
         expect(_value1).toEqual(89);
         expect(_value2).toEqual('attribute');
       });
+    });
+
+    it('should remove an extended attribute from a path', function (error) {
+      var complete = false;
+      var _error, _value;
+      var that = this;
+
+      that.fs.writeFile('/testfile', '', function (error) {
+        if (error) throw error;
+
+        that.fs.setxattr('/testfile', 'test', 'somevalue', function (error) {
+          if (error) throw error;
+
+          that.fs.getxattr('/testfile', 'test', function (error, value) {
+            if (error) throw error;
+
+            _value = value;
+
+            that.fs.removexattr('/testfile', 'test', function (error) {
+              if (error) throw error;
+
+              that.fs.getxattr('/testfile', 'test', function (error) {
+                _error = error;
+                complete = true;
+              });
+            });
+          });
+        });
+      });
+
+      waitsFor(function () {
+        return complete;
+      }, 'test to complete', DEFAULT_TIMEOUT);
+
+      runs(function () {
+        expect(_error).toBeDefined();
+        expect(_value).toBeDefined();
+        expect(_value).toEqual('somevalue');
+        expect(_error.name).toEqual('ENoAttr');
+      });
+
     });
   });
 });
