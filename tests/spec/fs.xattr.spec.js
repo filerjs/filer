@@ -15,6 +15,17 @@ define(["IDBFS"], function(IDBFS) {
     });
 
     it('should be a function', function () {
+
+      that = this;
+
+      that.fs.writeFile('/testfile/this/is/a/dir/tmp', function (error) {
+        if (error) throw error;
+
+        that.fs.setxattr('/testfile/this/is/a/dir/tmp', 'test', 'value', function (error) {
+
+        });
+      });
+
       expect(typeof this.fs.setxattr).toEqual('function');
       expect(typeof this.fs.getxattr).toEqual('function');
     });
@@ -240,12 +251,12 @@ define(["IDBFS"], function(IDBFS) {
     });
 
     it('should error when file descriptor is invalid', function (error) {
-      var completeSet, completeGet;
-      var _errorSet, _errorGet;
+      var completeSet, completeGet, completeRemove;
+      var _errorSet, _errorGet, _errorRemove;
       var that = this;
       var _value;
 
-      completeSet = completeGet = false;
+      completeSet = completeGet = completeRemove = false;
 
       that.fs.fsetxattr(1, 'test', 'value', function (error) { 
         _errorSet = error;
@@ -258,8 +269,13 @@ define(["IDBFS"], function(IDBFS) {
         completeGet = true;
       });
 
+      that.fs.fremovexattr(1, 'test', function (error, value) {
+        _errorRemove = error;
+        completeRemove = true;
+      });
+
       waitsFor(function () {
-        return completeSet && completeGet;
+        return completeSet && completeGet && completeRemove;
       }, 'test to complete', DEFAULT_TIMEOUT);
 
       runs(function () {
@@ -268,6 +284,8 @@ define(["IDBFS"], function(IDBFS) {
         expect(_errorSet.name).toEqual('EBadFileDescriptor');
         expect(_errorGet).toBeDefined();
         expect(_errorGet.name).toEqual('EBadFileDescriptor');
+        expect(_errorRemove).toBeDefined();
+        expect(_errorRemove.name).toEqual('EBadFileDescriptor');
       });
     });
 
@@ -555,7 +573,49 @@ define(["IDBFS"], function(IDBFS) {
         expect(_value).toEqual('somevalue');
         expect(_error.name).toEqual('ENoAttr');
       });
+    });
 
+    it('should remove an extended attribute from a valid file descriptor', function () {
+      var complete = false;
+      var _error, _value;
+      var that = this;
+      var ofd;
+
+      that.fs.open('/testfile', 'w', function (error, result) {
+        if (error) throw error;
+
+        var ofd = result;
+
+        that.fs.fsetxattr(ofd, 'test', 'somevalue', function (error) {
+          if (error) throw error;
+
+          that.fs.fgetxattr(ofd, 'test', function (error, value) {
+            if (error) throw error;
+
+            _value = value;
+
+            that.fs.fremovexattr(ofd, 'test', function (error) {
+              if (error) throw error;
+
+              that.fs.fgetxattr(ofd, 'test', function (error) {
+                _error = error;
+                complete = true;
+              });
+            });
+          });
+        });
+      });
+
+      waitsFor(function () {
+        return complete;
+      }, 'test to complete', DEFAULT_TIMEOUT);
+
+      runs(function () {
+        expect(_error).toBeDefined();
+        expect(_value).toBeDefined();
+        expect(_value).toEqual('somevalue');
+        expect(_error.name).toEqual('ENoAttr');
+      });
     });
   });
 });
