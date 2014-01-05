@@ -15,16 +15,15 @@ define(["IDBFS"], function(IDBFS) {
     });
 
     it('should be a function', function () {
+      // that = this;
 
-      that = this;
+      // that.fs.writeFile('/testfile/this/is/a/dir/tmp', function (error) {
+      //   if (error) throw error;
 
-      that.fs.writeFile('/testfile/this/is/a/dir/tmp', function (error) {
-        if (error) throw error;
+      //   that.fs.setxattr('/testfile/this/is/a/dir/tmp', 'test', 'value', function (error) {
 
-        that.fs.setxattr('/testfile/this/is/a/dir/tmp', 'test', 'value', function (error) {
-
-        });
-      });
+      //   });
+      // });
 
       expect(typeof this.fs.setxattr).toEqual('function');
       expect(typeof this.fs.getxattr).toEqual('function');
@@ -63,30 +62,6 @@ define(["IDBFS"], function(IDBFS) {
         if (error) throw error;
 
         that.fs.setxattr('/testfile', null, 'testvalue', function (error) {
-          _error = error;
-          complete = true;
-        });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
-      });
-    });
-
-    it('should error when setting with a null value', function () {
-      var complete = false;
-      var _error;
-      var that = this;
-
-      that.fs.writeFile('/testfile', '', function (error) {
-        if (error) throw error;
-
-        that.fs.setxattr('/testfile', 'test', null, function (error) {
           _error = error;
           complete = true;
         });
@@ -615,6 +590,36 @@ define(["IDBFS"], function(IDBFS) {
         expect(_value).toBeDefined();
         expect(_value).toEqual('somevalue');
         expect(_error.name).toEqual('ENoAttr');
+      });
+    });
+
+    it('should allow setting with a null value', function () {
+      var complete = false;
+      var _error;
+      var _value;
+      var that = this;
+
+      that.fs.writeFile('/testfile', '', function (error) {
+        if (error) throw error;
+
+        that.fs.setxattr('/testfile', 'test', null, function (error) {
+          if (error) throw error;
+
+          that.fs.getxattr('/testfile', 'test', function (error, value) {
+            _error = error;
+            _value = value;
+            complete = true;
+          });  
+        });
+      });
+
+      waitsFor(function () {
+        return complete;
+      }, 'test to complete', DEFAULT_TIMEOUT);
+
+      runs(function () {
+        expect(_error).toEqual(null);
+        expect(_value).toEqual(null);
       });
     });
   });

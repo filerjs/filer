@@ -222,6 +222,41 @@ define(function(require) {
     }
   }
 
+
+  /*
+   * set extended attribute (refactor)
+   */
+
+  function set_extended_attribute (context, path, name, value, flag, callback) {
+    function set_xattr (error, node) {
+      var xattr = (node ? node.xattrs[name] : null);
+
+      if (error) {
+        callback(error);
+      }
+      else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
+        callback(new EExists('attribute already exists'));
+      }
+      else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
+        callback(new ENoAttr('attribute does not exist'));
+      }
+      else {
+        node.xattrs[name] = value;
+        context.put(node.id, node, callback);
+      }
+    }
+
+    if (typeof path == 'string') {
+      find_node(context, path, set_xattr);
+    }
+    else if (typeof path.id == 'string') {
+      context.get(path.id, set_xattr);
+    }
+    else {
+      callback(new EInvalid('path or file descriptor of wrong type'));
+    }
+  }
+
   /*
    * make_root_directory
    */
@@ -1124,77 +1159,35 @@ define(function(require) {
   function setxattr_file (context, path, name, value, flag, callback) {
     path = normalize(path);
 
-    function set_xattr (error, node) {
-      var xattr = (node ? node.xattrs[name] : null);
-
-      if (error) {
-        callback (error);
-      }
-      else if (flag == XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
-        callback(new EExists('attribute already exists'));
-      }
-      else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
-      }
-      else {
-        node.xattrs[name] = value;
-        context.put(node.id, node, callback);
-      }
-    }      
-
     if (typeof name != 'string') {
       callback(new EInvalid('attribute name must be a string'));
     }
     else if (!name) {
       callback(new EInvalid('attribute name cannot be an empty string'));
     }
-    else if (value == null) {
-      callback(new EInvalid('value must be defined'));
-    }
     else if (flag != null && 
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
       callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
     else {
-      find_node (context, path, set_xattr);
+      set_extended_attribute(context, path, name, value, flag, callback);
     }
   }
 
   function fsetxattr_file (context, ofd, name, value, flag, callback) {
 
-    function set_xattr (error, node) {
-      var xattr = (node ? node.xattrs[name] : null);
-
-      if (error) {
-        callback(error);
-      }
-      else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
-        callback(new EExists('attribute already exists'));
-      }
-      else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
-      }
-      else {
-        node.xattrs[name] = value;
-        context.put(node.id, node, callback);
-      }
-    }
-
     if (typeof name != 'string') {
       callback(new EInvalid('attribute name must be a string'));
     }
     else if (!name) {
       callback(new EInvalid('attribute name cannot be an empty string'));
     }
-    else if (value == null) {
-      callback(new EInvalid('value must be defined'));
-    }
     else if (flag != null && 
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
       callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
     else {
-      context.get(ofd.id, set_xattr);
+      set_extended_attribute(context, ofd, name, value, flag, callback);
     }
   }
 
