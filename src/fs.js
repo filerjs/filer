@@ -227,7 +227,7 @@ define(function(require) {
    * set extended attribute (refactor)
    */
 
-  function set_extended_attribute (context, path, name, value, flag, callback) {
+  function set_extended_attribute (context, path_or_fd, name, value, flag, callback) {
     function set_xattr (error, node) {
       var xattr = (node ? node.xattrs[name] : null);
 
@@ -246,11 +246,11 @@ define(function(require) {
       }
     }
 
-    if (typeof path == 'string') {
-      find_node(context, path, set_xattr);
+    if (typeof path_or_fd == 'string') {
+      find_node(context, path_or_fd, set_xattr);
     }
-    else if (typeof path.id == 'string') {
-      context.get(path.id, set_xattr);
+    else if (typeof path_or_fd == 'object' && typeof path_or_fd.id == 'string') {
+      context.get(path_or_fd.id, set_xattr);
     }
     else {
       callback(new EInvalid('path or file descriptor of wrong type'));

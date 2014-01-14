@@ -15,18 +15,11 @@ define(["IDBFS"], function(IDBFS) {
     });
 
     it('should be a function', function () {
-      // that = this;
-
-      // that.fs.writeFile('/testfile/this/is/a/dir/tmp', function (error) {
-      //   if (error) throw error;
-
-      //   that.fs.setxattr('/testfile/this/is/a/dir/tmp', 'test', 'value', function (error) {
-
-      //   });
-      // });
-
       expect(typeof this.fs.setxattr).toEqual('function');
       expect(typeof this.fs.getxattr).toEqual('function');
+      expect(typeof this.fs.removexattr).toEqual('function');
+      expect(typeof this.fs.fsetxattr).toEqual('function');
+      expect(typeof this.fs.fgetxattr).toEqual('function');
     });
 
     it('should error when setting with a name that is not a string', function () {
