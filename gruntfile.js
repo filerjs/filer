@@ -11,8 +11,8 @@ module.exports = function(grunt) {
         banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
       },
       develop: {
-        src: 'dist/idbfs.js',
-        dest: 'dist/idbfs.min.js'
+        src: 'dist/filer.js',
+        dest: 'dist/filer.min.js'
       }
     },
 
@@ -38,7 +38,7 @@ module.exports = function(grunt) {
           baseUrl: "lib",
           name: "build/almond",
           include: ["src/index"],
-          out: "dist/idbfs.js",
+          out: "dist/filer.js",
           optimize: "none",
           wrap: {
             startFile: 'build/wrap.start',

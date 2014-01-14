@@ -5,10 +5,10 @@ define([
    * get them running by default.
    */
 
-  // IDBFS
-  "spec/idbfs.spec",
+  // Filer
+  "spec/filer.spec",
 
-  // IDBFS.FileSystem.*
+  // Filer.FileSystem.*
   "spec/fs.spec",
   "spec/fs.stat.spec",
   "spec/fs.lstat.spec",
@@ -31,13 +31,13 @@ define([
   "spec/fs.xattr.spec",
   "spec/path-resolution.spec",
 
-  // IDBFS.FileSystem.providers.*
+  // Filer.FileSystem.providers.*
   "spec/providers/providers.spec",
   "spec/providers/providers.memory.spec",
   "spec/providers/providers.indexeddb.spec",
   "spec/providers/providers.websql.spec",
 
-  // IDBFS.FileSystem.adapters.*
+  // Filer.FileSystem.adapters.*
   "spec/adapters/adapters.spec",
   "spec/adapters/adapters.general.spec",
 

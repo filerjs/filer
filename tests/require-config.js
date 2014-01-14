@@ -8,7 +8,7 @@ require.config({
     "tests": "../tests",
     "src": "../src",
     "spec": "../tests/spec",
-    "IDBFS": "../src/index"
+    "Filer": "../src/index"
   },
   baseUrl: "../lib",
   optimize: "none",

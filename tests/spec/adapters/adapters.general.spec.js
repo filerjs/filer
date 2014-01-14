@@ -1,4 +1,4 @@
-define(["IDBFS"], function(IDBFS) {
+define(["Filer"], function(Filer) {
 
   // We reuse the same set of tests for all adapters.
   // buildTestsFor() creates a set of tests bound to an
@@ -6,7 +6,7 @@ define(["IDBFS"], function(IDBFS) {
 
   function buildTestsFor(adapterName, buildAdapter) {
     function encode(str) {
-      // TextEncoder is either native, or shimmed by IDBFS
+      // TextEncoder is either native, or shimmed by Filer
       return (new TextEncoder("utf-8")).encode(str);
     }
 
@@ -16,15 +16,15 @@ define(["IDBFS"], function(IDBFS) {
     var value2Str = "value2", value2Buffer = encode(value2Str);
 
     function createProvider() {
-      var memoryProvider = new IDBFS.FileSystem.providers.Memory();
+      var memoryProvider = new Filer.FileSystem.providers.Memory();
       return buildAdapter(memoryProvider);
     }
 
-    describe("IDBFS.FileSystem.adapters." + adapterName, function() {
+    describe("Filer.FileSystem.adapters." + adapterName, function() {
       it("is supported -- if it isn't, none of these tests can run.", function() {
         // Allow for combined adapters (e.g., 'AES+Zlib') joined by '+'
         adapterName.split('+').forEach(function(name) {
-          expect(IDBFS.FileSystem.adapters[name].isSupported()).toEqual(true);
+          expect(Filer.FileSystem.adapters[name].isSupported()).toEqual(true);
         });
       });
 
@@ -200,27 +200,27 @@ define(["IDBFS"], function(IDBFS) {
   // Encryption
   buildTestsFor('AES', function buildAdapter(provider) {
     var passphrase = '' + Date.now();
-    return new IDBFS.FileSystem.adapters.AES(passphrase, provider);
+    return new Filer.FileSystem.adapters.AES(passphrase, provider);
   });
   buildTestsFor('TripleDES', function buildAdapter(provider) {
     var passphrase = '' + Date.now();
-    return new IDBFS.FileSystem.adapters.TripleDES(passphrase, provider);
+    return new Filer.FileSystem.adapters.TripleDES(passphrase, provider);
   });
   buildTestsFor('Rabbit', function buildAdapter(provider) {
     var passphrase = '' + Date.now();
-    return new IDBFS.FileSystem.adapters.Rabbit(passphrase, provider);
+    return new Filer.FileSystem.adapters.Rabbit(passphrase, provider);
   });
 
   // Compression
   buildTestsFor('Zlib', function buildAdapter(provider) {
-    return new IDBFS.FileSystem.adapters.Zlib(provider);
+    return new Filer.FileSystem.adapters.Zlib(provider);
   });
 
   // AES + Zlib together
   buildTestsFor('AES+Zlib', function buildAdapter(provider) {
     var passphrase = '' + Date.now();
-    var zlib = new IDBFS.FileSystem.adapters.Zlib(provider);
-    var AESwithZlib = new IDBFS.FileSystem.adapters.AES(passphrase, zlib);
+    var zlib = new Filer.FileSystem.adapters.Zlib(provider);
+    var AESwithZlib = new Filer.FileSystem.adapters.AES(passphrase, zlib);
     return AESwithZlib;
   });
 
