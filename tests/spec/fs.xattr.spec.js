@@ -1,9 +1,9 @@
-define(["IDBFS"], function(IDBFS) {
+define(["Filer"], function(Filer) {
 
   describe('fs.xattr', function() {
     beforeEach(function() {
       this.db_name = mk_db_name();
-      this.fs = new IDBFS.FileSystem({
+      this.fs = new Filer.FileSystem({
         name: this.db_name,
         flags: 'FORMAT'
       });
@@ -226,7 +226,7 @@ define(["IDBFS"], function(IDBFS) {
 
       completeSet = completeGet = completeRemove = false;
 
-      that.fs.fsetxattr(1, 'test', 'value', function (error) { 
+      that.fs.fsetxattr(1, 'test', 'value', function (error) {
         _errorSet = error;
         completeSet = true;
       });
@@ -403,7 +403,7 @@ define(["IDBFS"], function(IDBFS) {
         });
       });
 
-      waitsFor(function () { 
+      waitsFor(function () {
         return complete;
       }, 'test to complete', DEFAULT_TIMEOUT);
 
@@ -602,7 +602,7 @@ define(["IDBFS"], function(IDBFS) {
             _error = error;
             _value = value;
             complete = true;
-          });  
+          });
         });
       });
 
