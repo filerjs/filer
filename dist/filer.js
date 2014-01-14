@@ -3232,6 +3232,13 @@ define('src/error',['require'],function(require) {
   EFileSystemError.prototype.name = "EFileSystemError";
   EFileSystemError.prototype.constructor = EFileSystemError;
 
+  function ENoAttr(message) {
+    this.message = message || '';
+  }
+  ENoAttr.prototype = new Error();
+  ENoAttr.prototype.name = 'ENoAttr';
+  ENoAttr.prototype.constructor = ENoAttr;
+
   return {
     EExists: EExists,
     EIsDirectory: EIsDirectory,
@@ -3245,7 +3252,8 @@ define('src/error',['require'],function(require) {
     EInvalid: EInvalid,
     EIO: EIO,
     ELoop: ELoop,
-    EFileSystemError: EFileSystemError
+    EFileSystemError: EFileSystemError,
+    ENoAttr: ENoAttr
   };
 
 });
@@ -3258,6 +3266,8 @@ define('src/constants',['require'],function(require) {
   var O_EXCLUSIVE = 'EXCLUSIVE';
   var O_TRUNCATE = 'TRUNCATE';
   var O_APPEND = 'APPEND';
+  var XATTR_CREATE = 'CREATE';
+  var XATTR_REPLACE = 'REPLACE';
 
   return {
     FILE_SYSTEM_NAME: 'local',
@@ -3304,6 +3314,9 @@ define('src/constants',['require'],function(require) {
       'ax': [O_WRITE, O_CREATE, O_EXCLUSIVE, O_APPEND],
       'ax+': [O_WRITE, O_READ, O_CREATE, O_EXCLUSIVE, O_APPEND]
     },
+
+    XATTR_CREATE: XATTR_CREATE,
+    XATTR_REPLACE: XATTR_REPLACE,
 
     FS_READY: 'READY',
     FS_PENDING: 'PENDING',
@@ -4054,7 +4067,7 @@ define('src/adapters/adapters',['require','src/adapters/crypto','src/adapters/zl
   };
 });
 
-define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters'],function(require) {
+define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters'],function(require) {
 
   var _ = require('nodash');
 
@@ -4083,6 +4096,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   var EIO = require('src/error').EIO;
   var ELoop = require('src/error').ELoop;
   var EFileSystemError = require('src/error').EFileSystemError;
+  var ENoAttr = require('src/error').ENoAttr;
 
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
   var FS_FORMAT = require('src/constants').FS_FORMAT;
@@ -4103,6 +4117,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   var O_TRUNCATE = require('src/constants').O_TRUNCATE;
   var O_APPEND = require('src/constants').O_APPEND;
   var O_FLAGS = require('src/constants').O_FLAGS;
+  var XATTR_CREATE = require('src/constants').XATTR_CREATE;
+  var XATTR_REPLACE = require('src/constants').XATTR_REPLACE;
 
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
@@ -4272,6 +4288,41 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       context.get(SUPER_NODE_ID, read_root_directory_node);
     } else {
       find_node(context, parentPath, read_parent_directory_data);
+    }
+  }
+
+
+  /*
+   * set extended attribute (refactor)
+   */
+
+  function set_extended_attribute (context, path_or_fd, name, value, flag, callback) {
+    function set_xattr (error, node) {
+      var xattr = (node ? node.xattrs[name] : null);
+
+      if (error) {
+        callback(error);
+      }
+      else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
+        callback(new EExists('attribute already exists'));
+      }
+      else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
+        callback(new ENoAttr('attribute does not exist'));
+      }
+      else {
+        node.xattrs[name] = value;
+        context.put(node.id, node, callback);
+      }
+    }
+
+    if (typeof path_or_fd == 'string') {
+      find_node(context, path_or_fd, set_xattr);
+    }
+    else if (typeof path_or_fd == 'object' && typeof path_or_fd.id == 'string') {
+      context.get(path_or_fd.id, set_xattr);
+    }
+    else {
+      callback(new EInvalid('path or file descriptor of wrong type'));
     }
   }
 
@@ -5174,6 +5225,151 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
   }
 
+  function setxattr_file (context, path, name, value, flag, callback) {
+    path = normalize(path);
+
+    if (typeof name != 'string') {
+      callback(new EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new EInvalid('attribute name cannot be an empty string'));
+    }
+    else if (flag != null && 
+        flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
+      callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+    }
+    else {
+      set_extended_attribute(context, path, name, value, flag, callback);
+    }
+  }
+
+  function fsetxattr_file (context, ofd, name, value, flag, callback) {
+
+    if (typeof name != 'string') {
+      callback(new EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new EInvalid('attribute name cannot be an empty string'));
+    }
+    else if (flag != null && 
+        flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
+      callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+    }
+    else {
+      set_extended_attribute(context, ofd, name, value, flag, callback);
+    }
+  }
+
+  function getxattr_file (context, path, name, callback) {
+    path = normalize(path);
+
+    function get_xattr(error, node) {
+      var xattr = (node ? node.xattrs[name] : null);
+
+      if (error) {
+        callback (error);
+      }
+      else if (!node.xattrs.hasOwnProperty(name)) {
+        callback(new ENoAttr('attribute does not exist'));
+      }
+      else {
+        callback(null, node.xattrs[name]);
+      }
+    }
+
+    if (typeof name != 'string') {
+      callback(new EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new EInvalid('attribute name cannot be an empty string'));
+    }
+    else {
+      find_node(context, path, get_xattr);
+    }
+  }
+
+  function fgetxattr_file (context, ofd, name, callback) {
+
+    function get_xattr (error, node) {
+      var xattr = (node ? node.xattrs[name] : null);
+
+      if (error) {
+        callback(error);
+      }
+      else if (!node.xattrs.hasOwnProperty(name)) {
+        callback(new ENoAttr('attribute does not exist'));
+      }
+      else {
+        callback(null, node.xattrs[name]);
+      }
+    }
+
+    if (typeof name != 'string') {
+      callback(new EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new EInvalid('attribute name cannot be an empty string'));
+    }
+    else {
+      context.get(ofd.id, get_xattr);
+    }
+  }
+
+  function removexattr_file (context, path, name, callback) {
+    path = normalize(path);
+
+    function remove_xattr (error, node) {
+      var xattr = (node ? node.xattrs : null);
+
+      if (error) {
+        callback(error);
+      }
+      else if (!xattr.hasOwnProperty(name)) {
+        callback(new ENoAttr('attribute does not exist'));
+      }
+      else {
+        delete node.xattrs[name];
+        context.put(node.id, node, callback);
+      }
+    }
+
+    if (typeof name != 'string') {
+      callback(new EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new EInvalid('attribute name cannot be an empty string'));
+    }
+    else {
+      find_node(context, path, remove_xattr);
+    }
+  }
+
+  function fremovexattr_file (context, ofd, name, callback) {
+
+    function remove_xattr (error, node) {
+      if (error) {
+        callback(error);
+      }
+      else if (!node.xattrs.hasOwnProperty(name)) {
+        callback(new ENoAttr('attribute does not exist'));
+      }
+      else {
+        delete node.xattrs[name];
+        context.put(node.id, node, callback);
+      }
+    }
+
+    if (typeof name != 'string') {
+      callback(new EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new EInvalid('attribute name cannot be an empty string'));
+    }
+    else {
+      context.get(ofd.id, remove_xattr);
+    }
+  }
+
   function validate_flags(flags) {
     if(!_(O_FLAGS).has(flags)) {
       return null;
@@ -5587,14 +5783,117 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     });
   }
 
-  function _getxattr(path, name, callback) {
-    // TODO
-    //     if(!nullCheck(path, callback)) return;
+  function _getxattr (context, path, name, callback) {
+    if (!nullCheck(path, callback)) return;
+
+    function fetch_value (error, value) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        callback(null, value);
+      }
+    }
+
+    getxattr_file(context, path, name, fetch_value);
   }
 
-  function _setxattr(path, name, value, callback) {
-    // TODO
-    //    if(!nullCheck(path, callback)) return;
+  function _fgetxattr (fs, context, fd, name, callback) {
+
+    function get_result (error, value) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        callback(null, value);
+      }
+    }
+
+    var ofd = fs.openFiles[fd];
+
+    if (!ofd) {
+      callback(new EBadFileDescriptor('invalid file descriptor'));
+    }
+    else {
+      fgetxattr_file(context, ofd, name, get_result);
+    }
+  }
+
+  function _setxattr (context, path, name, value, flag, callback) {
+    if (!nullCheck(path, callback)) return;
+
+    function check_result (error) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        callback(null);
+      }
+    };
+
+    setxattr_file(context, path, name, value, flag, check_result);
+  }
+
+  function _fsetxattr (fs, context, fd, name, value, flag, callback) {
+    function check_result (error) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        callback(null);
+      }
+    }
+
+    var ofd = fs.openFiles[fd];
+
+    if (!ofd) {
+      callback(new EBadFileDescriptor('invalid file descriptor'));
+    }
+    else if (!_(ofd.flags).contains(O_WRITE)) {
+      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+    }
+    else {
+      fsetxattr_file(context, ofd, name, value, flag, check_result);
+    }
+  }
+
+  function _removexattr (context, path, name, callback) {
+    if (!nullCheck(path, callback)) return;
+
+    function remove_xattr (error) {
+      if (error) {
+        callback(error);
+      }
+      else {
+        callback(null);
+      }
+    }
+
+    removexattr_file (context, path, name, remove_xattr);    
+  }
+
+  function _fremovexattr (fs, context, fd, name, callback) {
+
+    function remove_xattr (error) {
+      if (error) {
+        callback(error);      
+      }
+      else {
+        callback(null);
+      }
+    }
+
+    var ofd = fs.openFiles[fd];
+
+    if (!ofd) {
+      callback(new EBadFileDescriptor('invalid file descriptor'));
+    }
+    else if (!_(ofd.flags).contains(O_WRITE)) {
+      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+    }
+    else {
+      fremovexattr_file(context, ofd, name, remove_xattr);
+    }
   }
 
   function _lseek(fs, context, fd, offset, whence, callback) {
@@ -6066,7 +6365,92 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       callback(error);
     }
   };
+  FileSystem.prototype.setxattr = function (path, name, value, flag, callback) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
+    var _flag = (typeof flag != 'function') ? flag : null;
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _setxattr(context, path, name, value, _flag, callback);
+      }
+    );
 
+    if (error) {
+      callback(error);
+    }
+  };
+  FileSystem.prototype.getxattr = function (path, name, callback) {
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _getxattr(context, path, name, callback);
+      }
+    );
+
+    if (error) {
+      callback(error);
+    }
+  };
+  FileSystem.prototype.fsetxattr = function (fd, name, value, flag, callback) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
+    var _flag = (typeof flag != 'function') ? flag : null;
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _fsetxattr(fs, context, fd, name, value, _flag, callback);
+      }
+    );
+
+    if (error) {
+      callback(error);
+    }
+  };
+  FileSystem.prototype.fgetxattr = function (fd, name, callback) {
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _fgetxattr(fs, context, fd, name, callback);
+      }
+    );
+
+    if (error) {
+      callback(error);
+    }
+  };
+  FileSystem.prototype.removexattr = function (path, name, callback) {
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _removexattr(context, path, name, callback);
+      }
+    );
+
+    if (error) {
+      callback(error);
+    }
+  };
+  FileSystem.prototype.fremovexattr = function (fd, name, callback) {
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function () {
+        var context = fs.provider.getReadWriteContext();
+        _fremovexattr(fs, context, fd, name, callback);
+      }
+    );
+
+    if (error) {
+      callback(error);
+    }
+  };
   return FileSystem;
 
 });
