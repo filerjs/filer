@@ -1,10 +1,10 @@
-define(["IDBFS"], function(IDBFS) {
+define(["Filer"], function(Filer) {
 
   describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/test-fs-mkdir.js", function() {
 
     beforeEach(function() {
       this.db_name = mk_db_name();
-      this.fs = new IDBFS.FileSystem({
+      this.fs = new Filer.FileSystem({
         name: this.db_name,
         flags: 'FORMAT'
       });

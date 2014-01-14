@@ -1,7 +1,7 @@
 
-  var IDBFS = require( "src/index" );
+  var Filer = require( "src/index" );
 
-  return IDBFS;
+  return Filer;
 
 }));
 

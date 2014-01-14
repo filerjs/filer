@@ -1,27 +1,27 @@
-define(["IDBFS"], function(IDBFS) {
-  describe("IDBFS.FileSystem.providers", function() {
+define(["Filer"], function(Filer) {
+  describe("Filer.FileSystem.providers", function() {
     it("is defined", function() {
-      expect(typeof IDBFS.FileSystem.providers).not.toEqual(undefined);
+      expect(typeof Filer.FileSystem.providers).not.toEqual(undefined);
     });
 
     it("has IndexedDB constructor", function() {
-      expect(typeof IDBFS.FileSystem.providers.IndexedDB).toEqual('function');
+      expect(typeof Filer.FileSystem.providers.IndexedDB).toEqual('function');
     });
 
     it("has WebSQL constructor", function() {
-      expect(typeof IDBFS.FileSystem.providers.WebSQL).toEqual('function');
+      expect(typeof Filer.FileSystem.providers.WebSQL).toEqual('function');
     });
 
     it("has Memory constructor", function() {
-      expect(typeof IDBFS.FileSystem.providers.Memory).toEqual('function');
+      expect(typeof Filer.FileSystem.providers.Memory).toEqual('function');
     });
 
     it("has a Default constructor", function() {
-      expect(typeof IDBFS.FileSystem.providers.Default).toEqual('function');
+      expect(typeof Filer.FileSystem.providers.Default).toEqual('function');
     });
 
     it("has Fallback constructor", function() {
-      expect(typeof IDBFS.FileSystem.providers.Fallback).toEqual('function');
+      expect(typeof Filer.FileSystem.providers.Fallback).toEqual('function');
     });
   });
 });

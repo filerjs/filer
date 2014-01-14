@@ -19,9 +19,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
   } else if (typeof define === "function" && define.amd) {
     // AMD. Register as an anonymous module.
     define( factory );
-  } else if( !root.IDBFS ) {
+  } else if( !root.Filer ) {
     // Browser globals
-    root.IDBFS = factory();
+    root.Filer = factory();
   }
 
 }( this, function() {

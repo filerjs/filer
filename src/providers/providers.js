@@ -27,7 +27,7 @@ define(function(require) {
       }
 
       function NotSupported() {
-        throw "[IDBFS Error] Your browser doesn't support IndexedDB or WebSQL.";
+        throw "[Filer Error] Your browser doesn't support IndexedDB or WebSQL.";
       }
       NotSupported.isSupported = function() {
         return false;

@@ -1,4 +1,4 @@
-define(["IDBFS"], function(IDBFS) {
+define(["Filer"], function(Filer) {
 
   var WEBSQL_NAME = "websql-test-db";
 
@@ -11,18 +11,18 @@ define(["IDBFS"], function(IDBFS) {
     });
   }
 
-  if(!IDBFS.FileSystem.providers.WebSQL.isSupported()) {
-    console.log("Skipping IDBFS.FileSystem.providers.WebSQL tests, since WebSQL isn't supported.");
+  if(!Filer.FileSystem.providers.WebSQL.isSupported()) {
+    console.log("Skipping Filer.FileSystem.providers.WebSQL tests, since WebSQL isn't supported.");
     return;
   }
 
-  describe("IDBFS.FileSystem.providers.WebSQL", function() {
+  describe("Filer.FileSystem.providers.WebSQL", function() {
     it("is supported -- if it isn't, none of these tests can run.", function() {
-      expect(IDBFS.FileSystem.providers.WebSQL.isSupported()).toEqual(true);
+      expect(Filer.FileSystem.providers.WebSQL.isSupported()).toEqual(true);
     });
 
     it("has open, getReadOnlyContext, and getReadWriteContext instance methods", function() {
-      var webSQLProvider = new IDBFS.FileSystem.providers.WebSQL();
+      var webSQLProvider = new Filer.FileSystem.providers.WebSQL();
       expect(typeof webSQLProvider.open).toEqual('function');
       expect(typeof webSQLProvider.getReadOnlyContext).toEqual('function');
       expect(typeof webSQLProvider.getReadWriteContext).toEqual('function');
@@ -37,7 +37,7 @@ define(["IDBFS"], function(IDBFS) {
         var complete = false;
         var _error, _result;
 
-        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
           _result = firstAccess;
@@ -64,7 +64,7 @@ define(["IDBFS"], function(IDBFS) {
         var complete = false;
         var _error, _result;
 
-        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
 
@@ -94,7 +94,7 @@ define(["IDBFS"], function(IDBFS) {
         var complete = false;
         var _error, _result;
 
-        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
 
@@ -127,7 +127,7 @@ define(["IDBFS"], function(IDBFS) {
         var complete = false;
         var _error, _result1, _result2;
 
-        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
 
@@ -171,7 +171,7 @@ define(["IDBFS"], function(IDBFS) {
         var complete = false;
         var _error, _result;
 
-        var provider = this.provider = new IDBFS.FileSystem.providers.WebSQL(WEBSQL_NAME);
+        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
         provider.open(function(err, firstAccess) {
           _error = err;
 
