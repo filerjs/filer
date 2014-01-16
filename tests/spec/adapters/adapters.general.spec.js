@@ -198,30 +198,22 @@ define(["Filer"], function(Filer) {
 
 
   // Encryption
-  buildTestsFor('AES', function buildAdapter(provider) {
+  buildTestsFor('Encryption', function buildAdapter(provider) {
     var passphrase = '' + Date.now();
-    return new Filer.FileSystem.adapters.AES(passphrase, provider);
-  });
-  buildTestsFor('TripleDES', function buildAdapter(provider) {
-    var passphrase = '' + Date.now();
-    return new Filer.FileSystem.adapters.TripleDES(passphrase, provider);
-  });
-  buildTestsFor('Rabbit', function buildAdapter(provider) {
-    var passphrase = '' + Date.now();
-    return new Filer.FileSystem.adapters.Rabbit(passphrase, provider);
+    return new Filer.FileSystem.adapters.Encryption(passphrase, provider);
   });
 
   // Compression
-  buildTestsFor('Zlib', function buildAdapter(provider) {
-    return new Filer.FileSystem.adapters.Zlib(provider);
+  buildTestsFor('Compression', function buildAdapter(provider) {
+    return new Filer.FileSystem.adapters.Compression(provider);
   });
 
-  // AES + Zlib together
-  buildTestsFor('AES+Zlib', function buildAdapter(provider) {
+  // Encryption + Compression together
+  buildTestsFor('Encryption+Compression', function buildAdapter(provider) {
     var passphrase = '' + Date.now();
-    var zlib = new Filer.FileSystem.adapters.Zlib(provider);
-    var AESwithZlib = new Filer.FileSystem.adapters.AES(passphrase, zlib);
-    return AESwithZlib;
+    var compression = new Filer.FileSystem.adapters.Compression(provider);
+    var encryptionWithCompression = new Filer.FileSystem.adapters.Encryption(passphrase, compression);
+    return encryptionWithCompression;
   });
 
 });
