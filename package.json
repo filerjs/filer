@@ -2,7 +2,7 @@
   "name": "filer",
   "description": "Node-like file system for browsers",
   "keywords": ["fs", "node", "file", "system", "browser", "indexeddb", "idb", "websql"],
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/filer",
   "bugs": "https://github.com/js-platform/filer/issues",

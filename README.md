@@ -138,15 +138,10 @@ Filer based file systems can acquire new functionality by using adapters. These 
 of storage providers without altering them in anway. An adapter can be used with any provider, and multiple
 adapters can be used together in order to compose complex functionality on top of a provider.
 
-There are currently 5 adapters available:
+There are currently 2 adapters available:
 
-* `FileSystem.adapters.Compression(provider)` - a default compression adapter that uses [Zlib](https://github.com/imaya/zlib.js)
-* `FileSystem.adapters.Encryption(passphrase, provider)` - a default encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
-
-You can also pick from other encryption cipher algorithms:
-* `FileSystem.adapters.AES(passphrase, provider)` - extends a provider with [AES encryption](http://code.google.com/p/crypto-js/#AES)
-* `FileSystem.adapters.TripleDES(passphrase, provider)` - extends a provider with [TripleDES encryption](http://code.google.com/p/crypto-js/#DES,_Triple_DES)
-* `FileSystem.adapters.Rabbit(passphrase, provider)` - extends a provider with [Rabbit encryption](http://code.google.com/p/crypto-js/#Rabbit)
+* `FileSystem.adapters.Compression(provider)` - a compression adapter that uses [Zlib](https://github.com/imaya/zlib.js)
+* `FileSystem.adapters.Encryption(passphrase, provider)` - an encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
 
 ```javascript
 var FileSystem = Filer.FileSystem;
