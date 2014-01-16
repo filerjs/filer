@@ -251,7 +251,7 @@ define(["Filer"], function(Filer) {
         that.fs.utimes('/testdir', atime, mtime, function (error) {
           _error = error;
 
-          fs.stat('/testdir', function (error, stat) {
+          that.fs.stat('/testdir', function (error, stat) {
             if (error) throw error;
 
             _stat = stat;
