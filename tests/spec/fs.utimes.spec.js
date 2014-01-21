@@ -236,24 +236,22 @@ define(["Filer"], function(Filer) {
     });
 
     it ('should update atime and mtime of directory path', function (error) {
-      var complete = false
+      var complete = false;
       var _error;
-
-      //Note: required as the filesystem somehow gets removed from the Jasmine object
-      var fs = this.fs;
+      var that = this;
 
       var _stat;
 
       var atime = Date.parse('1 Oct 2000 15:33:22');
       var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-      fs.mkdir('/testdir', function (error) {
+      that.fs.mkdir('/testdir', function (error) {
         if (error) throw error;
 
-        fs.utimes('/testdir', atime, mtime, function (error) {
+        that.fs.utimes('/testdir', atime, mtime, function (error) {
           _error = error;
 
-          fs.stat('/testdir', function (error, stat) {
+          that.fs.stat('/testdir', function (error, stat) {
             if (error) throw error;
 
             _stat = stat;
@@ -270,7 +268,6 @@ define(["Filer"], function(Filer) {
         expect(_error).toEqual(null);
         expect(_stat.atime).toEqual(atime);
         expect(_stat.mtime).toEqual(mtime);
-        delete fs;
       });
     });
 
