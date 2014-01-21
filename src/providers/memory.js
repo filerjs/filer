@@ -1,36 +1,69 @@
 define(function(require) {
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
 
+  // Based on https://github.com/caolan/async/blob/master/lib/async.js
+  var nextTick = (function() {
+    if (typeof process === 'undefined' || !(process.nextTick)) {
+      if (typeof setImmediate === 'function') {
+        return function (fn) {
+          // not a direct alias for IE10 compatibility
+          setImmediate(fn);
+        };
+      } else {
+        return function (fn) {
+          setTimeout(fn, 0);
+        };
+      }
+    }
+    return process.nextTick;
+  }());
+
+  function asyncCallback(callback) {
+    nextTick(callback);
+  }
+
   function MemoryContext(db, readOnly) {
     this.readOnly = readOnly;
     this.objectStore = db;
   }
   MemoryContext.prototype.clear = function(callback) {
     if(this.readOnly) {
-      return callback("[MemoryContext] Error: write operation on read only context");
+      asyncCallback(function() {
+        callback("[MemoryContext] Error: write operation on read only context");
+      });
+      return;
     }
     var objectStore = this.objectStore;
     Object.keys(objectStore).forEach(function(key){
       delete objectStore[key];
     });
-    callback(null);
+    asyncCallback(callback);
   };
   MemoryContext.prototype.get = function(key, callback) {
-    callback(null, this.objectStore[key]);
+    var that = this;
+    asyncCallback(function() {
+      callback(null, that.objectStore[key]);
+    });
   };
   MemoryContext.prototype.put = function(key, value, callback) {
     if(this.readOnly) {
-      return callback("[MemoryContext] Error: write operation on read only context");
+      asyncCallback(function() {
+        callback("[MemoryContext] Error: write operation on read only context");
+      });
+      return;
     }
     this.objectStore[key] = value;
-    callback(null);
+    asyncCallback(callback);
   };
   MemoryContext.prototype.delete = function(key, callback) {
     if(this.readOnly) {
-      return callback("[MemoryContext] Error: write operation on read only context");
+      asyncCallback(function() {
+        callback("[MemoryContext] Error: write operation on read only context");
+      });
+      return;
     }
     delete this.objectStore[key];
-    callback(null);
+    asyncCallback(callback);
   };
 
 
@@ -43,7 +76,9 @@ define(function(require) {
   };
 
   Memory.prototype.open = function(callback) {
-    callback(null, true);
+    asyncCallback(function() {
+      callback(null, true);
+    });
   };
   Memory.prototype.getReadOnlyContext = function() {
     return new MemoryContext(this.db, true);

@@ -47,7 +47,7 @@ define([
   "spec/node-js/simple/test-fs-null-bytes",
 
   // Regressions, Bugs
-  "spec/regression/issue105",
-  "spec/regression/issue106"
+  "bugs/issue105",
+  "bugs/issue106"
 
 ]);

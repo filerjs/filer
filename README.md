@@ -73,13 +73,14 @@ object can specify a number of optional arguments, including:
 * `provider`: an explicit storage provider to use for the file system's database context provider. See the section on [Storage Providers](#providers).
 
 The `callback` function indicates when the file system is ready for use. Depending on the storage provider used, this might
-be right away, or could take some time. The callback should expect an `error` argument, which will be null if everything worked.
-Also users should check the file system's `readyState` and `error` properties to make sure it is usable.
+be right away, or could take some time. The callback should expect two arguments: first, an `error` argument, which will be
+null if everything worked; second, an instance, such that you can access the newly ready FileSystem instance. Also users
+should check the file system's `readyState` and `error` properties to make sure it is usable.
 
 ```javascript
 var fs;
 
-function fsReady(err) {
+function fsReady(err, fs) {
   if(err) throw err;
   // Safe to use fs now...
 }

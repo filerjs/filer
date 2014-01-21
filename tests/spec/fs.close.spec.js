@@ -1,48 +1,28 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   describe('fs.close', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function() {
-      expect(typeof this.fs.close).toEqual('function');
+      var fs = util.fs();
+      expect(typeof fs.close).to.equal('function');
     });
 
-    it('should release the file descriptor', function() {
-      var complete = false;
-      var _error;
-      var that = this;
-
+    it('should release the file descriptor', function(done) {
       var buffer = new Uint8Array(0);
+      var fs = util.fs();
 
-      that.fs.open('/myfile', 'w+', function(error, result) {
+      fs.open('/myfile', 'w+', function(error, result) {
         if(error) throw error;
 
         var fd = result;
-        that.fs.close(fd, function(error) {
-          that.fs.read(fd, buffer, 0, buffer.length, undefined, function(error, result) {
-            _error = error;
-            complete = true;
+        fs.close(fd, function(error) {
+          fs.read(fd, buffer, 0, buffer.length, undefined, function(error, result) {
+            expect(error).to.exist;
+            done();
           });
         });
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
       });
     });
   });

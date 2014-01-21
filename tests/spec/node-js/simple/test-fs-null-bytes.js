@@ -1,38 +1,29 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/test-fs-null-bytes.js", function() {
 
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
-
-    it('should reject paths with null bytes in them', function() {
-      var complete = false;
+    it('should reject paths with null bytes in them', function(done) {
       var checks = [];
       var fnCount = 0;
       var fnTotal = 16;
       var expected = "Path must be a string without null bytes.";
-      var fs = this.fs;
+      var fs = util.fs();
 
       // Make sure function fails with null path error in callback.
       function check(fn) {
         var args = Array.prototype.slice.call(arguments, 1);
         args = args.concat(function(err) {
           checks.push(function(){
-            expect(err).toBeDefined();
-            expect(err.message).toEqual(expected);
+            expect(err).to.exist;
+            expect(err.message).to.equal(expected);
           });
           fnCount++;
-          complete = fnCount === fnTotal;
+          if(fnCount === fnTotal) {
+            done();
+          }
         });
 
         fn.apply(fs, args);
@@ -54,23 +45,17 @@ define(["Filer"], function(Filer) {
       check(fs.symlink,     'foobar', 'foo\u0000bar');
       check(fs.unlink,      'foo\u0000bar');
       check(fs.writeFile,   'foo\u0000bar');
+      check(fs.appendFile,  'foo\u0000bar');
+      check(fs.truncate,    'foo\u0000bar');
+      check(fs.utimes,      'foo\u0000bar', 0, 0);
       // TODO - need to be implemented still...
-      //  check(fs.appendFile,  'foo\u0000bar');
       //  check(fs.realpath,    'foo\u0000bar');
       //  check(fs.chmod,       'foo\u0000bar', '0644');
       //  check(fs.chown,       'foo\u0000bar', 12, 34);
       //  check(fs.realpath,    'foo\u0000bar');
-      //  check(fs.truncate,    'foo\u0000bar');
-      //  check(fs.utimes,      'foo\u0000bar', 0, 0);
 
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        checks.forEach(function(fn){
-          fn();
-        });
+      checks.forEach(function(fn){
+        fn();
       });
     });
   });

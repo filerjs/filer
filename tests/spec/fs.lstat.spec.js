@@ -1,90 +1,48 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
  describe('fs.lstat', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function() {
-      expect(typeof this.fs.lstat).toEqual('function');
+      var fs = util.fs();
+      expect(typeof fs.lstat).to.equal('function');
     });
 
-    it('should return an error if path does not exist', function() {
-      var complete = false;
+    it('should return an error if path does not exist', function(done) {
+      var fs = util.fs();
       var _error, _result;
 
-      this.fs.lstat('/tmp', function(error, result) {
-        _error = error;
-        _result = result;
-
-        complete = true;
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
-        expect(_result).not.toBeDefined();
+      fs.lstat('/tmp', function(error, result) {
+        expect(error).to.exist;
+        expect(result).not.to.exist;
+        done();
       });
     });
 
-    it('should return a stat object if path is not a symbolic link', function() {
-      var complete = false;
-      var _error, _result;
-      var that = this;
+    it('should return a stat object if path is not a symbolic link', function(done) {
+      var fs = util.fs();
 
-      that.fs.lstat('/', function(error, result) {
-        _error = error;
-        _result = result;
-
-        complete = true;
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_result).toBeDefined();
+      fs.lstat('/', function(error, result) {
+        expect(error).not.to.exist;
+        expect(result).to.exist;
+        expect(result.type).to.equal('DIRECTORY');
+        done();
       });
     });
 
+    it('should return a stat object if path is a symbolic link', function(done) {
+      var fs = util.fs();
 
-    it('should return a stat object if path is a symbolic link', function() {
-      var complete = false;
-      var _error, _result;
-      var that = this;
-
-      that.fs.symlink('/', '/mylink', function(error) {
+      fs.symlink('/', '/mylink', function(error) {
         if(error) throw error;
 
-        that.fs.lstat('/mylink', function(error, result) {
-          _error = error;
-          _result = result;
-
-          complete = true;
+        fs.lstat('/mylink', function(error, result) {
+          expect(error).not.to.exist;
+          expect(result).to.exist;
+          expect(result.type).to.equal('SYMLINK');
+          done();
         });
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_result).toBeDefined();
       });
     });
   });
