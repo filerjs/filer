@@ -1714,6 +1714,47 @@ define(function(require) {
     });
   }
 
+  function _appendFile(fs, context, path, data, options, callback) {
+    if(!options) {
+      options = { encoding: 'utf8', flag: 'a' };
+    } else if(typeof options === "function") {
+      options = { encoding: 'utf8', flag: 'a' };
+    } else if(typeof options === "string") {
+      options = { encoding: options, flag: 'a' };
+    }
+    console.log(options);
+
+    if(!nullCheck(path, callback)) return;
+
+    var flags = validate_flags(options.flag || 'a');
+    if(!flags) {
+      callback(new EInvalid('flags is not valid'));
+    }
+
+    data = data || '';
+    if(typeof data === "number") {
+      data = '' + data;
+    }
+    if(typeof data === "string" && options.encoding === 'utf8') {
+      data = new TextEncoder('utf-8').encode(data);
+    }
+    open_file(context, path, flags, function(err, fileNode) {
+      if(err) {
+        return callback(err);
+      }
+      var ofd = new OpenFileDescription(fileNode.id, flags, fileNode.size);
+      var fd = fs.allocDescriptor(ofd);
+      console.log(fileNode);
+      write_data(context, ofd, data, 0, data.length, ofd.position, function(err2, nbytes) {
+        if(err2) {
+          return callback(err2);
+        }
+        fs.releaseDescriptor(fd);
+        callback(null);
+      });
+    });
+  }
+
   function _getxattr (context, path, name, callback) {
     if (!nullCheck(path, callback)) return;
 
@@ -2175,6 +2216,17 @@ define(function(require) {
       function() {
         var context = fs.provider.getReadWriteContext();
         _writeFile(fs, context, path, data, options, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  FileSystem.prototype.appendFile = function(path, data, options, callback_) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function() {
+        var context = fs.provider.getReadWriteContext();
+        _appendFile(fs, context, path, data, options, callback);
       }
     );
     if(error) callback(error);
