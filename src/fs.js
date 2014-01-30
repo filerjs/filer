@@ -1308,6 +1308,17 @@ define(function(require) {
     return O_FLAGS[flags];
   }
 
+  function validate_file_options(options, enc, fileMode){
+    if(!options) {
+      options = { encoding: enc, flag: fileMode };
+    } else if(typeof options === "function") {
+      options = { encoding: enc, flag: fileMode };
+    } else if(typeof options === "string") {
+      options = { encoding: options, flag: fileMode };
+    }
+    return options;
+  }
+
   // nullCheck from https://github.com/joyent/node/blob/master/lib/fs.js
   function nullCheck(path, callback) {
     if (('' + path).indexOf('\u0000') !== -1) {
@@ -1598,13 +1609,7 @@ define(function(require) {
   }
 
   function _readFile(fs, context, path, options, callback) {
-    if(!options) {
-      options = { encoding: null, flag: 'r' };
-    } else if(typeof options === "function") {
-      options = { encoding: null, flag: 'r' };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: 'r' };
-    }
+    options = validate_file_options(options, null, 'r');
 
     if(!nullCheck(path, callback)) return;
 
@@ -1644,7 +1649,6 @@ define(function(require) {
           callback(null, data);
         });
       });
-
     });
   }
 
@@ -1674,13 +1678,7 @@ define(function(require) {
   }
 
   function _writeFile(fs, context, path, data, options, callback) {
-    if(!options) {
-      options = { encoding: 'utf8', flag: 'w' };
-    } else if(typeof options === "function") {
-      options = { encoding: 'utf8', flag: 'w' };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: 'w' };
-    }
+    options = validate_file_options(options, 'utf8', 'w');
 
     if(!nullCheck(path, callback)) return;
 
@@ -1715,14 +1713,7 @@ define(function(require) {
   }
 
   function _appendFile(fs, context, path, data, options, callback) {
-    if(!options) {
-      options = { encoding: 'utf8', flag: 'a' };
-    } else if(typeof options === "function") {
-      options = { encoding: 'utf8', flag: 'a' };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: 'a' };
-    }
-    console.log(options);
+    options = validate_file_options(options, 'utf8', 'a');
 
     if(!nullCheck(path, callback)) return;
 
@@ -1738,13 +1729,14 @@ define(function(require) {
     if(typeof data === "string" && options.encoding === 'utf8') {
       data = new TextEncoder('utf-8').encode(data);
     }
+
     open_file(context, path, flags, function(err, fileNode) {
       if(err) {
         return callback(err);
       }
       var ofd = new OpenFileDescription(fileNode.id, flags, fileNode.size);
       var fd = fs.allocDescriptor(ofd);
-      console.log(fileNode);
+
       write_data(context, ofd, data, 0, data.length, ofd.position, function(err2, nbytes) {
         if(err2) {
           return callback(err2);
@@ -1801,7 +1793,7 @@ define(function(require) {
       else {
         callback(null);
       }
-    };
+    }
 
     setxattr_file(context, path, name, value, flag, check_result);
   }

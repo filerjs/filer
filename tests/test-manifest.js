@@ -18,6 +18,7 @@ define([
   "spec/fs.open.spec",
   "spec/fs.write.spec",
   "spec/fs.writeFile-readFile.spec",
+  "spec/fs.appendFile.spec",
   "spec/fs.read.spec",
   "spec/fs.close.spec",
   "spec/fs.link.spec",
