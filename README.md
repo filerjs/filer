@@ -747,7 +747,31 @@ fs.writeFile('/myfile', buffer, function (err) {
 
 #### fs.appendFile(filename, data, [options], callback)<a name="appendFile"></a>
 
-NOTE: Not yet implemented, see https://github.com/js-platform/filer/issues/88
+Writes data to the end of a file. `data` can be a string or a buffer, in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
+
+Examples:
+
+```javascript
+// Append UTF8 text file
+fs.writeFile('/myfile.txt', "More...", function (err) {
+	if (err) throw err;
+});
+fs.appendFile('/myfile.txt', "Data...", function (err) {
+  if (err) throw err;
+});
+// '/myfile.txt' would now read out 'More...Data...'
+
+// Append binary file
+var more = new Uint8Array([1, 2, 3, 4]);
+var data = new Uint8Array([5, 6, 7, 8]);
+fs.writeFile('/myfile', more, function (err) {
+	if (err) throw err;
+});
+fs.appendFile('/myfile', buffer, function (err) {
+  if (err) throw err;
+});
+// '/myfile' would now contain [1, 2, 3, 4, 5, 6, 7, 8]
+```
 
 #### fs.setxattr(path, name, value, [flag], callback)<a name="setxattr"></a>
 

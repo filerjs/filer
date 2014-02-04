@@ -1308,6 +1308,17 @@ define(function(require) {
     return O_FLAGS[flags];
   }
 
+  function validate_file_options(options, enc, fileMode){
+    if(!options) {
+      options = { encoding: enc, flag: fileMode };
+    } else if(typeof options === "function") {
+      options = { encoding: enc, flag: fileMode };
+    } else if(typeof options === "string") {
+      options = { encoding: options, flag: fileMode };
+    }
+    return options;
+  }
+
   // nullCheck from https://github.com/joyent/node/blob/master/lib/fs.js
   function nullCheck(path, callback) {
     if (('' + path).indexOf('\u0000') !== -1) {
@@ -1598,13 +1609,7 @@ define(function(require) {
   }
 
   function _readFile(fs, context, path, options, callback) {
-    if(!options) {
-      options = { encoding: null, flag: 'r' };
-    } else if(typeof options === "function") {
-      options = { encoding: null, flag: 'r' };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: 'r' };
-    }
+    options = validate_file_options(options, null, 'r');
 
     if(!nullCheck(path, callback)) return;
 
@@ -1644,7 +1649,6 @@ define(function(require) {
           callback(null, data);
         });
       });
-
     });
   }
 
@@ -1674,13 +1678,7 @@ define(function(require) {
   }
 
   function _writeFile(fs, context, path, data, options, callback) {
-    if(!options) {
-      options = { encoding: 'utf8', flag: 'w' };
-    } else if(typeof options === "function") {
-      options = { encoding: 'utf8', flag: 'w' };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: 'w' };
-    }
+    options = validate_file_options(options, 'utf8', 'w');
 
     if(!nullCheck(path, callback)) return;
 
@@ -1705,6 +1703,41 @@ define(function(require) {
       var fd = fs.allocDescriptor(ofd);
 
       write_data(context, ofd, data, 0, data.length, 0, function(err2, nbytes) {
+        if(err2) {
+          return callback(err2);
+        }
+        fs.releaseDescriptor(fd);
+        callback(null);
+      });
+    });
+  }
+
+  function _appendFile(fs, context, path, data, options, callback) {
+    options = validate_file_options(options, 'utf8', 'a');
+
+    if(!nullCheck(path, callback)) return;
+
+    var flags = validate_flags(options.flag || 'a');
+    if(!flags) {
+      callback(new EInvalid('flags is not valid'));
+    }
+
+    data = data || '';
+    if(typeof data === "number") {
+      data = '' + data;
+    }
+    if(typeof data === "string" && options.encoding === 'utf8') {
+      data = new TextEncoder('utf-8').encode(data);
+    }
+
+    open_file(context, path, flags, function(err, fileNode) {
+      if(err) {
+        return callback(err);
+      }
+      var ofd = new OpenFileDescription(fileNode.id, flags, fileNode.size);
+      var fd = fs.allocDescriptor(ofd);
+
+      write_data(context, ofd, data, 0, data.length, ofd.position, function(err2, nbytes) {
         if(err2) {
           return callback(err2);
         }
@@ -2175,6 +2208,17 @@ define(function(require) {
       function() {
         var context = fs.provider.getReadWriteContext();
         _writeFile(fs, context, path, data, options, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  FileSystem.prototype.appendFile = function(path, data, options, callback_) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function() {
+        var context = fs.provider.getReadWriteContext();
+        _appendFile(fs, context, path, data, options, callback);
       }
     );
     if(error) callback(error);
