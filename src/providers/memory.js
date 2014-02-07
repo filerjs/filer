@@ -1,5 +1,5 @@
 define(function(require) {
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
+  var FILE_SYSTEM_NAME = require('../constants').FILE_SYSTEM_NAME;
 
   function MemoryContext(db, readOnly) {
     this.readOnly = readOnly;

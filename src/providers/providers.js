@@ -1,8 +1,8 @@
 define(function(require) {
 
-  var IndexedDB = require('src/providers/indexeddb');
-  var WebSQL = require('src/providers/websql');
-  var Memory = require('src/providers/memory');
+  var IndexedDB = require('./indexeddb');
+  var WebSQL = require('./websql');
+  var Memory = require('./memory');
 
   return {
     IndexedDB: IndexedDB,

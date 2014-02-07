@@ -444,7 +444,7 @@ define("build/almond", function(){});
  * Available under MIT license <http://lodash.com/license>
  */
 
-define('nodash',['require'],function(require) {
+define('lib/nodash',['require'],function(require) {
 
   var ArrayProto = Array.prototype;
   var nativeForEach = ArrayProto.forEach;
@@ -536,20 +536,6 @@ define('nodash',['require'],function(require) {
   return nodash;
 
 });
-
-// Hack to allow using encoding.js with only utf8.
-// Right now there's a bug where it expects global['encoding-indexes']:
-//
-//  function index(name) {
-//    if (!('encoding-indexes' in global))
-//      throw new Error("Indexes missing. Did you forget to include encoding-indexes.js?");
-//    return global['encoding-indexes'][name];
-//  }
-(function(global) {
-  global['encoding-indexes'] = global['encoding-indexes'] || [];
-}(this));
-
-define("encoding-indexes-shim", function(){});
 
 /*!
  * Shim implementation of the TextEncoder, TextDecoder spec:
@@ -2870,7 +2856,7 @@ define("encoding-indexes-shim", function(){});
   global['TextDecoder'] = global['TextDecoder'] || TextDecoder;
 }(this));
 
-define("encoding", ["encoding-indexes-shim"], function(){});
+define("lib/encoding", function(){});
 
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -3098,11 +3084,11 @@ reset:function(){b.reset.call(this);this._doReset()},update:function(a){this._ap
 l;l++){if(16>l)m[l]=f[g+l]|0;else{var n=m[l-15],o=m[l-2];m[l]=((n<<25|n>>>7)^(n<<14|n>>>18)^n>>>3)+m[l-7]+((o<<15|o>>>17)^(o<<13|o>>>19)^o>>>10)+m[l-16]}n=k+((c<<26|c>>>6)^(c<<21|c>>>11)^(c<<7|c>>>25))+(c&i^~c&j)+r[l]+m[l];o=((e<<30|e>>>2)^(e<<19|e>>>13)^(e<<10|e>>>22))+(e&a^e&h^a&h);k=j;j=i;i=c;c=d+n|0;d=h;h=a;a=e;e=n+o|0}b[0]=b[0]+e|0;b[1]=b[1]+a|0;b[2]=b[2]+h|0;b[3]=b[3]+d|0;b[4]=b[4]+c|0;b[5]=b[5]+i|0;b[6]=b[6]+j|0;b[7]=b[7]+k|0},_doFinalize:function(){var f=this._data,g=f.words,b=8*this._nDataBytes,
 e=8*f.sigBytes;g[e>>>5]|=128<<24-e%32;g[(e+64>>>9<<4)+15]=b;f.sigBytes=4*g.length;this._process()}});p.SHA256=f._createHelper(j);p.HmacSHA256=f._createHmacHelper(j)})(Math);
 
-define("crypto-js/rollups/sha256", function(){});
+define("lib/crypto-js/rollups/sha256", function(){});
 
-define('src/shared',['require','crypto-js/rollups/sha256'],function(require) {
+define('src/shared',['require','../lib/crypto-js/rollups/sha256'],function(require) {
 
-  require("crypto-js/rollups/sha256"); var Crypto = CryptoJS;
+  require("../lib/crypto-js/rollups/sha256"); var Crypto = CryptoJS;
 
   function guid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -3326,17 +3312,17 @@ define('src/constants',['require'],function(require) {
   };
 
 });
-define('src/providers/indexeddb',['require','src/constants','src/constants','src/constants','src/constants'],function(require) {
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
-  var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
+define('src/providers/indexeddb',['require','../constants','../constants','../constants','../constants'],function(require) {
+  var FILE_SYSTEM_NAME = require('../constants').FILE_SYSTEM_NAME;
+  var FILE_STORE_NAME = require('../constants').FILE_STORE_NAME;
 
   var indexedDB = window.indexedDB       ||
                   window.mozIndexedDB    ||
                   window.webkitIndexedDB ||
                   window.msIndexedDB;
 
-  var IDB_RW = require('src/constants').IDB_RW;
-  var IDB_RO = require('src/constants').IDB_RO;
+  var IDB_RW = require('../constants').IDB_RW;
+  var IDB_RO = require('../constants').IDB_RO;
 
   function IndexedDBContext(db, mode) {
     var transaction = db.transaction(FILE_STORE_NAME, mode);
@@ -3453,12 +3439,12 @@ define('src/providers/indexeddb',['require','src/constants','src/constants','src
   return IndexedDB;
 });
 
-define('src/providers/websql',['require','src/constants','src/constants','src/constants','src/constants','src/constants'],function(require) {
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
-  var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
-  var WSQL_VERSION = require('src/constants').WSQL_VERSION;
-  var WSQL_SIZE = require('src/constants').WSQL_SIZE;
-  var WSQL_DESC = require('src/constants').WSQL_DESC;
+define('src/providers/websql',['require','../constants','../constants','../constants','../constants','../constants'],function(require) {
+  var FILE_SYSTEM_NAME = require('../constants').FILE_SYSTEM_NAME;
+  var FILE_STORE_NAME = require('../constants').FILE_STORE_NAME;
+  var WSQL_VERSION = require('../constants').WSQL_VERSION;
+  var WSQL_SIZE = require('../constants').WSQL_SIZE;
+  var WSQL_DESC = require('../constants').WSQL_DESC;
 
   function WebSQLContext(db, isReadOnly) {
     var that = this;
@@ -3583,8 +3569,8 @@ define('src/providers/websql',['require','src/constants','src/constants','src/co
   return WebSQL;
 });
 
-define('src/providers/memory',['require','src/constants'],function(require) {
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
+define('src/providers/memory',['require','../constants'],function(require) {
+  var FILE_SYSTEM_NAME = require('../constants').FILE_SYSTEM_NAME;
 
   function MemoryContext(db, readOnly) {
     this.readOnly = readOnly;
@@ -3640,11 +3626,11 @@ define('src/providers/memory',['require','src/constants'],function(require) {
   return Memory;
 });
 
-define('src/providers/providers',['require','src/providers/indexeddb','src/providers/websql','src/providers/memory'],function(require) {
+define('src/providers/providers',['require','./indexeddb','./websql','./memory'],function(require) {
 
-  var IndexedDB = require('src/providers/indexeddb');
-  var WebSQL = require('src/providers/websql');
-  var Memory = require('src/providers/memory');
+  var IndexedDB = require('./indexeddb');
+  var WebSQL = require('./websql');
+  var Memory = require('./memory');
 
   return {
     IndexedDB: IndexedDB,
@@ -3720,13 +3706,13 @@ kb.prototype.p=function(){var d=this.input,a,c;a=this.A.p();this.c=this.A.c;this
 mb.prototype.j=function(){var d,a,c,f,b,e,g,h=0;g=this.a;d=lb;switch(d){case lb:a=Math.LOG2E*Math.log(32768)-8;break;default:l(Error("invalid compression method"))}c=a<<4|d;g[h++]=c;switch(d){case lb:switch(this.h){case $.NONE:b=0;break;case $.r:b=1;break;case $.k:b=2;break;default:l(Error("unsupported compression type"))}break;default:l(Error("invalid compression method"))}f=b<<6|0;g[h++]=f|31-(256*c+f)%31;e=jb(this.input);this.z.b=h;g=this.z.j();h=g.length;E&&(g=new Uint8Array(g.buffer),g.length<=
 h+4&&(this.a=new Uint8Array(g.length+4),this.a.set(g),g=this.a),g=g.subarray(0,h+4));g[h++]=e>>24&255;g[h++]=e>>16&255;g[h++]=e>>8&255;g[h++]=e&255;return g};function nb(d,a){var c,f,b,e;if(Object.keys)c=Object.keys(a);else for(f in c=[],b=0,a)c[b++]=f;b=0;for(e=c.length;b<e;++b)f=c[b],z(d+"."+f,a[f])};z("Zlib.Inflate",kb);z("Zlib.Inflate.prototype.decompress",kb.prototype.p);nb("Zlib.Inflate.BufferType",{ADAPTIVE:Ba.C,BLOCK:Ba.D});z("Zlib.Deflate",mb);z("Zlib.Deflate.compress",function(d,a){return(new mb(d,a)).j()});z("Zlib.Deflate.prototype.compress",mb.prototype.j);nb("Zlib.Deflate.CompressionType",{NONE:$.NONE,FIXED:$.r,DYNAMIC:$.k});}).call(this);
 
-define("zlib", function(){});
+define("lib/zlib", function(){});
 
-define('src/adapters/zlib',['require','zlib'],function(require) {
+define('src/adapters/zlib',['require','../../lib/zlib'],function(require) {
 
   // Zlib compression, see
   // https://github.com/imaya/zlib.js/blob/master/bin/zlib.min.js
-  require("zlib");
+  require("../../lib/zlib");
 
   var Inflate = Zlib.Inflate;
   function inflate(compressed) {
@@ -3819,12 +3805,12 @@ var e=[0,1,2,4,8,16,32,64,128,27,54],i=i.AES=h.extend({_doReset:function(){for(v
 16&255]]^g[l[h>>>8&255]]^a[l[h&255]]},encryptBlock:function(a,b){this._doCryptBlock(a,b,this._keySchedule,o,m,s,n,l)},decryptBlock:function(c,b){var d=c[b+1];c[b+1]=c[b+3];c[b+3]=d;this._doCryptBlock(c,b,this._invKeySchedule,k,f,g,a,r);d=c[b+1];c[b+1]=c[b+3];c[b+3]=d},_doCryptBlock:function(a,b,d,e,f,h,i,g){for(var l=this._nRounds,k=a[b]^d[0],m=a[b+1]^d[1],o=a[b+2]^d[2],n=a[b+3]^d[3],p=4,r=1;r<l;r++)var s=e[k>>>24]^f[m>>>16&255]^h[o>>>8&255]^i[n&255]^d[p++],u=e[m>>>24]^f[o>>>16&255]^h[n>>>8&255]^
 i[k&255]^d[p++],v=e[o>>>24]^f[n>>>16&255]^h[k>>>8&255]^i[m&255]^d[p++],n=e[n>>>24]^f[k>>>16&255]^h[m>>>8&255]^i[o&255]^d[p++],k=s,m=u,o=v;s=(g[k>>>24]<<24|g[m>>>16&255]<<16|g[o>>>8&255]<<8|g[n&255])^d[p++];u=(g[m>>>24]<<24|g[o>>>16&255]<<16|g[n>>>8&255]<<8|g[k&255])^d[p++];v=(g[o>>>24]<<24|g[n>>>16&255]<<16|g[k>>>8&255]<<8|g[m&255])^d[p++];n=(g[n>>>24]<<24|g[k>>>16&255]<<16|g[m>>>8&255]<<8|g[o&255])^d[p++];a[b]=s;a[b+1]=u;a[b+2]=v;a[b+3]=n},keySize:8});p.AES=h._createHelper(i)})();
 
-define("crypto-js/rollups/aes", function(){});
+define("lib/crypto-js/rollups/aes", function(){});
 
-define('src/adapters/crypto',['require','crypto-js/rollups/aes','encoding'],function(require) {
+define('src/adapters/crypto',['require','../../lib/crypto-js/rollups/aes','../../lib/encoding'],function(require) {
 
   // AES encryption, see http://code.google.com/p/crypto-js/#AES
-  require("crypto-js/rollups/aes");
+  require("../../lib/crypto-js/rollups/aes");
 
   // Move back and forth from Uint8Arrays and CryptoJS WordArray
   // See http://code.google.com/p/crypto-js/#The_Cipher_Input and
@@ -3852,7 +3838,7 @@ define('src/adapters/crypto',['require','crypto-js/rollups/aes','encoding'],func
 
 
   // UTF8 Text De/Encoders
-  require('encoding');
+  require('../../lib/encoding');
   function encode(str) {
     return (new TextEncoder('utf-8')).encode(str);
   }
@@ -3946,70 +3932,70 @@ define('src/adapters/crypto',['require','crypto-js/rollups/aes','encoding'],func
   return CryptoAdapter;
 });
 
-define('src/adapters/adapters',['require','src/adapters/zlib','src/adapters/crypto'],function(require) {
+define('src/adapters/adapters',['require','./zlib','./crypto'],function(require) {
 
   return {
-    Compression: require('src/adapters/zlib'),
-    Encryption: require('src/adapters/crypto')
+    Compression: require('./zlib'),
+    Encryption: require('./crypto')
   };
 
 });
 
-define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters'],function(require) {
+define('src/fs',['require','./../lib/nodash','./../lib/encoding','./path','./path','./path','./shared','./shared','./shared','./error','./error','./error','./error','./error','./error','./error','./error','./error','./error','./error','./error','./error','./error','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./constants','./providers/providers','./adapters/adapters'],function(require) {
 
-  var _ = require('nodash');
+  var _ = require('./../lib/nodash');
 
   // TextEncoder and TextDecoder will either already be present, or use this shim.
   // Because of the way the spec is defined, we need to get them off the global.
-  require('encoding');
+  require('./../lib/encoding');
 
-  var normalize = require('src/path').normalize;
-  var dirname = require('src/path').dirname;
-  var basename = require('src/path').basename;
+  var normalize = require('./path').normalize;
+  var dirname = require('./path').dirname;
+  var basename = require('./path').basename;
 
-  var guid = require('src/shared').guid;
-  var hash = require('src/shared').hash;
-  var nop = require('src/shared').nop;
+  var guid = require('./shared').guid;
+  var hash = require('./shared').hash;
+  var nop = require('./shared').nop;
 
-  var EExists = require('src/error').EExists;
-  var EIsDirectory = require('src/error').EIsDirectory;
-  var ENoEntry = require('src/error').ENoEntry;
-  var EBusy = require('src/error').EBusy;
-  var ENotEmpty = require('src/error').ENotEmpty;
-  var ENotDirectory = require('src/error').ENotDirectory;
-  var EBadFileDescriptor = require('src/error').EBadFileDescriptor;
-  var ENotImplemented = require('src/error').ENotImplemented;
-  var ENotMounted = require('src/error').ENotMounted;
-  var EInvalid = require('src/error').EInvalid;
-  var EIO = require('src/error').EIO;
-  var ELoop = require('src/error').ELoop;
-  var EFileSystemError = require('src/error').EFileSystemError;
-  var ENoAttr = require('src/error').ENoAttr;
+  var EExists = require('./error').EExists;
+  var EIsDirectory = require('./error').EIsDirectory;
+  var ENoEntry = require('./error').ENoEntry;
+  var EBusy = require('./error').EBusy;
+  var ENotEmpty = require('./error').ENotEmpty;
+  var ENotDirectory = require('./error').ENotDirectory;
+  var EBadFileDescriptor = require('./error').EBadFileDescriptor;
+  var ENotImplemented = require('./error').ENotImplemented;
+  var ENotMounted = require('./error').ENotMounted;
+  var EInvalid = require('./error').EInvalid;
+  var EIO = require('./error').EIO;
+  var ELoop = require('./error').ELoop;
+  var EFileSystemError = require('./error').EFileSystemError;
+  var ENoAttr = require('./error').ENoAttr;
 
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
-  var FS_FORMAT = require('src/constants').FS_FORMAT;
-  var MODE_FILE = require('src/constants').MODE_FILE;
-  var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
-  var MODE_SYMBOLIC_LINK = require('src/constants').MODE_SYMBOLIC_LINK;
-  var MODE_META = require('src/constants').MODE_META;
-  var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
-  var SUPER_NODE_ID = require('src/constants').SUPER_NODE_ID;
-  var SYMLOOP_MAX = require('src/constants').SYMLOOP_MAX;
-  var FS_READY = require('src/constants').FS_READY;
-  var FS_PENDING = require('src/constants').FS_PENDING;
-  var FS_ERROR = require('src/constants').FS_ERROR;
-  var O_READ = require('src/constants').O_READ;
-  var O_WRITE = require('src/constants').O_WRITE;
-  var O_CREATE = require('src/constants').O_CREATE;
-  var O_EXCLUSIVE = require('src/constants').O_EXCLUSIVE;
-  var O_TRUNCATE = require('src/constants').O_TRUNCATE;
-  var O_APPEND = require('src/constants').O_APPEND;
-  var O_FLAGS = require('src/constants').O_FLAGS;
-  var XATTR_CREATE = require('src/constants').XATTR_CREATE;
-  var XATTR_REPLACE = require('src/constants').XATTR_REPLACE;
+  var FILE_SYSTEM_NAME = require('./constants').FILE_SYSTEM_NAME;
+  var FS_FORMAT = require('./constants').FS_FORMAT;
+  var MODE_FILE = require('./constants').MODE_FILE;
+  var MODE_DIRECTORY = require('./constants').MODE_DIRECTORY;
+  var MODE_SYMBOLIC_LINK = require('./constants').MODE_SYMBOLIC_LINK;
+  var MODE_META = require('./constants').MODE_META;
+  var ROOT_DIRECTORY_NAME = require('./constants').ROOT_DIRECTORY_NAME;
+  var SUPER_NODE_ID = require('./constants').SUPER_NODE_ID;
+  var SYMLOOP_MAX = require('./constants').SYMLOOP_MAX;
+  var FS_READY = require('./constants').FS_READY;
+  var FS_PENDING = require('./constants').FS_PENDING;
+  var FS_ERROR = require('./constants').FS_ERROR;
+  var O_READ = require('./constants').O_READ;
+  var O_WRITE = require('./constants').O_WRITE;
+  var O_CREATE = require('./constants').O_CREATE;
+  var O_EXCLUSIVE = require('./constants').O_EXCLUSIVE;
+  var O_TRUNCATE = require('./constants').O_TRUNCATE;
+  var O_APPEND = require('./constants').O_APPEND;
+  var O_FLAGS = require('./constants').O_FLAGS;
+  var XATTR_CREATE = require('./constants').XATTR_CREATE;
+  var XATTR_REPLACE = require('./constants').XATTR_REPLACE;
 
-  var providers = require('src/providers/providers');
-  var adapters = require('src/adapters/adapters');
+  var providers = require('./providers/providers');
+  var adapters = require('./adapters/adapters');
 
   /*
    * DirectoryEntry
@@ -5122,7 +5108,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     else if (!name) {
       callback(new EInvalid('attribute name cannot be an empty string'));
     }
-    else if (flag != null && 
+    else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
       callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
@@ -5139,7 +5125,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     else if (!name) {
       callback(new EInvalid('attribute name cannot be an empty string'));
     }
-    else if (flag != null && 
+    else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
       callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
@@ -5263,6 +5249,17 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       return null;
     }
     return O_FLAGS[flags];
+  }
+
+  function validate_file_options(options, enc, fileMode){
+    if(!options) {
+      options = { encoding: enc, flag: fileMode };
+    } else if(typeof options === "function") {
+      options = { encoding: enc, flag: fileMode };
+    } else if(typeof options === "string") {
+      options = { encoding: options, flag: fileMode };
+    }
+    return options;
   }
 
   // nullCheck from https://github.com/joyent/node/blob/master/lib/fs.js
@@ -5555,13 +5552,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _readFile(fs, context, path, options, callback) {
-    if(!options) {
-      options = { encoding: null, flag: 'r' };
-    } else if(typeof options === "function") {
-      options = { encoding: null, flag: 'r' };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: 'r' };
-    }
+    options = validate_file_options(options, null, 'r');
 
     if(!nullCheck(path, callback)) return;
 
@@ -5601,7 +5592,6 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
           callback(null, data);
         });
       });
-
     });
   }
 
@@ -5631,13 +5621,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _writeFile(fs, context, path, data, options, callback) {
-    if(!options) {
-      options = { encoding: 'utf8', flag: 'w' };
-    } else if(typeof options === "function") {
-      options = { encoding: 'utf8', flag: 'w' };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: 'w' };
-    }
+    options = validate_file_options(options, 'utf8', 'w');
 
     if(!nullCheck(path, callback)) return;
 
@@ -5662,6 +5646,41 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       var fd = fs.allocDescriptor(ofd);
 
       write_data(context, ofd, data, 0, data.length, 0, function(err2, nbytes) {
+        if(err2) {
+          return callback(err2);
+        }
+        fs.releaseDescriptor(fd);
+        callback(null);
+      });
+    });
+  }
+
+  function _appendFile(fs, context, path, data, options, callback) {
+    options = validate_file_options(options, 'utf8', 'a');
+
+    if(!nullCheck(path, callback)) return;
+
+    var flags = validate_flags(options.flag || 'a');
+    if(!flags) {
+      callback(new EInvalid('flags is not valid'));
+    }
+
+    data = data || '';
+    if(typeof data === "number") {
+      data = '' + data;
+    }
+    if(typeof data === "string" && options.encoding === 'utf8') {
+      data = new TextEncoder('utf-8').encode(data);
+    }
+
+    open_file(context, path, flags, function(err, fileNode) {
+      if(err) {
+        return callback(err);
+      }
+      var ofd = new OpenFileDescription(fileNode.id, flags, fileNode.size);
+      var fd = fs.allocDescriptor(ofd);
+
+      write_data(context, ofd, data, 0, data.length, ofd.position, function(err2, nbytes) {
         if(err2) {
           return callback(err2);
         }
@@ -5717,7 +5736,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       else {
         callback(null);
       }
-    };
+    }
 
     setxattr_file(context, path, name, value, flag, check_result);
   }
@@ -5757,14 +5776,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       }
     }
 
-    removexattr_file (context, path, name, remove_xattr);    
+    removexattr_file (context, path, name, remove_xattr);
   }
 
   function _fremovexattr (fs, context, fd, name, callback) {
 
     function remove_xattr (error) {
       if (error) {
-        callback(error);      
+        callback(error);
       }
       else {
         callback(null);
@@ -5862,7 +5881,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(null);
       }
     }
-    utimes_file(context, path, atime, mtime, check_result)
+    utimes_file(context, path, atime, mtime, check_result);
   }
 
   function _futimes(fs, context, fd, atime, mtime, callback) {
@@ -5875,7 +5894,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       }
     }
 
-    var currentTime = Date.now()
+    var currentTime = Date.now();
     atime = (atime) ? atime : currentTime;
     mtime = (mtime) ? mtime : currentTime;
 
@@ -6136,6 +6155,17 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     );
     if(error) callback(error);
   };
+  FileSystem.prototype.appendFile = function(path, data, options, callback_) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function() {
+        var context = fs.provider.getReadWriteContext();
+        _appendFile(fs, context, path, data, options, callback);
+      }
+    );
+    if(error) callback(error);
+  };
   FileSystem.prototype.lseek = function(fd, offset, whence, callback) {
     callback = maybeCallback(callback);
     var fs = this;
@@ -6254,7 +6284,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
   };
   FileSystem.prototype.setxattr = function (path, name, value, flag, callback) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
+    callback = maybeCallback(arguments[arguments.length - 1]);
     var _flag = (typeof flag != 'function') ? flag : null;
     var fs = this;
     var error = fs.queueOrRun(
@@ -6283,7 +6313,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
   };
   FileSystem.prototype.fsetxattr = function (fd, name, value, flag, callback) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
+    callback = maybeCallback(arguments[arguments.length - 1]);
     var _flag = (typeof flag != 'function') ? flag : null;
     var fs = this;
     var error = fs.queueOrRun(
@@ -6343,16 +6373,16 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
 });
 
-define('src/index',['require','src/fs','src/fs','src/path'],function(require) {
-
-  var fs = require('src/fs');
+define('src/index',['require','./fs','./path','./error'],function(require) {
 
   return {
-    FileSystem: require('src/fs'),
-    Path: require('src/path')
+    FileSystem: require('./fs'),
+    Path: require('./path'),
+    Errors: require('./error')
   }
 
 });
+
   var Filer = require( "src/index" );
 
   return Filer;

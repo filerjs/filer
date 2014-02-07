@@ -1,8 +1,8 @@
 define(function(require) {
 
   return {
-    Compression: require('src/adapters/zlib'),
-    Encryption: require('src/adapters/crypto')
+    Compression: require('./zlib'),
+    Encryption: require('./crypto')
   };
 
 });

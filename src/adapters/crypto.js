@@ -1,7 +1,7 @@
 define(function(require) {
 
   // AES encryption, see http://code.google.com/p/crypto-js/#AES
-  require("crypto-js/rollups/aes");
+  require("../../lib/crypto-js/rollups/aes");
 
   // Move back and forth from Uint8Arrays and CryptoJS WordArray
   // See http://code.google.com/p/crypto-js/#The_Cipher_Input and
@@ -29,7 +29,7 @@ define(function(require) {
 
 
   // UTF8 Text De/Encoders
-  require('encoding');
+  require('../../lib/encoding');
   function encode(str) {
     return (new TextEncoder('utf-8')).encode(str);
   }

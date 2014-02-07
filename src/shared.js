@@ -1,6 +1,6 @@
 define(function(require) {
 
-  require("crypto-js/rollups/sha256"); var Crypto = CryptoJS;
+  require("../lib/crypto-js/rollups/sha256"); var Crypto = CryptoJS;
 
   function guid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
