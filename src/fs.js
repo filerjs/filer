@@ -126,6 +126,34 @@ define(function(require) {
     this.mtime = fileNode.mtime;
     this.ctime = fileNode.ctime;
     this.type = fileNode.mode;
+
+    function isFile() {
+      return (this.type === constants.MODE_FILE);
+    }
+
+    function isDirectory() {
+      return (this.type === constants.MODE_DIRECTORY);
+    }
+
+    function isBlockDevice() {
+      return false;
+    }
+
+    function isCharacterDevice() {
+      return false;
+    }
+
+    function isSymbolicLink() {
+      return (this.type === constants.MODE_SYMBOLIC_LINK);
+    }
+
+    function isFIFO() {
+      return false;
+    }
+
+    function isSocket() {
+      return false;
+    }
   }
 
   /*
