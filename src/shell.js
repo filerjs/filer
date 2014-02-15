@@ -2,8 +2,6 @@ define(function(require) {
 
   var Path = require('src/path');
 
-
-
   function Shell(fs, options) {
     options = options || {};
 
@@ -22,36 +20,55 @@ define(function(require) {
     // We include `cd` on the this vs. proto so that
     // we can access cwd without exposing it externally.
     this.cd = function(path) {
-
+      this.cwd = Path.resolve(this.cwd, path);
     };
 
   }
 
-  Shell.prototype.ls = function(path) {
+  /**
+   * Execute the .js command located at `path`. Such commands
+   * should assume the existence of 3 arguments, which will be
+   * defined at runtime:
+   *
+   *   * options - an object containing any arguments, data, etc.
+   *   * callback - a callback function(error, result) to call when done.
+   *
+   * The .js command's contents should be the body of a function
+   * that looks like this:
+   *
+   * function(fs, options, callback) {
+   *   // .js code here
+   * }
+   */
+  Shell.prototype.exec = function(path, options, callback) {
+    var fs = this.fs;
+    if(typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
+    callback = callback || function(){};
+    path = Path.resolve(this.cwd, path);
 
-  };
-
-  Shell.prototype.rm = function(path, options, callback) {
-
-  };
-
-  Shell.prototype.mv = function(path) {
-
-  };
-
-  Shell.prototype.cp = function(path) {
-
-  };
-
-  Shell.prototype.mkdir = function(path) {
-
+    fs.readFile(path, "utf8", function(error, data) {
+      if(error) {
+        callback(error);
+        return;
+      }
+      try {
+        var cmd = new Function('fs', 'options', 'callback', data);
+        cmd(fs, options, callback);
+      } catch(e) {
+        callback(e);
+      }
+    });
   };
 
   /**
    * Create a file if it does not exist, or update access and
    * modified times if it does. Valid options include:
    *
-   *  * create - whether to create the file if missing (defaults to true)
+   *  * updateOnly - whether to create the file if missing (defaults to false)
    *  * date - use the provided Date value instead of current date/time
    */
   Shell.prototype.touch = function(path, options, callback) {
@@ -60,6 +77,8 @@ define(function(require) {
       callback = options;
       options = {};
     }
+    options = options || {};
+    callback = callback || function(){};
     path = Path.resolve(this.cwd, path);
 
     function createFile(path) {
@@ -80,8 +99,7 @@ define(function(require) {
 
     fs.stat(path, function(error, stats) {
       if(error) {
-        // Skip file creation if create is `false`
-        if(options.create === false) {
+        if(options.updateOnly === true) {
           callback();
         } else {
           createFile(path);
@@ -90,10 +108,6 @@ define(function(require) {
         updateTimes(path);
       }
     });
-  };
-
-  Shell.prototype.ln = function(path) {
-
   };
 
   return Shell;

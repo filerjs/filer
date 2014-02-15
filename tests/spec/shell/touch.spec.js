@@ -31,11 +31,11 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    it('should skip creating a new file if options.create is false', function(done) {
+    it('should skip creating a new file if options.updateOnly is true', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
 
-      shell.touch('/newfile', { create: false }, function(error) {
+      shell.touch('/newfile', { updateOnly: true }, function(error) {
         if(error) throw error;
 
         fs.stat('/newfile', function(error, stats) {
