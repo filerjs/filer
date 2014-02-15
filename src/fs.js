@@ -1429,7 +1429,7 @@ define(function(require) {
           fs.readyState = FS_READY;
           runQueued();
         }
-        callback(error);
+        callback(error, fs);
       }
 
       if(err) {

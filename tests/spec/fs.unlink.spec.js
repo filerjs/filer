@@ -1,108 +1,83 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   describe('fs.unlink', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function() {
-      expect(typeof this.fs.unlink).toEqual('function');
+      var fs = util.fs();
+      expect(fs.unlink).to.be.a('function');
     });
 
-    it('should remove a link to an existing file', function() {
-      var complete1 = false;
-      var complete2 = false;
-      var _error, _stats;
-      var that = this;
+    it('should remove a link to an existing file', function(done) {
+      var fs = util.fs();
+      var complete1, complete2;
 
-      that.fs.open('/myfile', 'w+', function(error, result) {
+      function maybeDone() {
+        if(complete1 && complete2) {
+          done();
+        }
+      }
+
+      fs.open('/myfile', 'w+', function(error, fd) {
         if(error) throw error;
 
-        var fd = result;
-        that.fs.close(fd, function(error) {
+        fs.close(fd, function(error) {
           if(error) throw error;
 
-          that.fs.link('/myfile', '/myotherfile', function(error) {
+          fs.link('/myfile', '/myotherfile', function(error) {
             if(error) throw error;
 
-            that.fs.unlink('/myfile', function(error) {
+            fs.unlink('/myfile', function(error) {
               if(error) throw error;
 
-              that.fs.stat('/myfile', function(error, result) {
-                _error = error;
+              fs.stat('/myfile', function(error, result) {
+                expect(error).to.exist;
                 complete1 = true;
+                maybeDone();
               });
 
-              that.fs.stat('/myotherfile', function(error, result) {
+              fs.stat('/myotherfile', function(error, result) {
                 if(error) throw error;
 
-                _stats = result;
+                expect(result.nlinks).to.equal(1);
                 complete2 = true;
+                maybeDone();
               });
             });
           });
         });
       });
-
-      waitsFor(function() {
-        return complete1 && complete2;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
-        expect(_stats.nlinks).toEqual(1);
-      });
     });
 
-    it('should not follow symbolic links', function () {
-      var complete = false;
-      var _error, _stats1, _stats2;
-      var that = this;
+    it('should not follow symbolic links', function(done) {
+      var fs = util.fs();
 
-      that.fs.symlink('/', '/myFileLink', function (error) {
+      fs.symlink('/', '/myFileLink', function (error) {
         if (error) throw error;
 
-        that.fs.link('/myFileLink', '/myotherfile', function (error) {
+        fs.link('/myFileLink', '/myotherfile', function (error) {
           if (error) throw error;
 
-          that.fs.unlink('/myFileLink', function (error) {
+          fs.unlink('/myFileLink', function (error) {
             if (error) throw error;
 
-            that.fs.lstat('/myFileLink', function (error, result) {
-              _error = error;
+            fs.lstat('/myFileLink', function (error, result) {
+              expect(error).to.exist;
 
-              that.fs.lstat('/myotherfile', function (error, result) {
+              fs.lstat('/myotherfile', function (error, result) {
                 if (error) throw error;
-                _stats1 = result;
+                expect(result.nlinks).to.equal(1);
 
-                that.fs.stat('/', function (error, result) {
+                fs.stat('/', function (error, result) {
                   if (error) throw error;
-                  _stats2 = result;
-                  complete = true;
+                  expect(result.nlinks).to.equal(1);
+                  done();
                 });
               });
             });
           });
         });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_stats1.nlinks).toEqual(1);
-        expect(_stats2.nlinks).toEqual(1);
       });
     });
   });

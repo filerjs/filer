@@ -1,61 +1,48 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   describe('fs.rename', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function() {
-      expect(typeof this.fs.rename).toEqual('function');
+      var fs = util.fs();
+      expect(fs.rename).to.be.a('function');
     });
 
-    it('should rename an existing file', function() {
+    it('should rename an existing file', function(done) {
       var complete1 = false;
       var complete2 = false;
-      var _error, _stats;
-      var that = this;
+      var fs = util.fs();
 
-      that.fs.open('/myfile', 'w+', function(error, result) {
+      function maybeDone() {
+        if(complete1 && complete2) {
+          done();
+        }
+      }
+
+      fs.open('/myfile', 'w+', function(error, fd) {
         if(error) throw error;
 
-        var fd = result;
-        that.fs.close(fd, function(error) {
+        fs.close(fd, function(error) {
           if(error) throw error;
 
-          that.fs.rename('/myfile', '/myotherfile', function(error) {
+          fs.rename('/myfile', '/myotherfile', function(error) {
             if(error) throw error;
 
-            that.fs.stat('/myfile', function(error, result) {
-              _error = error;
+            fs.stat('/myfile', function(error, result) {
+              expect(error).to.exist;
               complete1 = true;
+              maybeDone();
             });
 
-            that.fs.stat('/myotherfile', function(error, result) {
-              if(error) throw error;
-
-              _stats = result;
+            fs.stat('/myotherfile', function(error, result) {
+              expect(error).not.to.exist;
+              expect(result.nlinks).to.equal(1);
               complete2 = true;
+              maybeDone();
             });
           });
         });
-      });
-
-      waitsFor(function() {
-        return complete1 && complete2;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
-        expect(_stats.nlinks).toEqual(1);
       });
     });
   });

@@ -1,160 +1,94 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
  describe('fs.rmdir', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function() {
-      expect(typeof this.fs.rmdir).toEqual('function');
+      var fs = util.fs();
+      expect(fs.rmdir).to.be.a('function');
     });
 
-    it('should return an error if the path does not exist', function() {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should return an error if the path does not exist', function(done) {
+      var fs = util.fs();
 
-      that.fs.rmdir('/tmp/mydir', function(error) {
-        _error = error;
-
-        complete = true;
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
+      fs.rmdir('/tmp/mydir', function(error) {
+        expect(error).to.exist;
+        done();
       });
     });
 
-    it('should return an error if attempting to remove the root directory', function() {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should return an error if attempting to remove the root directory', function(done) {
+      var fs = util.fs();
 
-      that.fs.rmdir('/', function(error) {
-        _error = error;
-
-        complete = true;
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
+      fs.rmdir('/', function(error) {
+        expect(error).to.exist;
+        done();
       });
     });
 
-    it('should return an error if the directory is not empty', function() {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should return an error if the directory is not empty', function(done) {
+      var fs = util.fs();
 
-      that.fs.mkdir('/tmp', function(error) {
-        that.fs.mkdir('/tmp/mydir', function(error) {
-          that.fs.rmdir('/', function(error) {
-            _error = error;
-
-            complete = true;
+      fs.mkdir('/tmp', function(error) {
+        if(error) throw error;
+        fs.mkdir('/tmp/mydir', function(error) {
+          if(error) throw error;
+          fs.rmdir('/', function(error) {
+            expect(error).to.exist;
+            done();
           });
         });
       });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
-      });
     });
 
-    it('should return an error if the path is not a directory', function() {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should return an error if the path is not a directory', function(done) {
+      var fs = util.fs();
 
-      that.fs.mkdir('/tmp', function(error) {
-        that.fs.open('/tmp/myfile', 'w', function(error, fd) {
-          that.fs.close(fd, function(error) {
-            that.fs.rmdir('/tmp/myfile', function(error) {
-              _error = error;
-
-              complete = true;
+      fs.mkdir('/tmp', function(error) {
+        if(error) throw error;
+        fs.open('/tmp/myfile', 'w', function(error, fd) {
+          if(error) throw error;
+          fs.close(fd, function(error) {
+            if(error) throw error;
+            fs.rmdir('/tmp/myfile', function(error) {
+              expect(error).to.exist;
+              done();
             });
           });
         });
       });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
-      });
     });
 
-    it('should return an error if the path is a symbolic link', function () {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should return an error if the path is a symbolic link', function(done) {
+      var fs = util.fs();
 
-      that.fs.mkdir('/tmp', function (error) {
-        that.fs.symlink('/tmp', '/tmp/myfile', function (error) {
-          that.fs.rmdir('/tmp/myfile', function (error) {
-            _error = error;
-
-            complete = true;
+      fs.mkdir('/tmp', function (error) {
+        if(error) throw error;
+        fs.symlink('/tmp', '/tmp/myfile', function (error) {
+          if(error) throw error;
+          fs.rmdir('/tmp/myfile', function (error) {
+            expect(error).to.exist;
+            done();
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-      });
     });
 
-    it('should remove an existing directory', function() {
-      var complete = false;
-      var _error, _stat;
-      var that = this;
+    it('should remove an existing directory', function(done) {
+      var fs = util.fs();
 
-      that.fs.mkdir('/tmp', function(error) {
-        that.fs.rmdir('/tmp', function(error) {
-          _error = error;
-          that.fs.stat('/tmp', function(error, result) {
-            _stat = result;
-
-            complete = true;
+      fs.mkdir('/tmp', function(error) {
+        if(error) throw error;
+        fs.rmdir('/tmp', function(error) {
+          expect(error).not.to.exist;
+          if(error) throw error;
+          fs.stat('/tmp', function(error, stats) {
+            expect(error).to.exist;
+            expect(stats).not.to.exist;
+            done();
           });
         });
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_stat).not.toBeDefined();
       });
     });
   });
