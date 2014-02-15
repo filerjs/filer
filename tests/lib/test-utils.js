@@ -68,6 +68,10 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     return _provider;
   }
 
+  function shell() {
+    return fs().Shell();
+  }
+
   function cleanup(callback) {
     if(!_provider) {
       return;
@@ -100,6 +104,7 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     uniqueName: uniqueName,
     setup: setup,
     fs: fs,
+    shell: shell,
     provider: provider,
     providers: {
       IndexedDB: IndexedDBTestProvider,
