@@ -1,3 +1,4 @@
+/* jshint evil:true */
 define(function(require) {
 
   var Path = require('src/path');
