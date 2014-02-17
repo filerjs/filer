@@ -172,8 +172,8 @@ define(["Filer", "util"], function(Filer, util) {
             expect(error).not.to.exist;
             // Note: testing estimation as time may differ by a couple of milliseconds
             // This number should be increased if tests are on slow systems
-            expect(now - stat.atime).to.be.below(25);
-            expect(now - stat.mtime).to.be.below(25);
+            expect(now - stat.atime).to.be.below(75);
+            expect(now - stat.mtime).to.be.below(75);
             done();
           });
         });
