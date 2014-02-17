@@ -52,5 +52,4 @@ an example.
 
 ## Communication
 
-If you'd like to talk to someone about the project, you can reach us on irc.mozilla.org in the
-#filer or #mofodev channel. Look for "ack" or "humph".
+If you'd like to talk to someone about the project, you can reach us on irc.mozilla.org in the #filer or #mofodev channel. Look for "ack" or "humph".
