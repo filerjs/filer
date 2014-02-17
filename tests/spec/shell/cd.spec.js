@@ -100,5 +100,24 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
+    it('should follow symlinks to dirs', function(done) {
+      var fs = util.fs();
+
+      fs.mkdir('/dir', function(error) {
+        if(error) throw error;
+
+        fs.symlink('/dir', '/link', function(error) {
+          if(error) throw error;
+
+          var shell = fs.Shell();
+          shell.cd('link', function(error) {
+            expect(error).not.to.exist;
+            expect(shell.cwd).to.equal('/link');
+            done();
+          });
+        });
+      });
+    });
+
   });
 });
