@@ -2,11 +2,12 @@
 define(function(require) {
 
   var Path = require('src/path');
+  var Error = require('src/error');
 
   function Shell(fs, options) {
     options = options || {};
 
-    var cwd = options.cwd || '/';
+    var cwd = '/';
 
     Object.defineProperty(this, 'fs', {
       get: function() { return fs; },
@@ -20,10 +21,22 @@ define(function(require) {
 
     // We include `cd` on the this vs. proto so that
     // we can access cwd without exposing it externally.
-    this.cd = function(path) {
-      this.cwd = Path.resolve(this.cwd, path);
+    this.cd = function(path, callback) {
+      path = Path.resolve(this.cwd, path);
+      // Make sure the path actually exists, and is a dir
+      fs.stat(path, function(err, stats) {
+        if(err) {
+          callback(new Error.ENotDirectory());
+          return;
+        }
+        if(stats.type === 'DIRECTORY') {
+          cwd = path;
+          callback();
+        } else {
+          callback(new Error.ENotDirectory());
+        }
+      });
     };
-
   }
 
   /**
@@ -83,9 +96,7 @@ define(function(require) {
     path = Path.resolve(this.cwd, path);
 
     function createFile(path) {
-      fs.writeFile(path, '', function(error) {
-        callback(error);
-      });
+      fs.writeFile(path, '', callback);
     }
 
     function updateTimes(path) {
@@ -93,9 +104,7 @@ define(function(require) {
       var atime = options.date || now;
       var mtime = options.date || now;
 
-      fs.utimes(path, atime, mtime, function(error) {
-        callback(error);
-      });
+      fs.utimes(path, atime, mtime, callback);
     }
 
     fs.stat(path, function(error, stats) {

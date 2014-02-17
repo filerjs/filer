@@ -43,6 +43,7 @@ define([
   "spec/adapters/adapters.general.spec",
 
   // Filer.FileSystemShell.*
+  "spec/shell/cd.spec",
   "spec/shell/touch.spec",
   "spec/shell/exec.spec",
 
