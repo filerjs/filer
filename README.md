@@ -1,5 +1,7 @@
 [![NPM](https://nodei.co/npm/filer.png?downloads=true&stars=true)](https://nodei.co/npm/filer/)
 
+[![Build Status](https://secure.travis-ci.org/js-platform/filer.png?branch=develop)](http://travis-ci.org/js-platform/filer)
+
 ###Filer
 
 Filer is a POSIX-like file system interface for browser-based JavaScript.
