@@ -159,6 +159,88 @@ define(function(require) {
     });
   };
 
+  /**
+   * Get the listing of a directory, returning an array of
+   * file entries in the following form:
+   *
+   * {
+   *   path: <String> the basename of the directory entry
+   *   links: <Number> the number of links to the entry
+   *   size: <Number> the size in bytes of the entry
+   *   modified: <Number> the last modified date/time
+   *   type: <String> the type of the entry
+   *   contents: <Array> an optional array of child entries
+   * }
+   *
+   * By default ls() gives a shallow listing. If you want
+   * to follow directories as they are encountered, use
+   * the `recursive=true` option.
+   */
+  Shell.prototype.ls = function(dir, options, callback) {
+    if(!dir) {
+      callback(new Error("Missing dir argument"));
+      return;
+    }
+
+    var fs = this.fs;
+    if(typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
+    callback = callback || function(){};
+
+    function list(path, callback) {
+      var pathname = Path.resolve(this.cwd, path);
+      var result = [];
+
+      fs.readdir(pathname, function(error, entries) {
+        if(error) {
+          callback(error);
+          return;
+        }
+
+        function getDirEntry(name, callback) {
+          name = Path.join(pathname, name);
+          fs.stat(name, function(error, stats) {
+            if(error) {
+              callback(error);
+              return;
+            }
+            var entry = {
+              path: Path.basename(name),
+              links: stats.nlinks,
+              size: stats.size,
+              modified: stats.mtime,
+              type: stats.type
+            };
+
+            if(options.recursive && stats.type === 'DIRECTORY') {
+              list(Path.join(pathname, entry.path), function(error, items) {
+                if(error) {
+                  callback(error);
+                  return;
+                }
+                entry.contents = items;
+                result.push(entry);
+                callback();
+              });
+            } else {
+              result.push(entry);
+              callback();
+            }
+          });
+        }
+
+        async.each(entries, getDirEntry, function(error) {
+          callback(error, result);
+        });
+      });
+    }
+
+    list(dir, callback);
+  };
+
   return Shell;
 
 });
