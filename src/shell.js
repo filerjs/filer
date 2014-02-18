@@ -2,7 +2,8 @@
 define(function(require) {
 
   var Path = require('src/path');
-  var Error = require('src/error');
+  var FilerError = require('src/error');
+  var async = require('async');
 
   function Shell(fs, options) {
     options = options || {};
@@ -26,14 +27,14 @@ define(function(require) {
       // Make sure the path actually exists, and is a dir
       fs.stat(path, function(err, stats) {
         if(err) {
-          callback(new Error.ENotDirectory());
+          callback(new FilerError.ENotDirectory());
           return;
         }
         if(stats.type === 'DIRECTORY') {
           cwd = path;
           callback();
         } else {
-          callback(new Error.ENotDirectory());
+          callback(new FilerError.ENotDirectory());
         }
       });
     };
@@ -116,6 +117,44 @@ define(function(require) {
         }
       } else {
         updateTimes(path);
+      }
+    });
+  };
+
+  /**
+   * Concatenate multiple files into a single String, with each
+   * file separated by a newline. The `files` argument should
+   * be a String (path to single file) or an Array of Strings
+   * (multiple file paths).
+   */
+  Shell.prototype.cat = function(files, callback) {
+    if(!files) {
+      callback(new Error("Missing files argument"));
+      return;
+    }
+
+    var fs = this.fs;
+    var all = '';
+    files = typeof files === 'string' ? [ files ] : files;
+    callback = callback || function(){};
+
+    function append(item, callback) {
+      var filename = Path.resolve(this.cwd, item);
+      fs.readFile(filename, 'utf8', function(error, data) {
+        if(error) {
+          callback(error);
+          return;
+        }
+        all += data + '\n';
+        callback();
+      });
+    }
+
+    async.eachSeries(files, append, function(error) {
+      if(error) {
+        callback(error);
+      } else {
+        callback(null, all.replace(/\n$/, ''));
       }
     });
   };

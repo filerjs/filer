@@ -46,6 +46,7 @@ define([
   "spec/shell/cd.spec",
   "spec/shell/touch.spec",
   "spec/shell/exec.spec",
+  "spec/shell/cat.spec",
 
   // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
   "spec/node-js/simple/test-fs-mkdir",
