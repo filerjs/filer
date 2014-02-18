@@ -2291,7 +2291,13 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.truncate = function(path, length, callback) {
+    // Follow node.js in allowing the `length` to be optional
+    if(typeof length === 'function') {
+      callback = length;
+      length = 0;
+    }
     callback = maybeCallback(callback);
+    length = typeof length === 'number' ? length : 0;
     var fs = this;
     var error = fs.queueOrRun(
       function() {
