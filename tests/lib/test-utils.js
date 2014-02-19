@@ -68,8 +68,8 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     return _provider;
   }
 
-  function shell() {
-    return fs().Shell();
+  function shell(options) {
+    return fs().Shell(options);
   }
 
   function cleanup(callback) {

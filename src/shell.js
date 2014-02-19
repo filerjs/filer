@@ -8,15 +8,42 @@ define(function(require) {
   function Shell(fs, options) {
     options = options || {};
 
+    var env = options.env || {};
+    env.TMP = env.TMP || '/tmp';
+    env.PATH = env.PATH || '';
+
     var cwd = '/';
 
+    /**
+     * The bound FileSystem (cannot be changed)
+     */
     Object.defineProperty(this, 'fs', {
       get: function() { return fs; },
       enumerable: true
     });
 
+    /**
+     * The current working directory (changed with `cd()`)
+     */
     Object.defineProperty(this, 'cwd', {
       get: function() { return cwd; },
+      enumerable: true
+    });
+
+    /**
+     * Support bash's $PWD on the env
+     */
+    Object.defineProperty(env, 'PWD', {
+      get: function() { return cwd; },
+      enumerable: true
+    });
+
+    /**
+     * The shell's environment (e.g., for things like
+     * path, tmp, and other env vars)
+     */
+    Object.defineProperty(this, 'env', {
+      get: function() { return env; },
       enumerable: true
     });
 
@@ -242,6 +269,13 @@ define(function(require) {
     list(dir, callback);
   };
 
+  /**
+   * Removes the file or directory at `path`. If `path` is a file
+   * it will be removed. If `path` is a directory, it will be
+   * removed if it is empty, otherwise the callback will receive
+   * an error. In order to remove non-empty directories, use the
+   * `recursive=true` option.
+   */
   Shell.prototype.rm = function(path, options, callback) {
     var fs = this.fs;
     if(typeof options === 'function') {
@@ -306,6 +340,23 @@ define(function(require) {
     }
 
     remove(path, callback);
+  };
+
+  /**
+   * Gets the path to the temporary directory, creating it if not
+   * present. The directory used is the one specified in
+   * env.TMP. The callback receives (error, tempDirName).
+   */
+  Shell.prototype.tempDir = function(callback) {
+    var fs = this.fs;
+    var tmp = this.env.TMP;
+    callback = callback || function(){};
+
+    // Try and create it, and it will either work or fail
+    // but either way it's now there.
+    fs.mkdir(tmp, function(err) {
+      callback(null, tmp);
+    });
   };
 
   return Shell;
