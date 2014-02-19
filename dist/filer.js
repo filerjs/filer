@@ -2977,9 +2977,11 @@ define('src/path',[],function() {
     if (!path && !isAbsolute) {
       path = '.';
     }
+    /*
     if (path && trailingSlash) {
       path += '/';
     }
+    */
 
     return (isAbsolute ? '/' : '') + path;
   }
@@ -3586,36 +3588,69 @@ define('src/providers/websql',['require','src/constants','src/constants','src/co
 define('src/providers/memory',['require','src/constants'],function(require) {
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
 
+  // Based on https://github.com/caolan/async/blob/master/lib/async.js
+  var nextTick = (function() {
+    if (typeof process === 'undefined' || !(process.nextTick)) {
+      if (typeof setImmediate === 'function') {
+        return function (fn) {
+          // not a direct alias for IE10 compatibility
+          setImmediate(fn);
+        };
+      } else {
+        return function (fn) {
+          setTimeout(fn, 0);
+        };
+      }
+    }
+    return process.nextTick;
+  }());
+
+  function asyncCallback(callback) {
+    nextTick(callback);
+  }
+
   function MemoryContext(db, readOnly) {
     this.readOnly = readOnly;
     this.objectStore = db;
   }
   MemoryContext.prototype.clear = function(callback) {
     if(this.readOnly) {
-      return callback("[MemoryContext] Error: write operation on read only context");
+      asyncCallback(function() {
+        callback("[MemoryContext] Error: write operation on read only context");
+      });
+      return;
     }
     var objectStore = this.objectStore;
     Object.keys(objectStore).forEach(function(key){
       delete objectStore[key];
     });
-    callback(null);
+    asyncCallback(callback);
   };
   MemoryContext.prototype.get = function(key, callback) {
-    callback(null, this.objectStore[key]);
+    var that = this;
+    asyncCallback(function() {
+      callback(null, that.objectStore[key]);
+    });
   };
   MemoryContext.prototype.put = function(key, value, callback) {
     if(this.readOnly) {
-      return callback("[MemoryContext] Error: write operation on read only context");
+      asyncCallback(function() {
+        callback("[MemoryContext] Error: write operation on read only context");
+      });
+      return;
     }
     this.objectStore[key] = value;
-    callback(null);
+    asyncCallback(callback);
   };
   MemoryContext.prototype.delete = function(key, callback) {
     if(this.readOnly) {
-      return callback("[MemoryContext] Error: write operation on read only context");
+      asyncCallback(function() {
+        callback("[MemoryContext] Error: write operation on read only context");
+      });
+      return;
     }
     delete this.objectStore[key];
-    callback(null);
+    asyncCallback(callback);
   };
 
 
@@ -3628,7 +3663,9 @@ define('src/providers/memory',['require','src/constants'],function(require) {
   };
 
   Memory.prototype.open = function(callback) {
-    callback(null, true);
+    asyncCallback(function() {
+      callback(null, true);
+    });
   };
   Memory.prototype.getReadOnlyContext = function() {
     return new MemoryContext(this.db, true);
@@ -5122,7 +5159,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     else if (!name) {
       callback(new EInvalid('attribute name cannot be an empty string'));
     }
-    else if (flag != null && 
+    else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
       callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
@@ -5139,7 +5176,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     else if (!name) {
       callback(new EInvalid('attribute name cannot be an empty string'));
     }
-    else if (flag != null && 
+    else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
       callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
@@ -5265,6 +5302,17 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     return O_FLAGS[flags];
   }
 
+  function validate_file_options(options, enc, fileMode){
+    if(!options) {
+      options = { encoding: enc, flag: fileMode };
+    } else if(typeof options === "function") {
+      options = { encoding: enc, flag: fileMode };
+    } else if(typeof options === "string") {
+      options = { encoding: options, flag: fileMode };
+    }
+    return options;
+  }
+
   // nullCheck from https://github.com/joyent/node/blob/master/lib/fs.js
   function nullCheck(path, callback) {
     if (('' + path).indexOf('\u0000') !== -1) {
@@ -5375,7 +5423,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
           fs.readyState = FS_READY;
           runQueued();
         }
-        callback(error);
+        callback(error, fs);
       }
 
       if(err) {
@@ -5555,13 +5603,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _readFile(fs, context, path, options, callback) {
-    if(!options) {
-      options = { encoding: null, flag: 'r' };
-    } else if(typeof options === "function") {
-      options = { encoding: null, flag: 'r' };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: 'r' };
-    }
+    options = validate_file_options(options, null, 'r');
 
     if(!nullCheck(path, callback)) return;
 
@@ -5601,7 +5643,6 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
           callback(null, data);
         });
       });
-
     });
   }
 
@@ -5631,13 +5672,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _writeFile(fs, context, path, data, options, callback) {
-    if(!options) {
-      options = { encoding: 'utf8', flag: 'w' };
-    } else if(typeof options === "function") {
-      options = { encoding: 'utf8', flag: 'w' };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: 'w' };
-    }
+    options = validate_file_options(options, 'utf8', 'w');
 
     if(!nullCheck(path, callback)) return;
 
@@ -5662,6 +5697,41 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       var fd = fs.allocDescriptor(ofd);
 
       write_data(context, ofd, data, 0, data.length, 0, function(err2, nbytes) {
+        if(err2) {
+          return callback(err2);
+        }
+        fs.releaseDescriptor(fd);
+        callback(null);
+      });
+    });
+  }
+
+  function _appendFile(fs, context, path, data, options, callback) {
+    options = validate_file_options(options, 'utf8', 'a');
+
+    if(!nullCheck(path, callback)) return;
+
+    var flags = validate_flags(options.flag || 'a');
+    if(!flags) {
+      callback(new EInvalid('flags is not valid'));
+    }
+
+    data = data || '';
+    if(typeof data === "number") {
+      data = '' + data;
+    }
+    if(typeof data === "string" && options.encoding === 'utf8') {
+      data = new TextEncoder('utf-8').encode(data);
+    }
+
+    open_file(context, path, flags, function(err, fileNode) {
+      if(err) {
+        return callback(err);
+      }
+      var ofd = new OpenFileDescription(fileNode.id, flags, fileNode.size);
+      var fd = fs.allocDescriptor(ofd);
+
+      write_data(context, ofd, data, 0, data.length, ofd.position, function(err2, nbytes) {
         if(err2) {
           return callback(err2);
         }
@@ -5717,7 +5787,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       else {
         callback(null);
       }
-    };
+    }
 
     setxattr_file(context, path, name, value, flag, check_result);
   }
@@ -5757,14 +5827,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       }
     }
 
-    removexattr_file (context, path, name, remove_xattr);    
+    removexattr_file (context, path, name, remove_xattr);
   }
 
   function _fremovexattr (fs, context, fd, name, callback) {
 
     function remove_xattr (error) {
       if (error) {
-        callback(error);      
+        callback(error);
       }
       else {
         callback(null);
@@ -5862,7 +5932,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(null);
       }
     }
-    utimes_file(context, path, atime, mtime, check_result)
+    utimes_file(context, path, atime, mtime, check_result);
   }
 
   function _futimes(fs, context, fd, atime, mtime, callback) {
@@ -5875,7 +5945,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       }
     }
 
-    var currentTime = Date.now()
+    var currentTime = Date.now();
     atime = (atime) ? atime : currentTime;
     mtime = (mtime) ? mtime : currentTime;
 
@@ -6136,6 +6206,17 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     );
     if(error) callback(error);
   };
+  FileSystem.prototype.appendFile = function(path, data, options, callback_) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function() {
+        var context = fs.provider.getReadWriteContext();
+        _appendFile(fs, context, path, data, options, callback);
+      }
+    );
+    if(error) callback(error);
+  };
   FileSystem.prototype.lseek = function(fd, offset, whence, callback) {
     callback = maybeCallback(callback);
     var fs = this;
@@ -6204,7 +6285,13 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     if(error) callback(error);
   };
   FileSystem.prototype.truncate = function(path, length, callback) {
+    // Follow node.js in allowing the `length` to be optional
+    if(typeof length === 'function') {
+      callback = length;
+      length = 0;
+    }
     callback = maybeCallback(callback);
+    length = typeof length === 'number' ? length : 0;
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -6254,7 +6341,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
   };
   FileSystem.prototype.setxattr = function (path, name, value, flag, callback) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
+    callback = maybeCallback(arguments[arguments.length - 1]);
     var _flag = (typeof flag != 'function') ? flag : null;
     var fs = this;
     var error = fs.queueOrRun(
@@ -6283,7 +6370,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
   };
   FileSystem.prototype.fsetxattr = function (fd, name, value, flag, callback) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
+    callback = maybeCallback(arguments[arguments.length - 1]);
     var _flag = (typeof flag != 'function') ? flag : null;
     var fs = this;
     var error = fs.queueOrRun(

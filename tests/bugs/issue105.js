@@ -23,7 +23,7 @@ define(["Filer", "util"], function(Filer, util) {
             fs.readdir('/tmp/', function(err, result2) {
               if(err) throw err;
               expect(result2).to.exist;
-              expect(result2[0]).to.equal('tmp');
+              expect(result2[0]).to.equal('foo');
               expect(result1).to.deep.equal(result2);
               done();
             });
