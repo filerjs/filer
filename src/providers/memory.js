@@ -1,26 +1,7 @@
 define(function(require) {
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
 
-  // Based on https://github.com/caolan/async/blob/master/lib/async.js
-  var nextTick = (function() {
-    if (typeof process === 'undefined' || !(process.nextTick)) {
-      if (typeof setImmediate === 'function') {
-        return function (fn) {
-          // not a direct alias for IE10 compatibility
-          setImmediate(fn);
-        };
-      } else {
-        return function (fn) {
-          setTimeout(fn, 0);
-        };
-      }
-    }
-    return process.nextTick;
-  }());
-
-  function asyncCallback(callback) {
-    nextTick(callback);
-  }
+  var asyncCallback = require('async').nextTick;
 
   function MemoryContext(db, readOnly) {
     this.readOnly = readOnly;

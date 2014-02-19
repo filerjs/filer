@@ -53,6 +53,7 @@ define(function(require) {
 
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
+  var Shell = require('src/shell');
 
   /*
    * DirectoryEntry
@@ -2473,6 +2474,10 @@ define(function(require) {
       callback(error);
     }
   };
+  FileSystem.prototype.Shell = function(options) {
+    return new Shell(this, options);
+  };
+
   return FileSystem;
 
 });

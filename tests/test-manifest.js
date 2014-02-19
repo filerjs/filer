@@ -42,6 +42,15 @@ define([
   "spec/adapters/adapters.spec",
   "spec/adapters/adapters.general.spec",
 
+  // Filer.FileSystemShell.*
+  "spec/shell/cd.spec",
+  "spec/shell/touch.spec",
+  "spec/shell/exec.spec",
+  "spec/shell/cat.spec",
+  "spec/shell/ls.spec",
+  "spec/shell/rm.spec",
+  "spec/shell/env.spec",
+
   // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
   "spec/node-js/simple/test-fs-mkdir",
   "spec/node-js/simple/test-fs-null-bytes",
