@@ -4,7 +4,6 @@ define(function(require) {
 
   return {
     FileSystem: require('src/fs'),
-    FileSystemShell: require('src/shell'),
     Path: require('src/path')
   };
 

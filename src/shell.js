@@ -3,15 +3,13 @@ define(function(require) {
 
   var Path = require('src/path');
   var FilerError = require('src/error');
+  var Environment = require('src/environment');
   var async = require('async');
 
   function Shell(fs, options) {
     options = options || {};
 
-    var env = options.env || {};
-    env.TMP = env.TMP || '/tmp';
-    env.PATH = env.PATH || '';
-
+    var env = new Environment(options.env);
     var cwd = '/';
 
     /**
@@ -23,32 +21,20 @@ define(function(require) {
     });
 
     /**
-     * The current working directory (changed with `cd()`)
-     */
-    Object.defineProperty(this, 'cwd', {
-      get: function() { return cwd; },
-      enumerable: true
-    });
-
-    /**
-     * Support bash's $PWD on the env
-     */
-    Object.defineProperty(env, 'PWD', {
-      get: function() { return cwd; },
-      enumerable: true
-    });
-
-    /**
      * The shell's environment (e.g., for things like
-     * path, tmp, and other env vars)
+     * path, tmp, and other env vars). Use env.get()
+     * and env.set() to work with variables.
      */
     Object.defineProperty(this, 'env', {
       get: function() { return env; },
       enumerable: true
     });
 
-    // We include `cd` on the this vs. proto so that
-    // we can access cwd without exposing it externally.
+    /**
+     * Change the current working directory. We
+     * include `cd` on the `this` vs. proto so that
+     * we can access cwd without exposing it externally.
+     */
     this.cd = function(path, callback) {
       path = Path.resolve(this.cwd, path);
       // Make sure the path actually exists, and is a dir
@@ -64,6 +50,13 @@ define(function(require) {
           callback(new FilerError.ENotDirectory());
         }
       });
+    };
+
+    /**
+     * Get the current working directory (changed with `cd()`)
+     */
+    this.pwd = function() {
+      return cwd;
     };
   }
 
@@ -350,7 +343,7 @@ define(function(require) {
    */
   Shell.prototype.tempDir = function(callback) {
     var fs = this.fs;
-    var tmp = this.env.TMP;
+    var tmp = this.env.get('TMP');
     callback = callback || function(){};
 
     // Try and create it, and it will either work or fail

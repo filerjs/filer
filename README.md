@@ -64,8 +64,8 @@ section below.
 Filer also supports node's Path module. See the [Filer.Path](#FilerPath) section below.
 
 In addition, common shell operations (e.g., rm, touch, cat, etc.) are supported via the
-`FileSystemShell` object, which can be used with a `FileSystem`.  See the[Filer.FileSystemShell](#FileSystemShell)
-section below.
+`FileSystemShell` object, which can be obtained from, and used with a `FileSystem`.
+See the[FileSystemShell](#FileSystemShell) section below.
 
 ### API Reference
 
@@ -921,28 +921,27 @@ fs.open('/myfile', 'r', function(err, fd) {
 });
 ```
 
-### Filer.FileSystemShell<a name="FileSystemShell"></a>
+### FileSystemShell<a name="FileSystemShell"></a>
 
 Many common file system shell operations are available by using a `FileSystemShell` object.
-The `FileSystemShell` is used in conjuction with a `FileSystem`, and provides augmented
-features. Many separate `FileSystemShell` objects can exist per `FileSystem`, but each
-`FileSystemShell` is bound to a single instance of a `FileSystem` for its lifetime.
+The `FileSystemShell` is obtained from, and used in conjuction with a `FileSystem`,
+and provides augmented features. Many separate `FileSystemShell` objects can exist per
+`FileSystem`, but each `FileSystemShell` is bound to a single instance of a `FileSystem`
+for its lifetime.
 
-There are two ways to create a `FileSystemShell` object:
+A `FileSystemShell` is created using the `FileSystem.Shell()` function:
 
 ```javascript
-// Method 1: obtain a shell from an existing fs
 var fs = new Filer.FileSystem();
 var sh = fs.Shell(options);
-
-// Method 2: create a shell, passing in an existing fs
-var fs = new Filer.FileSystem();
-var sh = new Filer.FileSystemShell(fs, options);
+var sh2 = fs.Shell(options);
+// sh and sh2 are two separate shells, each bound to fs
 ```
 
 The `FileSystemShell` can take an optional `options` object. The `options` object
 can include `env`, which is a set of environment variables. Currently supported variables
-include `TMP` (the path to the temporary directory), and `PATH` (the list of known paths):
+include `TMP` (the path to the temporary directory), and `PATH` (the list of known paths) and
+others may be added in the future. You can also add your own, or update existing variables.
 
 ```javascript
 var fs = new Filer.FileSystem();
@@ -952,6 +951,8 @@ var sh = fs.Shell({
     PATH: '/one:/two'
   }
 });
+var tempPath = sh.env.get('TMP');
+sh.env.set('TMP', '/newtempdir');
 ```
 
 NOTE: unless otherwise stated, all `FileSystemShell` methods can take relative or absolute
@@ -963,22 +964,23 @@ of a current working directory.
 
 A `FileSystemShell` has a number of properties, including:
 * `fs` - (readonly) a reference to the bound `FileSystem`
-* `cwd` - (readonly) the current working directory (changed with `cd()`)
-* `env` - (readonly) the shell's environment. At runtime it will have an
-added `PWD` property, which is the same as `cwd`.
+* `env` - (readonly) the shell's environment. The shell's environemnt `env` object has `get(name)`
+and `set(name, value)` methods.
 
 Example:
 
 ```javascript
 var fs = new Filer.FileSystem();
 var sh = fs.Shell();
+var p = sh.env.get('PATH');
+
 // Store the current location
-var before = sh.env.PWD;
+var before = sh.pwd();
 var after;
 sh.cd('/newdir', function(err) {
   if(err) throw err;
   // Get the new location
-  after = sh.env.PWD;
+  after = sh.pwd();
 });
 ```
 
@@ -993,6 +995,7 @@ var sh = fs.Shell();
 ```
 
 * [sh.cd(path, callback)](#cd)
+* [sh.pwd()](#pwd)
 * [sh.ls(dir, [options], callback)](#ls)
 * [sh.exec(path, [options], callback)](#exec)
 * [sh.touch(path, [options], callback)](#touch)
@@ -1004,16 +1007,20 @@ var sh = fs.Shell();
 
 Changes the current working directory to the directory at `path`. The callback returns
 an error if `path` does not exist, or is not a directory. Once the callback occurs
-the shell's `cwd` property is updated to the new path (as well as `sh.env.PWD`).
+the shell's cwd is updated to the new path (you can access it via `sh.pwd()`).
 
 Example:
 
 ```javascript
 sh.cd('/dir1', function(err) {
   if(err) throw err;
-  // sh.cwd is now '/dir1'
+  // sh.pwd() is now '/dir1'
 });
 ```
+
+#### sh.pwd()<a name="pwd"></a>
+
+Returns the shell's current working directory. See [sh.cd()](#cd).
 
 #### sh.ls(dir, [options], callback)<a name="ls"></a>
 

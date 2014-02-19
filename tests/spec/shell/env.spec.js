@@ -7,9 +7,9 @@ define(["Filer", "util"], function(Filer, util) {
     it('should get default env options', function() {
       var shell = util.shell();
       expect(shell.env).to.exist;
-      expect(shell.env.TMP).to.equal('/tmp');
-      expect(shell.env.PATH).to.equal('');
-      expect(shell.env.PWD).to.equal('/');
+      expect(shell.env.get('TMP')).to.equal('/tmp');
+      expect(shell.env.get('PATH')).to.equal('');
+      expect(shell.pwd()).to.equal('/');
     });
 
     it('should be able to specify env options', function() {
@@ -21,9 +21,13 @@ define(["Filer", "util"], function(Filer, util) {
       };
       var shell = util.shell(options);
       expect(shell.env).to.exist;
-      expect(shell.env.TMP).to.equal('/tempdir');
-      expect(shell.env.PATH).to.equal('/dir');
-      expect(shell.env.PWD).to.equal('/');
+      expect(shell.env.get('TMP')).to.equal('/tempdir');
+      expect(shell.env.get('PATH')).to.equal('/dir');
+      expect(shell.pwd()).to.equal('/');
+
+      expect(shell.env.get('FOO')).not.to.exist;
+      shell.env.set('FOO', 1);
+      expect(shell.env.get('FOO')).to.equal(1);
     });
 
     it('should fail when dirs argument is absent', function(done) {
@@ -37,20 +41,17 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    it('should update the value of env.PWD when cwd changes', function(done) {
+    it('should give new value for shell.pwd() when cwd changes', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
 
       fs.mkdir('/dir', function(err) {
         if(err) throw err;
 
-        expect(shell.cwd).to.equal('/');
-        expect(shell.env.PWD).to.equal('/');
-
+        expect(shell.pwd()).to.equal('/');
         shell.cd('/dir', function(err) {
           expect(err).not.to.exist;
-          expect(shell.cwd).to.equal('/dir');
-          expect(shell.env.PWD).to.equal('/dir');
+          expect(shell.pwd()).to.equal('/dir');
           done();
         });
       });
@@ -60,13 +61,12 @@ define(["Filer", "util"], function(Filer, util) {
       var fs = util.fs();
       var shell = fs.Shell();
 
-      expect(shell.env.TMP).to.equal('/tmp');
+      expect(shell.env.get('TMP')).to.equal('/tmp');
       shell.tempDir(function(err, tmp) {
         expect(err).not.to.exist;
         shell.cd(tmp, function(err) {
           expect(err).not.to.exist;
-          expect(shell.cwd).to.equal('/tmp');
-          expect(shell.env.PWD).to.equal('/tmp');
+          expect(shell.pwd()).to.equal('/tmp');
           done();
         });
       });
@@ -80,13 +80,12 @@ define(["Filer", "util"], function(Filer, util) {
         }
       });
 
-      expect(shell.env.TMP).to.equal('/tempdir');
+      expect(shell.env.get('TMP')).to.equal('/tempdir');
       shell.tempDir(function(err, tmp) {
         expect(err).not.to.exist;
         shell.cd(tmp, function(err) {
           expect(err).not.to.exist;
-          expect(shell.cwd).to.equal('/tempdir');
-          expect(shell.env.PWD).to.equal('/tempdir');
+          expect(shell.pwd()).to.equal('/tempdir');
           done();
         });
       });
@@ -96,7 +95,7 @@ define(["Filer", "util"], function(Filer, util) {
       var fs = util.fs();
       var shell = fs.Shell();
 
-      expect(shell.env.TMP).to.equal('/tmp');
+      expect(shell.env.get('TMP')).to.equal('/tmp');
       shell.tempDir(function(err, tmp) {
         expect(err).not.to.exist;
         expect(tmp).to.equal('/tmp');

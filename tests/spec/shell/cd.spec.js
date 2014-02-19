@@ -11,7 +11,7 @@ define(["Filer", "util"], function(Filer, util) {
 
     it('should default to a cwd of /', function() {
       var shell = util.shell();
-      expect(shell.cwd).to.equal('/');
+      expect(shell.pwd()).to.equal('/');
     });
 
     it('should allow changing the path to a valid dir', function(done) {
@@ -21,10 +21,10 @@ define(["Filer", "util"], function(Filer, util) {
       fs.mkdir('/dir', function(err) {
         if(err) throw err;
 
-        expect(shell.cwd).to.equal('/');
+        expect(shell.pwd()).to.equal('/');
         shell.cd('/dir', function(err) {
           expect(err).not.to.exist;
-          expect(shell.cwd).to.equal('/dir');
+          expect(shell.pwd()).to.equal('/dir');
           done();
         });
       });
@@ -37,11 +37,11 @@ define(["Filer", "util"], function(Filer, util) {
       fs.mkdir('/dir', function(err) {
         if(err) throw err;
 
-        expect(shell.cwd).to.equal('/');
+        expect(shell.pwd()).to.equal('/');
         shell.cd('/nodir', function(err) {
           expect(err).to.exist;
           expect(err.name).to.equal('ENotDirectory');
-          expect(shell.cwd).to.equal('/');
+          expect(shell.pwd()).to.equal('/');
           done();
         });
       });
@@ -54,11 +54,11 @@ define(["Filer", "util"], function(Filer, util) {
       fs.writeFile('/file', 'file', function(err) {
         if(err) throw err;
 
-        expect(shell.cwd).to.equal('/');
+        expect(shell.pwd()).to.equal('/');
         shell.cd('/file', function(err) {
           expect(err).to.exist;
           expect(err.name).to.equal('ENotDirectory');
-          expect(shell.cwd).to.equal('/');
+          expect(shell.pwd()).to.equal('/');
           done();
         });
       });
@@ -71,10 +71,10 @@ define(["Filer", "util"], function(Filer, util) {
       fs.mkdir('/dir', function(err) {
         if(err) throw err;
 
-        expect(shell.cwd).to.equal('/');
+        expect(shell.pwd()).to.equal('/');
         shell.cd('./dir', function(err) {
           expect(err).not.to.exist;
-          expect(shell.cwd).to.equal('/dir');
+          expect(shell.pwd()).to.equal('/dir');
           done();
         });
       });
@@ -87,13 +87,13 @@ define(["Filer", "util"], function(Filer, util) {
       fs.mkdir('/dir', function(err) {
         if(err) throw err;
 
-        expect(shell.cwd).to.equal('/');
+        expect(shell.pwd()).to.equal('/');
         shell.cd('./dir', function(err) {
           expect(err).not.to.exist;
-          expect(shell.cwd).to.equal('/dir');
+          expect(shell.pwd()).to.equal('/dir');
           shell.cd('..', function(err) {
             expect(err).not.to.exist;
-            expect(shell.cwd).to.equal('/');
+            expect(shell.pwd()).to.equal('/');
             done();
           });
         });
@@ -112,7 +112,7 @@ define(["Filer", "util"], function(Filer, util) {
           var shell = fs.Shell();
           shell.cd('link', function(error) {
             expect(error).not.to.exist;
-            expect(shell.cwd).to.equal('/link');
+            expect(shell.pwd()).to.equal('/link');
             done();
           });
         });
