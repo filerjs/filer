@@ -941,7 +941,7 @@ var sh = new Filer.FileSystemShell(fs, options);
 ```
 
 The `FileSystemShell` can take an optional `options` object. The `options` object
-can include `env`, which is a set of environment variables. Currently support variables
+can include `env`, which is a set of environment variables. Currently supported variables
 include `TMP` (the path to the temporary directory), and `PATH` (the list of known paths):
 
 ```javascript
@@ -994,15 +994,15 @@ var sh = fs.Shell();
 
 * [sh.cd(path, callback)](#cd)
 * [sh.ls(dir, [options], callback)](#ls)
-* [sh.exec(path, [options], callback)][#exec)
-* [sh.touch(path, [options], callback)[#touch)
+* [sh.exec(path, [options], callback)](#exec)
+* [sh.touch(path, [options], callback)](#touch)
 * [sh.cat(files, callback)](#cat)
 * [sh.rm(path, [options], callback)](#rm)
 * [sh.tempDir(callback)](#tempDir)
 
 #### sh.cd(path, callback)<a name="cd"></a>
 
-Changes the current working directory to directory at `path`. The callback returns
+Changes the current working directory to the directory at `path`. The callback returns
 an error if `path` does not exist, or is not a directory. Once the callback occurs
 the shell's `cwd` property is updated to the new path (as well as `sh.env.PWD`).
 
@@ -1013,6 +1013,7 @@ sh.cd('/dir1', function(err) {
   if(err) throw err;
   // sh.cwd is now '/dir1'
 });
+```
 
 #### sh.ls(dir, [options], callback)<a name="ls"></a>
 
