@@ -36,7 +36,7 @@ Errors are passed to callbacks through the first parameter.  As with node.js,
 there is no guarantee that file system operations will be executed in the order
 they are invoked. Ensure proper ordering by chaining operations in callbacks.
 
-### Example
+### Overview
 
 To create a new file system or open an existing one, create a new `FileSystem`
 instance.  By default, a new [IndexedDB](https://developer.mozilla.org/en/docs/IndexedDB)
@@ -57,6 +57,15 @@ fs.open('/myfile', 'w+', function(err, fd) {
   });
 });
 ```
+
+For a complete list of `FileSystem` methods and examples, see the [FileSystem Instance Methods](#FileSystemMethods)
+section below.
+
+Filer also supports node's Path module. See the [Filer.Path](#FilerPath) section below.
+
+In addition, common shell operations (e.g., rm, touch, cat, etc.) are supported via the
+`FileSystemShell` object, which can be used with a `FileSystem`.  See the[Filer.FileSystemShell](#FileSystemShell)
+section below.
 
 ### API Reference
 
@@ -162,7 +171,7 @@ var fs = new FileSystem({ provider: compressionAdapter });
 You can also write your own adapter if you need to add new capabilities to the providers. Adapters share the same
 interface as providers.  See the code in `src/providers` and `src/adapters` for many examples.
 
-####Filer.Path
+####Filer.Path<a name="FilerPath"></a>
 
 The node.js [path module](http://nodejs.org/api/path.html) is available via the `Filer.Path` object. It is
 identical to the node.js version with the following differences:
@@ -195,7 +204,7 @@ For more info see the docs in the [path module](http://nodejs.org/api/path.html)
 * `path.sep`
 * `path.delimiter`
 
-###FileSystem Instance Methods
+###FileSystem Instance Methods<a name="FileSystemMethods"></a>
 
 Once a `FileSystem` is created, it has the following methods. NOTE: code examples below assume
 a `FileSystem` instance named `fs` has been created like so:
@@ -909,5 +918,264 @@ fs.open('/myfile', 'r', function(err, fd) {
   });
 
   fs.close(fd);
+});
+```
+
+### Filer.FileSystemShell<a name="FileSystemShell"></a>
+
+Many common file system shell operations are available by using a `FileSystemShell` object.
+The `FileSystemShell` is used in conjuction with a `FileSystem`, and provides augmented
+features. Many separate `FileSystemShell` objects can exist per `FileSystem`, but each
+`FileSystemShell` is bound to a single instance of a `FileSystem` for its lifetime.
+
+There are two ways to create a `FileSystemShell` object:
+
+```javascript
+// Method 1: obtain a shell from an existing fs
+var fs = new Filer.FileSystem();
+var sh = fs.Shell(options);
+
+// Method 2: create a shell, passing in an existing fs
+var fs = new Filer.FileSystem();
+var sh = new Filer.FileSystemShell(fs, options);
+```
+
+The `FileSystemShell` can take an optional `options` object. The `options` object
+can include `env`, which is a set of environment variables. Currently support variables
+include `TMP` (the path to the temporary directory), and `PATH` (the list of known paths):
+
+```javascript
+var fs = new Filer.FileSystem();
+var sh = fs.Shell({
+  env: {
+    TMP: '/tempdir',
+    PATH: '/one:/two'
+  }
+});
+```
+
+NOTE: unless otherwise stated, all `FileSystemShell` methods can take relative or absolute
+paths. Relative paths are resolved relative to the shell's current working directory (`sh.cwd`).
+This is different from the `FileSystem`, which requires absolute paths, and has no notion
+of a current working directory.
+
+#### FileSystemShell Properties
+
+A `FileSystemShell` has a number of properties, including:
+* `fs` - (readonly) a reference to the bound `FileSystem`
+* `cwd` - (readonly) the current working directory (changed with `cd()`)
+* `env` - (readonly) the shell's environment. At runtime it will have an
+added `PWD` property, which is the same as `cwd`.
+
+Example:
+
+```javascript
+var fs = new Filer.FileSystem();
+var sh = fs.Shell();
+// Store the current location
+var before = sh.env.PWD;
+var after;
+sh.cd('/newdir', function(err) {
+  if(err) throw err;
+  // Get the new location
+  after = sh.env.PWD;
+});
+```
+
+#### FileSystemShell Instance Methods
+
+Once a `FileSystemShell` object is created, it has the following methods. NOTE: code
+examples below assume a `FileSystemShell` instance named `sh` has been created like so:
+
+```javascript
+var fs = new Filer.FileSystem();
+var sh = fs.Shell();
+```
+
+* [sh.cd(path, callback)](#cd)
+* [sh.ls(dir, [options], callback)](#ls)
+* [sh.exec(path, [options], callback)][#exec)
+* [sh.touch(path, [options], callback)[#touch)
+* [sh.cat(files, callback)](#cat)
+* [sh.rm(path, [options], callback)](#rm)
+* [sh.tempDir(callback)](#tempDir)
+
+#### sh.cd(path, callback)<a name="cd"></a>
+
+Changes the current working directory to directory at `path`. The callback returns
+an error if `path` does not exist, or is not a directory. Once the callback occurs
+the shell's `cwd` property is updated to the new path (as well as `sh.env.PWD`).
+
+Example:
+
+```javascript
+sh.cd('/dir1', function(err) {
+  if(err) throw err;
+  // sh.cwd is now '/dir1'
+});
+
+#### sh.ls(dir, [options], callback)<a name="ls"></a>
+
+Get the listing of a directory, returning an array of directory entries
+in the following form:
+```
+{
+  path: <String> the basename of the directory entry
+  links: <Number> the number of links to the entry
+  size: <Number> the size in bytes of the entry
+  modified: <Number> the last modified date/time
+  type: <String> the type of the entry
+  contents: <Array> an optional array of child entries, if this entry is itself a directory
+}
+```
+
+By default `sh.ls()` gives a shallow listing. If you want to follow
+directories as they are encountered, use the `recursive=true` option. NOTE:
+you should not count on the order of the returned entries always being the same.
+
+Example:
+
+```javascript
+/**
+ * Given a dir structure of:
+ *
+ * /dir
+ *  file1
+ *  file2
+ *  dir2/
+ *   file3
+ */
+
+// Shallow listing
+sh.ls('/dir', function(err, entries) {
+  if(err) throw err;
+  // entries is now an array of 3 file/dir entries under /dir
+});
+
+// Deep listing
+sh.ls('/dir', { recursive: true }, function(err, entries) {
+  if(err) throw err;
+  // entries is now an array of 3 file/dir entries under /dir.
+  // The entry object for '/dir2' also includes a `contents` property,
+  // which is an array of 1 entry element for `file3`.
+});
+```
+
+#### sh.exec(path, [options], callback)<a name="exec"></a>
+
+Attempts to Execute the .js command located at `path`. Such commands
+should be written so as to assume the existence of 3 global variables,
+which will be defined at runtime:
+* `options` - <Object> an object containing any arguments, data, etc.
+* `fs` - <FileSystem> the `FileSystem` object bound to this shell.
+* `callback` - <Function> a callback function(error, result) to call when done.
+
+The .js command's contents should be the body of a function that
+looks like this:
+
+```javascript
+function(fs, options, callback) {
+//-------------------------commmand code here---------
+// ...
+//----------------------------------------------------
+ }
+```
+
+Example:
+
+```javascript
+// Simple command to delete a file.
+var cmd = "fs.unlink(options.path, callback);"
+
+// Write the file to the filesystem
+fs.writeFile('/cmd.js', cmd, callback(err) {
+  if(err) throw err;
+
+  // Execute the command
+  sh.exec('/cmd.js', { path: '/file' }, function(err, result) {
+    if(err) throw err;
+  });
+});
+
+#### sh.touch(path, [options], callback)<a name="touch"></a>
+
+Create a file if it does not exist, or update the access and modified
+times if it does. Valid options include:
+* updateOnly - <Boolean> whether to create the file if it is missing (defaults to `false`)
+* date - <Date> a date to use instead of the current date and time when updating
+access and modified dates.
+
+Example:
+
+```javascript
+sh.touch('/newfile', function(err) {
+  if(err) throw err;
+
+  fs.exists('/newfile', function(exists) {
+    // exists is now true.
+  }
+});
+```
+
+#### sh.cat(files, callback)<a name="cat"></a>
+
+Concatenates multiple files into a single string, with each file
+separated by a newline character. The `files` argument should be
+a String (i.e., path to a single file) or an Array of Strings (i.e.,
+multiple paths for multiple files).
+
+Example:
+
+```javascript
+sh.cat([ './file1', '../file2' ], function(err, data) {
+  if(err) throw err;
+  // data is now the contents of file1 and file2 joined
+});
+```
+
+#### sh.rm(path, [options], callback)<a name="rm"></a>
+
+Removes (deletes) the file or directory at `path`. If `path` is a file, it will
+be removed. If `path` is a directory, it will be removed if it is empty, otherwise
+the callback will receive an error. In order to remove non-empty directories,
+use the `recursive=true` option.
+
+Example:
+
+```javascript
+sh.rm('./file', function(err) {
+  if(err) throw err;
+  // ./file is now removed
+});
+
+sh.rm('/dir', { recursive: true }, function(err) {
+  if(err) throw err;
+  // /dir and all its children are now removed
+});
+```
+
+#### sh.tempDir(callback)<a name="tempDir"></a>
+
+Gets the path to the shell's temporary directory, creating it if it
+does not already exist. The temp directory to use is specified in the
+`env.TMP` environment variable. The callback receives an error
+and the `tempDir` path. NOTE: it is safe to call this many times (i.e.,
+the temp dir will only be created once). No effort is made to clean-up
+the temp dir, and it is up to the caller to destroy it if desired.
+
+Example:
+
+```javascript
+// Default /tmp dir
+sh.tempDir(function(err, tmp) {
+  if(err) throw err;
+  // tmp is now '/tmp' by default, and /tmp exists
+});
+
+// Specify a tmp dir path
+sh.env.TMP = '/temporary'
+sh.tempDir(function(err, tmp) {
+  if(err) throw err;
+  // tmp is now '/temporary', and /temporary exists
 });
 ```

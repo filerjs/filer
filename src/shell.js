@@ -72,6 +72,7 @@ define(function(require) {
    * should assume the existence of 3 arguments, which will be
    * defined at runtime:
    *
+   *   * fs - the current shell's bound filesystem object
    *   * options - an object containing any arguments, data, etc.
    *   * callback - a callback function(error, result) to call when done.
    *
