@@ -67,7 +67,7 @@ define(["Filer", "util"], function(Filer, util) {
 
             context.get("key", function(error, result) {
               expect(error).not.to.exist;
-              expect(result).to.deep.equal(valueBuffer);
+              expect(util.typedArrayEqual(result, valueBuffer)).to.be.true;
               done();
             });
           });
