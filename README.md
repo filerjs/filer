@@ -1064,9 +1064,10 @@ sh.ls('/dir', { recursive: true }, function(err, entries) {
 
 #### sh.exec(path, [options], callback)<a name="exec"></a>
 
-Attempts to execute the .js command located at `path`. Such commands
-should be written so as to assume the existence of 3 global variables,
-which will be defined at runtime:
+Attempts to execute the .js command located at `path`. The `sh.exec` method
+enables apps to install larger programs into the file system and run them
+later without having to re-download.  Such commands should be written so as
+to assume the existence of 3 global variables, which will be defined at runtime:
 * `options` - <Object> an object containing any arguments, data, etc.
 * `fs` - <FileSystem> the `FileSystem` object bound to this shell.
 * `callback` - <Function> a callback function of the form `function callback(error, result)`
@@ -1104,8 +1105,9 @@ fs.writeFile('/cmd.js', cmd, callback(err) {
 
 Create a file if it does not exist, or update the access and modified
 times if it does. Valid options include:
-* updateOnly - <Boolean> whether to create the file if it is missing (defaults to `false`)
-* date - <Date> a date to use instead of the current date and time when updating
+* `updateOnly` - `true` if the file's access/modified dates are to be updated
+only (but missing file not to be)
+* `date` - a date to use instead of the current date and time when updating
 access and modified dates.
 
 Example:
