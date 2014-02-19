@@ -128,15 +128,16 @@ define(function(require) {
    * (multiple file paths).
    */
   Shell.prototype.cat = function(files, callback) {
+    var fs = this.fs;
+    var all = '';
+    callback = callback || function(){};
+
     if(!files) {
       callback(new Error("Missing files argument"));
       return;
     }
 
-    var fs = this.fs;
-    var all = '';
     files = typeof files === 'string' ? [ files ] : files;
-    callback = callback || function(){};
 
     function append(item, callback) {
       var filename = Path.resolve(this.cwd, item);
@@ -177,11 +178,6 @@ define(function(require) {
    * the `recursive=true` option.
    */
   Shell.prototype.ls = function(dir, options, callback) {
-    if(!dir) {
-      callback(new Error("Missing dir argument"));
-      return;
-    }
-
     var fs = this.fs;
     if(typeof options === 'function') {
       callback = options;
@@ -189,6 +185,11 @@ define(function(require) {
     }
     options = options || {};
     callback = callback || function(){};
+
+    if(!dir) {
+      callback(new Error("Missing dir argument"));
+      return;
+    }
 
     function list(path, callback) {
       var pathname = Path.resolve(this.cwd, path);
@@ -239,6 +240,72 @@ define(function(require) {
     }
 
     list(dir, callback);
+  };
+
+  Shell.prototype.rm = function(path, options, callback) {
+    var fs = this.fs;
+    if(typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
+    callback = callback || function(){};
+
+    if(!path) {
+      callback(new Error("Missing path argument"));
+      return;
+    }
+
+    function remove(pathname, callback) {
+      pathname = Path.resolve(this.cwd, pathname);
+      fs.stat(pathname, function(error, stats) {
+        if(error) {
+          callback(error);
+          return;
+        }
+
+        // If this is a file, delete it and we're done
+        if(stats.type === 'FILE') {
+          fs.unlink(pathname, callback);
+          return;
+        }
+
+        // If it's a dir, check if it's empty
+        fs.readdir(pathname, function(error, entries) {
+          if(error) {
+            callback(error);
+            return;
+          }
+
+          // If dir is empty, delete it and we're done
+          if(entries.length === 0) {
+            fs.rmdir(pathname, callback);
+            return;
+          }
+
+          // If not, see if we're allowed to delete recursively
+          if(!options.recursive) {
+            callback(new FilerError.ENotEmpty());
+            return;
+          }
+
+          // Remove each dir entry recursively, then delete the dir.
+          entries = entries.map(function(filename) {
+            // Root dir entries absolutely
+            return Path.join(pathname, filename);
+          });
+          async.each(entries, remove, function(error) {
+            if(error) {
+              callback(error);
+              return;
+            }
+            fs.rmdir(pathname, callback);
+          });
+        });
+      });
+    }
+
+    remove(path, callback);
   };
 
   return Shell;
