@@ -1064,12 +1064,13 @@ sh.ls('/dir', { recursive: true }, function(err, entries) {
 
 #### sh.exec(path, [options], callback)<a name="exec"></a>
 
-Attempts to Execute the .js command located at `path`. Such commands
+Attempts to execute the .js command located at `path`. Such commands
 should be written so as to assume the existence of 3 global variables,
 which will be defined at runtime:
 * `options` - <Object> an object containing any arguments, data, etc.
 * `fs` - <FileSystem> the `FileSystem` object bound to this shell.
-* `callback` - <Function> a callback function(error, result) to call when done.
+* `callback` - <Function> a callback function of the form `function callback(error, result)`
+to call when done.
 
 The .js command's contents should be the body of a function that
 looks like this:
@@ -1097,6 +1098,7 @@ fs.writeFile('/cmd.js', cmd, callback(err) {
     if(err) throw err;
   });
 });
+```
 
 #### sh.touch(path, [options], callback)<a name="touch"></a>
 
