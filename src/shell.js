@@ -66,23 +66,23 @@ define(function(require) {
    * defined at runtime:
    *
    *   * fs - the current shell's bound filesystem object
-   *   * options - an object containing any arguments, data, etc.
+   *   * args - a list of arguments for the command, or an empty list if none
    *   * callback - a callback function(error, result) to call when done.
    *
    * The .js command's contents should be the body of a function
    * that looks like this:
    *
-   * function(fs, options, callback) {
+   * function(fs, args, callback) {
    *   // .js code here
    * }
    */
-  Shell.prototype.exec = function(path, options, callback) {
+  Shell.prototype.exec = function(path, args, callback) {
     var fs = this.fs;
-    if(typeof options === 'function') {
-      callback = options;
-      options = {};
+    if(typeof args === 'function') {
+      callback = args;
+      args = [];
     }
-    options = options || {};
+    args = args || [];
     callback = callback || function(){};
     path = Path.resolve(this.cwd, path);
 
@@ -92,8 +92,8 @@ define(function(require) {
         return;
       }
       try {
-        var cmd = new Function('fs', 'options', 'callback', data);
-        cmd(fs, options, callback);
+        var cmd = new Function('fs', 'args', 'callback', data);
+        cmd(fs, args, callback);
       } catch(e) {
         callback(e);
       }

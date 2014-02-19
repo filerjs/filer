@@ -997,7 +997,7 @@ var sh = fs.Shell();
 * [sh.cd(path, callback)](#cd)
 * [sh.pwd()](#pwd)
 * [sh.ls(dir, [options], callback)](#ls)
-* [sh.exec(path, [options], callback)](#exec)
+* [sh.exec(path, [args], callback)](#exec)
 * [sh.touch(path, [options], callback)](#touch)
 * [sh.cat(files, callback)](#cat)
 * [sh.rm(path, [options], callback)](#rm)
@@ -1069,22 +1069,22 @@ sh.ls('/dir', { recursive: true }, function(err, entries) {
 });
 ```
 
-#### sh.exec(path, [options], callback)<a name="exec"></a>
+#### sh.exec(path, [args], callback)<a name="exec"></a>
 
 Attempts to execute the .js command located at `path`. The `sh.exec` method
 enables apps to install larger programs into the file system and run them
 later without having to re-download.  Such commands should be written so as
 to assume the existence of 3 global variables, which will be defined at runtime:
-* `options` - <Object> an object containing any arguments, data, etc.
-* `fs` - <FileSystem> the `FileSystem` object bound to this shell.
-* `callback` - <Function> a callback function of the form `function callback(error, result)`
+* `fs` - [FileSystem] the `FileSystem` object bound to this shell.
+* `args` - [Array] a list of any arguments for the command, or the empty list
+* `callback` - [Function] a callback function of the form `function callback(error, result)`
 to call when done.
 
 The .js command's contents should be the body of a function that
 looks like this:
 
 ```javascript
-function(fs, options, callback) {
+function(fs, args, callback) {
 //-------------------------commmand code here---------
 // ...
 //----------------------------------------------------
@@ -1095,14 +1095,14 @@ Example:
 
 ```javascript
 // Simple command to delete a file.
-var cmd = "fs.unlink(options.path, callback);"
+var cmd = "fs.unlink(args[0], callback);"
 
 // Write the file to the filesystem
 fs.writeFile('/cmd.js', cmd, callback(err) {
   if(err) throw err;
 
   // Execute the command
-  sh.exec('/cmd.js', { path: '/file' }, function(err, result) {
+  sh.exec('/cmd.js', [ '/file' ], function(err, result) {
     if(err) throw err;
   });
 });

@@ -12,12 +12,12 @@ define(["Filer", "util"], function(Filer, util) {
     it('should be able to execute a command .js file from the filesystem', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
-      var cmdString = "fs.writeFile(options.path, options.data, callback);";
+      var cmdString = "fs.writeFile(args[0], args[1], callback);";
 
       fs.writeFile('/cmd.js', cmdString, function(error) {
         if(error) throw error;
 
-        shell.exec('/cmd.js', {path: '/test', data: 'hello world'}, function(error, result) {
+        shell.exec('/cmd.js', ['/test', 'hello world'], function(error, result) {
           if(error) throw error;
 
           fs.readFile('/test', 'utf8', function(error, data) {
