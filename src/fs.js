@@ -582,6 +582,46 @@ define(function(require) {
     }
   }
 
+  function replace_data(context, ofd, buffer, offset, length, callback) {
+    var fileNode;
+
+    function return_nbytes(error) {
+      if(error) {
+        callback(error);
+      } else {
+        callback(null, length);
+      }
+    }
+
+    function update_file_node(error) {
+      if(error) {
+        callback(error);
+      } else {
+        context.put(fileNode.id, fileNode, return_nbytes);
+      }
+    }
+
+    function write_file_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        fileNode = result;
+        var newData = new Uint8Array(length);
+        var bufferWindow = buffer.subarray(offset, offset + length);
+        newData.set(bufferWindow);
+        ofd.position = length;
+
+        fileNode.size = length;
+        fileNode.mtime = Date.now();
+        fileNode.version += 1;
+
+        context.put(fileNode.data, newData, update_file_node);
+      }
+    }
+
+    context.get(ofd.id, write_file_data);
+  }
+
   function write_data(context, ofd, buffer, offset, length, position, callback) {
     var fileNode;
     var fileData;
@@ -613,7 +653,8 @@ define(function(require) {
         if(fileData) {
           newData.set(fileData);
         }
-        newData.set(buffer, _position);
+        var bufferWindow = buffer.subarray(offset, offset + length);
+        newData.set(bufferWindow, _position);
         if(undefined === position) {
           ofd.position += length;
         }
@@ -1702,7 +1743,7 @@ define(function(require) {
       var ofd = new OpenFileDescription(fileNode.id, flags, 0);
       var fd = fs.allocDescriptor(ofd);
 
-      write_data(context, ofd, data, 0, data.length, 0, function(err2, nbytes) {
+      replace_data(context, ofd, data, 0, data.length, function(err2, nbytes) {
         if(err2) {
           return callback(err2);
         }
