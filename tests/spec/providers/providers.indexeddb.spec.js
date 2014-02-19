@@ -5,6 +5,11 @@ define(["Filer", "util"], function(Filer, util) {
     return;
   }
 
+  if(navigator.userAgent.indexOf('PhantomJS') > -1) {
+    console.log("Skipping Filer.FileSystem.providers.IndexedDB tests, since PhantomJS doesn't support it.");
+    return;
+  }
+
   describe("Filer.FileSystem.providers.IndexedDB", function() {
     it("is supported -- if it isn't, none of these tests can run.", function() {
       expect(Filer.FileSystem.providers.IndexedDB.isSupported()).to.be.true;
