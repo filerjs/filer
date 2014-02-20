@@ -1,181 +1,101 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   describe('fs.writeFile, fs.readFile', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function() {
-      expect(typeof this.fs.writeFile).toEqual('function');
-      expect(typeof this.fs.readFile).toEqual('function');
+      var fs = util.fs();
+      expect(fs.writeFile).to.be.a('function');
+      expect(fs.readFile).to.be.a('function');
     });
 
-    it('should error when path is wrong to readFile', function() {
-      var complete = false;
-      var _error, _result;
-      var that = this;
-
+    it('should error when path is wrong to readFile', function(done) {
+      var fs = util.fs();
       var contents = "This is a file.";
 
-      that.fs.readFile('/no-such-file', 'utf8', function(error, data) {
-        _error = error;
-        _result = data;
-        complete = true;
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
-        expect(_result).not.toBeDefined();
+      fs.readFile('/no-such-file', 'utf8', function(error, data) {
+        expect(error).to.exist;
+        expect(data).not.to.exist;
+        done();
       });
     });
 
-    it('should write, read a utf8 file without specifying utf8 in writeFile', function() {
-      var complete = false;
-      var _error, _result;
-      var that = this;
-
+    it('should write, read a utf8 file without specifying utf8 in writeFile', function(done) {
+      var fs = util.fs();
       var contents = "This is a file.";
 
-      that.fs.writeFile('/myfile', contents, function(error) {
+      fs.writeFile('/myfile', contents, function(error) {
         if(error) throw error;
-        that.fs.readFile('/myfile', 'utf8', function(error2, data) {
-          if(error2) throw error2;
-          _result = data;
-          complete = true;
+        fs.readFile('/myfile', 'utf8', function(error, data) {
+          expect(error).not.to.exist;
+          expect(data).to.equal(contents);
+          done();
         });
       });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_result).toEqual(contents);
-      });
     });
 
-    it('should write, read a utf8 file with "utf8" option to writeFile', function() {
-      var complete = false;
-      var _error, _result;
-      var that = this;
-
+    it('should write, read a utf8 file with "utf8" option to writeFile', function(done) {
+      var fs = util.fs();
       var contents = "This is a file.";
 
-      that.fs.writeFile('/myfile', contents, 'utf8', function(error) {
+      fs.writeFile('/myfile', contents, 'utf8', function(error) {
         if(error) throw error;
-        that.fs.readFile('/myfile', 'utf8', function(error2, data) {
-          if(error2) throw error2;
-          _result = data;
-          complete = true;
+        fs.readFile('/myfile', 'utf8', function(error, data) {
+          expect(error).not.to.exist;
+          expect(data).to.equal(contents);
+          done();
         });
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_result).toEqual(contents);
       });
     });
 
-    it('should write, read a utf8 file with {encoding: "utf8"} option to writeFile', function() {
-      var complete = false;
-      var _error, _result;
-      var that = this;
-
+    it('should write, read a utf8 file with {encoding: "utf8"} option to writeFile', function(done) {
+      var fs = util.fs();
       var contents = "This is a file.";
 
-      that.fs.writeFile('/myfile', contents, { encoding: 'utf8' }, function(error) {
+      fs.writeFile('/myfile', contents, { encoding: 'utf8' }, function(error) {
         if(error) throw error;
-        that.fs.readFile('/myfile', 'utf8', function(error2, data) {
-          if(error2) throw error2;
-          _result = data;
-          complete = true;
+        fs.readFile('/myfile', 'utf8', function(error, data) {
+          expect(error).not.to.exist;
+          expect(data).to.equal(contents);
+          done();
         });
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_result).toEqual(contents);
       });
     });
 
-    it('should write, read a binary file', function() {
-      var complete = false;
-      var _error, _result;
-      var that = this;
-
+    it('should write, read a binary file', function(done) {
+      var fs = util.fs();
       // String and utf8 binary encoded versions of the same thing:
       var contents = "This is a file.";
       var binary = new Uint8Array([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
-      that.fs.writeFile('/myfile', binary, function(error) {
+      fs.writeFile('/myfile', binary, function(error) {
         if(error) throw error;
-        that.fs.readFile('/myfile', function(error2, data) {
-          if(error2) throw error2;
-          _result = data;
-          complete = true;
+        fs.readFile('/myfile', function(error, data) {
+          expect(error).not.to.exist;
+          expect(data).to.deep.equal(binary);
+          done();
         });
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_result).toEqual(binary);
       });
     });
 
-    it('should follow symbolic links', function () {
-      var complete = false;
-      var _result;
-      var that = this;
-
+    it('should follow symbolic links', function(done) {
+      var fs = util.fs();
       var contents = "This is a file.";
 
-      that.fs.writeFile('/myfile', '', { encoding: 'utf8' }, function(error) {
+      fs.writeFile('/myfile', '', { encoding: 'utf8' }, function(error) {
         if(error) throw error;
-        that.fs.symlink('/myfile', '/myFileLink', function (error) {
+        fs.symlink('/myfile', '/myFileLink', function (error) {
           if (error) throw error;
-          that.fs.writeFile('/myFileLink', contents, 'utf8', function (error) {
+          fs.writeFile('/myFileLink', contents, 'utf8', function (error) {
             if (error) throw error;
-            that.fs.readFile('/myFileLink', 'utf8', function(error, data) {
-              if(error) throw error;
-              _result = data;
-              complete = true;
+            fs.readFile('/myFileLink', 'utf8', function(error, data) {
+              expect(error).not.to.exist;
+              expect(data).to.equal(contents);
+              done();
             });
           });
         });
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_result).toEqual(contents);
       });
     });
   });

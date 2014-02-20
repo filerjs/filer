@@ -103,9 +103,11 @@ define(function() {
     if (!path && !isAbsolute) {
       path = '.';
     }
+    /*
     if (path && trailingSlash) {
       path += '/';
     }
+    */
 
     return (isAbsolute ? '/' : '') + path;
   }

@@ -18,14 +18,26 @@ module.exports = function(grunt) {
 
     jshint: {
       // Don't bother with src/path.js
-      all: ['gruntfile.js',
-            'src/constants.js',
-            'src/error.js',
-            'src/fs.js',
-            'src/shared.js',
-            'src/providers/**/*.js',
-            'src/adapters/**/*.js'
-           ]
+      all: [
+        'gruntfile.js',
+        'src/constants.js',
+        'src/error.js',
+        'src/fs.js',
+        'src/index.js',
+        'src/shared.js',
+        'src/shell.js',
+        'src/providers/**/*.js',
+        'src/adapters/**/*.js'
+      ]
+    },
+
+    mocha: {
+      test: {
+        src: 'tests/index.html',
+        options: {
+          log: true
+        }
+      }
     },
 
     requirejs: {
@@ -55,10 +67,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-mocha');
 
   grunt.registerTask('develop', ['clean', 'requirejs']);
   grunt.registerTask('release', ['develop', 'uglify']);
   grunt.registerTask('check', ['jshint']);
+  grunt.registerTask('test', ['check', 'mocha']);
 
   grunt.registerTask('default', ['develop']);
 };

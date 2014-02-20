@@ -1,86 +1,44 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   describe('fs.readlink', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function() {
-      expect(typeof this.fs.readlink).toEqual('function');
+      var fs = util.fs();
+      expect(fs.readlink).to.be.a('function');
     });
 
-    it('should return an error if part of the parent destination path does not exist', function() {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should return an error if part of the parent destination path does not exist', function(done) {
+      var fs = util.fs();
 
-      that.fs.readlink('/tmp/mydir', function(error) {
-        _error = error;
-
-        complete = true;
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
+      fs.readlink('/tmp/mydir', function(error) {
+        expect(error).to.exist;
+        done();
       });
     });
 
-    it('should return an error if the path is not a symbolic link', function() {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should return an error if the path is not a symbolic link', function(done) {
+      var fs = util.fs();
 
-      that.fs.readlink('/', function(error) {
-        _error = error;
-
-        complete = true;
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
+      fs.readlink('/', function(error) {
+        expect(error).to.exist;
+        done();
       });
     });
 
-    it('should return the contents of a symbolic link', function() {
-      var complete = false;
-      var _error, _result;
-      var that = this;
+    it('should return the contents of a symbolic link', function(done) {
+      var fs = util.fs();
 
-      that.fs.symlink('/', '/myfile', function(error) {
+      fs.symlink('/', '/myfile', function(error) {
         if(error) throw error;
 
-        that.fs.readlink('/myfile', function(error, result) {
-          _error = error;
-          _result = result;
-          complete = true;
+        fs.readlink('/myfile', function(error, result) {
+          expect(error).not.to.exist;
+          expect(result).to.equal('/');
+          done();
         });
       });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_result).toEqual('/');
-       });
     });
   });
 

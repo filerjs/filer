@@ -4,6 +4,6 @@ define(function(require) {
     FileSystem: require('./fs'),
     Path: require('./path'),
     Errors: require('./error')
-  }
+  };
 
 });

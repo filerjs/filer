@@ -1,39 +1,22 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   describe("fs", function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it("is an object", function() {
-      expect(typeof this.fs).toEqual('object');
+      var fs = util.fs();
+      expect(typeof fs).to.equal('object');
+      expect(fs).to.be.an.instanceof(Filer.FileSystem);
     });
 
-    it('should have a root directory', function() {
-      var complete = false;
-      var _result;
-
-      this.fs.stat('/', function(error, result) {
-        _result = result;
-
-        complete = true;
-    });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_result).toBeDefined();
+    it('should have a root directory', function(done) {
+      var fs = util.fs();
+      fs.stat('/', function(error, result) {
+        expect(error).not.to.exist;
+        expect(result).to.exist;
+        expect(result.type).to.equal('DIRECTORY');
+        done();
       });
     });
   });

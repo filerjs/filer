@@ -1,200 +1,148 @@
-define(["Filer"], function(Filer) {
-
-  var WEBSQL_NAME = "websql-test-db";
-
-  function wipeDB(provider) {
-    var context = provider.getReadWriteContext();
-    context.clear(function(err) {
-      if(err) {
-        console.error("Problem clearing WebSQL db: [" + err.code + "] - " + err.message);
-      }
-    });
-  }
+define(["Filer", "util"], function(Filer, util) {
 
   if(!Filer.FileSystem.providers.WebSQL.isSupported()) {
     console.log("Skipping Filer.FileSystem.providers.WebSQL tests, since WebSQL isn't supported.");
     return;
   }
 
+  if(navigator.userAgent.indexOf('PhantomJS') > -1) {
+    console.log("Skipping Filer.FileSystem.providers.WebSQL tests, since PhantomJS doesn't support it.");
+    return;
+  }
+
   describe("Filer.FileSystem.providers.WebSQL", function() {
     it("is supported -- if it isn't, none of these tests can run.", function() {
-      expect(Filer.FileSystem.providers.WebSQL.isSupported()).toEqual(true);
+      expect(Filer.FileSystem.providers.WebSQL.isSupported()).to.be.true;
     });
 
     it("has open, getReadOnlyContext, and getReadWriteContext instance methods", function() {
       var webSQLProvider = new Filer.FileSystem.providers.WebSQL();
-      expect(typeof webSQLProvider.open).toEqual('function');
-      expect(typeof webSQLProvider.getReadOnlyContext).toEqual('function');
-      expect(typeof webSQLProvider.getReadWriteContext).toEqual('function');
+      expect(webSQLProvider.open).to.be.a('function');
+      expect(webSQLProvider.getReadOnlyContext).to.be.a('function');
+      expect(webSQLProvider.getReadWriteContext).to.be.a('function');
     });
 
     describe("open an WebSQL provider", function() {
-      afterEach(function() {
-        wipeDB(this.provider);
+      var _provider;
+
+      beforeEach(function() {
+        _provider = new util.providers.WebSQL(util.uniqueName());
+        _provider.init();
       });
 
-      it("should open a new WebSQL database", function() {
-        var complete = false;
-        var _error, _result;
+      afterEach(function(done) {
+        _provider.cleanup(done);
+        _provider = null;
+      });
 
-        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
-        provider.open(function(err, firstAccess) {
-          _error = err;
-          _result = firstAccess;
-          complete = true;
-        });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toEqual(null);
-          expect(_result).toEqual(true);
+      it("should open a new WebSQL database", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          expect(error).not.to.exist;
+          expect(firstAccess).to.be.true;
+          done();
         });
       });
     });
 
     describe("Read/Write operations on an WebSQL provider", function() {
-      afterEach(function() {
-        wipeDB(this.provider);
+      var _provider;
+
+      beforeEach(function() {
+        _provider = new util.providers.WebSQL(util.uniqueName());
+        _provider.init();
       });
 
-      it("should allow put() and get()", function() {
-        var complete = false;
-        var _error, _result;
+      afterEach(function(done) {
+        _provider.cleanup(done);
+        _provider = null;
+      });
 
-        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
-        provider.open(function(err, firstAccess) {
-          _error = err;
+      it("should allow put() and get()", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
           var context = provider.getReadWriteContext();
-          context.put("key", "value", function(err, result) {
-            _error = _error || err;
-            context.get("key", function(err, result) {
-              _error = _error || err;
-              _result = result;
+          context.put("key", "value", function(error, result) {
+            if(error) throw error;
 
-              complete = true;
+            context.get("key", function(error, result) {
+              expect(error).not.to.exist;
+              expect(result).to.equal("value");
+              done();
             });
           });
         });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toEqual(null);
-          expect(_result).toEqual("value");
-        });
       });
 
-      it("should allow delete()", function() {
-        var complete = false;
-        var _error, _result;
-
-        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
-        provider.open(function(err, firstAccess) {
-          _error = err;
+      it("should allow delete()", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
           var context = provider.getReadWriteContext();
-          context.put("key", "value", function(err, result) {
-            _error = _error || err;
-            context.delete("key", function(err, result) {
-              _error = _error || err;
-              context.get("key", function(err, result) {
-                _error = _error || err;
-                _result = result;
+          context.put("key", "value", function(error, result) {
+            if(error) throw error;
 
-                complete = true;
+            context.delete("key", function(error, result) {
+              if(error) throw error;
+
+              context.get("key", function(error, result) {
+                expect(error).not.to.exist;
+                expect(result).not.to.exist;
+                done();
               });
             });
           });
         });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toEqual(null);
-          expect(_result).toEqual(null);
-        });
       });
 
-      it("should allow clear()", function() {
-        var complete = false;
-        var _error, _result1, _result2;
-
-        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
-        provider.open(function(err, firstAccess) {
-          _error = err;
+      it("should allow clear()", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
           var context = provider.getReadWriteContext();
-          context.put("key1", "value1", function(err, result) {
-            _error = _error || err;
-            context.put("key2", "value2", function(err, result) {
-              _error = _error || err;
+          context.put("key1", "value1", function(error, result) {
+            if(error) throw error;
+
+            context.put("key2", "value2", function(error, result) {
+              if(error) throw error;
 
               context.clear(function(err) {
-                _error = _error || err;
+                if(error) throw error;
 
-                context.get("key1", function(err, result) {
-                  _error = _error || err;
-                  _result1 = result;
+                context.get("key1", function(error, result) {
+                  if(error) throw error;
+                  expect(result).not.to.exist;
 
-                  context.get("key2", function(err, result) {
-                    _error = _error || err;
-                    _result2 = result;
-
-                    complete = true;
+                  context.get("key2", function(error, result) {
+                    expect(error).not.to.exist;
+                    expect(result).not.to.exist;
+                    done();
                   });
                 });
               });
             });
           });
         });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toEqual(null);
-          expect(_result1).toEqual(null);
-          expect(_result2).toEqual(null);
-        });
       });
 
-      it("should fail when trying to write on ReadOnlyContext", function() {
-        var complete = false;
-        var _error, _result;
-
-        var provider = this.provider = new Filer.FileSystem.providers.WebSQL(WEBSQL_NAME);
-        provider.open(function(err, firstAccess) {
-          _error = err;
+      it("should fail when trying to write on ReadOnlyContext", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
           var context = provider.getReadOnlyContext();
-          context.put("key1", "value1", function(err, result) {
-            _error = _error || err;
-            _result = result;
-
-            complete = true;
+          context.put("key1", "value1", function(error, result) {
+            expect(error).to.exist;
+            expect(result).not.to.exist;
+            done();
           });
-        });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toBeDefined();
-          expect(_result).toEqual(null);
         });
       });
     });
-
   });
 
 });

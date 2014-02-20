@@ -1,313 +1,182 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   describe('fs.utimes', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function() {
-      expect(typeof this.fs.utimes).toEqual('function');
+      var fs = util.fs();
+      expect(fs.utimes).to.be.a('function');
     });
 
-    it('should error when atime is negative', function () {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when atime is negative', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function(error) {
+      fs.writeFile('/testfile', '', function(error) {
         if (error) throw error;
 
-        that.fs.utimes('/testfile', -1, Date.now(), function (error) {
-          _error = error;
-          complete = true;
+        fs.utimes('/testfile', -1, Date.now(), function (error) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('EInvalid');
+          done();
         });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
       });
     });
 
-    it('should error when mtime is negative', function () {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when mtime is negative', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function(error) {
+      fs.writeFile('/testfile', '', function(error) {
         if (error) throw error;
 
-        that.fs.utimes('/testfile', Date.now(), -1, function (error) {
-          _error = error;
-          complete = true;
+        fs.utimes('/testfile', Date.now(), -1, function (error) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('EInvalid');
+          done();
         });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
       });
     });
 
-    it('should error when atime is as invalid number', function () {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when atime is as invalid number', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.utimes('/testfile', 'invalid datetime', Date.now(), function (error) {
-          _error = error;
-          complete = true;
+        fs.utimes('/testfile', 'invalid datetime', Date.now(), function (error) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('EInvalid');
+          done();
         });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
       });
     });
 
-    it ('should error when path does not exist', function () {
-      var complete = false;
-      var _error;
-      var that = this;
-
+    it('should error when path does not exist', function(done) {
+      var fs = util.fs();
       var atime = Date.parse('1 Oct 2000 15:33:22');
       var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-      that.fs.utimes('/pathdoesnotexist', atime, mtime, function (error) {
-        _error = error;
-        complete = true;
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('ENoEntry');
+      fs.utimes('/pathdoesnotexist', atime, mtime, function (error) {
+        expect(error).to.exist;
+        expect(error.name).to.equal('ENoEntry');
+        done();
       });
     });
 
-    it('should error when mtime is an invalid number', function () {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when mtime is an invalid number', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.utimes('/testfile', Date.now(), 'invalid datetime', function (error) {
-          _error = error;
-          complete = true;
+        fs.utimes('/testfile', Date.now(), 'invalid datetime', function (error) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('EInvalid');
+          done();
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
-      });
     });
 
-    it ('should error when file descriptor is invalid', function () {
-      var complete = false;
-      var _error;
-      var that = this;
-
+    it('should error when file descriptor is invalid', function(done) {
+      var fs = util.fs();
       var atime = Date.parse('1 Oct 2000 15:33:22');
       var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-      that.fs.futimes(1, atime, mtime, function (error) {
-        _error = error;
-        complete = true;
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EBadFileDescriptor');
+      fs.futimes(1, atime, mtime, function (error) {
+        expect(error).to.exist;
+        expect(error.name).to.equal('EBadFileDescriptor');
+        done();
       });
     });
 
-    it('should change atime and mtime of a file path', function () {
-      var complete = false;
-      var _error;
-      var that = this;
-
-      var _stat;
-
+    it('should change atime and mtime of a file path', function(done) {
+      var fs = util.fs();
       var atime = Date.parse('1 Oct 2000 15:33:22');
       var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.utimes('/testfile', atime, mtime, function (error) {
-          _error = error;
+        fs.utimes('/testfile', atime, mtime, function (error) {
+          expect(error).not.to.exist;
 
-          that.fs.stat('/testfile', function (error, stat) {
-            if (error) throw error;
-
-            _stat = stat;
-            complete = true;
+          fs.stat('/testfile', function (error, stat) {
+            expect(error).not.to.exist;
+            expect(stat.atime).to.equal(atime);
+            expect(stat.mtime).to.equal(mtime);
+            done();
           });
         });
       });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_stat.atime).toEqual(atime);
-        expect(_stat.mtime).toEqual(mtime);
-      });
     });
 
-    it ('should change atime and mtime for a valid file descriptor', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
-
+    it ('should change atime and mtime for a valid file descriptor', function(done) {
+      var fs = util.fs();
       var ofd;
-      var _stat;
-
       var atime = Date.parse('1 Oct 2000 15:33:22');
       var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-      that.fs.open('/testfile', 'w', function (error, result) {
+      fs.open('/testfile', 'w', function (error, result) {
         if (error) throw error;
 
         ofd = result;
+        fs.futimes(ofd, atime, mtime, function (error) {
+          expect(error).not.to.exist;
 
-        that.fs.futimes(ofd, atime, mtime, function (error) {
-          _error = error;
-
-          that.fs.fstat(ofd, function (error, stat) {
-            if (error) throw error;
-
-            _stat = stat;
-            complete = true;
+          fs.fstat(ofd, function (error, stat) {
+            expect(error).not.to.exist;
+            expect(stat.atime).to.equal(atime);
+            expect(stat.mtime).to.equal(mtime);
+            done();
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toEqual(null);
-        expect(_stat.atime).toEqual(atime);
-        expect(_stat.mtime).toEqual(mtime);
-      });
     });
 
-    it ('should update atime and mtime of directory path', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
-
-      var _stat;
-
+    it('should update atime and mtime of directory path', function(done) {
+      var fs = util.fs();
       var atime = Date.parse('1 Oct 2000 15:33:22');
       var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-      that.fs.mkdir('/testdir', function (error) {
+      fs.mkdir('/testdir', function (error) {
         if (error) throw error;
 
-        that.fs.utimes('/testdir', atime, mtime, function (error) {
-          _error = error;
+        fs.utimes('/testdir', atime, mtime, function (error) {
+          expect(error).not.to.exist;
 
-          that.fs.stat('/testdir', function (error, stat) {
-            if (error) throw error;
-
-            _stat = stat;
-            complete = true;
+          fs.stat('/testdir', function (error, stat) {
+            expect(error).not.to.exist;
+            expect(stat.atime).to.equal(atime);
+            expect(stat.mtime).to.equal(mtime);
+            done();
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toEqual(null);
-        expect(_stat.atime).toEqual(atime);
-        expect(_stat.mtime).toEqual(mtime);
-      });
     });
 
-    it ('should update atime and mtime using current time if arguments are null', function () {
-      var complete = false;
-      var _error;
-      var that = this;
-
+    it('should update atime and mtime using current time if arguments are null', function(done) {
+      var fs = util.fs();
       var atimeEst;
       var mtimeEst;
       var now;
 
-      that.fs.writeFile('/myfile', '', function (error) {
+      fs.writeFile('/myfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.utimes('/myfile', null, null, function (error) {
-          _error = error;
+        fs.utimes('/myfile', null, null, function (error) {
+          expect(error).not.to.exist;
 
           now = Date.now();
 
-          that.fs.stat('/myfile', function (error, stat) {
-            if (error) throw error;
-
-            atimeEst = now - stat.atime;
-            mtimeEst = now - stat.mtime;
-            complete = true;
+          fs.stat('/myfile', function (error, stat) {
+            expect(error).not.to.exist;
+            // Note: testing estimation as time may differ by a couple of milliseconds
+            // This number should be increased if tests are on slow systems
+            expect(now - stat.atime).to.be.below(75);
+            expect(now - stat.mtime).to.be.below(75);
+            done();
           });
         });
-      });
-
-      waitsFor(function (){
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toEqual(null);
-        // Note: testing estimation as time may differ by a couple of milliseconds
-        // This number should be increased if tests are on slow systems
-        expect(atimeEst).toBeLessThan(10);
-        expect(mtimeEst).toBeLessThan(10);
       });
     });
   });

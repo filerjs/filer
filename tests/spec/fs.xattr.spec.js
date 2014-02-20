@@ -1,448 +1,287 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   describe('fs.xattr', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function () {
-      expect(typeof this.fs.setxattr).toEqual('function');
-      expect(typeof this.fs.getxattr).toEqual('function');
-      expect(typeof this.fs.removexattr).toEqual('function');
-      expect(typeof this.fs.fsetxattr).toEqual('function');
-      expect(typeof this.fs.fgetxattr).toEqual('function');
+      var fs = util.fs();
+      expect(fs.setxattr).to.be.a('function');
+      expect(fs.getxattr).to.be.a('function');
+      expect(fs.removexattr).to.be.a('function');
+      expect(fs.fsetxattr).to.be.a('function');
+      expect(fs.fgetxattr).to.be.a('function');
     });
 
-    it('should error when setting with a name that is not a string', function () {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when setting with a name that is not a string', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 89, 'testvalue', function (error) {
-          _error = error;
-          complete = true;
+        fs.setxattr('/testfile', 89, 'testvalue', function (error) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('EInvalid');
+          done();
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
-      });
     });
 
-    it('should error when setting with a name that is null', function () {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when setting with a name that is null', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', null, 'testvalue', function (error) {
-          _error = error;
-          complete = true;
+        fs.setxattr('/testfile', null, 'testvalue', function (error) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('EInvalid');
+          done();
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
-      });
     });
 
-    it('should error when setting with an invalid flag', function () {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when setting with an invalid flag', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', 'value', 'InvalidFlag', function (error) {
-          _error = error;
-          complete = true;
+        fs.setxattr('/testfile', 'test', 'value', 'InvalidFlag', function (error) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('EInvalid');
+          done();
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
-      });
     });
 
-    it('should error when when setting an extended attribute which exists with XATTR_CREATE flag', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when when setting an extended attribute which exists with XATTR_CREATE flag', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function(error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', 'value', function (error) {
+        fs.setxattr('/testfile', 'test', 'value', function(error) {
           if (error) throw error;
 
-          that.fs.setxattr('/testfile', 'test', 'othervalue', 'CREATE', function (error) {
-            _error = error;
-            complete = true;
+          fs.setxattr('/testfile', 'test', 'othervalue', 'CREATE', function(error) {
+            expect(error).to.exist;
+            expect(error.name).to.equal('EExists');
+            done();
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EExists');
-      });
     });
 
-    it('should error when setting an extended attribute which does not exist with XATTR_REPLACE flag', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when setting an extended attribute which does not exist with XATTR_REPLACE flag', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function(error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', 'value', 'REPLACE', function (error) {
-          _error = error;
-          complete = true;
+        fs.setxattr('/testfile', 'test', 'value', 'REPLACE', function(error) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('ENoAttr');
+          done();
         });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('ENoAttr');
       });
     });
 
-    it ('should error when getting an attribute with a name that is empty', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when getting an attribute with a name that is empty', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function(error) {
         if (error) throw error;
 
-        that.fs.getxattr('/testfile', '', function (error, value) {
-          _error = error;
-          complete = true;
+        fs.getxattr('/testfile', '', function(error, value) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('EInvalid');
+          done();
         });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
       });
     });
 
-    it('should error when getting an attribute where the name is not a string', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when getting an attribute where the name is not a string', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function(error) {
         if (error) throw error;
 
-        that.fs.getxattr('/testfile', 89, function (error, value) {
-          _error = error;
-          complete = true;
+        fs.getxattr('/testfile', 89, function(error, value) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('EInvalid');
+          done();
         });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('EInvalid');
       });
     });
 
-    it('should error when getting an attribute that does not exist', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when getting an attribute that does not exist', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function(error) {
         if (error) throw error;
 
-        that.fs.getxattr('/testfile', 'test', function (error, value) {
-          _error = error;
-          complete = true;
+        fs.getxattr('/testfile', 'test', function(error, value) {
+          expect(error).to.exist;
+          expect(error.name).to.equal('ENoAttr');
+          done();
         });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('ENoAttr');
       });
     });
 
-    it('should error when file descriptor is invalid', function (error) {
+    it('should error when file descriptor is invalid', function(done) {
+      var fs = util.fs();
       var completeSet, completeGet, completeRemove;
-      var _errorSet, _errorGet, _errorRemove;
-      var that = this;
       var _value;
 
       completeSet = completeGet = completeRemove = false;
 
-      that.fs.fsetxattr(1, 'test', 'value', function (error) {
-        _errorSet = error;
+      function maybeDone() {
+        if(completeSet && completeGet && completeRemove) {
+          done();
+        }
+      }
+
+      fs.fsetxattr(1, 'test', 'value', function(error) {
+        expect(error).to.exist;
+        expect(error.name).to.equal('EBadFileDescriptor');
         completeSet = true;
+        maybeDone();
       });
 
-      that.fs.fgetxattr(1, 'test', function (error, value) {
-        _errorGet = error;
-        _value = value;
+      fs.fgetxattr(1, 'test', function(error, value) {
+        expect(error).to.exist;
+        expect(error.name).to.equal('EBadFileDescriptor');
+        expect(value).not.to.exist;
         completeGet = true;
+        maybeDone();
       });
 
-      that.fs.fremovexattr(1, 'test', function (error, value) {
-        _errorRemove = error;
+      fs.fremovexattr(1, 'test', function(error, value) {
+        expect(error).to.exist;
+        expect(error.name).to.equal('EBadFileDescriptor');
         completeRemove = true;
-      });
-
-      waitsFor(function () {
-        return completeSet && completeGet && completeRemove;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_value).toEqual(null);
-        expect(_errorSet).toBeDefined();
-        expect(_errorSet.name).toEqual('EBadFileDescriptor');
-        expect(_errorGet).toBeDefined();
-        expect(_errorGet.name).toEqual('EBadFileDescriptor');
-        expect(_errorRemove).toBeDefined();
-        expect(_errorRemove.name).toEqual('EBadFileDescriptor');
+        maybeDone();
       });
     });
 
-    it('should set and get an extended attribute of a path', function (error) {
-      var complete = false;
-      var _errorSet;
-      var that = this;
+    it('should set and get an extended attribute of a path', function(done) {
+      var fs = util.fs();
       var name = 'test';
-      var _value;;
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', name, 'somevalue', function (error) {
-          _errorSet = error;
+        fs.setxattr('/testfile', name, 'somevalue', function(error) {
+          expect(error).not.to.exist;
 
-          that.fs.getxattr('/testfile', name, function (error, value) {
-            _errorGet = error;
-            _value = value;
-            complete = true;
+          fs.getxattr('/testfile', name, function(error, value) {
+            expect(error).not.to.exist;
+            expect(value).to.equal('somevalue');
+            done();
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_errorSet).toEqual(null);
-        expect(_errorGet).toEqual(null);
-        expect(_value).toEqual('somevalue');
-      });
     });
 
-    it('should error when attempting to remove a non-existing attribute', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should error when attempting to remove a non-existing attribute', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', '', function (error) {
+        fs.setxattr('/testfile', 'test', '', function (error) {
           if (error) throw error;
 
-          that.fs.removexattr('/testfile', 'testenoattr', function (error) {
-            _error = error;
-            complete = true;
+          fs.removexattr('/testfile', 'testenoattr', function (error) {
+            expect(error).to.exist;
+            expect(error.name).to.equal('ENoAttr');
+            done();
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_error.name).toEqual('ENoAttr');
-      });
     });
 
-    it('should set and get an empty string as a value', function (error) {
-      var complete = false;
-      var _error;
-      var _value;
-      var that = this;
+    it('should set and get an empty string as a value', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', '', function (error) {
-          _error = error;
+        fs.setxattr('/testfile', 'test', '', function (error) {
+          if(error) throw error;
 
-          that.fs.getxattr('/testfile', 'test', function (error, value) {
-            _error = error;
-            _value = value;
-            complete = true;
+          fs.getxattr('/testfile', 'test', function (error, value) {
+            expect(error).not.to.exist;
+            expect(value).to.equal('');
+            done();
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toEqual(null);
-        expect(_value).toBeDefined();
-        expect(_value).toEqual('');
-      });
     });
 
-    it('should set and get an extended attribute for a valid file descriptor', function (error) {
-      var complete = false;
-      var _errorSet, _errorGet;
-      var _value;
-      var that = this;
-      var ofd;
+    it('should set and get an extended attribute for a valid file descriptor', function(done) {
+      var fs = util.fs();
 
-      that.fs.open('/testfile', 'w', function (error, result) {
+      fs.open('/testfile', 'w', function (error, ofd) {
         if (error) throw error;
 
-        ofd = result;
+        fs.fsetxattr(ofd, 'test', 'value', function (error) {
+          expect(error).not.to.exist;
 
-        that.fs.fsetxattr(ofd, 'test', 'value', function (error) {
-          _errorSet = error;
-
-          that.fs.fgetxattr(ofd, 'test', function (error, value) {
-            _errorGet = error;
-            _value = value;
-            complete = true;
+          fs.fgetxattr(ofd, 'test', function (error, value) {
+            expect(error).not.to.exist;
+            expect(value).to.equal('value');
+            done();
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_errorSet).toEqual(null);
-        expect(_errorGet).toEqual(null);
-        expect(_value).toBeDefined();
-        expect(_value).toEqual('value');
-      });
     });
 
-    it('should set and get an object to an extended attribute', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
-      var value;
+    it('should set and get an object to an extended attribute', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', { key1: 'test', key2: 'value', key3: 87 }, function (error) {
-          _error = error;
+        fs.setxattr('/testfile', 'test', { key1: 'test', key2: 'value', key3: 87 }, function (error) {
+          if(error) throw error;
 
-          that.fs.getxattr('/testfile', 'test', function (error, value) {
-            _error = error;
-            _value = value;
-            complete = true;
+          fs.getxattr('/testfile', 'test', function (error, value) {
+            expect(error).not.to.exist;
+            expect(value).to.deep.equal({ key1: 'test', key2: 'value', key3: 87 });
+            done();
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toEqual(null);
-        expect(_value).toEqual({ key1: 'test', key2: 'value', key3: 87 });
-      });
     });
 
-    it('should update/overwrite an existing extended attribute', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
-      var _value1, _value2, _value3;
+    it('should update/overwrite an existing extended attribute', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', 'value', function (error) {
-          _error = error;
+        fs.setxattr('/testfile', 'test', 'value', function (error) {
+          if (error) throw error;
 
-          that.fs.getxattr('/testfile', 'test', function (error, value) {
-            _error = error;
-            _value1 = value;
+          fs.getxattr('/testfile', 'test', function (error, value) {
+            if (error) throw error;
+            expect(value).to.equal('value');
 
-            that.fs.setxattr('/testfile', 'test', { o: 'object', t: 'test' }, function (error) {
-              _error = error;
+            fs.setxattr('/testfile', 'test', { o: 'object', t: 'test' }, function (error) {
+              if (error) throw error;
 
-              that.fs.getxattr('/testfile', 'test', function (error, value) {
-                _error = error;
-                _value2 = value;
+              fs.getxattr('/testfile', 'test', function (error, value) {
+                if (error) throw error;
+                expect(value).to.deep.equal({ o: 'object', t: 'test' });
 
-                that.fs.setxattr('/testfile', 'test', 100, 'REPLACE', function (error) {
-                  _error = error;
+                fs.setxattr('/testfile', 'test', 100, 'REPLACE', function (error) {
+                  if (error) throw error;
 
-                  that.fs.getxattr('/testfile', 'test', function (error, value) {
-                    _error = error;
-                    _value3 = value;
-                    complete = true;
+                  fs.getxattr('/testfile', 'test', function (error, value) {
+                    expect(value).to.equal(100);
+                    done();
                   });
                 });
               });
@@ -450,169 +289,104 @@ define(["Filer"], function(Filer) {
           });
         })
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete' , DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toEqual(null);
-        expect(_value1).toEqual('value');
-        expect(_value2).toEqual({ o: 'object', t: 'test' });
-        expect(_value3).toEqual(100);
-      });
     });
 
-    it('should set multiple extended attributes for a path', function (error) {
-      var complete = false;
-      var _error;
-      var that = this;
-      var _value1, _value2;
+    it('should set multiple extended attributes for a path', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', 89, function (error) {
-          _error = error;
+        fs.setxattr('/testfile', 'test', 89, function (error) {
+          if (error) throw error;
 
-          that.fs.setxattr('/testfile', 'other', 'attribute', function (error) {
-            _error = error;
+          fs.setxattr('/testfile', 'other', 'attribute', function (error) {
+            if(error) throw error;
 
-            that.fs.getxattr('/testfile', 'test', function (error, value) {
-              _error = error;
-              _value1 = value;
+            fs.getxattr('/testfile', 'test', function (error, value) {
+              if(error) throw error;
+              expect(value).to.equal(89);
 
-              that.fs.getxattr('/testfile', 'other', function (error, value) {
-                _error = error;
-                _value2 = value;
-                complete = true;
+              fs.getxattr('/testfile', 'other', function (error, value) {
+                expect(error).not.to.exist;
+                expect(value).to.equal('attribute');
+                done();
               });
             });
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toEqual(null);
-        expect(_value1).toEqual(89);
-        expect(_value2).toEqual('attribute');
-      });
     });
 
-    it('should remove an extended attribute from a path', function (error) {
-      var complete = false;
-      var _error, _value;
-      var that = this;
+    it('should remove an extended attribute from a path', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', 'somevalue', function (error) {
+        fs.setxattr('/testfile', 'test', 'somevalue', function (error) {
           if (error) throw error;
 
-          that.fs.getxattr('/testfile', 'test', function (error, value) {
+          fs.getxattr('/testfile', 'test', function (error, value) {
             if (error) throw error;
+            expect(value).to.equal('somevalue');
 
-            _value = value;
-
-            that.fs.removexattr('/testfile', 'test', function (error) {
+            fs.removexattr('/testfile', 'test', function (error) {
               if (error) throw error;
 
-              that.fs.getxattr('/testfile', 'test', function (error) {
-                _error = error;
-                complete = true;
+              fs.getxattr('/testfile', 'test', function (error) {
+                expect(error).to.exist;
+                expect(error.name).to.equal('ENoAttr');
+                done();
               });
             });
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_value).toBeDefined();
-        expect(_value).toEqual('somevalue');
-        expect(_error.name).toEqual('ENoAttr');
-      });
     });
 
-    it('should remove an extended attribute from a valid file descriptor', function () {
-      var complete = false;
-      var _error, _value;
-      var that = this;
-      var ofd;
+    it('should remove an extended attribute from a valid file descriptor', function(done) {
+      var fs = util.fs();
 
-      that.fs.open('/testfile', 'w', function (error, result) {
+      fs.open('/testfile', 'w', function (error, ofd) {
         if (error) throw error;
 
-        var ofd = result;
-
-        that.fs.fsetxattr(ofd, 'test', 'somevalue', function (error) {
+        fs.fsetxattr(ofd, 'test', 'somevalue', function (error) {
           if (error) throw error;
 
-          that.fs.fgetxattr(ofd, 'test', function (error, value) {
+          fs.fgetxattr(ofd, 'test', function (error, value) {
             if (error) throw error;
+            expect(value).to.equal('somevalue');
 
-            _value = value;
-
-            that.fs.fremovexattr(ofd, 'test', function (error) {
+            fs.fremovexattr(ofd, 'test', function (error) {
               if (error) throw error;
 
-              that.fs.fgetxattr(ofd, 'test', function (error) {
-                _error = error;
-                complete = true;
+              fs.fgetxattr(ofd, 'test', function (error) {
+                expect(error).to.exist;
+                expect(error.name).to.equal('ENoAttr');
+                done();
               });
             });
           });
         });
       });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toBeDefined();
-        expect(_value).toBeDefined();
-        expect(_value).toEqual('somevalue');
-        expect(_error.name).toEqual('ENoAttr');
-      });
     });
 
-    it('should allow setting with a null value', function () {
-      var complete = false;
-      var _error;
-      var _value;
-      var that = this;
+    it('should allow setting with a null value', function(done) {
+      var fs = util.fs();
 
-      that.fs.writeFile('/testfile', '', function (error) {
+      fs.writeFile('/testfile', '', function (error) {
         if (error) throw error;
 
-        that.fs.setxattr('/testfile', 'test', null, function (error) {
+        fs.setxattr('/testfile', 'test', null, function (error) {
           if (error) throw error;
 
-          that.fs.getxattr('/testfile', 'test', function (error, value) {
-            _error = error;
-            _value = value;
-            complete = true;
+          fs.getxattr('/testfile', 'test', function (error, value) {
+            expect(error).not.to.exist;
+            expect(value).to.be.null;
+            done();
           });
         });
-      });
-
-      waitsFor(function () {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function () {
-        expect(_error).toEqual(null);
-        expect(_value).toEqual(null);
       });
     });
   });

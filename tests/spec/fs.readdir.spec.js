@@ -1,94 +1,55 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
  describe('fs.readdir', function() {
-    beforeEach(function() {
-      this.db_name = mk_db_name();
-      this.fs = new Filer.FileSystem({
-        name: this.db_name,
-        flags: 'FORMAT'
-      });
-    });
-
-    afterEach(function() {
-      indexedDB.deleteDatabase(this.db_name);
-      delete this.fs;
-    });
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
 
     it('should be a function', function() {
-      expect(typeof this.fs.readdir).toEqual('function');
+      var fs = util.fs();
+      expect(fs.readdir).to.be.a('function');
     });
 
-    it('should return an error if the path does not exist', function() {
-      var complete = false;
-      var _error;
-      var that = this;
+    it('should return an error if the path does not exist', function(done) {
+      var fs = util.fs();
 
-      that.fs.readdir('/tmp/mydir', function(error) {
-        _error = error;
-
-        complete = true;
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toBeDefined();
+      fs.readdir('/tmp/mydir', function(error, files) {
+        expect(error).to.exist;
+        expect(files).not.to.exist;
+        done();
       });
     });
 
-    it('should return a list of files from an existing directory', function() {
-      var complete = false;
-      var _error, _files;
-      var that = this;
+    it('should return a list of files from an existing directory', function(done) {
+      var fs = util.fs();
 
-      that.fs.mkdir('/tmp', function(error) {
-        that.fs.readdir('/', function(error, result) {
-          _error = error;
-          _files = result;
+      fs.mkdir('/tmp', function(error) {
+        if(error) throw error;
 
-          complete = true;
+        fs.readdir('/', function(error, files) {
+          expect(error).not.to.exist;
+          expect(files).to.exist;
+          expect(files.length).to.equal(1);
+          expect(files[0]).to.equal('tmp');
+          done();
         });
       });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_files.length).toEqual(1);
-        expect(_files[0]).toEqual('tmp');
-      });
     });
 
-    it('should follow symbolic links', function() {
-      var complete = false;
-      var _error, _files;
-      var that = this;
+    it('should follow symbolic links', function(done) {
+      var fs = util.fs();
 
-      that.fs.mkdir('/tmp', function(error) {
+      fs.mkdir('/tmp', function(error) {
         if(error) throw error;
-        that.fs.symlink('/', '/tmp/dirLink', function(error) {
+        fs.symlink('/', '/tmp/dirLink', function(error) {
           if(error) throw error;
-          that.fs.readdir('/tmp/dirLink', function(error, result) {
-            _error = error;
-            _files = result;
-
-            complete = true;
+          fs.readdir('/tmp/dirLink', function(error, files) {
+            expect(error).not.to.exist;
+            expect(files).to.exist;
+            expect(files.length).to.equal(1);
+            expect(files[0]).to.equal('tmp');
+            done();
           });
         });
-      });
-
-      waitsFor(function() {
-        return complete;
-      }, 'test to complete', DEFAULT_TIMEOUT);
-
-      runs(function() {
-        expect(_error).toEqual(null);
-        expect(_files.length).toEqual(1);
-        expect(_files[0]).toEqual('tmp');
       });
     });
   });

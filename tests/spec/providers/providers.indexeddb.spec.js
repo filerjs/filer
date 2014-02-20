@@ -1,188 +1,145 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
+
+  if(!Filer.FileSystem.providers.IndexedDB.isSupported()) {
+    console.log("Skipping Filer.FileSystem.providers.IndexedDB tests, since IndexedDB isn't supported.");
+    return;
+  }
+
+  if(navigator.userAgent.indexOf('PhantomJS') > -1) {
+    console.log("Skipping Filer.FileSystem.providers.IndexedDB tests, since PhantomJS doesn't support it.");
+    return;
+  }
 
   describe("Filer.FileSystem.providers.IndexedDB", function() {
     it("is supported -- if it isn't, none of these tests can run.", function() {
-      expect(Filer.FileSystem.providers.IndexedDB.isSupported()).toEqual(true);
+      expect(Filer.FileSystem.providers.IndexedDB.isSupported()).to.be.true;
     });
 
     it("has open, getReadOnlyContext, and getReadWriteContext instance methods", function() {
       var indexedDBProvider = new Filer.FileSystem.providers.IndexedDB();
-      expect(typeof indexedDBProvider.open).toEqual('function');
-      expect(typeof indexedDBProvider.getReadOnlyContext).toEqual('function');
-      expect(typeof indexedDBProvider.getReadWriteContext).toEqual('function');
+      expect(indexedDBProvider.open).to.be.a('function');
+      expect(indexedDBProvider.getReadOnlyContext).to.be.a('function');
+      expect(indexedDBProvider.getReadWriteContext).to.be.a('function');
     });
 
     describe("open an IndexedDB provider", function() {
+      var _provider;
+
       beforeEach(function() {
-        this.db_name = mk_db_name();
+        _provider = new util.providers.IndexedDB(util.uniqueName());
+        _provider.init();
       });
 
-      afterEach(function() {
-        indexedDB.deleteDatabase(this.db_name);
+      afterEach(function(done) {
+        _provider.cleanup(done);
+        _provider = null;
       });
 
-      it("should open a new IndexedDB database", function() {
-        var complete = false;
-        var _error, _result;
-
-        var provider = new Filer.FileSystem.providers.IndexedDB(this.db_name);
-        provider.open(function(err, firstAccess) {
-          _error = err;
-          _result = firstAccess;
-          complete = true;
-        });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toEqual(null);
-          expect(_result).toEqual(true);
+      it("should open a new IndexedDB database", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          expect(error).not.to.exist;
+          expect(firstAccess).to.be.true;
+          done();
         });
       });
     });
 
     describe("Read/Write operations on an IndexedDB provider", function() {
+      var _provider;
+
       beforeEach(function() {
-        this.db_name = mk_db_name();
+        _provider = new util.providers.IndexedDB(util.uniqueName());
+        _provider.init();
       });
 
-      afterEach(function() {
-        indexedDB.deleteDatabase(this.db_name);
+      afterEach(function(done) {
+        _provider.cleanup(done);
+        _provider = null;
       });
 
-      it("should allow put() and get()", function() {
-        var complete = false;
-        var _error, _result;
-
-        var provider = new Filer.FileSystem.providers.IndexedDB(this.db_name);
-        provider.open(function(err, firstAccess) {
-          _error = err;
+      it("should allow put() and get()", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
           var context = provider.getReadWriteContext();
-          context.put("key", "value", function(err, result) {
-            _error = _error || err;
-            context.get("key", function(err, result) {
-              _error = _error || err;
-              _result = result;
+          context.put("key", "value", function(error, result) {
+            if(error) throw error;
 
-              complete = true;
+            context.get("key", function(error, result) {
+              expect(error).not.to.exist;
+              expect(result).to.equal('value');
+              done();
             });
           });
         });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toEqual(null);
-          expect(_result).toEqual("value");
-        });
       });
 
-      it("should allow delete()", function() {
-        var complete = false;
-        var _error, _result;
-
-        var provider = new Filer.FileSystem.providers.IndexedDB(this.db_name);
-        provider.open(function(err, firstAccess) {
-          _error = err;
+      it("should allow delete()", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
           var context = provider.getReadWriteContext();
-          context.put("key", "value", function(err, result) {
-            _error = _error || err;
-            context.delete("key", function(err, result) {
-              _error = _error || err;
-              context.get("key", function(err, result) {
-                _error = _error || err;
-                _result = result;
+          context.put("key", "value", function(error, result) {
+            if(error) throw error;
 
-                complete = true;
+            context.delete("key", function(error, result) {
+              if(error) throw error;
+
+              context.get("key", function(error, result) {
+                expect(error).not.to.exist;
+                expect(result).not.to.exist;
+                done();
               });
             });
           });
         });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toEqual(null);
-          expect(_result).toEqual(null);
-        });
       });
 
-      it("should allow clear()", function() {
-        var complete = false;
-        var _error, _result1, _result2;
-
-        var provider = new Filer.FileSystem.providers.IndexedDB(this.db_name);
-        provider.open(function(err, firstAccess) {
-          _error = err;
+      it("should allow clear()", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
           var context = provider.getReadWriteContext();
-          context.put("key1", "value1", function(err, result) {
-            _error = _error || err;
-            context.put("key2", "value2", function(err, result) {
-              _error = _error || err;
+          context.put("key1", "value1", function(error, result) {
+            if(error) throw error;
+
+            context.put("key2", "value2", function(error, result) {
+              if(error) throw error;
 
               context.clear(function(err) {
-                _error = _error || err;
+                if(error) throw error;
 
-                context.get("key1", function(err, result) {
-                  _error = _error || err;
-                  _result1 = result;
+                context.get("key1", function(error, result) {
+                  if(error) throw error;
+                  expect(result).not.to.exist;
 
-                  context.get("key2", function(err, result) {
-                    _error = _error || err;
-                    _result2 = result;
-
-                    complete = true;
+                  context.get("key2", function(error, result) {
+                    if(error) throw error;
+                    expect(result).not.to.exist;
+                    done();
                   });
                 });
               });
             });
           });
         });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toEqual(null);
-          expect(_result1).toEqual(null);
-          expect(_result2).toEqual(null);
-        });
       });
 
-      it("should fail when trying to write on ReadOnlyContext", function() {
-        var complete = false;
-        var _error, _result;
-
-        var provider = new Filer.FileSystem.providers.IndexedDB(this.db_name);
-        provider.open(function(err, firstAccess) {
-          _error = err;
+      it("should fail when trying to write on ReadOnlyContext", function(done) {
+        var provider = _provider.provider;
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
           var context = provider.getReadOnlyContext();
-          context.put("key1", "value1", function(err, result) {
-            _error = _error || err;
-            _result = result;
-
-            complete = true;
+          context.put("key1", "value1", function(error, result) {
+            expect(error).to.exist;
+            expect(result).not.to.exist;
+            done();
           });
-        });
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toBeDefined();
-          expect(_result).toEqual(null);
         });
       });
     });

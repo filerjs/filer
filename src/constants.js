@@ -62,7 +62,12 @@ define(function(require) {
     FS_PENDING: 'PENDING',
     FS_ERROR: 'ERROR',
 
-    SUPER_NODE_ID: '00000000-0000-0000-0000-000000000000'
+    SUPER_NODE_ID: '00000000-0000-0000-0000-000000000000',
+
+    ENVIRONMENT: {
+      TMP: '/tmp',
+      PATH: ''
+    }
   };
 
 });

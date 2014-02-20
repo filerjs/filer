@@ -51,8 +51,9 @@ define(function(require) {
   var XATTR_CREATE = require('./constants').XATTR_CREATE;
   var XATTR_REPLACE = require('./constants').XATTR_REPLACE;
 
-  var providers = require('./providers/providers');
-  var adapters = require('./adapters/adapters');
+  var providers = require('src/providers/providers');
+  var adapters = require('src/adapters/adapters');
+  var Shell = require('src/shell');
 
   /*
    * DirectoryEntry
@@ -582,6 +583,46 @@ define(function(require) {
     }
   }
 
+  function replace_data(context, ofd, buffer, offset, length, callback) {
+    var fileNode;
+
+    function return_nbytes(error) {
+      if(error) {
+        callback(error);
+      } else {
+        callback(null, length);
+      }
+    }
+
+    function update_file_node(error) {
+      if(error) {
+        callback(error);
+      } else {
+        context.put(fileNode.id, fileNode, return_nbytes);
+      }
+    }
+
+    function write_file_data(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        fileNode = result;
+        var newData = new Uint8Array(length);
+        var bufferWindow = buffer.subarray(offset, offset + length);
+        newData.set(bufferWindow);
+        ofd.position = length;
+
+        fileNode.size = length;
+        fileNode.mtime = Date.now();
+        fileNode.version += 1;
+
+        context.put(fileNode.data, newData, update_file_node);
+      }
+    }
+
+    context.get(ofd.id, write_file_data);
+  }
+
   function write_data(context, ofd, buffer, offset, length, position, callback) {
     var fileNode;
     var fileData;
@@ -613,7 +654,8 @@ define(function(require) {
         if(fileData) {
           newData.set(fileData);
         }
-        newData.set(buffer, _position);
+        var bufferWindow = buffer.subarray(offset, offset + length);
+        newData.set(bufferWindow, _position);
         if(undefined === position) {
           ofd.position += length;
         }
@@ -1429,7 +1471,7 @@ define(function(require) {
           fs.readyState = FS_READY;
           runQueued();
         }
-        callback(error);
+        callback(error, fs);
       }
 
       if(err) {
@@ -1702,7 +1744,7 @@ define(function(require) {
       var ofd = new OpenFileDescription(fileNode.id, flags, 0);
       var fd = fs.allocDescriptor(ofd);
 
-      write_data(context, ofd, data, 0, data.length, 0, function(err2, nbytes) {
+      replace_data(context, ofd, data, 0, data.length, function(err2, nbytes) {
         if(err2) {
           return callback(err2);
         }
@@ -2291,7 +2333,13 @@ define(function(require) {
     if(error) callback(error);
   };
   FileSystem.prototype.truncate = function(path, length, callback) {
+    // Follow node.js in allowing the `length` to be optional
+    if(typeof length === 'function') {
+      callback = length;
+      length = 0;
+    }
     callback = maybeCallback(callback);
+    length = typeof length === 'number' ? length : 0;
     var fs = this;
     var error = fs.queueOrRun(
       function() {
@@ -2426,6 +2474,10 @@ define(function(require) {
       callback(error);
     }
   };
+  FileSystem.prototype.Shell = function(options) {
+    return new Shell(this, options);
+  };
+
   return FileSystem;
 
 });

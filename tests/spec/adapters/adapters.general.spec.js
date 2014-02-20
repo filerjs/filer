@@ -1,9 +1,9 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
   // We reuse the same set of tests for all adapters.
   // buildTestsFor() creates a set of tests bound to an
-  // adapter, and uses a Memory() provider internally.
-
+  // adapter, and uses the provider set on the query string
+  // (defaults to Memory, see test-utils.js).
   function buildTestsFor(adapterName, buildAdapter) {
     function encode(str) {
       // TextEncoder is either native, or shimmed by Filer
@@ -16,186 +16,132 @@ define(["Filer"], function(Filer) {
     var value2Str = "value2", value2Buffer = encode(value2Str);
 
     function createProvider() {
-      var memoryProvider = new Filer.FileSystem.providers.Memory();
-      return buildAdapter(memoryProvider);
+      return buildAdapter(util.provider().provider);
     }
 
     describe("Filer.FileSystem.adapters." + adapterName, function() {
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
+
       it("is supported -- if it isn't, none of these tests can run.", function() {
-        // Allow for combined adapters (e.g., 'AES+Zlib') joined by '+'
+        // Allow for combined adapters (e.g., 'Encryption+Compression') joined by '+'
         adapterName.split('+').forEach(function(name) {
-          expect(Filer.FileSystem.adapters[name].isSupported()).toEqual(true);
+          expect(Filer.FileSystem.adapters[name].isSupported()).to.be.true;
         });
       });
 
       it("has open, getReadOnlyContext, and getReadWriteContext instance methods", function() {
         var provider = createProvider();
-        expect(typeof provider.open).toEqual('function');
-        expect(typeof provider.getReadOnlyContext).toEqual('function');
-        expect(typeof provider.getReadWriteContext).toEqual('function');
+        expect(provider.open).to.be.a('function');
+        expect(provider.getReadOnlyContext).to.be.a('function');
+        expect(provider.getReadWriteContext).to.be.a('function');
       });
+    });
 
-      describe("open a Memory provider with an " + adapterName + " adapter", function() {
-        it("should open a new database", function() {
-          var complete = false;
-          var _error, _result;
+    describe("open a Memory provider with an " + adapterName + " adapter", function() {
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
 
-          var provider = createProvider();
-          provider.open(function(err, firstAccess) {
-            _error = err;
-            _result = firstAccess;
-            complete = true;
-          });
+      it("should open a new database", function(done) {
+        var provider = createProvider();
+        provider.open(function(error, firstAccess) {
+          expect(error).not.to.exist;
+          expect(firstAccess).to.be.true;
+          done();
+        });
+      });
+    });
 
-          waitsFor(function() {
-            return complete;
-          }, 'test to complete', DEFAULT_TIMEOUT);
+    describe("Read/Write operations on a Memory provider with an " + adapterName + " adapter", function() {
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
 
-          runs(function() {
-            expect(_error).toEqual(null);
-            expect(_result).toEqual(true);
+      it("should allow put() and get()", function(done) {
+        var provider = createProvider();
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
+
+          var context = provider.getReadWriteContext();
+          context.put("key", valueBuffer, function(error, result) {
+            if(error) throw error;
+
+            context.get("key", function(error, result) {
+              expect(error).not.to.exist;
+              expect(util.typedArrayEqual(result, valueBuffer)).to.be.true;
+              done();
+            });
           });
         });
       });
 
-      describe("Read/Write operations on a Memory provider with an " + adapterName + " adapter", function() {
-        it("should allow put() and get()", function() {
-          var complete = false;
-          var _error, _result;
+      it("should allow delete()", function(done) {
+        var provider = createProvider();
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
-          var provider = createProvider();
-          provider.open(function(err, firstAccess) {
-            _error = err;
+          var context = provider.getReadWriteContext();
+          context.put("key", valueBuffer, function(error, result) {
+            if(error) throw error;
 
-            var context = provider.getReadWriteContext();
-            context.put("key", valueBuffer, function(err, result) {
-              _error = _error || err;
-              context.get("key", function(err, result) {
-                _error = _error || err;
-                _result = result;
+            context.delete("key", function(error, result) {
+              if(error) throw error;
 
-                complete = true;
+              context.get("key", function(error, result) {
+                expect(error).not.to.exist;
+                expect(result).not.to.exist;
+                done();
               });
             });
           });
-
-          waitsFor(function() {
-            return complete;
-          }, 'test to complete', DEFAULT_TIMEOUT);
-
-          runs(function() {
-            expect(_error).toEqual(null);
-            expect(_result).toEqual(valueBuffer);
-          });
         });
+      });
 
-        it("should allow delete()", function() {
-          var complete = false;
-          var _error, _result;
+      it("should allow clear()", function(done) {
+        var provider = createProvider();
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
-          var provider = createProvider();
-          provider.open(function(err, firstAccess) {
-            _error = err;
+          var context = provider.getReadWriteContext();
+          context.put("key1", value1Buffer, function(error, result) {
+            if(error) throw error;
 
-            var context = provider.getReadWriteContext();
-            context.put("key", valueBuffer, function(err, result) {
-              _error = _error || err;
-              context.delete("key", function(err, result) {
-                _error = _error || err;
-                context.get("key", function(err, result) {
-                  _error = _error || err;
-                  _result = result;
+            context.put("key2", value2Buffer, function(error, result) {
+              if(error) throw error;
 
-                  complete = true;
-                });
-              });
-            });
-          });
+              context.clear(function(err) {
+                if(error) throw error;
 
-          waitsFor(function() {
-            return complete;
-          }, 'test to complete', DEFAULT_TIMEOUT);
+                context.get("key1", function(error, result) {
+                  if(error) throw error;
+                  expect(result).not.to.exist;
 
-          runs(function() {
-            expect(_error).toEqual(null);
-            expect(_result).toEqual(null);
-          });
-        });
-
-        it("should allow clear()", function() {
-          var complete = false;
-          var _error, _result1, _result2;
-
-          var provider = createProvider();
-          provider.open(function(err, firstAccess) {
-            _error = err;
-
-            var context = provider.getReadWriteContext();
-            context.put("key1", value1Buffer, function(err, result) {
-              _error = _error || err;
-              context.put("key2", value2Buffer, function(err, result) {
-                _error = _error || err;
-
-                context.clear(function(err) {
-                  _error = _error || err;
-
-                  context.get("key1", function(err, result) {
-                    _error = _error || err;
-                    _result1 = result;
-
-                    context.get("key2", function(err, result) {
-                      _error = _error || err;
-                      _result2 = result;
-
-                      complete = true;
-                    });
+                  context.get("key2", function(error, result) {
+                    expect(error).not.to.exist;
+                    expect(result).not.to.exist;
+                      done();
                   });
                 });
               });
             });
           });
-
-          waitsFor(function() {
-            return complete;
-          }, 'test to complete', DEFAULT_TIMEOUT);
-
-          runs(function() {
-            expect(_error).toEqual(null);
-            expect(_result1).toEqual(null);
-            expect(_result2).toEqual(null);
-          });
         });
+      });
 
-        it("should fail when trying to write on ReadOnlyContext", function() {
-          var complete = false;
-          var _error, _result;
+      it("should fail when trying to write on ReadOnlyContext", function(done) {
+        var provider = createProvider();
+        provider.open(function(error, firstAccess) {
+          if(error) throw error;
 
-          var provider = createProvider();
-          provider.open(function(err, firstAccess) {
-            _error = err;
-
-            var context = provider.getReadOnlyContext();
-            context.put("key1", value1Buffer, function(err, result) {
-              _error = _error || err;
-              _result = result;
-
-              complete = true;
-            });
-          });
-
-          waitsFor(function() {
-            return complete;
-          }, 'test to complete', DEFAULT_TIMEOUT);
-
-          runs(function() {
-            expect(_error).toBeDefined();
-            expect(_result).toEqual(null);
+          var context = provider.getReadOnlyContext();
+          context.put("key1", value1Buffer, function(error, result) {
+            expect(error).to.exist;
+            expect(result).not.to.exist;
+            done();
           });
         });
       });
     });
   }
-
 
   // Encryption
   buildTestsFor('Encryption', function buildAdapter(provider) {
