@@ -1,6 +1,6 @@
 define(function(require) {
 
-  var defaults = require('src/constants').ENVIRONMENT;
+  var defaults = require('./constants').ENVIRONMENT;
 
   function Environment(env) {
     env = env || {};

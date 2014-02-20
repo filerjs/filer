@@ -51,9 +51,9 @@ define(function(require) {
   var XATTR_CREATE = require('./constants').XATTR_CREATE;
   var XATTR_REPLACE = require('./constants').XATTR_REPLACE;
 
-  var providers = require('src/providers/providers');
-  var adapters = require('src/adapters/adapters');
-  var Shell = require('src/shell');
+  var providers = require('./providers/providers');
+  var adapters = require('./adapters/adapters');
+  var Shell = require('./shell');
 
   /*
    * DirectoryEntry
