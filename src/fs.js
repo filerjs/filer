@@ -1789,6 +1789,13 @@ define(function(require) {
     });
   }
 
+  function _exists (context, name, path, callback) { 
+    function cb(err, stats) {
+      callback(err ? false : true);
+    }
+    _stat(context, name, path, cb);
+  }
+
   function _getxattr (context, path, name, callback) {
     if (!nullCheck(path, callback)) return;
 
@@ -2261,6 +2268,17 @@ define(function(require) {
       function() {
         var context = fs.provider.getReadWriteContext();
         _appendFile(fs, context, path, data, options, callback);
+      }
+    );
+    if(error) callback(error);
+  };
+  FileSystem.prototype.exists = function(path, callback_) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function() {
+        var context = fs.provider.getReadOnlyContext();
+        _exists(context, fs.name, path, callback);
       }
     );
     if(error) callback(error);
