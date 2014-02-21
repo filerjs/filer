@@ -130,31 +130,31 @@ define(function(require) {
 
   Stats.prototype.isFile = function() {
     return this.type === constants.MODE_FILE;
-  }
+  };
 
   Stats.prototype.isDirectory = function() {
     return this.type === constants.MODE_DIRECTORY;
-  }
+  };
 
   Stats.prototype.isBlockDevice = function() {
     return false;
-  }
+  };
 
   Stats.prototype.isCharacterDevice = function() {
     return false;
-  }
+  };
 
   Stats.prototype.isSymbolicLink = function() {
     return this.type === constants.MODE_SYMBOLIC_LINK;
-  }
+  };
 
   Stats.prototype.isFIFO = function() {
     return false;
-  }
+  };
 
   Stats.prototype.isSocket = function() {
     return false;
-  }
+  };
 
   /*
    * find_node
