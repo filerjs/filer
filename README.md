@@ -175,7 +175,6 @@ interface as providers.  See the code in `src/providers` and `src/adapters` for 
 
 The node.js [path module](http://nodejs.org/api/path.html) is available via the `Filer.Path` object. It is
 identical to the node.js version with the following differences:
-* No support for `existsSync()`. Use `fs.stat()` instead.
 * No notion of a current working directory in `resolve` (the root dir is used instead)
 
 ```javascript
