@@ -126,34 +126,34 @@ define(function(require) {
     this.mtime = fileNode.mtime;
     this.ctime = fileNode.ctime;
     this.type = fileNode.mode;
+  }
 
-    function isFile() {
-      return (this.type === constants.MODE_FILE);
-    }
+  Stats.prototype.isFile = function() {
+    return this.type === constants.MODE_FILE;
+  }
 
-    function isDirectory() {
-      return (this.type === constants.MODE_DIRECTORY);
-    }
+  Stats.prototype.isDirectory = function() {
+    return this.type === constants.MODE_DIRECTORY;
+  }
 
-    function isBlockDevice() {
-      return false;
-    }
+  Stats.prototype.isBlockDevice = function() {
+    return false;
+  }
 
-    function isCharacterDevice() {
-      return false;
-    }
+  Stats.prototype.isCharacterDevice = function() {
+    return false;
+  }
 
-    function isSymbolicLink() {
-      return (this.type === constants.MODE_SYMBOLIC_LINK);
-    }
+  Stats.prototype.isSymbolicLink = function() {
+    return this.type === constants.MODE_SYMBOLIC_LINK;
+  }
 
-    function isFIFO() {
-      return false;
-    }
+  Stats.prototype.isFIFO = function() {
+    return false;
+  }
 
-    function isSocket() {
-      return false;
-    }
+  Stats.prototype.isSocket = function() {
+    return false;
   }
 
   /*
