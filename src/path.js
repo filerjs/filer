@@ -193,6 +193,20 @@ define(function() {
     return splitPath(path)[3];
   }
 
+  function isAbsolute(path) {
+    if(path.charAt(0) === '/') {
+      return true;
+    }
+    return false;
+  }
+
+  function isNull(path) {
+    if (('' + path).indexOf('\u0000') !== -1) {
+      return true;
+    }
+    return false;
+  }
+
   // XXXidbfs: we don't support path.exists() or path.existsSync(), which
   // are deprecated, and need a FileSystem instance to work. Use fs.stat().
 
@@ -205,7 +219,9 @@ define(function() {
     delimiter: ':',
     dirname: dirname,
     basename: basename,
-    extname: extname
+    extname: extname,
+    isAbsolute: isAbsolute,
+    isNull: isNull
   };
 
 });

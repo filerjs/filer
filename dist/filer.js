@@ -3067,6 +3067,20 @@ define('src/path',[],function() {
     return splitPath(path)[3];
   }
 
+  function isAbsolute(path) {
+    if(path.charAt(0) === '/') {
+      return true;
+    }
+    return false;
+  }
+
+  function isNull(path) {
+    if (('' + path).indexOf('\u0000') !== -1) {
+      return true;
+    }
+    return false;
+  }
+
   // XXXidbfs: we don't support path.exists() or path.existsSync(), which
   // are deprecated, and need a FileSystem instance to work. Use fs.stat().
 
@@ -3079,7 +3093,9 @@ define('src/path',[],function() {
     delimiter: ':',
     dirname: dirname,
     basename: basename,
-    extname: extname
+    extname: extname,
+    isAbsolute: isAbsolute,
+    isNull: isNull
   };
 
 });
@@ -3992,7 +4008,7 @@ define('src/adapters/adapters',['require','src/adapters/zlib','src/adapters/cryp
 
 });
 
-define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters'],function(require) {
+define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters'],function(require) {
 
   var _ = require('nodash');
 
@@ -4003,6 +4019,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   var normalize = require('src/path').normalize;
   var dirname = require('src/path').dirname;
   var basename = require('src/path').basename;
+  var isAbsolutePath = require('src/path').isAbsolute;
+  var isNullPath = require('src/path').isNull;
 
   var guid = require('src/shared').guid;
   var hash = require('src/shared').hash;
@@ -5354,11 +5372,16 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     return options;
   }
 
-  // nullCheck from https://github.com/joyent/node/blob/master/lib/fs.js
-  function nullCheck(path, callback) {
-    if (('' + path).indexOf('\u0000') !== -1) {
-      var er = new Error('Path must be a string without null bytes.');
-      callback(er);
+  function pathCheck(path, callback) {
+    var err;
+    if(isNullPath(path)) {
+      err = new Error('Path must be a string without null bytes.');
+    } else if(!isAbsolutePath(path)) {
+      err = new Error('Path must be absolute.');
+    }
+
+    if(err) {
+      callback(err);
       return false;
     }
     return true;
@@ -5494,7 +5517,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   FileSystem.adapters = adapters;
 
   function _open(fs, context, path, flags, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, fileNode) {
       if(error) {
@@ -5530,7 +5553,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _mkdir(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -5544,7 +5567,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _rmdir(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -5558,7 +5581,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _stat(context, name, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, result) {
       if(error) {
@@ -5592,8 +5615,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _link(context, oldpath, newpath, callback) {
-    if(!nullCheck(oldpath, callback)) return;
-    if(!nullCheck(newpath, callback)) return;
+    if(!pathCheck(oldpath, callback)) return;
+    if(!pathCheck(newpath, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -5607,7 +5630,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _unlink(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -5646,7 +5669,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   function _readFile(fs, context, path, options, callback) {
     options = validate_file_options(options, null, 'r');
 
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     var flags = validate_flags(options.flag || 'r');
     if(!flags) {
@@ -5715,7 +5738,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   function _writeFile(fs, context, path, data, options, callback) {
     options = validate_file_options(options, 'utf8', 'w');
 
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     var flags = validate_flags(options.flag || 'w');
     if(!flags) {
@@ -5750,7 +5773,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   function _appendFile(fs, context, path, data, options, callback) {
     options = validate_file_options(options, 'utf8', 'a');
 
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     var flags = validate_flags(options.flag || 'a');
     if(!flags) {
@@ -5783,7 +5806,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _getxattr (context, path, name, callback) {
-    if (!nullCheck(path, callback)) return;
+    if (!pathCheck(path, callback)) return;
 
     function fetch_value (error, value) {
       if (error) {
@@ -5819,7 +5842,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _setxattr (context, path, name, value, flag, callback) {
-    if (!nullCheck(path, callback)) return;
+    if (!pathCheck(path, callback)) return;
 
     function check_result (error) {
       if (error) {
@@ -5857,7 +5880,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _removexattr (context, path, name, callback) {
-    if (!nullCheck(path, callback)) return;
+    if (!pathCheck(path, callback)) return;
 
     function remove_xattr (error) {
       if (error) {
@@ -5945,7 +5968,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _readdir(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, files) {
       if(error) {
@@ -5959,7 +5982,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _utimes(context, path, atime, mtime, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     var currentTime = Date.now();
     atime = (atime) ? atime : currentTime;
@@ -6002,8 +6025,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _rename(context, oldpath, newpath, callback) {
-    if(!nullCheck(oldpath, callback)) return;
-    if(!nullCheck(newpath, callback)) return;
+    if(!pathCheck(oldpath, callback)) return;
+    if(!pathCheck(newpath, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -6025,8 +6048,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _symlink(context, srcpath, dstpath, callback) {
-    if(!nullCheck(srcpath, callback)) return;
-    if(!nullCheck(dstpath, callback)) return;
+    if(!pathCheck(srcpath, callback)) return;
+    if(!pathCheck(dstpath, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -6040,7 +6063,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _readlink(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, result) {
       if(error) {
@@ -6058,7 +6081,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _lstat(fs, context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, result) {
       if(error) {
@@ -6073,7 +6096,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   }
 
   function _truncate(context, path, length, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error) {
       if(error) {

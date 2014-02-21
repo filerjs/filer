@@ -9,6 +9,8 @@ define(function(require) {
   var normalize = require('src/path').normalize;
   var dirname = require('src/path').dirname;
   var basename = require('src/path').basename;
+  var isAbsolutePath = require('src/path').isAbsolute;
+  var isNullPath = require('src/path').isNull;
 
   var guid = require('src/shared').guid;
   var hash = require('src/shared').hash;
@@ -1360,11 +1362,16 @@ define(function(require) {
     return options;
   }
 
-  // nullCheck from https://github.com/joyent/node/blob/master/lib/fs.js
-  function nullCheck(path, callback) {
-    if (('' + path).indexOf('\u0000') !== -1) {
-      var er = new Error('Path must be a string without null bytes.');
-      callback(er);
+  function pathCheck(path, callback) {
+    var err;
+    if(isNullPath(path)) {
+      err = new Error('Path must be a string without null bytes.');
+    } else if(!isAbsolutePath(path)) {
+      err = new Error('Path must be absolute.');
+    }
+
+    if(err) {
+      callback(err);
       return false;
     }
     return true;
@@ -1500,7 +1507,7 @@ define(function(require) {
   FileSystem.adapters = adapters;
 
   function _open(fs, context, path, flags, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, fileNode) {
       if(error) {
@@ -1536,7 +1543,7 @@ define(function(require) {
   }
 
   function _mkdir(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -1550,7 +1557,7 @@ define(function(require) {
   }
 
   function _rmdir(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -1564,7 +1571,7 @@ define(function(require) {
   }
 
   function _stat(context, name, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, result) {
       if(error) {
@@ -1598,8 +1605,8 @@ define(function(require) {
   }
 
   function _link(context, oldpath, newpath, callback) {
-    if(!nullCheck(oldpath, callback)) return;
-    if(!nullCheck(newpath, callback)) return;
+    if(!pathCheck(oldpath, callback)) return;
+    if(!pathCheck(newpath, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -1613,7 +1620,7 @@ define(function(require) {
   }
 
   function _unlink(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -1652,7 +1659,7 @@ define(function(require) {
   function _readFile(fs, context, path, options, callback) {
     options = validate_file_options(options, null, 'r');
 
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     var flags = validate_flags(options.flag || 'r');
     if(!flags) {
@@ -1721,7 +1728,7 @@ define(function(require) {
   function _writeFile(fs, context, path, data, options, callback) {
     options = validate_file_options(options, 'utf8', 'w');
 
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     var flags = validate_flags(options.flag || 'w');
     if(!flags) {
@@ -1756,7 +1763,7 @@ define(function(require) {
   function _appendFile(fs, context, path, data, options, callback) {
     options = validate_file_options(options, 'utf8', 'a');
 
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     var flags = validate_flags(options.flag || 'a');
     if(!flags) {
@@ -1789,7 +1796,7 @@ define(function(require) {
   }
 
   function _getxattr (context, path, name, callback) {
-    if (!nullCheck(path, callback)) return;
+    if (!pathCheck(path, callback)) return;
 
     function fetch_value (error, value) {
       if (error) {
@@ -1825,7 +1832,7 @@ define(function(require) {
   }
 
   function _setxattr (context, path, name, value, flag, callback) {
-    if (!nullCheck(path, callback)) return;
+    if (!pathCheck(path, callback)) return;
 
     function check_result (error) {
       if (error) {
@@ -1863,7 +1870,7 @@ define(function(require) {
   }
 
   function _removexattr (context, path, name, callback) {
-    if (!nullCheck(path, callback)) return;
+    if (!pathCheck(path, callback)) return;
 
     function remove_xattr (error) {
       if (error) {
@@ -1951,7 +1958,7 @@ define(function(require) {
   }
 
   function _readdir(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, files) {
       if(error) {
@@ -1965,7 +1972,7 @@ define(function(require) {
   }
 
   function _utimes(context, path, atime, mtime, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     var currentTime = Date.now();
     atime = (atime) ? atime : currentTime;
@@ -2008,8 +2015,8 @@ define(function(require) {
   }
 
   function _rename(context, oldpath, newpath, callback) {
-    if(!nullCheck(oldpath, callback)) return;
-    if(!nullCheck(newpath, callback)) return;
+    if(!pathCheck(oldpath, callback)) return;
+    if(!pathCheck(newpath, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -2031,8 +2038,8 @@ define(function(require) {
   }
 
   function _symlink(context, srcpath, dstpath, callback) {
-    if(!nullCheck(srcpath, callback)) return;
-    if(!nullCheck(dstpath, callback)) return;
+    if(!pathCheck(srcpath, callback)) return;
+    if(!pathCheck(dstpath, callback)) return;
 
     function check_result(error) {
       if(error) {
@@ -2046,7 +2053,7 @@ define(function(require) {
   }
 
   function _readlink(context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, result) {
       if(error) {
@@ -2064,7 +2071,7 @@ define(function(require) {
   }
 
   function _lstat(fs, context, path, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error, result) {
       if(error) {
@@ -2079,7 +2086,7 @@ define(function(require) {
   }
 
   function _truncate(context, path, length, callback) {
-    if(!nullCheck(path, callback)) return;
+    if(!pathCheck(path, callback)) return;
 
     function check_result(error) {
       if(error) {
