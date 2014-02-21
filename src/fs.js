@@ -55,6 +55,7 @@ define(function(require) {
 
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
+  var Shell = require('src/shell');
 
   /*
    * DirectoryEntry
@@ -1795,6 +1796,13 @@ define(function(require) {
     });
   }
 
+  function _exists (context, name, path, callback) {
+    function cb(err, stats) {
+      callback(err ? false : true);
+    }
+    _stat(context, name, path, cb);
+  }
+
   function _getxattr (context, path, name, callback) {
     if (!pathCheck(path, callback)) return;
 
@@ -2271,6 +2279,17 @@ define(function(require) {
     );
     if(error) callback(error);
   };
+  FileSystem.prototype.exists = function(path, callback_) {
+    var callback = maybeCallback(arguments[arguments.length - 1]);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function() {
+        var context = fs.provider.getReadOnlyContext();
+        _exists(context, fs.name, path, callback);
+      }
+    );
+    if(error) callback(error);
+  };
   FileSystem.prototype.lseek = function(fd, offset, whence, callback) {
     callback = maybeCallback(callback);
     var fs = this;
@@ -2480,6 +2499,10 @@ define(function(require) {
       callback(error);
     }
   };
+  FileSystem.prototype.Shell = function(options) {
+    return new Shell(this, options);
+  };
+
   return FileSystem;
 
 });

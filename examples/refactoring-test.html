@@ -19,7 +19,7 @@ var fs = new Filer.FileSystem({
 //var data = new Uint8Array(buffer.length);
 
 try {
-fs.readdir('./', function(error, files) {
+fs.readdir('\u0000', function(error, files) {
   if(error) throw error;
   console.log('contents:', files);
 });

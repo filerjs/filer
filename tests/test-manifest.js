@@ -12,6 +12,7 @@ define([
   "spec/fs.spec",
   "spec/fs.stat.spec",
   "spec/fs.lstat.spec",
+  "spec/fs.exists.spec",
   "spec/fs.mkdir.spec",
   "spec/fs.readdir.spec",
   "spec/fs.rmdir.spec",
@@ -41,6 +42,15 @@ define([
   // Filer.FileSystem.adapters.*
   "spec/adapters/adapters.spec",
   "spec/adapters/adapters.general.spec",
+
+  // Filer.FileSystemShell.*
+  "spec/shell/cd.spec",
+  "spec/shell/touch.spec",
+  "spec/shell/exec.spec",
+  "spec/shell/cat.spec",
+  "spec/shell/ls.spec",
+  "spec/shell/rm.spec",
+  "spec/shell/env.spec",
 
   // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
   "spec/node-js/simple/test-fs-mkdir",

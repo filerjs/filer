@@ -11,6 +11,24 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     return 'filer-testdb-' + uniqueName.seed++;
   }
 
+  function findBestProvider() {
+    // When running tests, and when no explicit provider is defined,
+    // prefer providers in this order: IndexedDB, WebSQL, Memory.
+    // However, if we're running in PhantomJS, use Memory first.
+    if(navigator.userAgent.indexOf('PhantomJS') > -1) {
+      return MemoryTestProvider;
+    }
+
+    var providers = Filer.FileSystem.providers;
+    if(providers.IndexedDB.isSupported()) {
+      return IndexedDBTestProvider;
+    }
+    if(providers.WebSQL.isSupported()) {
+      return WebSQLTestProvider;
+    }
+    return MemoryTestProvider;
+  }
+
   function setup(callback) {
     // We support specifying the provider via the query string
     // (e.g., ?filer-provider=IndexedDB). If not specified, we use
@@ -31,7 +49,8 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
       case 'memory':
       /* falls through */
       default:
-        _provider = new MemoryTestProvider(name);
+        var BestProvider = findBestProvider();
+        _provider = new BestProvider(name);
         break;
     }
 
@@ -68,6 +87,10 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     return _provider;
   }
 
+  function shell(options) {
+    return fs().Shell(options);
+  }
+
   function cleanup(callback) {
     if(!_provider) {
       return;
@@ -100,6 +123,7 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     uniqueName: uniqueName,
     setup: setup,
     fs: fs,
+    shell: shell,
     provider: provider,
     providers: {
       IndexedDB: IndexedDBTestProvider,
