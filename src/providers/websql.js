@@ -4,6 +4,7 @@ define(function(require) {
   var WSQL_VERSION = require('src/constants').WSQL_VERSION;
   var WSQL_SIZE = require('src/constants').WSQL_SIZE;
   var WSQL_DESC = require('src/constants').WSQL_DESC;
+  var u8toArray = require('src/shared').u8toArray;
 
   function WebSQLContext(db, isReadOnly) {
     var that = this;
@@ -62,14 +63,7 @@ define(function(require) {
     if(Object.prototype.toString.call(value) === "[object Uint8Array]") {
       value = {
         __isUint8Array: true,
-        __array: (function() {
-          var array = [];
-          var vlen = value.length;
-          for(var i = 0; i < vlen; i++) {
-            array[i] = value[i];
-          }
-          return array;
-        }())
+        __array: u8toArray(value)
       };
     }
     value = JSON.stringify(value);
