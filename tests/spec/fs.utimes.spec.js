@@ -158,22 +158,21 @@ define(["Filer", "util"], function(Filer, util) {
       var fs = util.fs();
       var atimeEst;
       var mtimeEst;
-      var now;
 
       fs.writeFile('/myfile', '', function (error) {
         if (error) throw error;
 
+        var then = Date.now();
         fs.utimes('/myfile', null, null, function (error) {
           expect(error).not.to.exist;
-
-          now = Date.now();
 
           fs.stat('/myfile', function (error, stat) {
             expect(error).not.to.exist;
             // Note: testing estimation as time may differ by a couple of milliseconds
             // This number should be increased if tests are on slow systems
-            expect(now - stat.atime).to.be.below(75);
-            expect(now - stat.mtime).to.be.below(75);
+            var delta = Date.now() - then;
+            expect(then - stat.atime).to.be.below(delta);
+            expect(then - stat.mtime).to.be.below(delta);
             done();
           });
         });
