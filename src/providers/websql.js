@@ -27,7 +27,7 @@ define(function(require) {
       callback(null);
     }
     this.getTransaction(function(transaction) {
-      transaction.executeSql("DELETE FROM " + FILE_STORE_NAME,
+      transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + ";",
                              [], onSuccess, onError);
     });
   };
@@ -35,17 +35,44 @@ define(function(require) {
     function onSuccess(transaction, result) {
       // If the key isn't found, return null
       var value = result.rows.length === 0 ? null : result.rows.item(0).data;
-      callback(null, value);
+      try {
+        if(value) {
+          value = JSON.parse(value);
+          // Deal with special-cased flattened typed arrays in WebSQL (see put() below)
+          if(value.__isUint8Array) {
+            value = new Uint8Array(value.__array);
+          }
+        }
+        callback(null, value);
+      } catch(e) {
+        callback(e);
+      }
     }
     function onError(transaction, error) {
       callback(error);
     }
     this.getTransaction(function(transaction) {
-      transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ?",
+      transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ?;",
                              [key], onSuccess, onError);
     });
   };
   WebSQLContext.prototype.put = function(key, value, callback) {
+    // We do extra work to make sure typed arrays survive
+    // being stored in the db and still get the right prototype later.
+    if(Object.prototype.toString.call(value) === "[object Uint8Array]") {
+      value = {
+        __isUint8Array: true,
+        __array: (function() {
+          var array = [];
+          var vlen = value.length;
+          for(var i = 0; i < vlen; i++) {
+            array[i] = value[i];
+          }
+          return array;
+        }())
+      };
+    }
+    value = JSON.stringify(value);
     function onSuccess(transaction, result) {
       callback(null);
     }
@@ -53,7 +80,7 @@ define(function(require) {
       callback(error);
     }
     this.getTransaction(function(transaction) {
-      transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data) VALUES (?, ?)",
+      transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data) VALUES (?, ?);",
                              [key, value], onSuccess, onError);
     });
   };
@@ -65,7 +92,7 @@ define(function(require) {
       callback(error);
     }
     this.getTransaction(function(transaction) {
-      transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + " WHERE id = ?",
+      transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + " WHERE id = ?;",
                              [key], onSuccess, onError);
     });
   };
@@ -113,9 +140,15 @@ define(function(require) {
                              [], gotCount, onError);
     }
 
+    // Create the table and index we'll need to store the fs data.
     db.transaction(function(transaction) {
-      transaction.executeSql("CREATE TABLE IF NOT EXISTS " + FILE_STORE_NAME + " (id unique, data)",
-                             [], onSuccess, onError);
+      function createIndex(transaction) {
+        transaction.executeSql("CREATE INDEX IF NOT EXISTS idx_" + FILE_STORE_NAME + "_id" +
+                               " on " + FILE_STORE_NAME + " (id);",
+                               [], onSuccess, onError);
+      }
+      transaction.executeSql("CREATE TABLE IF NOT EXISTS " + FILE_STORE_NAME + " (id unique, data TEXT);",
+                             [], createIndex, onError);
     });
   };
   WebSQL.prototype.getReadOnlyContext = function() {
