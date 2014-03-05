@@ -2465,7 +2465,7 @@ define(function(require) {
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadOnlyContext();
+        var context = fs.provider.getReadWriteContext();
         _exists(context, fs.name, path, callback);
       }
     );
