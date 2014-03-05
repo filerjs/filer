@@ -58,7 +58,6 @@ define(function(require) {
     XATTR_CREATE: XATTR_CREATE,
     XATTR_REPLACE: XATTR_REPLACE,
 
-    NOATIME: 'NOATIME',
     NOCTIME: 'NOCTIME',
     NOMTIME: 'NOMTIME',
 

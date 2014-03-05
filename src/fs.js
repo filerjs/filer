@@ -52,7 +52,6 @@ define(function(require) {
   var O_FLAGS = require('src/constants').O_FLAGS;
   var XATTR_CREATE = require('src/constants').XATTR_CREATE;
   var XATTR_REPLACE = require('src/constants').XATTR_REPLACE;
-  var NOATIME = require('src/constants').NOATIME;
   var NOMTIME = require('src/constants').NOMTIME;
   var NOCTIME = require('src/constants').NOCTIME;
 
@@ -105,7 +104,7 @@ define(function(require) {
     this.id = id || guid();
     this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
     this.size = size || 0; // size (bytes for files, entries for directories)
-    this.atime = atime || now; // access time
+    this.atime = atime || now; // access time (will mirror ctime after creation)
     this.ctime = ctime || now; // creation/change time
     this.mtime = mtime || now; // modified time
     this.flags = flags || []; // file flags
@@ -142,9 +141,6 @@ define(function(require) {
     if(_(flags).contains(NOCTIME)) {
       delete times.ctime;
     }
-    if(_(flags).contains(NOATIME)) {
-      delete times.atime;
-    }
     if(_(flags).contains(NOMTIME)) {
       delete times.mtime;
     }
@@ -153,9 +149,13 @@ define(function(require) {
     var update = false;
     if(times.ctime) {
       node.ctime = times.ctime;
+      // We don't do atime tracking for perf reasons, but do mirror ctime
+      node.atime = times.ctime;
       update = true;
     }
     if(times.atime) {
+      // The only time we explicitly pass atime is when utimes(), futimes() is called.
+      // Override ctime mirror here if so
       node.atime = times.atime;
       update = true;
     }
@@ -621,9 +621,7 @@ define(function(require) {
         callback(error);
       } else {
         fileNode = result;
-        update_node_times(context, path, fileNode, { atime: Date.now() }, function(error) {
-          callback(error, fileNode);
-        });
+        callback(null, fileNode);
       }
     }
 
@@ -815,13 +813,7 @@ define(function(require) {
         callback(error);
       } else {
         fileNode = result;
-        update_node_times(context, ofd.path, fileNode, { atime: Date.now() }, function(error) {
-          if(error) {
-            callback(error);
-          } else {
-            context.get(fileNode.data, handle_file_data);
-          }
-        });
+        context.get(fileNode.data, handle_file_data);
       }
     }
 
@@ -836,9 +828,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        update_node_times(context, path, result, { atime: Date.now() }, function(error) {
-          callback(error, result);
-        });
+        callback(null, result);
       }
     }
 
@@ -850,9 +840,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        update_node_times(context, ofd.path, result, { atime: Date.now() }, function(error) {
-          callback(error, result);
-        });
+        callback(null, result);
       }
     }
 
@@ -899,9 +887,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        update_node_times(context, path, result, { atime: Date.now() }, function(error) {
-          callback(error, result);
-        });
+        callback(null, result);
       }
     }
   }
