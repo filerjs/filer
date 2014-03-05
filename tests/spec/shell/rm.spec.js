@@ -71,7 +71,7 @@ define(["Filer", "util"], function(Filer, util) {
 
           shell.rm('/dir', function(err) {
             expect(err).to.exist;
-            expect(err.name).to.equal('ENotEmpty');
+            expect(err.code).to.equal('ENOTEMPTY');
             done();
           });
         });
