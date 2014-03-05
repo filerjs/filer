@@ -70,7 +70,8 @@ define(function(require) {
    * OpenFileDescription
    */
 
-  function OpenFileDescription(id, flags, position) {
+  function OpenFileDescription(path, id, flags, position) {
+    this.path = path;
     this.id = id;
     this.flags = flags;
     this.position = position;
@@ -102,7 +103,7 @@ define(function(require) {
     this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
     this.size = size || 0; // size (bytes for files, entries for directories)
     this.atime = atime || now; // access time
-    this.ctime = ctime || now; // creation time
+    this.ctime = ctime || now; // creation/change time
     this.mtime = mtime || now; // modified time
     this.flags = flags || []; // file flags
     this.xattrs = xattrs || {}; // extended attributes
@@ -126,6 +127,23 @@ define(function(require) {
     this.mtime = fileNode.mtime;
     this.ctime = fileNode.ctime;
     this.type = fileNode.mode;
+  }
+
+  /*
+   * Update node times. Only passed times are modified (undefined times are ignored)
+   */
+  function update_node_times(context, path, node, times, callback) {
+    if(times.ctime) {
+      node.ctime = times.ctime;
+    }
+    if(times.mtime) {
+      node.mtime = times.mtime;
+    }
+    if(times.atime) {
+      node.atime = times.atime;
+    }
+
+    context.put(node.id, node, callback);
   }
 
   /*
@@ -596,11 +614,20 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, return_nbytes);
+      }
+    }
+
     function update_file_node(error) {
       if(error) {
         callback(error);
       } else {
-        context.put(fileNode.id, fileNode, return_nbytes);
+        context.put(fileNode.id, fileNode, update_time);
       }
     }
 
@@ -615,7 +642,6 @@ define(function(require) {
         ofd.position = length;
 
         fileNode.size = length;
-        fileNode.mtime = Date.now();
         fileNode.version += 1;
 
         context.put(fileNode.data, newData, update_file_node);
@@ -637,11 +663,20 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, return_nbytes);
+      }
+    }
+
     function update_file_node(error) {
       if(error) {
         callback(error);
       } else {
-        context.put(fileNode.id, fileNode, return_nbytes);
+        context.put(fileNode.id, fileNode, update_time);
       }
     }
 
@@ -663,7 +698,6 @@ define(function(require) {
         }
 
         fileNode.size = newSize;
-        fileNode.mtime = Date.now();
         fileNode.version += 1;
 
         context.put(fileNode.data, newData, update_file_node);
@@ -1089,14 +1123,22 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, path, fileNode, { mtime: now, ctime: now }, callback);
+      }
+    }
+
     function update_file_node (error) {
       if(error) {
         callback(error);
       } else {
         fileNode.size = length;
-        fileNode.mtime = Date.now();
         fileNode.version += 1;
-        context.put(fileNode.id, fileNode, callback);
+        context.put(fileNode.id, fileNode, update_time);
       }
     }
 
@@ -1133,14 +1175,21 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, callback);
+      }
+    }
     function update_file_node (error) {
       if(error) {
         callback(error);
       } else {
         fileNode.size = length;
-        fileNode.mtime = Date.now();
         fileNode.version += 1;
-        context.put(fileNode.id, fileNode, callback);
+        context.put(fileNode.id, fileNode, update_time);
       }
     }
 
@@ -1157,11 +1206,8 @@ define(function(require) {
     function update_times (error, node) {
       if (error) {
         callback(error);
-      }
-      else {
-        node.atime = atime;
-        node.mtime = mtime;
-        context.put(node.id, node, callback);
+      } else {
+        update_node_times(context, path, node, { atime: atime, ctime: mtime, mtime: mtime }, callback);
       }
     }
 
@@ -1181,11 +1227,8 @@ define(function(require) {
     function update_times (error, node) {
       if (error) {
         callback(error);
-      }
-      else {
-        node.atime = atime;
-        node.mtime = mtime;
-        context.put(node.id, node, callback);
+      } else {
+        update_node_times(context, ofd.path, node, { atime: atime, ctime: mtime, mtime: mtime }, callback);
       }
     }
 
@@ -1520,7 +1563,7 @@ define(function(require) {
         } else {
           position = 0;
         }
-        var openFileDescription = new OpenFileDescription(fileNode.id, flags, position);
+        var openFileDescription = new OpenFileDescription(path, fileNode.id, flags, position);
         var fd = fs.allocDescriptor(openFileDescription);
         callback(null, fd);
       }
@@ -1671,7 +1714,7 @@ define(function(require) {
       if(err) {
         return callback(err);
       }
-      var ofd = new OpenFileDescription(fileNode.id, flags, 0);
+      var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
       var fd = fs.allocDescriptor(ofd);
 
       fstat_file(context, ofd, function(err2, fstatResult) {
@@ -1748,7 +1791,7 @@ define(function(require) {
       if(err) {
         return callback(err);
       }
-      var ofd = new OpenFileDescription(fileNode.id, flags, 0);
+      var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
       var fd = fs.allocDescriptor(ofd);
 
       replace_data(context, ofd, data, 0, data.length, function(err2, nbytes) {
@@ -1783,7 +1826,7 @@ define(function(require) {
       if(err) {
         return callback(err);
       }
-      var ofd = new OpenFileDescription(fileNode.id, flags, fileNode.size);
+      var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
       var fd = fs.allocDescriptor(ofd);
 
       write_data(context, ofd, data, 0, data.length, ofd.position, function(err2, nbytes) {
