@@ -11,9 +11,9 @@ define(["Filer", "util"], function(Filer, util) {
 
     it('should return false if path does not exist', function(done) {
       var fs = util.fs();
-      fs.exists('/tmp', function(result) { 
-        expect(result).to.exist; 
-        expect(result).equals(false);
+
+      fs.exists('/tmp', function(result) {
+        expect(result).to.be.false;
         done();
       });
     });
@@ -22,30 +22,33 @@ define(["Filer", "util"], function(Filer, util) {
       var fs = util.fs();
 
       fs.open('/myfile', 'w', function(err, fd) {
+        if(err) throw err;
+
+        fs.close(fd, function(err) {
           if(err) throw err;
-          fs.close(fd, function(err) {
-            if(err) throw err;
-            fs.exists('/myfile', function(result) {
-              expect(result).to.exist;
-              expect(result).equals(true);
-              done();
-            });
+
+          fs.exists('/myfile', function(result) {
+            expect(result).to.be.true;
+            done();
           });
         });
       });
+    });
 
     it('should follow symbolic links and return true for the resulting path', function(done) {
       var fs = util.fs();
 
       fs.open('/myfile', 'w', function(error, fd) {
         if(error) throw error;
+
         fs.close(fd, function(error) {
           if(error) throw error;
+
           fs.symlink('/myfile', '/myfilelink', function(error) {
             if(error) throw error;
+
             fs.exists('/myfilelink', function(result) {
-              expect(result).to.exist;
-              expect(result).equals(true);
+              expect(result).to.be.true;
               done();
             });
           });

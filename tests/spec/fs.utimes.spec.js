@@ -102,7 +102,6 @@ define(["Filer", "util"], function(Filer, util) {
 
           fs.stat('/testfile', function (error, stat) {
             expect(error).not.to.exist;
-            expect(stat.atime).to.equal(atime);
             expect(stat.mtime).to.equal(mtime);
             done();
           });
@@ -125,7 +124,6 @@ define(["Filer", "util"], function(Filer, util) {
 
           fs.fstat(ofd, function (error, stat) {
             expect(error).not.to.exist;
-            expect(stat.atime).to.equal(atime);
             expect(stat.mtime).to.equal(mtime);
             done();
           });
@@ -146,7 +144,6 @@ define(["Filer", "util"], function(Filer, util) {
 
           fs.stat('/testdir', function (error, stat) {
             expect(error).not.to.exist;
-            expect(stat.atime).to.equal(atime);
             expect(stat.mtime).to.equal(mtime);
             done();
           });

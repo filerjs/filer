@@ -28,7 +28,10 @@ define(["Filer", "util"], function(Filer, util) {
               fs.stat('/myotherfile', function(error, result) {
                 expect(error).not.to.exist;
                 expect(result.nlinks).to.equal(2);
-                expect(result).to.deep.equal(_oldstats);
+                expect(result.dev).to.equal(_oldstats.dev);
+                expect(result.node).to.equal(_oldstats.node);
+                expect(result.size).to.equal(_oldstats.size);
+                expect(result.type).to.equal(_oldstats.type);
                 done();
               });
             });
@@ -52,7 +55,10 @@ define(["Filer", "util"], function(Filer, util) {
               var _linkstats = result;
               fs.lstat('/myotherfile', function (error, result) {
                 expect(error).not.to.exist;
-                expect(result).to.deep.equal(_linkstats);
+                expect(result.dev).to.equal(_linkstats.dev);
+                expect(result.node).to.equal(_linkstats.node);
+                expect(result.size).to.equal(_linkstats.size);
+                expect(result.type).to.equal(_linkstats.type);
                 expect(result.nlinks).to.equal(2);
                 done();
               });
