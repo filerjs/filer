@@ -40,7 +40,7 @@ define(["Filer", "util"], function(Filer, util) {
         expect(shell.pwd()).to.equal('/');
         shell.cd('/nodir', function(err) {
           expect(err).to.exist;
-          expect(err.name).to.equal('ENotDirectory');
+          expect(err.code).to.equal('ENOTDIR');
           expect(shell.pwd()).to.equal('/');
           done();
         });
@@ -57,7 +57,7 @@ define(["Filer", "util"], function(Filer, util) {
         expect(shell.pwd()).to.equal('/');
         shell.cd('/file', function(err) {
           expect(err).to.exist;
-          expect(err.name).to.equal('ENotDirectory');
+          expect(err.code).to.equal('ENOTDIR');
           expect(shell.pwd()).to.equal('/');
           done();
         });
