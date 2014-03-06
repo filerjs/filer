@@ -52,8 +52,8 @@ define(function(require) {
   var O_FLAGS = require('src/constants').O_FLAGS;
   var XATTR_CREATE = require('src/constants').XATTR_CREATE;
   var XATTR_REPLACE = require('src/constants').XATTR_REPLACE;
-  var NOMTIME = require('src/constants').NOMTIME;
-  var NOCTIME = require('src/constants').NOCTIME;
+  var FS_NOMTIME = require('src/constants').FS_NOMTIME;
+  var FS_NOCTIME = require('src/constants').FS_NOCTIME;
 
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
@@ -138,10 +138,10 @@ define(function(require) {
   function update_node_times(context, path, node, times, callback) {
     // Honour mount flags for how we update times
     var flags = context.flags;
-    if(_(flags).contains(NOCTIME)) {
+    if(_(flags).contains(FS_NOCTIME)) {
       delete times.ctime;
     }
-    if(_(flags).contains(NOMTIME)) {
+    if(_(flags).contains(FS_NOMTIME)) {
       delete times.mtime;
     }
 

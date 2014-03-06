@@ -33,8 +33,12 @@ define(function(require) {
 
     ROOT_DIRECTORY_NAME: '/', // basename(normalize(path))
 
+    // FS Mount Flags
     FS_FORMAT: 'FORMAT',
+    FS_NOCTIME: 'NOCTIME',
+    FS_NOMTIME: 'NOMTIME',
 
+    // FS File Open Flags
     O_READ: O_READ,
     O_WRITE: O_WRITE,
     O_CREATE: O_CREATE,
@@ -57,9 +61,6 @@ define(function(require) {
 
     XATTR_CREATE: XATTR_CREATE,
     XATTR_REPLACE: XATTR_REPLACE,
-
-    NOCTIME: 'NOCTIME',
-    NOMTIME: 'NOMTIME',
 
     FS_READY: 'READY',
     FS_PENDING: 'PENDING',
