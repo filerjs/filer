@@ -80,7 +80,10 @@ Accepts two arguments: an `options` object, and an optional `callback`. The `opt
 object can specify a number of optional arguments, including:
 
 * `name`: the name of the file system, defaults to `'"local'`
-* `flags`: one or more flags to use when creating/opening the file system. Use `'FORMAT'` to force Filer to format (i.e., erase) the file system
+* `flags`: an Array of one or more flags to use when creating/opening the file system:
+  *`'FORMAT'` to force Filer to format (i.e., erase) the file system
+  *`'NOCTIME'` to force Filer to not update `ctime` on nodes when metadata changes (i.e., for better performance)
+  *`'NOMTIME'` to force Filer to not update `mtime` on nodes when data changes (i.e., for better performance)
 * `provider`: an explicit storage provider to use for the file system's database context provider. See the section on [Storage Providers](#providers).
 
 The `callback` function indicates when the file system is ready for use. Depending on the storage provider used, this might
@@ -98,7 +101,7 @@ function fsReady(err, fs) {
 
 fs = new Filer.FileSystem({
   name: "my-filesystem",
-  flags: 'FORMAT',
+  flags: [ 'FORMAT' ],
   provider: new Filer.FileSystem.providers.Memory()
 }, fsReady);
 ```
@@ -175,7 +178,6 @@ interface as providers.  See the code in `src/providers` and `src/adapters` for 
 
 The node.js [path module](http://nodejs.org/api/path.html) is available via the `Filer.Path` object. It is
 identical to the node.js version with the following differences:
-* No support for `exits()` or `existsSync()`. Use `fs.stat()` instead.
 * No notion of a current working directory in `resolve` (the root dir is used instead)
 
 ```javascript
@@ -219,6 +221,7 @@ var fs = new Filer.FileSystem();
 * [fs.stat(path, callback)](#stat)
 * [fs.fstat(fd, callback)](#fstat)
 * [fs.lstat(path, callback)](#lstat)
+* [fs.exists(path, callback)](#exists)
 * [fs.link(srcpath, dstpath, callback)](#link)
 * [fs.symlink(srcpath, dstpath, [type], callback)](#symlink)
 * [fs.readlink(path, callback)](#readlink)
@@ -417,7 +420,25 @@ fs.link("/data/logs/august", "/data/logs/current", function(err) {
     var size = stats.size;
   });
 });
-````
+```
+
+#### fs.exists(path, callback)<a name="exists"></a>
+
+Test whether or not the given path exists by checking with the file system. 
+Then call the callback argument with either true or false. 
+
+Example:
+
+```javascript
+//Test if the file exists
+fs.exists('/myfile', function (exists) {
+  console.log(exists ? "file exists" : "file not found");
+});
+```
+
+fs.exists() is an anachronism and exists only for historical reasons. There should almost never be a reason to use it in your own code.
+
+In particular, checking if a file exists before opening it is an anti-pattern that leaves you vulnerable to race conditions: another process may remove the file between the calls to fs.exists() and fs.open(). Just open the file and handle the error when it's not there.
 
 #### fs.link(srcPath, dstPath, callback)<a name="link"></a>
 

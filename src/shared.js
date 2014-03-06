@@ -15,9 +15,22 @@ define(function(require) {
 
   function nop() {}
 
+  /**
+   * Convert a Uint8Array to a regular array
+   */
+  function u8toArray(u8) {
+    var array = [];
+    var len = u8.length;
+    for(var i = 0; i < len; i++) {
+      array[i] = u8[i];
+    }
+    return array;
+  }
+
   return {
     guid: guid,
     hash: hash,
+    u8toArray: u8toArray,
     nop: nop
   };
 

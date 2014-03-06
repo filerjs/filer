@@ -12,6 +12,7 @@ define([
   "spec/fs.spec",
   "spec/fs.stat.spec",
   "spec/fs.lstat.spec",
+  "spec/fs.exists.spec",
   "spec/fs.mkdir.spec",
   "spec/fs.readdir.spec",
   "spec/fs.rmdir.spec",
@@ -31,6 +32,8 @@ define([
   "spec/fs.utimes.spec",
   "spec/fs.xattr.spec",
   "spec/path-resolution.spec",
+  "spec/times.spec",
+  "spec/time-flags.spec",
 
   // Filer.FileSystem.providers.*
   "spec/providers/providers.spec",

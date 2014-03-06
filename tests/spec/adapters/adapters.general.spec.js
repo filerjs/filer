@@ -3,7 +3,7 @@ define(["Filer", "util"], function(Filer, util) {
   // We reuse the same set of tests for all adapters.
   // buildTestsFor() creates a set of tests bound to an
   // adapter, and uses the provider set on the query string
-  // (defaults to Memory, see test-utils.js).
+  // (defaults to best available/supported provider, see test-utils.js).
   function buildTestsFor(adapterName, buildAdapter) {
     function encode(str) {
       // TextEncoder is either native, or shimmed by Filer
@@ -38,7 +38,7 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    describe("open a Memory provider with an " + adapterName + " adapter", function() {
+    describe("open a provider with an " + adapterName + " adapter", function() {
       beforeEach(util.setup);
       afterEach(util.cleanup);
 
@@ -46,13 +46,17 @@ define(["Filer", "util"], function(Filer, util) {
         var provider = createProvider();
         provider.open(function(error, firstAccess) {
           expect(error).not.to.exist;
-          expect(firstAccess).to.be.true;
+          // NOTE: we test firstAccess logic in the individual provider tests
+          // (see tests/spec/providers/*) but can't easily/actually test it here,
+          // since the provider-agnostic code in test-utils pre-creates a
+          // FileSystem object, thus eating the first access info.
+          // See https://github.com/js-platform/filer/issues/127
           done();
         });
       });
     });
 
-    describe("Read/Write operations on a Memory provider with an " + adapterName + " adapter", function() {
+    describe("Read/Write operations on a provider with an " + adapterName + " adapter", function() {
       beforeEach(util.setup);
       afterEach(util.cleanup);
 
@@ -127,7 +131,13 @@ define(["Filer", "util"], function(Filer, util) {
         });
       });
 
-      it("should fail when trying to write on ReadOnlyContext", function(done) {
+      /**
+       * With issue 123 (see https://github.com/js-platform/filer/issues/128) we had to
+       * start using readwrite contexts everywhere with IndexedDB. As such, we can't
+       * easily test this here, without knowing which provider we have. We test this
+       * in the actual providers, so this isn't really needed. Skipping for now.
+       */
+      it.skip("should fail when trying to write on ReadOnlyContext", function(done) {
         var provider = createProvider();
         provider.open(function(error, firstAccess) {
           if(error) throw error;

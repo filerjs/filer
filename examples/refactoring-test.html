@@ -19,9 +19,9 @@ var fs = new Filer.FileSystem({
 //var data = new Uint8Array(buffer.length);
 
 try {
-fs.stat('/', function(error, stats) {
+fs.readdir('\u0000', function(error, files) {
   if(error) throw error;
-  console.log('stats:', stats);
+  console.log('contents:', files);
 });
 } catch(e) {
   console.error(e);

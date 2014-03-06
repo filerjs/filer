@@ -116,7 +116,10 @@ define(function(require) {
     };
   };
   IndexedDB.prototype.getReadOnlyContext = function() {
-    return new IndexedDBContext(this.db, IDB_RO);
+    // Due to timing issues in Chrome with readwrite vs. readonly indexeddb transactions
+    // always use readwrite so we can make sure pending commits finish before callbacks.
+    // See https://github.com/js-platform/filer/issues/128
+    return new IndexedDBContext(this.db, IDB_RW);
   };
   IndexedDB.prototype.getReadWriteContext = function() {
     return new IndexedDBContext(this.db, IDB_RW);
