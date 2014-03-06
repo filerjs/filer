@@ -80,7 +80,10 @@ Accepts two arguments: an `options` object, and an optional `callback`. The `opt
 object can specify a number of optional arguments, including:
 
 * `name`: the name of the file system, defaults to `'"local'`
-* `flags`: one or more flags to use when creating/opening the file system. Use `'FORMAT'` to force Filer to format (i.e., erase) the file system
+* `flags`: an Array of one or more flags to use when creating/opening the file system:
+  *`'FORMAT'` to force Filer to format (i.e., erase) the file system
+  *`'NOCTIME'` to force Filer to not update `ctime` on nodes when metadata changes (i.e., for better performance)
+  *`'NOMTIME'` to force Filer to not update `mtime` on nodes when data changes (i.e., for better performance)
 * `provider`: an explicit storage provider to use for the file system's database context provider. See the section on [Storage Providers](#providers).
 
 The `callback` function indicates when the file system is ready for use. Depending on the storage provider used, this might
@@ -98,7 +101,7 @@ function fsReady(err, fs) {
 
 fs = new Filer.FileSystem({
   name: "my-filesystem",
-  flags: 'FORMAT',
+  flags: [ 'FORMAT' ],
   provider: new Filer.FileSystem.providers.Memory()
 }, fsReady);
 ```

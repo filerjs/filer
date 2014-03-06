@@ -131,7 +131,13 @@ define(["Filer", "util"], function(Filer, util) {
         });
       });
 
-      it("should fail when trying to write on ReadOnlyContext", function(done) {
+      /**
+       * With issue 123 (see https://github.com/js-platform/filer/issues/128) we had to
+       * start using readwrite contexts everywhere with IndexedDB. As such, we can't
+       * easily test this here, without knowing which provider we have. We test this
+       * in the actual providers, so this isn't really needed. Skipping for now.
+       */
+      it.skip("should fail when trying to write on ReadOnlyContext", function(done) {
         var provider = createProvider();
         provider.open(function(error, firstAccess) {
           if(error) throw error;

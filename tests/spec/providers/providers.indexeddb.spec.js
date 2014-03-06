@@ -129,7 +129,11 @@ define(["Filer", "util"], function(Filer, util) {
         });
       });
 
-      it("should fail when trying to write on ReadOnlyContext", function(done) {
+      /**
+       * With issue 123 (see https://github.com/js-platform/filer/issues/128) we had to
+       * start using readwrite contexts everywhere with IndexedDB. Skipping for now.
+       */
+      it.skip("should fail when trying to write on ReadOnlyContext", function(done) {
         var provider = _provider.provider;
         provider.open(function(error, firstAccess) {
           if(error) throw error;
