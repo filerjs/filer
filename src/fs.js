@@ -1,63 +1,63 @@
 define(function(require) {
 
-  var _ = require('nodash');
+  var _ = require('./../lib/nodash');
 
   // TextEncoder and TextDecoder will either already be present, or use this shim.
   // Because of the way the spec is defined, we need to get them off the global.
-  require('encoding');
+  require('./../lib/encoding');
 
-  var normalize = require('src/path').normalize;
-  var dirname = require('src/path').dirname;
-  var basename = require('src/path').basename;
-  var isAbsolutePath = require('src/path').isAbsolute;
-  var isNullPath = require('src/path').isNull;
+  var normalize = require('./path').normalize;
+  var dirname = require('./path').dirname;
+  var basename = require('./path').basename;
+  var isAbsolutePath = require('./path').isAbsolute;
+  var isNullPath = require('./path').isNull;
 
-  var guid = require('src/shared').guid;
-  var hash = require('src/shared').hash;
-  var nop = require('src/shared').nop;
+  var guid = require('./shared').guid;
+  var hash = require('./shared').hash;
+  var nop = require('./shared').nop;
 
-  var EExists = require('src/error').EExists;
-  var EIsDirectory = require('src/error').EIsDirectory;
-  var ENoEntry = require('src/error').ENoEntry;
-  var EBusy = require('src/error').EBusy;
-  var ENotEmpty = require('src/error').ENotEmpty;
-  var ENotDirectory = require('src/error').ENotDirectory;
-  var EBadFileDescriptor = require('src/error').EBadFileDescriptor;
-  var ENotImplemented = require('src/error').ENotImplemented;
-  var ENotMounted = require('src/error').ENotMounted;
-  var EInvalid = require('src/error').EInvalid;
-  var EIO = require('src/error').EIO;
-  var ELoop = require('src/error').ELoop;
-  var EFileSystemError = require('src/error').EFileSystemError;
-  var ENoAttr = require('src/error').ENoAttr;
+  var EExists = require('./error').EExists;
+  var EIsDirectory = require('./error').EIsDirectory;
+  var ENoEntry = require('./error').ENoEntry;
+  var EBusy = require('./error').EBusy;
+  var ENotEmpty = require('./error').ENotEmpty;
+  var ENotDirectory = require('./error').ENotDirectory;
+  var EBadFileDescriptor = require('./error').EBadFileDescriptor;
+  var ENotImplemented = require('./error').ENotImplemented;
+  var ENotMounted = require('./error').ENotMounted;
+  var EInvalid = require('./error').EInvalid;
+  var EIO = require('./error').EIO;
+  var ELoop = require('./error').ELoop;
+  var EFileSystemError = require('./error').EFileSystemError;
+  var ENoAttr = require('./error').ENoAttr;
 
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
-  var FS_FORMAT = require('src/constants').FS_FORMAT;
-  var MODE_FILE = require('src/constants').MODE_FILE;
-  var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
-  var MODE_SYMBOLIC_LINK = require('src/constants').MODE_SYMBOLIC_LINK;
-  var MODE_META = require('src/constants').MODE_META;
-  var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
-  var SUPER_NODE_ID = require('src/constants').SUPER_NODE_ID;
-  var SYMLOOP_MAX = require('src/constants').SYMLOOP_MAX;
-  var FS_READY = require('src/constants').FS_READY;
-  var FS_PENDING = require('src/constants').FS_PENDING;
-  var FS_ERROR = require('src/constants').FS_ERROR;
-  var O_READ = require('src/constants').O_READ;
-  var O_WRITE = require('src/constants').O_WRITE;
-  var O_CREATE = require('src/constants').O_CREATE;
-  var O_EXCLUSIVE = require('src/constants').O_EXCLUSIVE;
-  var O_TRUNCATE = require('src/constants').O_TRUNCATE;
-  var O_APPEND = require('src/constants').O_APPEND;
-  var O_FLAGS = require('src/constants').O_FLAGS;
-  var XATTR_CREATE = require('src/constants').XATTR_CREATE;
-  var XATTR_REPLACE = require('src/constants').XATTR_REPLACE;
-  var FS_NOMTIME = require('src/constants').FS_NOMTIME;
-  var FS_NOCTIME = require('src/constants').FS_NOCTIME;
+  var FILE_SYSTEM_NAME = require('./constants').FILE_SYSTEM_NAME;
+  var FS_FORMAT = require('./constants').FS_FORMAT;
+  var MODE_FILE = require('./constants').MODE_FILE;
+  var MODE_DIRECTORY = require('./constants').MODE_DIRECTORY;
+  var MODE_SYMBOLIC_LINK = require('./constants').MODE_SYMBOLIC_LINK;
+  var MODE_META = require('./constants').MODE_META;
+  var ROOT_DIRECTORY_NAME = require('./constants').ROOT_DIRECTORY_NAME;
+  var SUPER_NODE_ID = require('./constants').SUPER_NODE_ID;
+  var SYMLOOP_MAX = require('./constants').SYMLOOP_MAX;
+  var FS_READY = require('./constants').FS_READY;
+  var FS_PENDING = require('./constants').FS_PENDING;
+  var FS_ERROR = require('./constants').FS_ERROR;
+  var O_READ = require('./constants').O_READ;
+  var O_WRITE = require('./constants').O_WRITE;
+  var O_CREATE = require('./constants').O_CREATE;
+  var O_EXCLUSIVE = require('./constants').O_EXCLUSIVE;
+  var O_TRUNCATE = require('./constants').O_TRUNCATE;
+  var O_APPEND = require('./constants').O_APPEND;
+  var O_FLAGS = require('./constants').O_FLAGS;
+  var XATTR_CREATE = require('./constants').XATTR_CREATE;
+  var XATTR_REPLACE = require('./constants').XATTR_REPLACE;
+  var FS_NOMTIME = require('./constants').FS_NOMTIME;
+  var FS_NOCTIME = require('./constants').FS_NOCTIME;
 
-  var providers = require('src/providers/providers');
-  var adapters = require('src/adapters/adapters');
-  var Shell = require('src/shell');
+  var providers = require('./providers/providers');
+  var adapters = require('./adapters/adapters');
+  var Shell = require('./shell');
 
   /*
    * DirectoryEntry

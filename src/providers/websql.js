@@ -1,10 +1,10 @@
 define(function(require) {
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
-  var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
-  var WSQL_VERSION = require('src/constants').WSQL_VERSION;
-  var WSQL_SIZE = require('src/constants').WSQL_SIZE;
-  var WSQL_DESC = require('src/constants').WSQL_DESC;
-  var u8toArray = require('src/shared').u8toArray;
+  var FILE_SYSTEM_NAME = require('../constants').FILE_SYSTEM_NAME;
+  var FILE_STORE_NAME = require('../constants').FILE_STORE_NAME;
+  var WSQL_VERSION = require('../constants').WSQL_VERSION;
+  var WSQL_SIZE = require('../constants').WSQL_SIZE;
+  var WSQL_DESC = require('../constants').WSQL_DESC;
+  var u8toArray = require('../shared').u8toArray;
 
   function WebSQLContext(db, isReadOnly) {
     var that = this;

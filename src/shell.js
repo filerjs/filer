@@ -1,10 +1,10 @@
 /* jshint evil:true */
 define(function(require) {
 
-  var Path = require('src/path');
-  var FilerError = require('src/error');
-  var Environment = require('src/environment');
-  var async = require('async');
+  var Path = require('./path');
+  var FilerError = require('./error');
+  var Environment = require('./environment');
+  var async = require('./../lib/async');
 
   function Shell(fs, options) {
     options = options || {};

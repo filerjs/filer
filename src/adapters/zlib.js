@@ -2,7 +2,7 @@ define(function(require) {
 
   // Zlib compression, see
   // https://github.com/imaya/zlib.js/blob/master/bin/zlib.min.js
-  require("zlib");
+  require("../../lib/zlib");
 
   var Inflate = Zlib.Inflate;
   function inflate(compressed) {

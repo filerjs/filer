@@ -43,11 +43,6 @@ module.exports = function(grunt) {
     requirejs: {
       develop: {
         options: {
-          paths: {
-            "src": "../src",
-            "build": "../build"
-          },
-          baseUrl: "lib",
           name: "build/almond",
           include: ["src/index"],
           out: "dist/filer.js",
