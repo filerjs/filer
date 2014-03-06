@@ -32,6 +32,7 @@ define([
   "spec/fs.utimes.spec",
   "spec/fs.xattr.spec",
   "spec/path-resolution.spec",
+  "spec/times.spec",
 
   // Filer.FileSystem.providers.*
   "spec/providers/providers.spec",
