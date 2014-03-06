@@ -31,7 +31,6 @@ define([
   "spec/fs.truncate.spec",
   "spec/fs.utimes.spec",
   "spec/fs.xattr.spec",
-  "spec/fs.stats.spec".
   "spec/path-resolution.spec",
   "spec/times.spec",
   "spec/time-flags.spec",
