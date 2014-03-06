@@ -78,8 +78,9 @@ require.config(config);
 assert = chai.assert;
 expect = chai.expect;
 
-// We need to setup describe() support before loading tests
-mocha.setup("bdd");
+// We need to setup describe() support before loading tests.
+// Use a test timeout of 5s and a slow-test warning of 250ms
+mocha.setup("bdd").timeout(5000).slow(250);
 
 require(["tests/test-manifest"], function() {
   window.onload = function() {
