@@ -953,8 +953,8 @@ to stop watching a file or directory after calling `fs.watch()`.
 The only supported option is `recursive`, which if `true` will cause a watch to be placed
 on a directory, and all sub-directories and files beneath it.
 
-The `listener` callback gets two arguments (event, filename). `event` is either 'rename' or 'change',
-(currenty only `'rename'` is supported) and filename is the name of the file which triggered the event.
+The `listener` callback gets two arguments `(event, filename)`. `event` is either `'rename'` or `'change'`,
+(currenty only `'rename'` is supported) and `filename` is the name of the file/dir which triggered the event.
 
 Unlike node.js, all watch events return a path. Also, all returned paths are absolute from the root
 vs. just a relative filename.
@@ -964,7 +964,7 @@ Examples:
 ```javascript
 // Example 1: create a watcher to see when a file is created
 var watcher = fs.watch('/myfile', function(event, filename) {
-  // event will be 'change' and filename will be '/myfile'
+  // event could be 'change' or 'rename' and filename will be '/myfile'
   // Stop watching for changes
   watcher.close();
 });
@@ -981,7 +981,7 @@ fs.writeFile('/myfile2', 'data2');
 
 // Example 3: recursive watch on /data dir
 var watcher = fs.watch('/data', { recursive: true }, function(event, filename) {
-  // event will be 'change' and filename will be '/data/subdir/file'
+  // event could be 'change' or 'rename' and filename will be '/data/subdir/file'
   // Stop watching for changes
   watcher.close();
 });
