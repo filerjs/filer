@@ -34,6 +34,7 @@ define([
   "spec/path-resolution.spec",
   "spec/times.spec",
   "spec/time-flags.spec",
+  "spec/fs.watch.spec",
 
   // Filer.FileSystem.providers.*
   "spec/providers/providers.spec",

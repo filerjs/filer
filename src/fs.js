@@ -59,6 +59,7 @@ define(function(require) {
   var adapters = require('src/adapters/adapters');
   var Shell = require('src/shell');
   var Intercom = require('intercom');
+  var EventEmitter = require('EventEmitter');
 
   /*
    * DirectoryEntry
@@ -1552,6 +1553,45 @@ define(function(require) {
 
 
   /*
+   * FSWatcher based loosely on node.js' FSWatcher
+   * see https://github.com/joyent/node/blob/master/lib/fs.js
+   */
+  function FSWatcher() {
+    EventEmitter.call(this);
+    var self = this;
+    var recursive = false;
+    var filename;
+
+    function onchange(path) {
+      // Watch for exact filename, or parent path when recursive is true
+      if(filename === path || (recursive && filename.indexOf(path + '/') === 0)) {
+        self.emit('change', filename);
+      }
+    }
+
+    // We support, but ignore the second arg, which node.js uses.
+    self.start = function(filename_, persistent_, recursive_) {
+      if(isNullPath(filename)) {
+        throw new Error('Path must be a string without null bytes.');
+      }
+      recursive = recursive_ === true;
+      // TODO: get realpath for symlinks on filename...
+      filename = filename_;
+
+      var intercom = Intercom.getInstance();
+      intercom.on('change', onchange);
+    };
+
+    self.close = function() {
+      var intercom = Intercom.getInstance();
+      intercom.off('change', onchange);
+    };
+  }
+  FSWatcher.prototype = new EventEmitter();
+  FSWatcher.prototype.constructor = FSWatcher;
+
+
+  /*
    * FileSystem
    *
    * A FileSystem takes an `options` object, which can specify a number of,
@@ -1628,12 +1668,31 @@ define(function(require) {
       queue = null;
     }
 
+    // FileSystem watch events are broadcast between windows via intercom
+    var intercom = Intercom.getInstance();
+
+    // We support the optional `options` arg from node, but ignore it
+    this.watch = function(filename, options, listener) {
+      if(isNullPath(filename)) {
+        throw new Error('Path must be a string without null bytes.');
+      }
+      if(typeof options === 'function') {
+        listener = options;
+        options = {};
+      }
+      options = options || {};
+      listener = listener || nop;
+
+      var watcher = new FSWatcher();
+      watcher.start(filename, false, options.recursive);
+      watcher.addListener('change', listener);
+
+      return watcher;
+    };
+
     // Open file system storage provider
     provider.open(function(err, needsFormatting) {
       function complete(error) {
-        // FileSystem watch events are broadcast between windows via intercom
-        var intercom = Intercom.getInstance();
-
         // Wrap the provider so we can extend the context with fs flags, intercom.
         // From this point forward we won't call open again, so drop it.
         fs.provider = {
