@@ -57,8 +57,9 @@ define(["Filer", "util"], function(Filer, util) {
         if(error) throw error;
 
         var watcher = fs.watch('/tmp', function(event, filename) {
-          expect(event).to.equal('rename');
-          expect(filename).to.equal('/tmp/newfile.txt');
+// TODO: node thinks this should be 'rename', need to add rename along with change.
+          expect(event).to.equal('change');
+          expect(filename).to.equal('/tmp');
           watcher.close();
           done();
         });

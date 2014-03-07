@@ -1586,6 +1586,7 @@ define(function(require) {
     self.close = function() {
       var intercom = Intercom.getInstance();
       intercom.off('change', onchange);
+      self.removeAllListeners('change');
     };
   }
   FSWatcher.prototype = new EventEmitter();
@@ -1686,7 +1687,7 @@ define(function(require) {
 
       var watcher = new FSWatcher();
       watcher.start(filename, false, options.recursive);
-      watcher.addListener('change', listener);
+      watcher.on('change', listener);
 
       return watcher;
     };
