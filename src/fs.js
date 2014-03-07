@@ -58,6 +58,7 @@ define(function(require) {
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
   var Shell = require('src/shell');
+  var Intercom = require('intercom');
 
   /*
    * DirectoryEntry
@@ -164,10 +165,16 @@ define(function(require) {
       update = true;
     }
 
+    function complete(error) {
+      // Broadcast this change to all fs instances, in all windows on this origin
+      context.intercom.emit('change', path);
+      callback(error);
+    }
+
     if(update) {
-      context.put(node.id, node, callback);
+      context.put(node.id, node, complete);
     } else {
-      callback();
+      complete();
     }
   }
 
@@ -1624,16 +1631,21 @@ define(function(require) {
     // Open file system storage provider
     provider.open(function(err, needsFormatting) {
       function complete(error) {
-        // Wrap the provider so we can extend the context with fs flags.
+        // FileSystem watch events are broadcast between windows via intercom
+        var intercom = Intercom.getInstance();
+
+        // Wrap the provider so we can extend the context with fs flags, intercom.
         // From this point forward we won't call open again, so drop it.
         fs.provider = {
           getReadWriteContext: function() {
             var context = provider.getReadWriteContext();
             context.flags = flags;
+            context.intercom = intercom;
             return context;
           },
           getReadOnlyContext: function() {
             var context = provider.getReadOnlyContext();
+            context.intercom = intercom;
             context.flags = flags;
             return context;
           }
