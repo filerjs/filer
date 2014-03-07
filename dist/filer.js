@@ -25,7 +25,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
   }
 
 }( this, function() {
-
 /**
  * almond 0.2.5 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
@@ -5469,6 +5468,34 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     this.type = fileNode.mode;
   }
 
+  Stats.prototype.isFile = function() {
+    return this.type === constants.MODE_FILE;
+  };
+
+  Stats.prototype.isDirectory = function() {
+    return this.type === constants.MODE_DIRECTORY;
+  };
+
+  Stats.prototype.isBlockDevice = function() {
+    return false;
+  };
+
+  Stats.prototype.isCharacterDevice = function() {
+    return false;
+  };
+
+  Stats.prototype.isSymbolicLink = function() {
+    return this.type === constants.MODE_SYMBOLIC_LINK;
+  };
+
+  Stats.prototype.isFIFO = function() {
+    return false;
+  };
+
+  Stats.prototype.isSocket = function() {
+    return false;
+  };
+
   /*
    * find_node
    */
@@ -7858,6 +7885,7 @@ define('src/index',['require','src/fs','src/fs','src/path'],function(require) {
   };
 
 });
+
 
   var Filer = require( "src/index" );
 

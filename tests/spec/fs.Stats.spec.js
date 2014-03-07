@@ -1,65 +1,34 @@
-define(["Filer"], function(Filer) {
+define(["Filer", "util"], function(Filer, util) {
 
-  describe('fs.Stats', function() {
+  describe('fs.stats', function() {
     describe('#isFile()', function() {
-      beforeEach(function() {
-        this.db_name = mk_db_name();
-        this.fs = new Filer.FileSystem({
-          name: this.db_name,
-          flags: 'FORMAT'
-        });
-      });
-
-      afterEach(function() {
-        indexedDB.deleteDatabase(this.db_name);
-        delete this.fs;
-      });
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
 
       it('should be a function', function() {
-        var testStat = this.fs.stat('/', function(error) {
-          if(error) throw error;
-        });
-        expect(typeof this.testStat.isFile).toEqual('function');
+        var fs = util.fs(); 
+        expect(fs.stat.isFile).to.be.a('function');
       });
 
-      it('should return true if stats are for file', function() {
-        var complete = false;
-        var _error, _result;
-        var that = this;
-
+      it('should return true if stats are for file', function(done) {
+        var fs = util.fs(); 
         var contents = "This is a file.";
 
-        that.fs.writeFile('/myFile', contents, binary, function(error) {
+        fs.writeFile('/myFile', contents, function(error) {
           if(error) throw error;
-          _result = that.fs.stat('/myFile', function() {}).isFile();
-          complete = true;
-        })
-
-        waitsFor(function() {
-          return complete;
-        }, 'test to complete', DEFAULT_TIMEOUT);
-
-        runs(function() {
-          expect(_error).toEqual(null);
-          expect(_result).toEqual(true);
+          fs.stat('/myFile').isFile(function (error, data) {
+            expect(error).not.to.exist;
+            expect(data).toEqual(true);
+            done()
+          });
         });
       });
-    })
+    });
 
-    describe('#isDirectory()', function() {
-      beforeEach(function() {
-        this.db_name = mk_db_name();
-        this.fs = new Filer.FileSystem({
-          name: this.db_name,
-          flags: 'FORMAT'
-        });
-      });
+   /* describe('#isDirectory()', function() {
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
 
-      afterEach(function() {
-        indexedDB.deleteDatabase(this.db_name);
-        delete this.fs;
-      });
-      
       it('should be a function', function() {
         var testStat = this.fs.stat('/', function(error) {
           if(error) throw error;
@@ -86,21 +55,11 @@ define(["Filer"], function(Filer) {
           expect(_result).toEqual(true);
         });
       });
-    })
+    });
 
     describe('#isBlockDevice()', function() {
-      beforeEach(function() {
-        this.db_name = mk_db_name();
-        this.fs = new Filer.FileSystem({
-          name: this.db_name,
-          flags: 'FORMAT'
-        });
-      });
-
-      afterEach(function() {
-        indexedDB.deleteDatabase(this.db_name);
-        delete this.fs;
-      });
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
       
       it('should be a function', function() {
         var testStat = this.fs.stat('/', function(error) {
@@ -128,21 +87,11 @@ define(["Filer"], function(Filer) {
           expect(_result).toEqual(false);
         });
       });
-    })
+    });
 
     describe('#isCharacterDevice()', function() {
-      beforeEach(function() {
-        this.db_name = mk_db_name();
-        this.fs = new Filer.FileSystem({
-          name: this.db_name,
-          flags: 'FORMAT'
-        });
-      });
-
-      afterEach(function() {
-        indexedDB.deleteDatabase(this.db_name);
-        delete this.fs;
-      });
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
       
       it('should be a function', function() {
         var testStat = this.fs.stat('/', function(error) {
@@ -170,21 +119,11 @@ define(["Filer"], function(Filer) {
           expect(_result).toEqual(false);
         });
       });
-    })
+    });
 
     describe('#isSymbolicLink()', function() {
-      beforeEach(function() {
-        this.db_name = mk_db_name();
-        this.fs = new Filer.FileSystem({
-          name: this.db_name,
-          flags: 'FORMAT'
-        });
-      });
-
-      afterEach(function() {
-        indexedDB.deleteDatabase(this.db_name);
-        delete this.fs;
-      });
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
       
       it('should be a function', function() {
         var testStat = this.fs.stat('/', function(error) {
@@ -218,21 +157,11 @@ define(["Filer"], function(Filer) {
           expect(_result).toEqual(true);
         });
       });
-    })
+    });
 
     describe('#isFIFO()', function() {
-      beforeEach(function() {
-        this.db_name = mk_db_name();
-        this.fs = new Filer.FileSystem({
-          name: this.db_name,
-          flags: 'FORMAT'
-        });
-      });
-
-      afterEach(function() {
-        indexedDB.deleteDatabase(this.db_name);
-        delete this.fs;
-      });
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
       
       it('should be a function', function() {
         var testStat = this.fs.stat('/', function(error) {
@@ -260,21 +189,11 @@ define(["Filer"], function(Filer) {
           expect(_result).toEqual(false);
         });
       });
-    })
+    });
 
     describe('#isSocket()', function() {
-      beforeEach(function() {
-        this.db_name = mk_db_name();
-        this.fs = new Filer.FileSystem({
-          name: this.db_name,
-          flags: 'FORMAT'
-        });
-      });
-
-      afterEach(function() {
-        indexedDB.deleteDatabase(this.db_name);
-        delete this.fs;
-      });
+      beforeEach(util.setup);
+      afterEach(util.cleanup);
       
       it('should be a function', function() {
         var testStat = this.fs.stat('/', function(error) {
@@ -302,5 +221,6 @@ define(["Filer"], function(Filer) {
           expect(_result).toEqual(false);
         });
       });
-    })
-  }
+    });*/
+  });
+)
