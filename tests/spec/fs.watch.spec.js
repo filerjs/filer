@@ -12,8 +12,10 @@ define(["Filer", "util"], function(Filer, util) {
     it('should get a change event when writing a file', function(done) {
       var fs = util.fs();
 
-      fs.watch('/myfile', function(filename) {
+      var watcher = fs.watch('/myfile', function(event, filename) {
+        expect(event).to.equal('change');
         expect(filename).to.equal('/myfile');
+        watcher.close();
         done();
       });
 
@@ -25,8 +27,10 @@ define(["Filer", "util"], function(Filer, util) {
     it('should get a change event when writing a file in a dir with recursive=true', function(done) {
       var fs = util.fs();
 
-      fs.watch('/', { recursive: true }, function(filename) {
+      var watcher = fs.watch('/', { recursive: true }, function(event, filename) {
+        expect(event).to.equal('change');
         expect(filename).to.equal('/');
+        watcher.close();
         done();
       });
 

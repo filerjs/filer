@@ -167,8 +167,9 @@ define(function(require) {
     }
 
     function complete(error) {
-      // Broadcast this change to all fs instances, in all windows on this origin
-      context.intercom.emit('change', path);
+      // Broadcast this change to all fs instances, in all windows on this origin.
+      // Unlike node.js, we send the full path vs. basename/dirname only.
+      context.intercom.emit('change', 'change', path);
       callback(error);
     }
 
@@ -1562,10 +1563,10 @@ define(function(require) {
     var recursive = false;
     var filename;
 
-    function onchange(path) {
+    function onchange(event, path) {
       // Watch for exact filename, or parent path when recursive is true
-      if(filename === path || (recursive && filename.indexOf(path + '/') === 0)) {
-        self.emit('change', filename);
+      if(filename === path || (recursive && path.indexOf(filename + '/') === 0)) {
+        self.emit('change', 'change', path);
       }
     }
 
