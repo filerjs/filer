@@ -129,11 +129,11 @@ define(function(require) {
   }
 
   Stats.prototype.isFile = function() {
-    return this.type === constants.MODE_FILE;
+    return this.type === MODE_FILE;
   };
 
   Stats.prototype.isDirectory = function() {
-    return this.type === constants.MODE_DIRECTORY;
+    return this.type === MODE_DIRECTORY;
   };
 
   Stats.prototype.isBlockDevice = function() {
@@ -145,7 +145,7 @@ define(function(require) {
   };
 
   Stats.prototype.isSymbolicLink = function() {
-    return this.type === constants.MODE_SYMBOLIC_LINK;
+    return this.type === MODE_SYMBOLIC_LINK;
   };
 
   Stats.prototype.isFIFO = function() {
