@@ -52,6 +52,8 @@ define(function(require) {
   var O_FLAGS = require('src/constants').O_FLAGS;
   var XATTR_CREATE = require('src/constants').XATTR_CREATE;
   var XATTR_REPLACE = require('src/constants').XATTR_REPLACE;
+  var FS_NOMTIME = require('src/constants').FS_NOMTIME;
+  var FS_NOCTIME = require('src/constants').FS_NOCTIME;
 
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
@@ -70,7 +72,8 @@ define(function(require) {
    * OpenFileDescription
    */
 
-  function OpenFileDescription(id, flags, position) {
+  function OpenFileDescription(path, id, flags, position) {
+    this.path = path;
     this.id = id;
     this.flags = flags;
     this.position = position;
@@ -101,8 +104,8 @@ define(function(require) {
     this.id = id || guid();
     this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
     this.size = size || 0; // size (bytes for files, entries for directories)
-    this.atime = atime || now; // access time
-    this.ctime = ctime || now; // creation time
+    this.atime = atime || now; // access time (will mirror ctime after creation)
+    this.ctime = ctime || now; // creation/change time
     this.mtime = mtime || now; // modified time
     this.flags = flags || []; // file flags
     this.xattrs = xattrs || {}; // extended attributes
@@ -148,13 +151,45 @@ define(function(require) {
     return this.type === MODE_SYMBOLIC_LINK;
   };
 
-  Stats.prototype.isFIFO = function() {
-    return false;
-  };
+  /*
+   * Update node times. Only passed times are modified (undefined times are ignored)
+   * and filesystem flags are examined in order to override update logic.
+   */
+  function update_node_times(context, path, node, times, callback) {
+    // Honour mount flags for how we update times
+    var flags = context.flags;
+    if(_(flags).contains(FS_NOCTIME)) {
+      delete times.ctime;
+    }
+    if(_(flags).contains(FS_NOMTIME)) {
+      delete times.mtime;
+    }
 
-  Stats.prototype.isSocket = function() {
-    return false;
-  };
+    // Only do the update if required (i.e., times are still present)
+    var update = false;
+    if(times.ctime) {
+      node.ctime = times.ctime;
+      // We don't do atime tracking for perf reasons, but do mirror ctime
+      node.atime = times.ctime;
+      update = true;
+    }
+    if(times.atime) {
+      // The only time we explicitly pass atime is when utimes(), futimes() is called.
+      // Override ctime mirror here if so
+      node.atime = times.atime;
+      update = true;
+    }
+    if(times.mtime) {
+      node.mtime = times.mtime;
+      update = true;
+    }
+
+    if(update) {
+      context.put(node.id, node, callback);
+    } else {
+      callback();
+    }
+  }
 
   /*
    * find_node
@@ -259,8 +294,18 @@ define(function(require) {
    */
 
   function set_extended_attribute (context, path_or_fd, name, value, flag, callback) {
+    var path;
+
     function set_xattr (error, node) {
       var xattr = (node ? node.xattrs[name] : null);
+
+      function update_time(error) {
+        if(error) {
+          callback(error);
+        } else {
+          update_node_times(context, path, node, { ctime: Date.now() }, callback);
+        }
+      }
 
       if (error) {
         callback(error);
@@ -273,14 +318,16 @@ define(function(require) {
       }
       else {
         node.xattrs[name] = value;
-        context.put(node.id, node, callback);
+        context.put(node.id, node, update_time);
       }
     }
 
     if (typeof path_or_fd == 'string') {
+      path = path_or_fd;
       find_node(context, path_or_fd, set_xattr);
     }
     else if (typeof path_or_fd == 'object' && typeof path_or_fd.id == 'string') {
+      path = path_or_fd.path;
       context.get(path_or_fd.id, set_xattr);
     }
     else {
@@ -384,12 +431,21 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, parentPath, parentDirectoryNode, { mtime: now, ctime: now }, callback);
+      }
+    }
+
     function update_parent_directory_data(error) {
       if(error) {
         callback(error);
       } else {
         parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, MODE_DIRECTORY);
-        context.put(parentDirectoryNode.data, parentDirectoryData, callback);
+        context.put(parentDirectoryNode.data, parentDirectoryData, update_time);
       }
     }
 
@@ -457,9 +513,18 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, parentPath, parentDirectoryNode, { mtime: now, ctime: now }, remove_directory_node);
+      }
+    }
+
     function remove_directory_entry_from_parent_directory_node() {
       delete parentDirectoryData[name];
-      context.put(parentDirectoryNode.data, parentDirectoryData, remove_directory_node);
+      context.put(parentDirectoryNode.data, parentDirectoryData, update_time);
     }
 
     function remove_directory_node(error) {
@@ -595,12 +660,21 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, handle_update_result);
+      }
+    }
+
     function update_directory_data(error) {
       if(error) {
         callback(error);
       } else {
         directoryData[name] = new DirectoryEntry(fileNode.id, MODE_FILE);
-        context.put(directoryNode.data, directoryData, handle_update_result);
+        context.put(directoryNode.data, directoryData, update_time);
       }
     }
 
@@ -624,11 +698,20 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, return_nbytes);
+      }
+    }
+
     function update_file_node(error) {
       if(error) {
         callback(error);
       } else {
-        context.put(fileNode.id, fileNode, return_nbytes);
+        context.put(fileNode.id, fileNode, update_time);
       }
     }
 
@@ -643,7 +726,6 @@ define(function(require) {
         ofd.position = length;
 
         fileNode.size = length;
-        fileNode.mtime = Date.now();
         fileNode.version += 1;
 
         context.put(fileNode.data, newData, update_file_node);
@@ -665,11 +747,20 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, return_nbytes);
+      }
+    }
+
     function update_file_node(error) {
       if(error) {
         callback(error);
       } else {
-        context.put(fileNode.id, fileNode, return_nbytes);
+        context.put(fileNode.id, fileNode, update_time);
       }
     }
 
@@ -691,7 +782,6 @@ define(function(require) {
         }
 
         fileNode.size = newSize;
-        fileNode.mtime = Date.now();
         fileNode.version += 1;
 
         context.put(fileNode.data, newData, update_file_node);
@@ -727,6 +817,14 @@ define(function(require) {
           ofd.position += length;
         }
         callback(null, length);
+      }
+    }
+
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+
       }
     }
 
@@ -829,13 +927,21 @@ define(function(require) {
     var newDirectoryData;
     var fileNode;
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        update_node_times(context, newpath,  fileNode, { ctime: Date.now() }, callback);
+      }
+    }
+
     function update_file_node(error, result) {
       if(error) {
         callback(error);
       } else {
         fileNode = result;
         fileNode.nlinks += 1;
-        context.put(fileNode.id, fileNode, callback);
+        context.put(fileNode.id, fileNode, update_time);
       }
     }
 
@@ -909,7 +1015,10 @@ define(function(require) {
         callback(error);
       } else {
         delete directoryData[name];
-        context.put(directoryNode.data, directoryData, callback);
+        context.put(directoryNode.data, directoryData, function(error) {
+          var now = Date.now();
+          update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
+        });
       }
     }
 
@@ -930,7 +1039,9 @@ define(function(require) {
         if(fileNode.nlinks < 1) {
           context.delete(fileNode.id, delete_file_data);
         } else {
-          context.put(fileNode.id, fileNode, update_directory_data);
+          context.put(fileNode.id, fileNode, function(error) {
+            update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
+          });
         }
       }
     }
@@ -1034,12 +1145,21 @@ define(function(require) {
       context.put(fileNode.id, fileNode, update_directory_data);
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
+      }
+    }
+
     function update_directory_data(error) {
       if(error) {
         callback(error);
       } else {
         directoryData[name] = new DirectoryEntry(fileNode.id, MODE_SYMBOLIC_LINK);
-        context.put(directoryNode.data, directoryData, callback);
+        context.put(directoryNode.data, directoryData, update_time);
       }
     }
   }
@@ -1117,14 +1237,22 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, path, fileNode, { mtime: now, ctime: now }, callback);
+      }
+    }
+
     function update_file_node (error) {
       if(error) {
         callback(error);
       } else {
         fileNode.size = length;
-        fileNode.mtime = Date.now();
         fileNode.version += 1;
-        context.put(fileNode.id, fileNode, callback);
+        context.put(fileNode.id, fileNode, update_time);
       }
     }
 
@@ -1161,14 +1289,21 @@ define(function(require) {
       }
     }
 
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, callback);
+      }
+    }
     function update_file_node (error) {
       if(error) {
         callback(error);
       } else {
         fileNode.size = length;
-        fileNode.mtime = Date.now();
         fileNode.version += 1;
-        context.put(fileNode.id, fileNode, callback);
+        context.put(fileNode.id, fileNode, update_time);
       }
     }
 
@@ -1182,14 +1317,11 @@ define(function(require) {
   function utimes_file(context, path, atime, mtime, callback) {
     path = normalize(path);
 
-    function update_times (error, node) {
+    function update_times(error, node) {
       if (error) {
         callback(error);
-      }
-      else {
-        node.atime = atime;
-        node.mtime = mtime;
-        context.put(node.id, node, callback);
+      } else {
+        update_node_times(context, path, node, { atime: atime, ctime: mtime, mtime: mtime }, callback);
       }
     }
 
@@ -1209,11 +1341,8 @@ define(function(require) {
     function update_times (error, node) {
       if (error) {
         callback(error);
-      }
-      else {
-        node.atime = atime;
-        node.mtime = mtime;
-        context.put(node.id, node, callback);
+      } else {
+        update_node_times(context, ofd.path, node, { atime: atime, ctime: mtime, mtime: mtime }, callback);
       }
     }
 
@@ -1324,6 +1453,14 @@ define(function(require) {
     function remove_xattr (error, node) {
       var xattr = (node ? node.xattrs : null);
 
+      function update_time(error) {
+        if(error) {
+          callback(error);
+        } else {
+          update_node_times(context, path, node, { ctime: Date.now() }, callback);
+        }
+      }
+
       if (error) {
         callback(error);
       }
@@ -1332,7 +1469,7 @@ define(function(require) {
       }
       else {
         delete node.xattrs[name];
-        context.put(node.id, node, callback);
+        context.put(node.id, node, update_time);
       }
     }
 
@@ -1350,6 +1487,14 @@ define(function(require) {
   function fremovexattr_file (context, ofd, name, callback) {
 
     function remove_xattr (error, node) {
+      function update_time(error) {
+        if(error) {
+          callback(error);
+        } else {
+          update_node_times(context, ofd.path, node, { ctime: Date.now() }, callback);
+        }
+      }
+
       if (error) {
         callback(error);
       }
@@ -1358,7 +1503,7 @@ define(function(require) {
       }
       else {
         delete node.xattrs[name];
-        context.put(node.id, node, callback);
+        context.put(node.id, node, update_time);
       }
     }
 
@@ -1499,7 +1644,21 @@ define(function(require) {
     // Open file system storage provider
     provider.open(function(err, needsFormatting) {
       function complete(error) {
-        fs.provider = provider;
+        // Wrap the provider so we can extend the context with fs flags.
+        // From this point forward we won't call open again, so drop it.
+        fs.provider = {
+          getReadWriteContext: function() {
+            var context = provider.getReadWriteContext();
+            context.flags = flags;
+            return context;
+          },
+          getReadOnlyContext: function() {
+            var context = provider.getReadOnlyContext();
+            context.flags = flags;
+            return context;
+          }
+        };
+
         if(error) {
           fs.readyState = FS_ERROR;
         } else {
@@ -1548,7 +1707,7 @@ define(function(require) {
         } else {
           position = 0;
         }
-        var openFileDescription = new OpenFileDescription(fileNode.id, flags, position);
+        var openFileDescription = new OpenFileDescription(path, fileNode.id, flags, position);
         var fd = fs.allocDescriptor(openFileDescription);
         callback(null, fd);
       }
@@ -1699,7 +1858,7 @@ define(function(require) {
       if(err) {
         return callback(err);
       }
-      var ofd = new OpenFileDescription(fileNode.id, flags, 0);
+      var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
       var fd = fs.allocDescriptor(ofd);
 
       fstat_file(context, ofd, function(err2, fstatResult) {
@@ -1776,7 +1935,7 @@ define(function(require) {
       if(err) {
         return callback(err);
       }
-      var ofd = new OpenFileDescription(fileNode.id, flags, 0);
+      var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
       var fd = fs.allocDescriptor(ofd);
 
       replace_data(context, ofd, data, 0, data.length, function(err2, nbytes) {
@@ -1811,7 +1970,7 @@ define(function(require) {
       if(err) {
         return callback(err);
       }
-      var ofd = new OpenFileDescription(fileNode.id, flags, fileNode.size);
+      var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
       var fd = fs.allocDescriptor(ofd);
 
       write_data(context, ofd, data, 0, data.length, ofd.position, function(err2, nbytes) {
@@ -2312,7 +2471,7 @@ define(function(require) {
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadOnlyContext();
+        var context = fs.provider.getReadWriteContext();
         _exists(context, fs.name, path, callback);
       }
     );

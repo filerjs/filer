@@ -17,7 +17,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.utimes('/testfile', -1, Date.now(), function (error) {
           expect(error).to.exist;
-          expect(error.name).to.equal('EInvalid');
+          expect(error.code).to.equal('EINVAL');
           done();
         });
       });
@@ -31,7 +31,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.utimes('/testfile', Date.now(), -1, function (error) {
           expect(error).to.exist;
-          expect(error.name).to.equal('EInvalid');
+          expect(error.code).to.equal('EINVAL');
           done();
         });
       });
@@ -45,7 +45,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.utimes('/testfile', 'invalid datetime', Date.now(), function (error) {
           expect(error).to.exist;
-          expect(error.name).to.equal('EInvalid');
+          expect(error.code).to.equal('EINVAL');
           done();
         });
       });
@@ -58,7 +58,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.utimes('/pathdoesnotexist', atime, mtime, function (error) {
         expect(error).to.exist;
-        expect(error.name).to.equal('ENoEntry');
+        expect(error.code).to.equal('ENOENT');
         done();
       });
     });
@@ -71,7 +71,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.utimes('/testfile', Date.now(), 'invalid datetime', function (error) {
           expect(error).to.exist;
-          expect(error.name).to.equal('EInvalid');
+          expect(error.code).to.equal('EINVAL');
           done();
         });
       });
@@ -84,7 +84,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.futimes(1, atime, mtime, function (error) {
         expect(error).to.exist;
-        expect(error.name).to.equal('EBadFileDescriptor');
+        expect(error.code).to.equal('EBADF');
         done();
       });
     });
@@ -102,7 +102,6 @@ define(["Filer", "util"], function(Filer, util) {
 
           fs.stat('/testfile', function (error, stat) {
             expect(error).not.to.exist;
-            expect(stat.atime).to.equal(atime);
             expect(stat.mtime).to.equal(mtime);
             done();
           });
@@ -125,7 +124,6 @@ define(["Filer", "util"], function(Filer, util) {
 
           fs.fstat(ofd, function (error, stat) {
             expect(error).not.to.exist;
-            expect(stat.atime).to.equal(atime);
             expect(stat.mtime).to.equal(mtime);
             done();
           });
@@ -146,7 +144,6 @@ define(["Filer", "util"], function(Filer, util) {
 
           fs.stat('/testdir', function (error, stat) {
             expect(error).not.to.exist;
-            expect(stat.atime).to.equal(atime);
             expect(stat.mtime).to.equal(mtime);
             done();
           });
@@ -158,22 +155,21 @@ define(["Filer", "util"], function(Filer, util) {
       var fs = util.fs();
       var atimeEst;
       var mtimeEst;
-      var now;
 
       fs.writeFile('/myfile', '', function (error) {
         if (error) throw error;
 
+        var then = Date.now();
         fs.utimes('/myfile', null, null, function (error) {
           expect(error).not.to.exist;
-
-          now = Date.now();
 
           fs.stat('/myfile', function (error, stat) {
             expect(error).not.to.exist;
             // Note: testing estimation as time may differ by a couple of milliseconds
             // This number should be increased if tests are on slow systems
-            expect(now - stat.atime).to.be.below(75);
-            expect(now - stat.mtime).to.be.below(75);
+            var delta = Date.now() - then;
+            expect(then - stat.atime).to.be.below(delta);
+            expect(then - stat.mtime).to.be.below(delta);
             done();
           });
         });

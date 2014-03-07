@@ -92,7 +92,6 @@ define(["Filer", "util"], function(Filer, util) {
 
             getTimes(fs, '/newfile', function(times) {
               expect(times.mtime).to.equal(date);
-              expect(times.atime).to.equal(date);
               done();
             });
           });

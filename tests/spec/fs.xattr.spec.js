@@ -21,7 +21,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.setxattr('/testfile', 89, 'testvalue', function (error) {
           expect(error).to.exist;
-          expect(error.name).to.equal('EInvalid');
+          expect(error.code).to.equal('EINVAL');
           done();
         });
       });
@@ -35,7 +35,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.setxattr('/testfile', null, 'testvalue', function (error) {
           expect(error).to.exist;
-          expect(error.name).to.equal('EInvalid');
+          expect(error.code).to.equal('EINVAL');
           done();
         });
       });
@@ -49,7 +49,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.setxattr('/testfile', 'test', 'value', 'InvalidFlag', function (error) {
           expect(error).to.exist;
-          expect(error.name).to.equal('EInvalid');
+          expect(error.code).to.equal('EINVAL');
           done();
         });
       });
@@ -66,7 +66,7 @@ define(["Filer", "util"], function(Filer, util) {
 
           fs.setxattr('/testfile', 'test', 'othervalue', 'CREATE', function(error) {
             expect(error).to.exist;
-            expect(error.name).to.equal('EExists');
+            expect(error.code).to.equal('EEXIST');
             done();
           });
         });
@@ -81,7 +81,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.setxattr('/testfile', 'test', 'value', 'REPLACE', function(error) {
           expect(error).to.exist;
-          expect(error.name).to.equal('ENoAttr');
+          expect(error.code).to.equal('ENoAttr');
           done();
         });
       });
@@ -95,7 +95,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.getxattr('/testfile', '', function(error, value) {
           expect(error).to.exist;
-          expect(error.name).to.equal('EInvalid');
+          expect(error.code).to.equal('EINVAL');
           done();
         });
       });
@@ -109,7 +109,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.getxattr('/testfile', 89, function(error, value) {
           expect(error).to.exist;
-          expect(error.name).to.equal('EInvalid');
+          expect(error.code).to.equal('EINVAL');
           done();
         });
       });
@@ -123,7 +123,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.getxattr('/testfile', 'test', function(error, value) {
           expect(error).to.exist;
-          expect(error.name).to.equal('ENoAttr');
+          expect(error.code).to.equal('ENoAttr');
           done();
         });
       });
@@ -144,14 +144,14 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.fsetxattr(1, 'test', 'value', function(error) {
         expect(error).to.exist;
-        expect(error.name).to.equal('EBadFileDescriptor');
+        expect(error.code).to.equal('EBADF');
         completeSet = true;
         maybeDone();
       });
 
       fs.fgetxattr(1, 'test', function(error, value) {
         expect(error).to.exist;
-        expect(error.name).to.equal('EBadFileDescriptor');
+        expect(error.code).to.equal('EBADF');
         expect(value).not.to.exist;
         completeGet = true;
         maybeDone();
@@ -159,7 +159,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.fremovexattr(1, 'test', function(error, value) {
         expect(error).to.exist;
-        expect(error.name).to.equal('EBadFileDescriptor');
+        expect(error.code).to.equal('EBADF');
         completeRemove = true;
         maybeDone();
       });
@@ -195,7 +195,7 @@ define(["Filer", "util"], function(Filer, util) {
 
           fs.removexattr('/testfile', 'testenoattr', function (error) {
             expect(error).to.exist;
-            expect(error.name).to.equal('ENoAttr');
+            expect(error.code).to.equal('ENoAttr');
             done();
           });
         });
@@ -336,7 +336,7 @@ define(["Filer", "util"], function(Filer, util) {
 
               fs.getxattr('/testfile', 'test', function (error) {
                 expect(error).to.exist;
-                expect(error.name).to.equal('ENoAttr');
+                expect(error.code).to.equal('ENoAttr');
                 done();
               });
             });
@@ -363,7 +363,7 @@ define(["Filer", "util"], function(Filer, util) {
 
               fs.fgetxattr(ofd, 'test', function (error) {
                 expect(error).to.exist;
-                expect(error.name).to.equal('ENoAttr');
+                expect(error.code).to.equal('ENoAttr');
                 done();
               });
             });

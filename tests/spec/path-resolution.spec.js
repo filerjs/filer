@@ -149,7 +149,7 @@ define(["Filer", "util"], function(Filer, util) {
             createSymlinkChain(1, function() {
               fs.stat('/myfile11', function(error, result) {
                 expect(error).to.exist;
-                expect(error.name).to.equal('ELoop');
+                expect(error.code).to.equal('ELOOP');
                 expect(result).not.to.exist;
                 done();
               });
