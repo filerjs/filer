@@ -2363,7 +2363,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _open(fs, context, path, flags, complete);
       }
@@ -2378,7 +2378,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _close(fs, fd, complete);
       }
@@ -2397,7 +2397,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _mkdir(context, path, complete);
       }
@@ -2412,7 +2412,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _rmdir(context, path, complete);
       }
@@ -2427,7 +2427,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _stat(context, fs.name, path, complete);
       }
@@ -2442,7 +2442,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _fstat(fs, context, fd, complete);
       }
@@ -2457,7 +2457,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _link(context, oldpath, newpath, complete);
       }
@@ -2472,7 +2472,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _unlink(context, path, complete);
       }
@@ -2507,7 +2507,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _readFile(fs, context, path, options, complete);
       }
@@ -2522,7 +2522,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _write(fs, context, fd, buffer, offset, length, position, complete);
       }
@@ -2537,7 +2537,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _writeFile(fs, context, path, data, options, complete);
       }
@@ -2552,7 +2552,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _appendFile(fs, context, path, data, options, complete);
       }
@@ -2567,7 +2567,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _exists(context, fs.name, path, complete);
       }
@@ -2582,7 +2582,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _lseek(fs, context, fd, offset, whence, complete);
       }
@@ -2597,7 +2597,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _readdir(context, path, complete);
       }
@@ -2612,7 +2612,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _rename(context, oldpath, newpath, complete);
       }
@@ -2627,7 +2627,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _readlink(context, path, complete);
       }
@@ -2643,7 +2643,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _symlink(context, srcpath, dstpath, complete);
       }
@@ -2658,7 +2658,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _lstat(fs, context, path, complete);
       }
@@ -2679,7 +2679,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _truncate(context, path, length, complete);
       }
@@ -2694,7 +2694,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _ftruncate(fs, context, fd, length, complete);
       }
@@ -2709,7 +2709,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _utimes(context, path, atime, mtime, complete);
       }
@@ -2726,7 +2726,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _futimes(fs, context, fd, atime, mtime, complete);
       }
@@ -2744,7 +2744,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _setxattr(context, path, name, value, _flag, complete);
       }
@@ -2761,7 +2761,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _getxattr(context, path, name, complete);
       }
@@ -2779,7 +2779,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _fsetxattr(fs, context, fd, name, value, _flag, complete);
       }
@@ -2796,7 +2796,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _fgetxattr(fs, context, fd, name, complete);
       }
@@ -2813,7 +2813,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _removexattr(context, path, name, complete);
       }
@@ -2830,7 +2830,7 @@ define(function(require) {
         var context = fs.provider.openReadWriteContext();
         function complete() {
           context.close();
-          callback.apply(this, arguments);
+          callback.apply(fs, arguments);
         }
         _fremovexattr(fs, context, fd, name, complete);
       }
