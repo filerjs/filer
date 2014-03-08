@@ -9,7 +9,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(typeof stats.isFile).to.equal('function');
+          expect(stats.isFile).to.be.a('function');
         });
       });
 
@@ -19,7 +19,7 @@ define(["Filer", "util"], function(Filer, util) {
         fs.open('/myfile', 'w+', function(error, fd) {
           if(error) throw error;
           fs.fstat(fd, function(error, stats) {
-            expect(stats.isFile()).to.equal(true);
+            expect(stats.isFile()).to.be.true;
             done();
           });
         });
@@ -30,7 +30,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(stats.isFile()).to.equal(false);
+          expect(stats.isFile()).to.be.false;
           done();
         });
       });
@@ -45,7 +45,7 @@ define(["Filer", "util"], function(Filer, util) {
             fs.symlink('/myfile', '/myfilelink', function(error) {
               if(error) throw error;
               fs.lstat('/myfilelink', function(error, stats) {
-                expect(stats.isFile()).to.equal(false);
+                expect(stats.isFile()).to.be.false;
                 done();
               });
             });
@@ -62,7 +62,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(typeof stats.isDirectory).to.equal('function');
+          expect(stats.isDirectory).to.be.a('function');
         });
       });
 
@@ -72,7 +72,7 @@ define(["Filer", "util"], function(Filer, util) {
         fs.open('/myfile', 'w+', function(error, fd) {
           if(error) throw error;
           fs.fstat(fd, function(error, stats) {
-            expect(stats.isDirectory()).to.equal(false);
+            expect(stats.isDirectory()).to.be.false;
             done();
           });
         });
@@ -83,7 +83,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(stats.isDirectory()).to.equal(true);
+          expect(stats.isDirectory()).to.be.true;
           done();
         });
       });
@@ -98,7 +98,7 @@ define(["Filer", "util"], function(Filer, util) {
             fs.symlink('/myfile', '/myfilelink', function(error) {
               if(error) throw error;
               fs.lstat('/myfilelink', function(error, stats) {
-                expect(stats.isDirectory()).to.equal(false);
+                expect(stats.isDirectory()).to.be.false;
                 done();
               });
             });
@@ -115,7 +115,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(typeof stats.isBlockDevice).to.equal('function');
+          expect(stats.isBlockDevice).to.be.a('function');
         });
       });
 
@@ -123,7 +123,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(stats.isBlockDevice()).to.equal(false);
+          expect(stats.isBlockDevice()).to.be.false;
         });
       });
     });
@@ -136,7 +136,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(typeof stats.isCharacterDevice).to.equal('function');
+          expect(stats.isCharacterDevice).to.be.a('function');
         });
       });
 
@@ -144,7 +144,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(stats.isCharacterDevice()).to.equal(false);
+          expect(stats.isCharacterDevice()).to.be.false;
         });
       });
     });
@@ -157,7 +157,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(typeof stats.isSymbolicLink).to.equal('function');
+          expect(stats.isSymbolicLink).to.be.a('function');
         });
       });
 
@@ -167,7 +167,7 @@ define(["Filer", "util"], function(Filer, util) {
         fs.open('/myfile', 'w+', function(error, fd) {
           if(error) throw error;
           fs.fstat(fd, function(error, stats) {
-            expect(stats.isSymbolicLink()).to.equal(false);
+            expect(stats.isSymbolicLink()).to.be.false;
             done();
           });
         });
@@ -178,7 +178,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(stats.isSymbolicLink()).to.equal(false);
+          expect(stats.isSymbolicLink()).to.be.false;
           done();
         });
       });
@@ -193,7 +193,7 @@ define(["Filer", "util"], function(Filer, util) {
             fs.symlink('/myfile', '/myfilelink', function(error) {
               if(error) throw error;
               fs.lstat('/myfilelink', function(error, stats) {
-                expect(stats.isSymbolicLink()).to.equal(true);
+                expect(stats.isSymbolicLink()).to.be.true;
                 done();
               });
             });
@@ -210,7 +210,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(typeof stats.isFIFO).to.equal('function');
+          expect(stats.isFIFO).to.be.a('function');
         });
       });
 
@@ -218,7 +218,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(stats.isFIFO()).to.equal(false);
+          expect(stats.isFIFO()).to.be.false;
         });
       });
     });
@@ -231,7 +231,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(typeof stats.isSocket).to.equal('function');
+          expect(stats.isSocket).to.be.a('function');
         });
       });
 
@@ -239,7 +239,7 @@ define(["Filer", "util"], function(Filer, util) {
         var fs = util.fs();
         fs.stat('/', function(error, stats) {
           if(error) throw error;
-          expect(stats.isSocket()).to.equal(false);
+          expect(stats.isSocket()).to.be.false;
         });
       });
     });
