@@ -346,8 +346,10 @@ Callback gets `(error, stats)`, where `stats` is an object with the following pr
 }
 ```
 
-The following convenience methods are also present on the callback's 'stats':
+The following convenience methods are also present on the callback's `stats`:
 
+```
+{
 isFile():             Returns true if the node is a file.
 isDirectory():        Returns true if the node is a directory.
 isBlockDevice():      Not implemented, returns false.
@@ -355,6 +357,8 @@ isCharacterDevice():  Not implemented, returns false.
 isSymbolicLink():     Returns true if the node is a symbolic link.
 isFIFO():             Not implemented, returns false.
 isSocket():           Not implemented, returns false.
+}
+```
 
 If the file at `path` is a symbolic link, the file to which it links will be used instead.
 To get the status of a symbolic link file, use [fs.lstat()](#lstat) instead.
