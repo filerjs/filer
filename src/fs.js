@@ -131,6 +131,34 @@ define(function(require) {
     this.type = fileNode.mode;
   }
 
+  Stats.prototype.isFile = function() {
+    return this.type === MODE_FILE;
+  };
+
+  Stats.prototype.isDirectory = function() {
+    return this.type === MODE_DIRECTORY;
+  };
+
+  Stats.prototype.isBlockDevice = function() {
+    return false;
+  };
+
+  Stats.prototype.isCharacterDevice = function() {
+    return false;
+  };
+
+  Stats.prototype.isSymbolicLink = function() {
+    return this.type === MODE_SYMBOLIC_LINK;
+  };
+
+  Stats.prototype.isFIFO = function() {
+    return false;
+  };
+
+  Stats.prototype.isSocket = function() {
+    return false;
+  };
+
   /*
    * Update node times. Only passed times are modified (undefined times are ignored)
    * and filesystem flags are examined in order to override update logic.
