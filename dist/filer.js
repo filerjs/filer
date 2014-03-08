@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
   }
 
 }( this, function() {
+
 /**
  * almond 0.2.5 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
@@ -5833,7 +5834,939 @@ define('src/shell',['require','src/path','src/error','src/environment','async'],
 
 });
 
-define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters','src/shell'],function(require) {
+;!function(exports, undefined) {
+
+  var isArray = Array.isArray ? Array.isArray : function _isArray(obj) {
+    return Object.prototype.toString.call(obj) === "[object Array]";
+  };
+  var defaultMaxListeners = 10;
+
+  function init() {
+    this._events = {};
+    if (this._conf) {
+      configure.call(this, this._conf);
+    }
+  }
+
+  function configure(conf) {
+    if (conf) {
+
+      this._conf = conf;
+
+      conf.delimiter && (this.delimiter = conf.delimiter);
+      conf.maxListeners && (this._events.maxListeners = conf.maxListeners);
+      conf.wildcard && (this.wildcard = conf.wildcard);
+      conf.newListener && (this.newListener = conf.newListener);
+
+      if (this.wildcard) {
+        this.listenerTree = {};
+      }
+    }
+  }
+
+  function EventEmitter(conf) {
+    this._events = {};
+    this.newListener = false;
+    configure.call(this, conf);
+  }
+
+  //
+  // Attention, function return type now is array, always !
+  // It has zero elements if no any matches found and one or more
+  // elements (leafs) if there are matches
+  //
+  function searchListenerTree(handlers, type, tree, i) {
+    if (!tree) {
+      return [];
+    }
+    var listeners=[], leaf, len, branch, xTree, xxTree, isolatedBranch, endReached,
+        typeLength = type.length, currentType = type[i], nextType = type[i+1];
+    if (i === typeLength && tree._listeners) {
+      //
+      // If at the end of the event(s) list and the tree has listeners
+      // invoke those listeners.
+      //
+      if (typeof tree._listeners === 'function') {
+        handlers && handlers.push(tree._listeners);
+        return [tree];
+      } else {
+        for (leaf = 0, len = tree._listeners.length; leaf < len; leaf++) {
+          handlers && handlers.push(tree._listeners[leaf]);
+        }
+        return [tree];
+      }
+    }
+
+    if ((currentType === '*' || currentType === '**') || tree[currentType]) {
+      //
+      // If the event emitted is '*' at this part
+      // or there is a concrete match at this patch
+      //
+      if (currentType === '*') {
+        for (branch in tree) {
+          if (branch !== '_listeners' && tree.hasOwnProperty(branch)) {
+            listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], i+1));
+          }
+        }
+        return listeners;
+      } else if(currentType === '**') {
+        endReached = (i+1 === typeLength || (i+2 === typeLength && nextType === '*'));
+        if(endReached && tree._listeners) {
+          // The next element has a _listeners, add it to the handlers.
+          listeners = listeners.concat(searchListenerTree(handlers, type, tree, typeLength));
+        }
+
+        for (branch in tree) {
+          if (branch !== '_listeners' && tree.hasOwnProperty(branch)) {
+            if(branch === '*' || branch === '**') {
+              if(tree[branch]._listeners && !endReached) {
+                listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], typeLength));
+              }
+              listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], i));
+            } else if(branch === nextType) {
+              listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], i+2));
+            } else {
+              // No match on this one, shift into the tree but not in the type array.
+              listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], i));
+            }
+          }
+        }
+        return listeners;
+      }
+
+      listeners = listeners.concat(searchListenerTree(handlers, type, tree[currentType], i+1));
+    }
+
+    xTree = tree['*'];
+    if (xTree) {
+      //
+      // If the listener tree will allow any match for this part,
+      // then recursively explore all branches of the tree
+      //
+      searchListenerTree(handlers, type, xTree, i+1);
+    }
+
+    xxTree = tree['**'];
+    if(xxTree) {
+      if(i < typeLength) {
+        if(xxTree._listeners) {
+          // If we have a listener on a '**', it will catch all, so add its handler.
+          searchListenerTree(handlers, type, xxTree, typeLength);
+        }
+
+        // Build arrays of matching next branches and others.
+        for(branch in xxTree) {
+          if(branch !== '_listeners' && xxTree.hasOwnProperty(branch)) {
+            if(branch === nextType) {
+              // We know the next element will match, so jump twice.
+              searchListenerTree(handlers, type, xxTree[branch], i+2);
+            } else if(branch === currentType) {
+              // Current node matches, move into the tree.
+              searchListenerTree(handlers, type, xxTree[branch], i+1);
+            } else {
+              isolatedBranch = {};
+              isolatedBranch[branch] = xxTree[branch];
+              searchListenerTree(handlers, type, { '**': isolatedBranch }, i+1);
+            }
+          }
+        }
+      } else if(xxTree._listeners) {
+        // We have reached the end and still on a '**'
+        searchListenerTree(handlers, type, xxTree, typeLength);
+      } else if(xxTree['*'] && xxTree['*']._listeners) {
+        searchListenerTree(handlers, type, xxTree['*'], typeLength);
+      }
+    }
+
+    return listeners;
+  }
+
+  function growListenerTree(type, listener) {
+
+    type = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
+
+    //
+    // Looks for two consecutive '**', if so, don't add the event at all.
+    //
+    for(var i = 0, len = type.length; i+1 < len; i++) {
+      if(type[i] === '**' && type[i+1] === '**') {
+        return;
+      }
+    }
+
+    var tree = this.listenerTree;
+    var name = type.shift();
+
+    while (name) {
+
+      if (!tree[name]) {
+        tree[name] = {};
+      }
+
+      tree = tree[name];
+
+      if (type.length === 0) {
+
+        if (!tree._listeners) {
+          tree._listeners = listener;
+        }
+        else if(typeof tree._listeners === 'function') {
+          tree._listeners = [tree._listeners, listener];
+        }
+        else if (isArray(tree._listeners)) {
+
+          tree._listeners.push(listener);
+
+          if (!tree._listeners.warned) {
+
+            var m = defaultMaxListeners;
+
+            if (typeof this._events.maxListeners !== 'undefined') {
+              m = this._events.maxListeners;
+            }
+
+            if (m > 0 && tree._listeners.length > m) {
+
+              tree._listeners.warned = true;
+              console.error('(node) warning: possible EventEmitter memory ' +
+                            'leak detected. %d listeners added. ' +
+                            'Use emitter.setMaxListeners() to increase limit.',
+                            tree._listeners.length);
+              console.trace();
+            }
+          }
+        }
+        return true;
+      }
+      name = type.shift();
+    }
+    return true;
+  }
+
+  // By default EventEmitters will print a warning if more than
+  // 10 listeners are added to it. This is a useful default which
+  // helps finding memory leaks.
+  //
+  // Obviously not all Emitters should be limited to 10. This function allows
+  // that to be increased. Set to zero for unlimited.
+
+  EventEmitter.prototype.delimiter = '.';
+
+  EventEmitter.prototype.setMaxListeners = function(n) {
+    this._events || init.call(this);
+    this._events.maxListeners = n;
+    if (!this._conf) this._conf = {};
+    this._conf.maxListeners = n;
+  };
+
+  EventEmitter.prototype.event = '';
+
+  EventEmitter.prototype.once = function(event, fn) {
+    this.many(event, 1, fn);
+    return this;
+  };
+
+  EventEmitter.prototype.many = function(event, ttl, fn) {
+    var self = this;
+
+    if (typeof fn !== 'function') {
+      throw new Error('many only accepts instances of Function');
+    }
+
+    function listener() {
+      if (--ttl === 0) {
+        self.off(event, listener);
+      }
+      fn.apply(this, arguments);
+    }
+
+    listener._origin = fn;
+
+    this.on(event, listener);
+
+    return self;
+  };
+
+  EventEmitter.prototype.emit = function() {
+
+    this._events || init.call(this);
+
+    var type = arguments[0];
+
+    if (type === 'newListener' && !this.newListener) {
+      if (!this._events.newListener) { return false; }
+    }
+
+    // Loop through the *_all* functions and invoke them.
+    if (this._all) {
+      var l = arguments.length;
+      var args = new Array(l - 1);
+      for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
+      for (i = 0, l = this._all.length; i < l; i++) {
+        this.event = type;
+        this._all[i].apply(this, args);
+      }
+    }
+
+    // If there is no 'error' event listener then throw.
+    if (type === 'error') {
+
+      if (!this._all &&
+        !this._events.error &&
+        !(this.wildcard && this.listenerTree.error)) {
+
+        if (arguments[1] instanceof Error) {
+          throw arguments[1]; // Unhandled 'error' event
+        } else {
+          throw new Error("Uncaught, unspecified 'error' event.");
+        }
+        return false;
+      }
+    }
+
+    var handler;
+
+    if(this.wildcard) {
+      handler = [];
+      var ns = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
+      searchListenerTree.call(this, handler, ns, this.listenerTree, 0);
+    }
+    else {
+      handler = this._events[type];
+    }
+
+    if (typeof handler === 'function') {
+      this.event = type;
+      if (arguments.length === 1) {
+        handler.call(this);
+      }
+      else if (arguments.length > 1)
+        switch (arguments.length) {
+          case 2:
+            handler.call(this, arguments[1]);
+            break;
+          case 3:
+            handler.call(this, arguments[1], arguments[2]);
+            break;
+          // slower
+          default:
+            var l = arguments.length;
+            var args = new Array(l - 1);
+            for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
+            handler.apply(this, args);
+        }
+      return true;
+    }
+    else if (handler) {
+      var l = arguments.length;
+      var args = new Array(l - 1);
+      for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
+
+      var listeners = handler.slice();
+      for (var i = 0, l = listeners.length; i < l; i++) {
+        this.event = type;
+        listeners[i].apply(this, args);
+      }
+      return (listeners.length > 0) || this._all;
+    }
+    else {
+      return this._all;
+    }
+
+  };
+
+  EventEmitter.prototype.on = function(type, listener) {
+
+    if (typeof type === 'function') {
+      this.onAny(type);
+      return this;
+    }
+
+    if (typeof listener !== 'function') {
+      throw new Error('on only accepts instances of Function');
+    }
+    this._events || init.call(this);
+
+    // To avoid recursion in the case that type == "newListeners"! Before
+    // adding it to the listeners, first emit "newListeners".
+    this.emit('newListener', type, listener);
+
+    if(this.wildcard) {
+      growListenerTree.call(this, type, listener);
+      return this;
+    }
+
+    if (!this._events[type]) {
+      // Optimize the case of one listener. Don't need the extra array object.
+      this._events[type] = listener;
+    }
+    else if(typeof this._events[type] === 'function') {
+      // Adding the second element, need to change to array.
+      this._events[type] = [this._events[type], listener];
+    }
+    else if (isArray(this._events[type])) {
+      // If we've already got an array, just append.
+      this._events[type].push(listener);
+
+      // Check for listener leak
+      if (!this._events[type].warned) {
+
+        var m = defaultMaxListeners;
+
+        if (typeof this._events.maxListeners !== 'undefined') {
+          m = this._events.maxListeners;
+        }
+
+        if (m > 0 && this._events[type].length > m) {
+
+          this._events[type].warned = true;
+          console.error('(node) warning: possible EventEmitter memory ' +
+                        'leak detected. %d listeners added. ' +
+                        'Use emitter.setMaxListeners() to increase limit.',
+                        this._events[type].length);
+          console.trace();
+        }
+      }
+    }
+    return this;
+  };
+
+  EventEmitter.prototype.onAny = function(fn) {
+
+    if(!this._all) {
+      this._all = [];
+    }
+
+    if (typeof fn !== 'function') {
+      throw new Error('onAny only accepts instances of Function');
+    }
+
+    // Add the function to the event listener collection.
+    this._all.push(fn);
+    return this;
+  };
+
+  EventEmitter.prototype.addListener = EventEmitter.prototype.on;
+
+  EventEmitter.prototype.off = function(type, listener) {
+    if (typeof listener !== 'function') {
+      throw new Error('removeListener only takes instances of Function');
+    }
+
+    var handlers,leafs=[];
+
+    if(this.wildcard) {
+      var ns = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
+      leafs = searchListenerTree.call(this, null, ns, this.listenerTree, 0);
+    }
+    else {
+      // does not use listeners(), so no side effect of creating _events[type]
+      if (!this._events[type]) return this;
+      handlers = this._events[type];
+      leafs.push({_listeners:handlers});
+    }
+
+    for (var iLeaf=0; iLeaf<leafs.length; iLeaf++) {
+      var leaf = leafs[iLeaf];
+      handlers = leaf._listeners;
+      if (isArray(handlers)) {
+
+        var position = -1;
+
+        for (var i = 0, length = handlers.length; i < length; i++) {
+          if (handlers[i] === listener ||
+            (handlers[i].listener && handlers[i].listener === listener) ||
+            (handlers[i]._origin && handlers[i]._origin === listener)) {
+            position = i;
+            break;
+          }
+        }
+
+        if (position < 0) {
+          continue;
+        }
+
+        if(this.wildcard) {
+          leaf._listeners.splice(position, 1);
+        }
+        else {
+          this._events[type].splice(position, 1);
+        }
+
+        if (handlers.length === 0) {
+          if(this.wildcard) {
+            delete leaf._listeners;
+          }
+          else {
+            delete this._events[type];
+          }
+        }
+        return this;
+      }
+      else if (handlers === listener ||
+        (handlers.listener && handlers.listener === listener) ||
+        (handlers._origin && handlers._origin === listener)) {
+        if(this.wildcard) {
+          delete leaf._listeners;
+        }
+        else {
+          delete this._events[type];
+        }
+      }
+    }
+
+    return this;
+  };
+
+  EventEmitter.prototype.offAny = function(fn) {
+    var i = 0, l = 0, fns;
+    if (fn && this._all && this._all.length > 0) {
+      fns = this._all;
+      for(i = 0, l = fns.length; i < l; i++) {
+        if(fn === fns[i]) {
+          fns.splice(i, 1);
+          return this;
+        }
+      }
+    } else {
+      this._all = [];
+    }
+    return this;
+  };
+
+  EventEmitter.prototype.removeListener = EventEmitter.prototype.off;
+
+  EventEmitter.prototype.removeAllListeners = function(type) {
+    if (arguments.length === 0) {
+      !this._events || init.call(this);
+      return this;
+    }
+
+    if(this.wildcard) {
+      var ns = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
+      var leafs = searchListenerTree.call(this, null, ns, this.listenerTree, 0);
+
+      for (var iLeaf=0; iLeaf<leafs.length; iLeaf++) {
+        var leaf = leafs[iLeaf];
+        leaf._listeners = null;
+      }
+    }
+    else {
+      if (!this._events[type]) return this;
+      this._events[type] = null;
+    }
+    return this;
+  };
+
+  EventEmitter.prototype.listeners = function(type) {
+    if(this.wildcard) {
+      var handlers = [];
+      var ns = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
+      searchListenerTree.call(this, handlers, ns, this.listenerTree, 0);
+      return handlers;
+    }
+
+    this._events || init.call(this);
+
+    if (!this._events[type]) this._events[type] = [];
+    if (!isArray(this._events[type])) {
+      this._events[type] = [this._events[type]];
+    }
+    return this._events[type];
+  };
+
+  EventEmitter.prototype.listenersAny = function() {
+
+    if(this._all) {
+      return this._all;
+    }
+    else {
+      return [];
+    }
+
+  };
+
+  if (typeof define === 'function' && define.amd) {
+    define('EventEmitter',[],function() {
+      return EventEmitter;
+    });
+  } else {
+    exports.EventEmitter2 = EventEmitter;
+  }
+
+}(typeof process !== 'undefined' && typeof process.title !== 'undefined' && typeof exports !== 'undefined' ? exports : window);
+
+define('intercom',['require','EventEmitter','src/shared'],function(require) {
+
+  // Based on https://github.com/diy/intercom.js/blob/master/lib/intercom.js
+  // Copyright 2012 DIY Co Apache License, Version 2.0
+  // http://www.apache.org/licenses/LICENSE-2.0
+
+  var EventEmitter = require('EventEmitter');
+  var guid = require('src/shared').guid;
+
+  function throttle(delay, fn) {
+    var last = 0;
+    return function() {
+      var now = Date.now();
+      if (now - last > delay) {
+        last = now;
+        fn.apply(this, arguments);
+      }
+    };
+  }
+
+  function extend(a, b) {
+    if (typeof a === 'undefined' || !a) { a = {}; }
+    if (typeof b === 'object') {
+      for (var key in b) {
+        if (b.hasOwnProperty(key)) {
+          a[key] = b[key];
+        }
+      }
+    }
+    return a;
+  }
+
+  var localStorage = (function(window) {
+    if (typeof window.localStorage === 'undefined') {
+      return {
+        getItem : function() {},
+        setItem : function() {},
+        removeItem : function() {}
+      };
+    }
+    return window.localStorage;
+  }(this));
+
+  function Intercom() {
+    var self = this;
+    var now = Date.now();
+
+    this.origin         = guid();
+    this.lastMessage    = now;
+    this.receivedIDs    = {};
+    this.previousValues = {};
+
+    var storageHandler = function() {
+      self._onStorageEvent.apply(self, arguments);
+    };
+    if (document.attachEvent) {
+      document.attachEvent('onstorage', storageHandler);
+    } else {
+      window.addEventListener('storage', storageHandler, false);
+    }
+  }
+
+  Intercom.prototype._transaction = function(fn) {
+    var TIMEOUT   = 1000;
+    var WAIT      = 20;
+    var self      = this;
+    var executed  = false;
+    var listening = false;
+    var waitTimer = null;
+
+    function lock() {
+      if (executed) {
+        return;
+      }
+
+      var now = Date.now();
+      var activeLock = localStorage.getItem(INDEX_LOCK)|0;
+      if (activeLock && now - activeLock < TIMEOUT) {
+        if (!listening) {
+          self._on('storage', lock);
+          listening = true;
+        }
+        waitTimer = window.setTimeout(lock, WAIT);
+        return;
+      }
+      executed = true;
+      localStorage.setItem(INDEX_LOCK, now);
+
+      fn();
+      unlock();
+    }
+
+    function unlock() {
+      if (listening) {
+        self._off('storage', lock);
+      }
+      if (waitTimer) {
+        window.clearTimeout(waitTimer);
+      }
+      localStorage.removeItem(INDEX_LOCK);
+    }
+
+    lock();
+  };
+
+  Intercom.prototype._cleanup_emit = throttle(100, function() {
+    var self = this;
+
+    self._transaction(function() {
+      var now = Date.now();
+      var threshold = now - THRESHOLD_TTL_EMIT;
+      var changed = 0;
+      var messages;
+
+      try {
+        messages = JSON.parse(localStorage.getItem(INDEX_EMIT) || '[]');
+      } catch(e) {
+        messages = [];
+      }
+      for (var i = messages.length - 1; i >= 0; i--) {
+        if (messages[i].timestamp < threshold) {
+          messages.splice(i, 1);
+          changed++;
+        }
+      }
+      if (changed > 0) {
+        localStorage.setItem(INDEX_EMIT, JSON.stringify(messages));
+      }
+    });
+  });
+
+  Intercom.prototype._cleanup_once = throttle(100, function() {
+    var self = this;
+
+    self._transaction(function() {
+      var timestamp, ttl, key;
+      var table;
+      var now  = Date.now();
+      var changed = 0;
+
+      try {
+        table = JSON.parse(localStorage.getItem(INDEX_ONCE) || '{}');
+      } catch(e) {
+        table = {};
+      }
+      for (key in table) {
+        if (self._once_expired(key, table)) {
+          delete table[key];
+          changed++;
+        }
+      }
+
+      if (changed > 0) {
+        localStorage.setItem(INDEX_ONCE, JSON.stringify(table));
+      }
+    });
+  });
+
+  Intercom.prototype._once_expired = function(key, table) {
+    if (!table) {
+      return true;
+    }
+    if (!table.hasOwnProperty(key)) {
+      return true;
+    }
+    if (typeof table[key] !== 'object') {
+      return true;
+    }
+
+    var ttl = table[key].ttl || THRESHOLD_TTL_ONCE;
+    var now = Date.now();
+    var timestamp = table[key].timestamp;
+    return timestamp < now - ttl;
+  };
+
+  Intercom.prototype._localStorageChanged = function(event, field) {
+    if (event && event.key) {
+      return event.key === field;
+    }
+
+    var currentValue = localStorage.getItem(field);
+    if (currentValue === this.previousValues[field]) {
+      return false;
+    }
+    this.previousValues[field] = currentValue;
+    return true;
+  };
+
+  Intercom.prototype._onStorageEvent = function(event) {
+    event = event || window.event;
+    var self = this;
+
+    if (this._localStorageChanged(event, INDEX_EMIT)) {
+      this._transaction(function() {
+        var now = Date.now();
+        var data = localStorage.getItem(INDEX_EMIT);
+        var messages;
+
+        try {
+          messages = JSON.parse(data || '[]');
+        } catch(e) {
+          messages = [];
+        }
+        for (var i = 0; i < messages.length; i++) {
+          if (messages[i].origin === self.origin) continue;
+          if (messages[i].timestamp < self.lastMessage) continue;
+          if (messages[i].id) {
+            if (self.receivedIDs.hasOwnProperty(messages[i].id)) continue;
+            self.receivedIDs[messages[i].id] = true;
+          }
+          self.trigger(messages[i].name, messages[i].payload);
+        }
+        self.lastMessage = now;
+      });
+    }
+
+    this._trigger('storage', event);
+  };
+
+  Intercom.prototype._emit = function(name, message, id) {
+    id = (typeof id === 'string' || typeof id === 'number') ? String(id) : null;
+    if (id && id.length) {
+      if (this.receivedIDs.hasOwnProperty(id)) return;
+      this.receivedIDs[id] = true;
+    }
+
+    var packet = {
+      id        : id,
+      name      : name,
+      origin    : this.origin,
+      timestamp : Date.now(),
+      payload   : message
+    };
+
+    var self = this;
+    this._transaction(function() {
+      var data = localStorage.getItem(INDEX_EMIT) || '[]';
+      var delimiter = (data === '[]') ? '' : ',';
+      data = [data.substring(0, data.length - 1), delimiter, JSON.stringify(packet), ']'].join('');
+      localStorage.setItem(INDEX_EMIT, data);
+      self.trigger(name, message);
+
+      window.setTimeout(function() {
+        self._cleanup_emit();
+      }, 50);
+    });
+  };
+
+  Intercom.prototype.emit = function(name, message) {
+    this._emit.apply(this, arguments);
+    this._trigger('emit', name, message);
+  };
+
+  Intercom.prototype.once = function(key, fn, ttl) {
+    if (!Intercom.supported) {
+      return;
+    }
+
+    var self = this;
+    this._transaction(function() {
+      var data;
+      try {
+        data = JSON.parse(localStorage.getItem(INDEX_ONCE) || '{}');
+      } catch(e) {
+        data = {};
+      }
+      if (!self._once_expired(key, data)) {
+        return;
+      }
+
+      data[key] = {};
+      data[key].timestamp = Date.now();
+      if (typeof ttl === 'number') {
+        data[key].ttl = ttl * 1000;
+      }
+
+      localStorage.setItem(INDEX_ONCE, JSON.stringify(data));
+      fn();
+
+      window.setTimeout(function() {
+        self._cleanup_once();
+      }, 50);
+    });
+  };
+
+  extend(Intercom.prototype, EventEmitter.prototype);
+
+  Intercom.supported = (typeof localStorage !== 'undefined');
+
+  var INDEX_EMIT = 'intercom';
+  var INDEX_ONCE = 'intercom_once';
+  var INDEX_LOCK = 'intercom_lock';
+
+  var THRESHOLD_TTL_EMIT = 50000;
+  var THRESHOLD_TTL_ONCE = 1000 * 3600;
+
+  Intercom.destroy = function() {
+    localStorage.removeItem(INDEX_LOCK);
+    localStorage.removeItem(INDEX_EMIT);
+    localStorage.removeItem(INDEX_ONCE);
+  };
+
+  Intercom.getInstance = (function() {
+    var intercom;
+    return function() {
+      if (!intercom) {
+        intercom = new Intercom();
+      }
+      return intercom;
+    };
+  })();
+
+  return Intercom;
+});
+
+define('src/fswatcher',['require','EventEmitter','src/path','intercom'],function(require) {
+
+  var EventEmitter = require('EventEmitter');
+  var isNullPath = require('src/path').isNull;
+  var Intercom = require('intercom');
+
+  /**
+   * FSWatcher based on node.js' FSWatcher
+   * see https://github.com/joyent/node/blob/master/lib/fs.js
+   */
+  function FSWatcher() {
+    EventEmitter.call(this);
+    var self = this;
+    var recursive = false;
+    var filename;
+
+    function onchange(event, path) {
+      // Watch for exact filename, or parent path when recursive is true
+      if(filename === path || (recursive && path.indexOf(filename + '/') === 0)) {
+        self.emit('change', 'change', path);
+      }
+    }
+
+    // We support, but ignore the second arg, which node.js uses.
+    self.start = function(filename_, persistent_, recursive_) {
+      // Bail if we've already started (and therefore have a filename);
+      if(filename) {
+        return;
+      }
+
+      if(isNullPath(filename_)) {
+        throw new Error('Path must be a string without null bytes.');
+      }
+      // TODO: get realpath for symlinks on filename...
+      filename = filename_;
+
+      // Whether to watch beneath this path or not
+      recursive = recursive_ === true;
+
+      var intercom = Intercom.getInstance();
+      intercom.on('change', onchange);
+    };
+
+    self.close = function() {
+      var intercom = Intercom.getInstance();
+      intercom.off('change', onchange);
+      self.removeAllListeners('change');
+    };
+  }
+  FSWatcher.prototype = new EventEmitter();
+  FSWatcher.prototype.constructor = FSWatcher;
+
+  return FSWatcher;
+});
+
+define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters','src/shell','intercom','src/fswatcher'],function(require) {
 
   var _ = require('nodash');
 
@@ -5893,6 +6826,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
   var Shell = require('src/shell');
+  var Intercom = require('intercom');
+  var FSWatcher = require('src/fswatcher');
 
   /*
    * DirectoryEntry
@@ -6027,10 +6962,17 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       update = true;
     }
 
+    function complete(error) {
+      // Queue this change so we can send watch events.
+      // Unlike node.js, we send the full path vs. basename/dirname only.
+      context.changes.push({ event: 'change', path: path });
+      callback(error);
+    }
+
     if(update) {
-      context.put(node.id, node, callback);
+      context.put(node.id, node, complete);
     } else {
-      callback();
+      complete();
     }
   }
 
@@ -7484,21 +8426,66 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       queue = null;
     }
 
+    // We support the optional `options` arg from node, but ignore it
+    this.watch = function(filename, options, listener) {
+      if(isNullPath(filename)) {
+        throw new Error('Path must be a string without null bytes.');
+      }
+      if(typeof options === 'function') {
+        listener = options;
+        options = {};
+      }
+      options = options || {};
+      listener = listener || nop;
+
+      var watcher = new FSWatcher();
+      watcher.start(filename, false, options.recursive);
+      watcher.on('change', listener);
+
+      return watcher;
+    };
+
+    // Let other instances (in this or other windows) know about
+    // any changes to this fs instance.
+    function broadcastChanges(changes) {
+      if(!changes.length) {
+        return;
+      }
+      var intercom = Intercom.getInstance();
+      changes.forEach(function(change) {
+        intercom.emit(change.event, change.event, change.path);
+      });
+    }
+
     // Open file system storage provider
     provider.open(function(err, needsFormatting) {
       function complete(error) {
-        // Wrap the provider so we can extend the context with fs flags.
-        // From this point forward we won't call open again, so drop it.
+
+        function wrappedContext(methodName) {
+          var context = provider[methodName]();
+          context.flags = flags;
+          context.changes = [];
+
+          // When the context is finished, let the fs deal with any change events
+          context.close = function() {
+            var changes = context.changes;
+            broadcastChanges(changes);
+            changes.length = 0;
+          };
+
+          return context;
+        }
+
+        // Wrap the provider so we can extend the context with fs flags and
+        // an array of changes (e.g., watch event 'change' and 'rename' events
+        // for paths updated during the lifetime of the context). From this
+        // point forward we won't call open again, so it's safe to drop it.
         fs.provider = {
-          getReadWriteContext: function() {
-            var context = provider.getReadWriteContext();
-            context.flags = flags;
-            return context;
+          openReadWriteContext: function() {
+            return wrappedContext('getReadWriteContext');
           },
-          getReadOnlyContext: function() {
-            var context = provider.getReadOnlyContext();
-            context.flags = flags;
-            return context;
+          openReadOnlyContext: function() {
+            return wrappedContext('getReadOnlyContext');
           }
         };
 
@@ -8169,14 +9156,30 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _open(fs, context, path, flags, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _open(fs, context, path, flags, complete);
       }
     );
     if(error) callback(error);
   };
   FileSystem.prototype.close = function(fd, callback) {
-    _close(this, fd, maybeCallback(callback));
+    callback = maybeCallback(callback);
+    var fs = this;
+    var error = fs.queueOrRun(
+      function() {
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _close(fs, fd, complete);
+      }
+    );
+    if(error) callback(error);
   };
   FileSystem.prototype.mkdir = function(path, mode, callback) {
     // Support passing a mode arg, but we ignore it internally for now.
@@ -8187,8 +9190,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _mkdir(context, path, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _mkdir(context, path, complete);
       }
     );
     if(error) callback(error);
@@ -8198,8 +9205,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _rmdir(context, path, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _rmdir(context, path, complete);
       }
     );
     if(error) callback(error);
@@ -8209,8 +9220,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _stat(context, fs.name, path, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _stat(context, fs.name, path, complete);
       }
     );
     if(error) callback(error);
@@ -8220,8 +9235,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _fstat(fs, context, fd, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _fstat(fs, context, fd, complete);
       }
     );
     if(error) callback(error);
@@ -8231,8 +9250,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _link(context, oldpath, newpath, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _link(context, oldpath, newpath, complete);
       }
     );
     if(error) callback(error);
@@ -8242,8 +9265,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _unlink(context, path, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _unlink(context, path, complete);
       }
     );
     if(error) callback(error);
@@ -8258,8 +9285,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _read(fs, context, fd, buffer, offset, length, position, wrapper);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          wrapper.apply(this, arguments);
+        }
+        _read(fs, context, fd, buffer, offset, length, position, complete);
       }
     );
     if(error) callback(error);
@@ -8269,8 +9300,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _readFile(fs, context, path, options, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _readFile(fs, context, path, options, complete);
       }
     );
     if(error) callback(error);
@@ -8280,11 +9315,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _write(fs, context, fd, buffer, offset, length, position, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _write(fs, context, fd, buffer, offset, length, position, complete);
       }
     );
-
     if(error) callback(error);
   };
   FileSystem.prototype.writeFile = function(path, data, options, callback_) {
@@ -8292,8 +9330,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _writeFile(fs, context, path, data, options, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _writeFile(fs, context, path, data, options, complete);
       }
     );
     if(error) callback(error);
@@ -8303,8 +9345,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _appendFile(fs, context, path, data, options, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _appendFile(fs, context, path, data, options, complete);
       }
     );
     if(error) callback(error);
@@ -8314,8 +9360,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _exists(context, fs.name, path, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _exists(context, fs.name, path, complete);
       }
     );
     if(error) callback(error);
@@ -8325,8 +9375,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _lseek(fs, context, fd, offset, whence, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _lseek(fs, context, fd, offset, whence, complete);
       }
     );
     if(error) callback(error);
@@ -8336,8 +9390,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _readdir(context, path, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _readdir(context, path, complete);
       }
     );
     if(error) callback(error);
@@ -8347,8 +9405,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _rename(context, oldpath, newpath, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _rename(context, oldpath, newpath, complete);
       }
     );
     if(error) callback(error);
@@ -8358,8 +9420,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _readlink(context, path, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _readlink(context, path, complete);
       }
     );
     if(error) callback(error);
@@ -8370,8 +9436,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _symlink(context, srcpath, dstpath, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _symlink(context, srcpath, dstpath, complete);
       }
     );
     if(error) callback(error);
@@ -8381,8 +9451,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _lstat(fs, context, path, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _lstat(fs, context, path, complete);
       }
     );
     if(error) callback(error);
@@ -8398,8 +9472,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _truncate(context, path, length, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _truncate(context, path, length, complete);
       }
     );
     if(error) callback(error);
@@ -8409,8 +9487,12 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function() {
-        var context = fs.provider.getReadWriteContext();
-        _ftruncate(fs, context, fd, length, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _ftruncate(fs, context, fd, length, complete);
       }
     );
     if(error) callback(error);
@@ -8420,11 +9502,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function () {
-        var context = fs.provider.getReadWriteContext();
-        _utimes(context, path, atime, mtime, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _utimes(context, path, atime, mtime, complete);
       }
     );
-
     if (error) {
       callback(error);
     }
@@ -8434,11 +9519,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function () {
-        var context = fs.provider.getReadWriteContext();
-        _futimes(fs, context, fd, atime, mtime, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _futimes(fs, context, fd, atime, mtime, complete);
       }
     );
-
     if (error) {
       callback(error);
     }
@@ -8449,11 +9537,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function () {
-        var context = fs.provider.getReadWriteContext();
-        _setxattr(context, path, name, value, _flag, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _setxattr(context, path, name, value, _flag, complete);
       }
     );
-
     if (error) {
       callback(error);
     }
@@ -8463,11 +9554,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function () {
-        var context = fs.provider.getReadWriteContext();
-        _getxattr(context, path, name, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _getxattr(context, path, name, complete);
       }
     );
-
     if (error) {
       callback(error);
     }
@@ -8478,11 +9572,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function () {
-        var context = fs.provider.getReadWriteContext();
-        _fsetxattr(fs, context, fd, name, value, _flag, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _fsetxattr(fs, context, fd, name, value, _flag, complete);
       }
     );
-
     if (error) {
       callback(error);
     }
@@ -8492,11 +9589,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function () {
-        var context = fs.provider.getReadWriteContext();
-        _fgetxattr(fs, context, fd, name, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _fgetxattr(fs, context, fd, name, complete);
       }
     );
-
     if (error) {
       callback(error);
     }
@@ -8506,11 +9606,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function () {
-        var context = fs.provider.getReadWriteContext();
-        _removexattr(context, path, name, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _removexattr(context, path, name, complete);
       }
     );
-
     if (error) {
       callback(error);
     }
@@ -8520,11 +9623,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fs = this;
     var error = fs.queueOrRun(
       function () {
-        var context = fs.provider.getReadWriteContext();
-        _fremovexattr(fs, context, fd, name, callback);
+        var context = fs.provider.openReadWriteContext();
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+        _fremovexattr(fs, context, fd, name, complete);
       }
     );
-
     if (error) {
       callback(error);
     }
@@ -8547,7 +9653,6 @@ define('src/index',['require','src/fs','src/fs','src/path'],function(require) {
   };
 
 });
-
 
   var Filer = require( "src/index" );
 
