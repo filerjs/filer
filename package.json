@@ -15,8 +15,10 @@
     "type": "git",
     "url": "https://github.com/js-platform/filer.git"
   },
+  "dependencies": {
+    "bower": "~1.0.0"
+  },
   "devDependencies": {
-    "bower": "~1.0.0",
     "grunt": "~0.4.0",
     "grunt-contrib-clean": "~0.4.0",
     "grunt-contrib-requirejs": "~0.4.0",

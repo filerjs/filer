@@ -35,6 +35,7 @@ define([
   "spec/path-resolution.spec",
   "spec/times.spec",
   "spec/time-flags.spec",
+  "spec/fs.watch.spec",
 
   // Filer.FileSystem.providers.*
   "spec/providers/providers.spec",
@@ -58,6 +59,8 @@ define([
   // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
   "spec/node-js/simple/test-fs-mkdir",
   "spec/node-js/simple/test-fs-null-bytes",
+  "spec/node-js/simple/test-fs-watch",
+  "spec/node-js/simple/test-fs-watch-recursive",
 
   // Regressions, Bugs
   "bugs/issue105",

@@ -26,6 +26,8 @@ module.exports = function(grunt) {
         'src/index.js',
         'src/shared.js',
         'src/shell.js',
+        'src/fswatcher.js',
+        'src/environment.js',
         'src/providers/**/*.js',
         'src/adapters/**/*.js'
       ]
@@ -45,7 +47,8 @@ module.exports = function(grunt) {
         options: {
           paths: {
             "src": "../src",
-            "build": "../build"
+            "build": "../build",
+            "EventEmitter": "../bower_components/eventemitter2/lib/eventemitter2"
           },
           baseUrl: "lib",
           name: "build/almond",

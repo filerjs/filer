@@ -24,7 +24,6 @@ with the following differences:
 
 * No synchronous versions of methods (e.g., `mkdir()` but not `mkdirSync()`).
 * No permissions (e.g., no `chown()`, `chmod()`, etc.).
-* No support (yet) for `fs.watchFile()`, `fs.unwatchFile()`, `fs.watch()`.
 * No support for stream-based operations (e.g., `fs.ReadStream`, `fs.WriteStream`).
 
 Filer has other features lacking in node.js (e.g., swappable backend
@@ -246,6 +245,7 @@ var fs = new Filer.FileSystem();
 * [fs.fgetxattr(fd, name, callback)](#fgetxattr)
 * [fs.removexattr(path, name, callback)](#removexattr)
 * [fs.fremovexattr(fd, name, callback)](#fremovexattr)
+* [fs.watch(filename, [options], [listener])](#watch)
 
 #### fs.rename(oldPath, newPath, callback)<a name="rename"></a>
 
@@ -952,6 +952,52 @@ fs.open('/myfile', 'r', function(err, fd) {
 
   fs.close(fd);
 });
+```
+
+#### fs.watch(filename, [options], [listener])<a name="watch"></a>
+
+Watch for changes to a file or directory at `filename`. The object returned is an `FSWatcher`,
+which is an [`EventEmitter`](http://nodejs.org/api/events.html) with the following additional method:
+
+* `close()` - stops listening for changes, and removes all listeners from this instance. Use this
+to stop watching a file or directory after calling `fs.watch()`.
+
+The only supported option is `recursive`, which if `true` will cause a watch to be placed
+on a directory, and all sub-directories and files beneath it.
+
+The `listener` callback gets two arguments `(event, filename)`. `event` is either `'rename'` or `'change'`,
+(currenty only `'rename'` is supported) and `filename` is the name of the file/dir which triggered the event.
+
+Unlike node.js, all watch events return a path. Also, all returned paths are absolute from the root
+vs. just a relative filename.
+
+Examples:
+
+```javascript
+// Example 1: create a watcher to see when a file is created
+var watcher = fs.watch('/myfile', function(event, filename) {
+  // event could be 'change' or 'rename' and filename will be '/myfile'
+  // Stop watching for changes
+  watcher.close();
+});
+fs.writeFile('/myfile', 'data');
+
+// Example 2: add the listener via watcher.on()
+var watcher = fs.watch('/myfile2');
+watcher.on('change', function(event, filename) {
+  // event will be 'change' and filename will be '/myfile2'
+  // Stop watching for changes
+  watcher.close();
+});
+fs.writeFile('/myfile2', 'data2');
+
+// Example 3: recursive watch on /data dir
+var watcher = fs.watch('/data', { recursive: true }, function(event, filename) {
+  // event could be 'change' or 'rename' and filename will be '/data/subdir/file'
+  // Stop watching for changes
+  watcher.close();
+});
+fs.writeFile('/data/subdir/file', 'data');
 ```
 
 ### FileSystemShell<a name="FileSystemShell"></a>
