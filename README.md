@@ -8,7 +8,7 @@ Filer is a POSIX-like file system interface for browser-based JavaScript.
 
 ### Contributing
 
-Want to join the fun? We'd love to have you! See [CONTRIBUTING](CONTRIBUTING.md).
+Want to join the fun? We'd love to have you! See [CONTRIBUTING](https://github.com/js-platform/filer/blob/develop/CONTRIBUTING.md).
 
 ###Downloading
 
