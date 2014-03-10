@@ -16,21 +16,6 @@ define(function(require) {
   var hash = require('src/shared').hash;
   var nop = require('src/shared').nop;
 
-  var EExists = require('src/error').EExists;
-  var EIsDirectory = require('src/error').EIsDirectory;
-  var ENoEntry = require('src/error').ENoEntry;
-  var EBusy = require('src/error').EBusy;
-  var ENotEmpty = require('src/error').ENotEmpty;
-  var ENotDirectory = require('src/error').ENotDirectory;
-  var EBadFileDescriptor = require('src/error').EBadFileDescriptor;
-  var ENotImplemented = require('src/error').ENotImplemented;
-  var ENotMounted = require('src/error').ENotMounted;
-  var EInvalid = require('src/error').EInvalid;
-  var EIO = require('src/error').EIO;
-  var ELoop = require('src/error').ELoop;
-  var EFileSystemError = require('src/error').EFileSystemError;
-  var ENoAttr = require('src/error').ENoAttr;
-
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
   var FS_FORMAT = require('src/constants').FS_FORMAT;
   var MODE_FILE = require('src/constants').MODE_FILE;
@@ -60,6 +45,7 @@ define(function(require) {
   var Shell = require('src/shell');
   var Intercom = require('intercom');
   var FSWatcher = require('src/fswatcher');
+  var Errors = require('src/errors');
 
   /*
    * DirectoryEntry
@@ -217,7 +203,7 @@ define(function(require) {
   function find_node(context, path, callback) {
     path = normalize(path);
     if(!path) {
-      return callback(new ENoEntry('path is an empty string'));
+      return callback(new Errors.ENoEntry('path is an empty string'));
     }
     var name = basename(path);
     var parentPath = dirname(path);
@@ -227,7 +213,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else if(!superNode || superNode.mode !== MODE_META || !superNode.rnode) {
-        callback(new EFileSystemError('missing super node'));
+        callback(new Errors.EFileSystemError());
       } else {
         context.get(superNode.rnode, check_root_directory_node);
       }
@@ -237,7 +223,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else if(!rootDirectoryNode) {
-        callback(new ENoEntry('path does not exist'));
+        callback(new Errors.ENoEntry());
       } else {
         callback(null, rootDirectoryNode);
       }
@@ -249,7 +235,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else if(parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
-        callback(new ENotDirectory('a component of the path prefix is not a directory'));
+        callback(new Errors.ENotDirectory('a component of the path prefix is not a directory'));
       } else {
         context.get(parentDirectoryNode.data, get_node_from_parent_directory_data);
       }
@@ -262,7 +248,7 @@ define(function(require) {
         callback(error);
       } else {
         if(!_(parentDirectoryData).has(name)) {
-          callback(new ENoEntry('path does not exist'));
+          callback(new Errors.ENoEntry());
         } else {
           var nodeId = parentDirectoryData[name].id;
           context.get(nodeId, is_symbolic_link);
@@ -277,7 +263,7 @@ define(function(require) {
         if(node.mode == MODE_SYMBOLIC_LINK) {
           followedCount++;
           if(followedCount > SYMLOOP_MAX){
-            callback(new ELoop('too many symbolic links were encountered'));
+            callback(new Errors.ELoop());
           } else {
             follow_symbolic_link(node.data);
           }
@@ -328,10 +314,10 @@ define(function(require) {
         callback(error);
       }
       else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
-        callback(new EExists('attribute already exists'));
+        callback(new Errors.EExists('attribute already exists'));
       }
       else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENoAttr());
       }
       else {
         node.xattrs[name] = value;
@@ -348,7 +334,7 @@ define(function(require) {
       context.get(path_or_fd.id, set_xattr);
     }
     else {
-      callback(new EInvalid('path or file descriptor of wrong type'));
+      callback(new Errors.EInvalid('path or file descriptor of wrong type'));
     }
   }
 
@@ -364,8 +350,8 @@ define(function(require) {
 
     function write_super_node(error, existingNode) {
       if(!error && existingNode) {
-        callback(new EExists());
-      } else if(error && !error instanceof ENoEntry) {
+        callback(new Errors.EExists());
+      } else if(error && !error instanceof Errors.ENoEntry) {
         callback(error);
       } else {
         superNode = new SuperNode();
@@ -411,8 +397,8 @@ define(function(require) {
 
     function check_if_directory_exists(error, result) {
       if(!error && result) {
-        callback(new EExists());
-      } else if(error && !error instanceof ENoEntry) {
+        callback(new Errors.EExists());
+      } else if(error && !error instanceof Errors.ENoEntry) {
         callback(error);
       } else {
         find_node(context, parentPath, read_parent_directory_data);
@@ -496,9 +482,9 @@ define(function(require) {
       if(error) {
         callback(error);
       } else if(ROOT_DIRECTORY_NAME == name) {
-        callback(new EBusy());
+        callback(new Errors.EBusy());
       } else if(!_(result).has(name)) {
-        callback(new ENoEntry());
+        callback(new Errors.ENoEntry());
       } else {
         parentDirectoryData = result;
         directoryNode = parentDirectoryData[name].id;
@@ -510,7 +496,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else if(result.mode != MODE_DIRECTORY) {
-        callback(new ENotDirectory());
+        callback(new Errors.ENotDirectory());
       } else {
         directoryNode = result;
         context.get(directoryNode.data, check_if_directory_is_empty);
@@ -523,7 +509,7 @@ define(function(require) {
       } else {
         directoryData = result;
         if(_(directoryData).size() > 0) {
-          callback(new ENotEmpty());
+          callback(new Errors.ENotEmpty());
         } else {
           remove_directory_entry_from_parent_directory_node();
         }
@@ -578,7 +564,7 @@ define(function(require) {
 
     if(ROOT_DIRECTORY_NAME == name) {
       if(_(flags).contains(O_WRITE)) {
-        callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
+        callback(new Errors.EIsDirectory('the named file is a directory and O_WRITE is set'));
       } else {
         find_node(context, path, set_file_node);
       }
@@ -602,18 +588,18 @@ define(function(require) {
         directoryData = result;
         if(_(directoryData).has(name)) {
           if(_(flags).contains(O_EXCLUSIVE)) {
-            callback(new ENoEntry('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
+            callback(new Errors.ENoEntry('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
           } else {
             directoryEntry = directoryData[name];
             if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
-              callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
+              callback(new Errors.EIsDirectory('the named file is a directory and O_WRITE is set'));
             } else {
               context.get(directoryEntry.id, check_if_symbolic_link);
             }
           }
         } else {
           if(!_(flags).contains(O_CREATE)) {
-            callback(new ENoEntry('O_CREATE is not set and the named file does not exist'));
+            callback(new Errors.ENoEntry('O_CREATE is not set and the named file does not exist'));
           } else {
             write_file_node();
           }
@@ -629,7 +615,7 @@ define(function(require) {
         if(node.mode == MODE_SYMBOLIC_LINK) {
           followedCount++;
           if(followedCount > SYMLOOP_MAX){
-            callback(new ELoop('too many symbolic links were encountered'));
+            callback(new Errors.ELoop('too many symbolic links were encountered'));
           } else {
             follow_symbolic_link(node.data);
           }
@@ -645,7 +631,7 @@ define(function(require) {
       name = basename(data);
       if(ROOT_DIRECTORY_NAME == name) {
         if(_(flags).contains(O_WRITE)) {
-          callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
+          callback(new Errors.EIsDirectory('the named file is a directory and O_WRITE is set'));
         } else {
           find_node(context, path, set_file_node);
         }
@@ -913,7 +899,7 @@ define(function(require) {
       } else {
         directoryData = result;
         if(!_(directoryData).has(name)) {
-          callback(new ENoEntry('a component of the path does not name an existing file'));
+          callback(new Errors.ENoEntry('a component of the path does not name an existing file'));
         } else {
           context.get(directoryData[name].id, check_file);
         }
@@ -976,7 +962,7 @@ define(function(require) {
       } else {
         newDirectoryData = result;
         if(_(newDirectoryData).has(newname)) {
-          callback(new EExists('newpath resolves to an existing file'));
+          callback(new Errors.EExists('newpath resolves to an existing file'));
         } else {
           newDirectoryData[newname] = oldDirectoryData[oldname];
           context.put(newDirectoryNode.data, newDirectoryData, read_directory_entry);
@@ -999,7 +985,7 @@ define(function(require) {
       } else {
         oldDirectoryData = result;
         if(!_(oldDirectoryData).has(oldname)) {
-          callback(new ENoEntry('a component of either path prefix does not exist'));
+          callback(new Errors.ENoEntry('a component of either path prefix does not exist'));
         } else {
           find_node(context, newParentPath, read_new_directory_data);
         }
@@ -1069,7 +1055,7 @@ define(function(require) {
       } else {
         directoryData = result;
         if(!_(directoryData).has(name)) {
-          callback(new ENoEntry('a component of the path does not name an existing file'));
+          callback(new Errors.ENoEntry('a component of the path does not name an existing file'));
         } else {
           context.get(directoryData[name].id, update_file_node);
         }
@@ -1127,7 +1113,7 @@ define(function(require) {
     var fileNode;
 
     if(ROOT_DIRECTORY_NAME == name) {
-      callback(new EExists('the destination path already exists'));
+      callback(new Errors.EExists('the destination path already exists'));
     } else {
       find_node(context, parentPath, read_directory_data);
     }
@@ -1147,7 +1133,7 @@ define(function(require) {
       } else {
         directoryData = result;
         if(_(directoryData).has(name)) {
-          callback(new EExists('the destination path already exists'));
+          callback(new Errors.EExists('the destination path already exists'));
         } else {
           write_file_node();
         }
@@ -1206,7 +1192,7 @@ define(function(require) {
       } else {
         directoryData = result;
         if(!_(directoryData).has(name)) {
-          callback(new ENoEntry('a component of the path does not name an existing file'));
+          callback(new Errors.ENoEntry('a component of the path does not name an existing file'));
         } else {
           context.get(directoryData[name].id, check_if_symbolic);
         }
@@ -1218,7 +1204,7 @@ define(function(require) {
         callback(error);
       } else {
         if(result.mode != MODE_SYMBOLIC_LINK) {
-          callback(new EInvalid("path not a symbolic link"));
+          callback(new Errors.EInvalid("path not a symbolic link"));
         } else {
           callback(null, result.data);
         }
@@ -1235,7 +1221,7 @@ define(function(require) {
       if (error) {
         callback(error);
       } else if(node.mode == MODE_DIRECTORY ) {
-        callback(new EIsDirectory('the named file is a directory'));
+        callback(new Errors.EIsDirectory('the named file is a directory'));
       } else{
         fileNode = node;
         context.get(fileNode.data, truncate_file_data);
@@ -1274,7 +1260,7 @@ define(function(require) {
     }
 
     if(length < 0) {
-      callback(new EInvalid('length cannot be negative'));
+      callback(new Errors.EInvalid('length cannot be negative'));
     } else {
       find_node(context, path, read_file_data);
     }
@@ -1287,7 +1273,7 @@ define(function(require) {
       if (error) {
         callback(error);
       } else if(node.mode == MODE_DIRECTORY ) {
-        callback(new EIsDirectory('the named file is a directory'));
+        callback(new Errors.EIsDirectory('the named file is a directory'));
       } else{
         fileNode = node;
         context.get(fileNode.data, truncate_file_data);
@@ -1325,7 +1311,7 @@ define(function(require) {
     }
 
     if(length < 0) {
-      callback(new EInvalid('length cannot be negative'));
+      callback(new Errors.EInvalid('length cannot be negative'));
     } else {
       context.get(ofd.id, read_file_data);
     }
@@ -1343,10 +1329,10 @@ define(function(require) {
     }
 
     if (typeof atime != 'number' || typeof mtime != 'number') {
-      callback(new EInvalid('atime and mtime must be number'));
+      callback(new Errors.EInvalid('atime and mtime must be number'));
     }
     else if (atime < 0 || mtime < 0) {
-      callback(new EInvalid('atime and mtime must be positive integers'));
+      callback(new Errors.EInvalid('atime and mtime must be positive integers'));
     }
     else {
       find_node(context, path, update_times);
@@ -1364,10 +1350,10 @@ define(function(require) {
     }
 
     if (typeof atime != 'number' || typeof mtime != 'number') {
-      callback(new EInvalid('atime and mtime must be a number'));
+      callback(new Errors.EInvalid('atime and mtime must be a number'));
     }
     else if (atime < 0 || mtime < 0) {
-      callback(new EInvalid('atime and mtime must be positive integers'));
+      callback(new Errors.EInvalid('atime and mtime must be positive integers'));
     }
     else {
       context.get(ofd.id, update_times);
@@ -1378,14 +1364,14 @@ define(function(require) {
     path = normalize(path);
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EInvalid('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
     }
     else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
-      callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+      callback(new Errors.EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
     else {
       set_extended_attribute(context, path, name, value, flag, callback);
@@ -1395,14 +1381,14 @@ define(function(require) {
   function fsetxattr_file (context, ofd, name, value, flag, callback) {
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EInvalid('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
     }
     else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
-      callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+      callback(new Errors.EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
     else {
       set_extended_attribute(context, ofd, name, value, flag, callback);
@@ -1419,7 +1405,7 @@ define(function(require) {
         callback (error);
       }
       else if (!node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENoAttr('attribute does not exist'));
       }
       else {
         callback(null, node.xattrs[name]);
@@ -1427,10 +1413,10 @@ define(function(require) {
     }
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EInvalid('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
     }
     else {
       find_node(context, path, get_xattr);
@@ -1446,7 +1432,7 @@ define(function(require) {
         callback(error);
       }
       else if (!node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENoAttr('attribute does not exist'));
       }
       else {
         callback(null, node.xattrs[name]);
@@ -1454,10 +1440,10 @@ define(function(require) {
     }
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EInvalid('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
     }
     else {
       context.get(ofd.id, get_xattr);
@@ -1482,7 +1468,7 @@ define(function(require) {
         callback(error);
       }
       else if (!xattr.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENoAttr('attribute does not exist'));
       }
       else {
         delete node.xattrs[name];
@@ -1491,10 +1477,10 @@ define(function(require) {
     }
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EInvalid('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
     }
     else {
       find_node(context, path, remove_xattr);
@@ -1516,7 +1502,7 @@ define(function(require) {
         callback(error);
       }
       else if (!node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENoAttr('attribute does not exist'));
       }
       else {
         delete node.xattrs[name];
@@ -1525,10 +1511,10 @@ define(function(require) {
     }
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EInvalid('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
     }
     else {
       context.get(ofd.id, remove_xattr);
@@ -1777,7 +1763,7 @@ define(function(require) {
 
     flags = validate_flags(flags);
     if(!flags) {
-      callback(new EInvalid('flags is not valid'));
+      callback(new Errors.EInvalid('flags is not valid'));
     }
 
     open_file(context, path, flags, check_result);
@@ -1785,7 +1771,7 @@ define(function(require) {
 
   function _close(fs, fd, callback) {
     if(!_(fs.openFiles).has(fd)) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
     } else {
       fs.releaseDescriptor(fd);
       callback(null);
@@ -1898,9 +1884,9 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
     } else if(!_(ofd.flags).contains(O_READ)) {
-      callback(new EBadFileDescriptor('descriptor does not permit reading'));
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit reading'));
     } else {
       read_data(context, ofd, buffer, offset, length, position, check_result);
     }
@@ -1913,7 +1899,7 @@ define(function(require) {
 
     var flags = validate_flags(options.flag || 'r');
     if(!flags) {
-      callback(new EInvalid('flags is not valid'));
+      callback(new Errors.EInvalid('flags is not valid'));
     }
 
     open_file(context, path, flags, function(err, fileNode) {
@@ -1965,11 +1951,11 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
     } else if(!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
     } else if(buffer.length - offset < length) {
-      callback(new EIO('intput buffer is too small'));
+      callback(new Errors.EIO('intput buffer is too small'));
     } else {
       write_data(context, ofd, buffer, offset, length, position, check_result);
     }
@@ -1982,7 +1968,7 @@ define(function(require) {
 
     var flags = validate_flags(options.flag || 'w');
     if(!flags) {
-      callback(new EInvalid('flags is not valid'));
+      callback(new Errors.EInvalid('flags is not valid'));
     }
 
     data = data || '';
@@ -2017,7 +2003,7 @@ define(function(require) {
 
     var flags = validate_flags(options.flag || 'a');
     if(!flags) {
-      callback(new EInvalid('flags is not valid'));
+      callback(new Errors.EInvalid('flags is not valid'));
     }
 
     data = data || '';
@@ -2081,7 +2067,7 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
 
     if (!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
     }
     else {
       fgetxattr_file(context, ofd, name, get_result);
@@ -2116,10 +2102,10 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
 
     if (!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
     }
     else if (!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
     }
     else {
       fsetxattr_file(context, ofd, name, value, flag, check_result);
@@ -2155,10 +2141,10 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
 
     if (!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
     }
     else if (!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
     }
     else {
       fremovexattr_file(context, ofd, name, remove_xattr);
@@ -2179,7 +2165,7 @@ define(function(require) {
         callback(error);
       } else {
         if(stats.size + offset < 0) {
-          callback(new EInvalid('resulting file offset would be negative'));
+          callback(new Errors.EInvalid('resulting file offset would be negative'));
         } else {
           ofd.position = stats.size + offset;
           callback(null, ofd.position);
@@ -2190,19 +2176,19 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
     }
 
     if('SET' === whence) {
       if(offset < 0) {
-        callback(new EInvalid('resulting file offset would be negative'));
+        callback(new Errors.EInvalid('resulting file offset would be negative'));
       } else {
         ofd.position = offset;
         callback(null, ofd.position);
       }
     } else if('CUR' === whence) {
       if(ofd.position + offset < 0) {
-        callback(new EInvalid('resulting file offset would be negative'));
+        callback(new Errors.EInvalid('resulting file offset would be negative'));
       } else {
         ofd.position += offset;
         callback(null, ofd.position);
@@ -2210,7 +2196,7 @@ define(function(require) {
     } else if('END' === whence) {
       fstat_file(context, ofd, update_descriptor_position);
     } else {
-      callback(new EInvalid('whence argument is not a proper value'));
+      callback(new Errors.EInvalid('whence argument is not a proper value'));
     }
   }
 
@@ -2263,9 +2249,9 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
     } else if(!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
     } else {
       futimes_file(context, ofd, atime, mtime, check_result);
     }
@@ -2368,9 +2354,9 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
     } else if(!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
     } else {
       ftruncate_file(context, ofd, length, check_result);
     }

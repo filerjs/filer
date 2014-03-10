@@ -2,7 +2,7 @@
 define(function(require) {
 
   var Path = require('src/path');
-  var FilerError = require('src/error');
+  var Errors = require('src/errors');
   var Environment = require('src/environment');
   var async = require('async');
 
@@ -40,14 +40,14 @@ define(function(require) {
       // Make sure the path actually exists, and is a dir
       fs.stat(path, function(err, stats) {
         if(err) {
-          callback(new FilerError.ENotDirectory());
+          callback(new Errors.ENotDirectory());
           return;
         }
         if(stats.type === 'DIRECTORY') {
           cwd = path;
           callback();
         } else {
-          callback(new FilerError.ENotDirectory());
+          callback(new Errors.ENotDirectory());
         }
       });
     };
@@ -313,7 +313,7 @@ define(function(require) {
 
           // If not, see if we're allowed to delete recursively
           if(!options.recursive) {
-            callback(new FilerError.ENotEmpty());
+            callback(new Errors.ENotEmpty());
             return;
           }
 
