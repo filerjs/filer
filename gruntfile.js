@@ -21,7 +21,7 @@ module.exports = function(grunt) {
       all: [
         'gruntfile.js',
         'src/constants.js',
-        'src/error.js',
+        'src/errors.js',
         'src/fs.js',
         'src/index.js',
         'src/shared.js',

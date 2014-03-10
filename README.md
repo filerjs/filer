@@ -205,6 +205,34 @@ For more info see the docs in the [path module](http://nodejs.org/api/path.html)
 * `path.sep`
 * `path.delimiter`
 
+####Filer.Errors<a name="Errors"></a>
+
+The error objects used internally by Filer are also exposed via the `Filer.Errors` object. As much as possible
+these match their node.js counterparts. See [src/errors.js](https://github.com/js-platform/filer/blob/develop/src/errors.js)
+for the complete list. Errors can be used, or compared, like so:
+
+Examples:
+
+```javascript
+// Example 1: create an EExists error
+var err = new Filer.Errors.EExists();
+
+// Example 2: compare an error to see if it is EInvalid
+function callback(err) {
+  if(err instanceof Filer.Errors.EInvalid){
+    ...
+  }
+
+  // Or compare the error's code
+  if(err.code === 'EINVALID') {
+    ...
+  }
+}
+
+// Example 3: display the error message
+console.log(err.message);
+```
+
 ###FileSystem Instance Methods<a name="FileSystemMethods"></a>
 
 Once a `FileSystem` is created, it has the following methods. NOTE: code examples below assume
