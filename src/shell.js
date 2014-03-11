@@ -337,6 +337,117 @@ define(function(require) {
   };
 
   /**
+   * Moves the file or directory at the `source` path to the 
+   * `destination` path by relinking the source to the destination 
+   * path. Also currently there are no options, but it might be nice 
+   * to implement 
+   */
+  Shell.prototype.mv = function(source, destination, options, callback) {
+    var fs = this.fs;
+    if(typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
+    callback = callback || function() {};
+
+    if(!source) {
+      callback(new Error("Missing source path argument"));
+      return;
+    }
+    if(!destination) {
+      callback(new Error("Missing destination path argument"));
+      return;
+    }
+
+    function move(sourcepath, destpath, callback) {
+      sourcepath = Path.resolve(this.cwd, sourcepath);
+      destpath = Path.resolve(this.cwd, destpath);
+      fs.stat(sourcepath, function(error, stats) {
+        if(error) {
+          callback(error);
+          return;
+        }
+
+        // If the source is a file, stat the destination path
+        if(stats.type === 'FILE') {
+          fs.stat(destpath, function(error, stats) {
+            // If the destination doesn't exist, relink source and we're done
+            if(error) {
+              fs.link(sourcepath, destpath, callback);
+              return;
+            }
+            
+            // If the destination is a file, delete the destination, relink source and we're done
+            if(stats.type === 'FILE') {
+              fs.unlink(destpath, callback);
+              fs.link(sourcepath, destpath, callback);
+              return;
+            }
+
+            // If the destination is a dir, check to see if a file with the source name already exists
+            fs.readdir(destname, function(error, entries) {
+              if(error) {
+                callback(error);
+                return;
+              }
+
+              // If dir is empty, relink source and we're done
+              if(entries.length === 0) {
+                destpath = Path.join(destpath, sourcepath.basename);
+                fs.link(sourcepath, destpath, callback);
+                return;
+              }
+
+              // Iterate through dir entries; if a node with the same name exists, unlink it, 
+              // relink source and we're done
+              for(var i = 0; i < entries.length; i++) {
+                if(entries[i].basename === sourcepath.basename) {
+                  destpath = Path.join(destpath, sourcepath.basename);
+                  fs.unlink(destpath, callback);
+                  fs.link(sourcepath, destpath, callback);
+                  return;
+                }
+              }
+
+              // If a matching node can't be found, relink source and we're done
+              destpath = Path.join(destpath, sourcepath.basename);
+              fs.link(sourcepath, destpath, callback);
+              return;
+            });
+          });
+        }
+
+        // If the source is a directory, stat the destination path
+        fs.stat(destpath, function(error, stats) {
+          // If the destination doesn't exist, relink the source and we're done
+          if(error) {
+            fs.link(sourcepath, destpath, callback);
+            return;
+          }
+
+          // If the destination is a file, delete the destination, relink source and we're done
+          if(stats.type === 'FILE') {
+            fs.unlink(destpath, callback);
+            fs.link(sourcepath, destpath, callback);
+            return;
+          }
+
+          // If the destination is a dir, compare basenames for equality
+          if(sourcepath.basename === destpath.basename) {
+            // If they're the same, attempt to relink each source entry to the destination
+          }
+
+          // If they're different, link the source as a subdir of the destination
+
+        }
+      });
+    }
+
+    move(source, destination, callback);
+  };
+
+  /**
    * Gets the path to the temporary directory, creating it if not
    * present. The directory used is the one specified in
    * env.TMP. The callback receives (error, tempDirName).
