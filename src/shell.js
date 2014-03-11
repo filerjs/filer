@@ -457,7 +457,7 @@ define(function(require) {
 
               // We're done after relinking all
               return;
-            }
+            });
           }
 
           // If they're different, link the source as a subdir of the destination
