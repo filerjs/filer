@@ -339,8 +339,8 @@ define(function(require) {
   /**
    * Moves the file or directory at the `source` path to the 
    * `destination` path by relinking the source to the destination 
-   * path. Also currently there are no options, but it might be nice 
-   * to implement 
+   * path. Currently there are no options, but it might be nice 
+   * to implement an interactive mode at some point.
    */
   Shell.prototype.mv = function(source, destination, options, callback) {
     var fs = this.fs;
@@ -436,11 +436,35 @@ define(function(require) {
           // If the destination is a dir, compare basenames for equality
           if(sourcepath.basename === destpath.basename) {
             // If they're the same, attempt to relink each source entry to the destination
+            fs.readdir(sourcepath, function(error, entries) {
+              if(error) {
+                callback(error);
+                return;
+              }
+
+              // If there are no entries in source, unlink the source and we're done
+              if(entries.length === 0) {
+                fs.unlink(sourcepath, callback);
+                return;
+              }
+
+              // Iterate through the entries, unlinking destinations and relinking sources
+              for(var i = 0; i < entries.length; i++) {
+                var temppath = Path.join(destpath, sourcepath.basename);
+                fs.unlink(temppath, callback);
+                fs.link(sourcepath, temppath, callback);
+              }
+
+              // We're done after relinking all
+              return;
+            }
           }
 
           // If they're different, link the source as a subdir of the destination
-
-        }
+          destpath = Path.join(destpath, sourcepath.basename);
+          fs.link(sourcepath, destpath, callback);
+          return;
+        });
       });
     }
 
