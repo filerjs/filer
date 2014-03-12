@@ -40,14 +40,14 @@ define(function(require) {
       // Make sure the path actually exists, and is a dir
       fs.stat(path, function(err, stats) {
         if(err) {
-          callback(new Errors.ENotDirectory());
+          callback(new Errors.ENOTDIR());
           return;
         }
         if(stats.type === 'DIRECTORY') {
           cwd = path;
           callback();
         } else {
-          callback(new Errors.ENotDirectory());
+          callback(new Errors.ENOTDIR());
         }
       });
     };
@@ -313,7 +313,7 @@ define(function(require) {
 
           // If not, see if we're allowed to delete recursively
           if(!options.recursive) {
-            callback(new Errors.ENotEmpty());
+            callback(new Errors.ENOTEMPTY());
             return;
           }
 
