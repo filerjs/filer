@@ -1,6 +1,6 @@
 define(function(require) {
 
-  var EventEmitter = require('EventEmitter');
+  var EventEmitter = require('eventemitter');
   var isNullPath = require('src/path').isNull;
   var Intercom = require('intercom');
 
@@ -14,10 +14,10 @@ define(function(require) {
     var recursive = false;
     var filename;
 
-    function onchange(event, path) {
+    function onchange(path) {
       // Watch for exact filename, or parent path when recursive is true
       if(filename === path || (recursive && path.indexOf(filename + '/') === 0)) {
-        self.emit('change', 'change', path);
+        self.trigger('change', 'change', path);
       }
     }
 

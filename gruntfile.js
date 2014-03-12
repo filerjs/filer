@@ -47,8 +47,7 @@ module.exports = function(grunt) {
         options: {
           paths: {
             "src": "../src",
-            "build": "../build",
-            "EventEmitter": "../bower_components/eventemitter2/lib/eventemitter2"
+            "build": "../build"
           },
           baseUrl: "lib",
           name: "build/almond",
