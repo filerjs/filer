@@ -58,8 +58,7 @@ var config = (function() {
       "spec": "../tests/spec",
       "bugs": "../tests/bugs",
       "util": "../tests/lib/test-utils",
-      "Filer": "../src/index",
-      "EventEmitter": "../bower_components/eventemitter2/lib/eventemitter2"
+      "Filer": "../src/index"
     },
     baseUrl: "../lib",
     optimize: "none",

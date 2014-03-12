@@ -1671,7 +1671,7 @@ define(function(require) {
       }
       var intercom = Intercom.getInstance();
       changes.forEach(function(change) {
-        intercom.emit(change.event, change.event, change.path);
+        intercom.emit(change.event, change.path);
       });
     }
 
