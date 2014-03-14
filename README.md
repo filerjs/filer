@@ -1109,6 +1109,7 @@ var sh = fs.Shell();
 * [sh.cat(files, callback)](#cat)
 * [sh.rm(path, [options], callback)](#rm)
 * [sh.tempDir(callback)](#tempDir)
+* [sh.mkdirp(path, callback)](#mkdirp)
 
 #### sh.cd(path, callback)<a name="cd"></a>
 
@@ -1296,5 +1297,21 @@ sh.env.TMP = '/temporary'
 sh.tempDir(function(err, tmp) {
   if(err) throw err;
   // tmp is now '/temporary', and /temporary exists
+});
+```
+
+#### sh.mkdirp(callback)<a name="mkdirp"></a>
+
+Recursively creates the directory at the provided path. If the 
+directory already exists, no error is returned. All parents must
+be valid directories (not files). 
+
+Example:
+
+```javascript
+// Default empty filesystem
+sh.mkdirp('/test/mkdirp', function(err) {
+  if(err) throw err;
+  // the root '/' now contains a directory 'test' containing the directory 'mkdirp'
 });
 ```
