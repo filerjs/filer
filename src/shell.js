@@ -353,6 +353,75 @@ define(function(require) {
     });
   };
 
+  /**
+   * Recursively creates the directory at `path`. If the parent 
+   * of `path` does not exist, it will be created. 
+   * Based off EnsureDir by Sam X. Xu
+   * https://www.npmjs.org/package/ensureDir
+   * MIT License
+   */
+  Shell.prototype.mkdirp = function(path, callback) {
+    var fs = this.fs;
+    callback = callback || function(){};
+
+    if(!path) {
+      callback(new Errors.EInvalid());
+      return;
+    }
+    else if (path === '/'){
+      callback();
+      return;
+    }
+    function _mkdirp(path, callback){
+      fs.stat(path, function (err, stat) {
+        //doesn't exist 
+        if (err && err.code === 'ENOENT') {
+          var parent = Path.dirname(path);
+          if(parent === '/'){ //parent is root
+            fs.mkdir(path, function (err) {
+              if (err && err.code != 'EEXIST') {
+                callback(err);
+                return;
+              }
+              callback();
+              return;
+            });
+          }
+          else { //parent is not root, make parent first
+            _mkdirp(parent, function (err) {
+              if (err) return callback(err);
+              fs.mkdir(path, function (err) { //then make dir
+                if (err && err.code != 'EEXIST') {
+                  callback(err);
+                  return;
+                }
+                callback();
+                return;
+              });
+            });
+          }
+        }
+        //other error
+        else if (err){
+          callback(err);
+          return;
+        }
+        //already exists
+        else if (stat.type === 'DIRECTORY') {
+          callback();
+          return;
+        }
+        //not a directory
+        else if (stat.type === 'FILE') {
+          callback(new Errors.ENotDirectory());
+          return;
+        }
+      });
+    }
+
+    _mkdirp(path, callback);
+  };
+
   return Shell;
 
 });
