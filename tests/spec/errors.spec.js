@@ -128,9 +128,9 @@ define(["Filer"], function(Filer) {
       expect(Filer.Errors[57]).to.equal(Filer.Errors.ENODEV);
       expect(Filer.Errors[58]).to.equal(Filer.Errors.ESPIPE);
       expect(Filer.Errors[59]).to.equal(Filer.Errors.ECANCELED);
-      expect(Filer.Errors[60]).to.equal(Filer.Errors.ENOTMOUNTED);
-      expect(Filer.Errors[61]).to.equal(Filer.Errors.EFILESYSTEMERROR);
-      expect(Filer.Errors[62]).to.equal(Filer.Errors.ENOATTR);
+      expect(Filer.Errors[1000]).to.equal(Filer.Errors.ENOTMOUNTED);
+      expect(Filer.Errors[1001]).to.equal(Filer.Errors.EFILESYSTEMERROR);
+      expect(Filer.Errors[1002]).to.equal(Filer.Errors.ENOATTR);
     });
   });
 });

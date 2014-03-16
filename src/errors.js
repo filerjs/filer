@@ -1,86 +1,82 @@
 define(function(require) {
   var errors = {};
-  var errno = -1;
-
-  /**
-   * DON'T CHANGE THE ORDER OF THIS ARRAY!!
-   * The errno property follows the order from -1 upward
-   */
   [
     /**
      * node.js errors
      */
-    'UNKNOWN:unknown error',
-    'OK:success',
-    'EOF:end of file',
-    'EADDRINFO:getaddrinfo error',
-    'EACCES:permission denied',
-    'EAGAIN:resource temporarily unavailable',
-    'EADDRINUSE:address already in use',
-    'EADDRNOTAVAIL:address not available',
-    'EAFNOSUPPORT:address family not supported',
-    'EALREADY:connection already in progress',
-    'EBADF:bad file descriptor',
-    'EBUSY:resource busy or locked',
-    'ECONNABORTED:software caused connection abort',
-    'ECONNREFUSED:connection refused',
-    'ECONNRESET:connection reset by peer',
-    'EDESTADDRREQ:destination address required',
-    'EFAULT:bad address in system call argument',
-    'EHOSTUNREACH:host is unreachable',
-    'EINTR:interrupted system call',
-    'EINVAL:invalid argument',
-    'EISCONN:socket is already connected',
-    'EMFILE:too many open files',
-    'EMSGSIZE:message too long',
-    'ENETDOWN:network is down',
-    'ENETUNREACH:network is unreachable',
-    'ENFILE:file table overflow',
-    'ENOBUFS:no buffer space available',
-    'ENOMEM:not enough memory',
-    'ENOTDIR:not a directory',
-    'EISDIR:illegal operation on a directory',
-    'ENONET:machine is not on the network',
-    'ENOTCONN:socket is not connected',
-    'ENOTSOCK:socket operation on non-socket',
-    'ENOTSUP:operation not supported on socket',
-    'ENOENT:no such file or directory',
-    'ENOSYS:function not implemented',
-    'EPIPE:broken pipe',
-    'EPROTO:protocol error',
-    'EPROTONOSUPPORT:protocol not supported',
-    'EPROTOTYPE:protocol wrong type for socket',
-    'ETIMEDOUT:connection timed out',
-    'ECHARSET:invalid Unicode character',
-    'EAIFAMNOSUPPORT:address family for hostname not supported',
-    'EAISERVICE:servname not supported for ai_socktype',
-    'EAISOCKTYPE:ai_socktype not supported',
-    'ESHUTDOWN:cannot send after transport endpoint shutdown',
-    'EEXIST:file already exists',
-    'ESRCH:no such process',
-    'ENAMETOOLONG:name too long',
-    'EPERM:operation not permitted',
-    'ELOOP:too many symbolic links encountered',
-    'EXDEV:cross-device link not permitted',
-    'ENOTEMPTY:directory not empty',
-    'ENOSPC:no space left on device',
-    'EIO:i/o error',
-    'EROFS:read-only file system',
-    'ENODEV:no such device',
-    'ESPIPE:invalid seek',
-    'ECANCELED:operation canceled',
+    '-1:UNKNOWN:unknown error',
+    '0:OK:success',
+    '1:EOF:end of file',
+    '2:EADDRINFO:getaddrinfo error',
+    '3:EACCES:permission denied',
+    '4:EAGAIN:resource temporarily unavailable',
+    '5:EADDRINUSE:address already in use',
+    '6:EADDRNOTAVAIL:address not available',
+    '7:EAFNOSUPPORT:address family not supported',
+    '8:EALREADY:connection already in progress',
+    '9:EBADF:bad file descriptor',
+    '10:EBUSY:resource busy or locked',
+    '11:ECONNABORTED:software caused connection abort',
+    '12:ECONNREFUSED:connection refused',
+    '13:ECONNRESET:connection reset by peer',
+    '14:EDESTADDRREQ:destination address required',
+    '15:EFAULT:bad address in system call argument',
+    '16:EHOSTUNREACH:host is unreachable',
+    '17:EINTR:interrupted system call',
+    '18:EINVAL:invalid argument',
+    '19:EISCONN:socket is already connected',
+    '20:EMFILE:too many open files',
+    '21:EMSGSIZE:message too long',
+    '22:ENETDOWN:network is down',
+    '23:ENETUNREACH:network is unreachable',
+    '24:ENFILE:file table overflow',
+    '25:ENOBUFS:no buffer space available',
+    '26:ENOMEM:not enough memory',
+    '27:ENOTDIR:not a directory',
+    '28:EISDIR:illegal operation on a directory',
+    '29:ENONET:machine is not on the network',
+    // errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+    '31:ENOTCONN:socket is not connected',
+    '32:ENOTSOCK:socket operation on non-socket',
+    '33:ENOTSUP:operation not supported on socket',
+    '34:ENOENT:no such file or directory',
+    '35:ENOSYS:function not implemented',
+    '36:EPIPE:broken pipe',
+    '37:EPROTO:protocol error',
+    '38:EPROTONOSUPPORT:protocol not supported',
+    '39:EPROTOTYPE:protocol wrong type for socket',
+    '40:ETIMEDOUT:connection timed out',
+    '41:ECHARSET:invalid Unicode character',
+    '42:EAIFAMNOSUPPORT:address family for hostname not supported',
+    // errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+    '44:EAISERVICE:servname not supported for ai_socktype',
+    '45:EAISOCKTYPE:ai_socktype not supported',
+    '46:ESHUTDOWN:cannot send after transport endpoint shutdown',
+    '47:EEXIST:file already exists',
+    '48:ESRCH:no such process',
+    '49:ENAMETOOLONG:name too long',
+    '50:EPERM:operation not permitted',
+    '51:ELOOP:too many symbolic links encountered',
+    '52:EXDEV:cross-device link not permitted',
+    '53:ENOTEMPTY:directory not empty',
+    '54:ENOSPC:no space left on device',
+    '55:EIO:i/o error',
+    '56:EROFS:read-only file system',
+    '57:ENODEV:no such device',
+    '58:ESPIPE:invalid seek',
+    '59:ECANCELED:operation canceled',
 
     /**
      * Filer specific errors
      */
-    'ENOTMOUNTED:not mounted',
-    'EFILESYSTEMERROR:missing super node',
-    'ENOATTR:attribute does not exist'
-
+    '1000:ENOTMOUNTED:not mounted',
+    '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.',
+    '1002:ENOATTR:attribute does not exist'
   ].forEach(function(e) {
     e = e.split(':');
-    var err = e[0];
-    var message = e[1];
+    var errno = e[0],
+        err = e[1],
+        message = e[2];
 
     function ctor(m) {
       this.message = m || message;
@@ -92,8 +88,6 @@ define(function(require) {
 
     // We expose the error as both Errors.EINVAL and Errors[18]
     errors[err] = errors[errno] = ctor;
-
-    errno++;
   });
 
   return errors;
