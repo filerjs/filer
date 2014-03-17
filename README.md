@@ -208,28 +208,36 @@ For more info see the docs in the [path module](http://nodejs.org/api/path.html)
 ####Filer.Errors<a name="Errors"></a>
 
 The error objects used internally by Filer are also exposed via the `Filer.Errors` object. As much as possible
-these match their node.js counterparts. See [src/errors.js](https://github.com/js-platform/filer/blob/develop/src/errors.js)
-for the complete list. Errors can be used, or compared, like so:
+these match their node.js counterparts, with a few Filer-specifc additions.
+See [src/errors.js](https://github.com/js-platform/filer/blob/develop/src/errors.js) for the complete
+list. Errors can be used, or compared, like so:
 
 Examples:
 
 ```javascript
-// Example 1: create an EExists error
-var err = new Filer.Errors.EExists();
+// Example 1: create an EExist error
+var err1 = new Filer.Errors.EEXIST();
+var err2 = new Filer.Errors[47];
 
 // Example 2: compare an error to see if it is EInvalid
 function callback(err) {
-  if(err instanceof Filer.Errors.EInvalid){
+  if(err instanceof Filer.Errors.EINVAL){
     ...
   }
 
   // Or compare the error's code
-  if(err.code === 'EINVALID') {
+  if(err.code === 'EINVAL') {
     ...
   }
 }
 
-// Example 3: display the error message
+// Example 4: compare an error using errno
+function callback(err) {
+  if(err.errno === 47){
+    ...
+  }
+
+// Example 5: display the error message
 console.log(err.message);
 ```
 

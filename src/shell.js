@@ -40,14 +40,14 @@ define(function(require) {
       // Make sure the path actually exists, and is a dir
       fs.stat(path, function(err, stats) {
         if(err) {
-          callback(new Errors.ENotDirectory());
+          callback(new Errors.ENOTDIR());
           return;
         }
         if(stats.type === 'DIRECTORY') {
           cwd = path;
           callback();
         } else {
-          callback(new Errors.ENotDirectory());
+          callback(new Errors.ENOTDIR());
         }
       });
     };
@@ -313,7 +313,7 @@ define(function(require) {
 
           // If not, see if we're allowed to delete recursively
           if(!options.recursive) {
-            callback(new Errors.ENotEmpty());
+            callback(new Errors.ENOTEMPTY());
             return;
           }
 
@@ -354,8 +354,8 @@ define(function(require) {
   };
 
   /**
-   * Recursively creates the directory at `path`. If the parent 
-   * of `path` does not exist, it will be created. 
+   * Recursively creates the directory at `path`. If the parent
+   * of `path` does not exist, it will be created.
    * Based off EnsureDir by Sam X. Xu
    * https://www.npmjs.org/package/ensureDir
    * MIT License
@@ -365,7 +365,7 @@ define(function(require) {
     callback = callback || function(){};
 
     if(!path) {
-      callback(new Errors.EInvalid());
+      callback(new Errors.EINVAL('missing path argument'));
       return;
     }
     else if (path === '/'){
@@ -374,7 +374,7 @@ define(function(require) {
     }
     function _mkdirp(path, callback){
       fs.stat(path, function (err, stat) {
-        //doesn't exist 
+        //doesn't exist
         if (err && err.code === 'ENOENT') {
           var parent = Path.dirname(path);
           if(parent === '/'){ //parent is root
@@ -413,7 +413,7 @@ define(function(require) {
         }
         //not a directory
         else if (stat.type === 'FILE') {
-          callback(new Errors.ENotDirectory());
+          callback(new Errors.ENOTDIR());
           return;
         }
       });
