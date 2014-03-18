@@ -14,7 +14,7 @@ define(function(require) {
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
 
-  var Shell = require('src/shell');
+  var Shell = require('src/shell/shell');
   var Intercom = require('intercom');
   var FSWatcher = require('src/fs-watcher');
   var Errors = require('src/errors');
