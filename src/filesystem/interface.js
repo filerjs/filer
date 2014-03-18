@@ -2,40 +2,14 @@ define(function(require) {
 
   var _ = require('nodash');
 
-  // TextEncoder and TextDecoder will either already be present, or use this shim.
-  // Because of the way the spec is defined, we need to get them off the global.
-  require('encoding');
-
-  var normalize = require('src/path').normalize;
-  var dirname = require('src/path').dirname;
-  var basename = require('src/path').basename;
-  var isAbsolutePath = require('src/path').isAbsolute;
   var isNullPath = require('src/path').isNull;
-
-  var hash = require('src/shared').hash;
   var nop = require('src/shared').nop;
 
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
   var FS_FORMAT = require('src/constants').FS_FORMAT;
-  var MODE_FILE = require('src/constants').MODE_FILE;
-  var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
-  var MODE_SYMBOLIC_LINK = require('src/constants').MODE_SYMBOLIC_LINK;
-  var MODE_META = require('src/constants').MODE_META;
-  var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
-  var SUPER_NODE_ID = require('src/constants').SUPER_NODE_ID;
-  var SYMLOOP_MAX = require('src/constants').SYMLOOP_MAX;
   var FS_READY = require('src/constants').FS_READY;
   var FS_PENDING = require('src/constants').FS_PENDING;
   var FS_ERROR = require('src/constants').FS_ERROR;
-  var O_READ = require('src/constants').O_READ;
-  var O_WRITE = require('src/constants').O_WRITE;
-  var O_CREATE = require('src/constants').O_CREATE;
-  var O_EXCLUSIVE = require('src/constants').O_EXCLUSIVE;
-  var O_TRUNCATE = require('src/constants').O_TRUNCATE;
-  var O_APPEND = require('src/constants').O_APPEND;
-  var O_FLAGS = require('src/constants').O_FLAGS;
-  var XATTR_CREATE = require('src/constants').XATTR_CREATE;
-  var XATTR_REPLACE = require('src/constants').XATTR_REPLACE;
   var FS_NOMTIME = require('src/constants').FS_NOMTIME;
   var FS_NOCTIME = require('src/constants').FS_NOCTIME;
 
@@ -46,47 +20,9 @@ define(function(require) {
   var Intercom = require('intercom');
   var FSWatcher = require('src/fs-watcher');
   var Errors = require('src/errors');
-  var DirectoryEntry = require('src/directory-entry');
-  var OpenFileDescription = require('src/open-file-description');
-  var SuperNode = require('src/super-node');
-  var Node = require('src/node');
-  var Stats = require('src/stats');
 
   // The core fs operations live on impl
   var impl = require('src/filesystem/implementation');
-
-  function validate_flags(flags) {
-    if(!_(O_FLAGS).has(flags)) {
-      return null;
-    }
-    return O_FLAGS[flags];
-  }
-
-  function validate_file_options(options, enc, fileMode){
-    if(!options) {
-      options = { encoding: enc, flag: fileMode };
-    } else if(typeof options === "function") {
-      options = { encoding: enc, flag: fileMode };
-    } else if(typeof options === "string") {
-      options = { encoding: options, flag: fileMode };
-    }
-    return options;
-  }
-
-  function pathCheck(path, callback) {
-    var err;
-    if(isNullPath(path)) {
-      err = new Error('Path must be a string without null bytes.');
-    } else if(!isAbsolutePath(path)) {
-      err = new Error('Path must be absolute.');
-    }
-
-    if(err) {
-      callback(err);
-      return false;
-    }
-    return true;
-  }
 
   // node.js supports a calling pattern that leaves off a callback.
   function maybeCallback(callback) {
