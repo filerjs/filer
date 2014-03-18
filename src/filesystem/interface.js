@@ -10,8 +10,6 @@ define(function(require) {
   var FS_READY = require('src/constants').FS_READY;
   var FS_PENDING = require('src/constants').FS_PENDING;
   var FS_ERROR = require('src/constants').FS_ERROR;
-  var FS_NOMTIME = require('src/constants').FS_NOMTIME;
-  var FS_NOCTIME = require('src/constants').FS_NOCTIME;
 
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
@@ -36,7 +34,7 @@ define(function(require) {
     };
   }
 
-  /*
+  /**
    * FileSystem
    *
    * A FileSystem takes an `options` object, which can specify a number of,
@@ -65,9 +63,10 @@ define(function(require) {
     options = options || {};
     callback = callback || nop;
 
-    var name = options.name || FILE_SYSTEM_NAME;
     var flags = options.flags;
-    var provider = options.provider || new providers.Default(name);
+    var provider = options.provider || new providers.Default(options.name || FILE_SYSTEM_NAME);
+    // If we're given a provider, match its name unless we get an explicit name
+    var name = options.name || provider.name;
     var forceFormatting = _(flags).contains(FS_FORMAT);
 
     var fs = this;
@@ -211,497 +210,79 @@ define(function(require) {
   // Expose adatpers on FileSystem constructor
   FileSystem.adapters = adapters;
 
-
   /**
    * Public API for FileSystem
    */
+  [
+    'open',
+    'close',
+    'mkdir',
+    'rmdir',
+    'stat',
+    'fstat',
+    'link',
+    'unlink',
+    'read',
+    'readFile',
+    'write',
+    'writeFile',
+    'appendFile',
+    'exists',
+    'lseek',
+    'readdir',
+    'rename',
+    'readlink',
+    'symlink',
+    'lstat',
+    'truncate',
+    'ftruncate',
+    'utimes',
+    'futimes',
+    'setxattr',
+    'getxattr',
+    'fsetxattr',
+    'fgetxattr',
+    'removexattr',
+    'fremovexattr'
+  ].forEach(function(methodName) {
+    FileSystem.prototype[methodName] = function() {
+      var fs = this;
+      var args = Array.prototype.slice.call(arguments, 0);
+      var lastArgIndex = args.length - 1;
 
-  FileSystem.prototype.open = function(path, flags, mode, callback) {
-    // We support the same signature as node with a `mode` arg, but
-    // ignore it. Find the callback.
-    callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
+      // We may or may not get a callback, and since node.js supports
+      // fire-and-forget style fs operations, we have to dance a bit here.
+      var missingCallback = typeof args[lastArgIndex] !== 'function';
+      var callback = maybeCallback(args[lastArgIndex]);
+
+      var error = fs.queueOrRun(function() {
         var context = fs.provider.openReadWriteContext();
+
+        // Wrap the callback so we can explicitly close the context
         function complete() {
           context.close();
           callback.apply(fs, arguments);
         }
-        impl.open(fs, context, path, flags, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.close = function(fd, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
+
+        // Either add or replace the callback with our wrapper complete()
+        if(missingCallback) {
+          args.push(complete);
+        } else {
+          args[lastArgIndex] = complete;
         }
-        impl.close(fs, fd, complete);
+
+        // Forward this call to the impl's version, using the following
+        // call signature, with complete() as the callback/last-arg now:
+        // fn(fs, context, arg0, arg1, ... , complete);
+        var fnArgs = [fs, context].concat(args);
+        impl[methodName].apply(null, fnArgs);
+      });
+      if(error) {
+        callback(error);
       }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.mkdir = function(path, mode, callback) {
-    // Support passing a mode arg, but we ignore it internally for now.
-    if(typeof mode === 'function') {
-      callback = mode;
-    }
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.mkdir(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.rmdir = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.rmdir(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.stat = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.stat(context, fs.name, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.fstat = function(fd, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.fstat(fs, context, fd, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.link = function(oldpath, newpath, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.link(context, oldpath, newpath, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.unlink = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.unlink(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.read = function(fd, buffer, offset, length, position, callback) {
-    // Follow how node.js does this
-    callback = maybeCallback(callback);
-    function wrapper(err, bytesRead) {
-      // Retain a reference to buffer so that it can't be GC'ed too soon.
-      callback(err, bytesRead || 0, buffer);
-    }
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          wrapper.apply(this, arguments);
-        }
-        impl.read(fs, context, fd, buffer, offset, length, position, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.readFile = function(path, options, callback_) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.readFile(fs, context, path, options, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.write = function(fd, buffer, offset, length, position, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.write(fs, context, fd, buffer, offset, length, position, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.writeFile = function(path, data, options, callback_) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.writeFile(fs, context, path, data, options, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.appendFile = function(path, data, options, callback_) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.appendFile(fs, context, path, data, options, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.exists = function(path, callback_) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.exists(context, fs.name, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.lseek = function(fd, offset, whence, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.lseek(fs, context, fd, offset, whence, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.readdir = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.readdir(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.rename = function(oldpath, newpath, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.rename(context, oldpath, newpath, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.readlink = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.readlink(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.symlink = function(srcpath, dstpath, type, callback_) {
-    // Follow node.js in allowing the `type` arg to be passed, but we ignore it.
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.symlink(context, srcpath, dstpath, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.lstat = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.lstat(fs, context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.truncate = function(path, length, callback) {
-    // Follow node.js in allowing the `length` to be optional
-    if(typeof length === 'function') {
-      callback = length;
-      length = 0;
-    }
-    callback = maybeCallback(callback);
-    length = typeof length === 'number' ? length : 0;
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.truncate(context, path, length, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.ftruncate = function(fd, length, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.ftruncate(fs, context, fd, length, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.utimes = function(path, atime, mtime, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.utimes(context, path, atime, mtime, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.futimes = function(fd, atime, mtime, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.futimes(fs, context, fd, atime, mtime, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.setxattr = function (path, name, value, flag, callback) {
-    callback = maybeCallback(arguments[arguments.length - 1]);
-    var _flag = (typeof flag != 'function') ? flag : null;
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.setxattr(context, path, name, value, _flag, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.getxattr = function (path, name, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.getxattr(context, path, name, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.fsetxattr = function (fd, name, value, flag, callback) {
-    callback = maybeCallback(arguments[arguments.length - 1]);
-    var _flag = (typeof flag != 'function') ? flag : null;
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.fsetxattr(fs, context, fd, name, value, _flag, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.fgetxattr = function (fd, name, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.fgetxattr(fs, context, fd, name, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.removexattr = function (path, name, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.removexattr(context, path, name, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.fremovexattr = function (fd, name, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        impl.fremovexattr(fs, context, fd, name, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
+    };
+  });
+
   FileSystem.prototype.Shell = function(options) {
     return new Shell(this, options);
   };
