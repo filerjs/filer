@@ -735,14 +735,6 @@ define(function(require) {
       }
     }
 
-    function update_time(error) {
-      if(error) {
-        callback(error);
-      } else {
-// XXX: this looks very wrong!!!!!!
-      }
-    }
-
     function read_file_data(error, result) {
       if(error) {
         callback(error);
