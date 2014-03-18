@@ -3156,6 +3156,8 @@ define('src/shared',['require','crypto-js/rollups/sha256'],function(require) {
 });
 
 define('src/constants',['require'],function(require) {
+<<<<<<< HEAD
+=======
 
   var O_READ = 'READ';
   var O_WRITE = 'WRITE';
@@ -3573,6 +3575,7 @@ define('src/providers/websql',['require','src/constants','src/constants','src/co
         });
         return results;
     };
+>>>>>>> 7bd5fa1... Builds
 
     var _reduce = function (arr, iterator, memo) {
         if (arr.reduce) {
@@ -4967,6 +4970,101 @@ define('src/errors',['require'],function(require) {
   return errors;
 });
 
+define('src/errors',['require'],function(require) {
+  var errors = {};
+  [
+    /**
+     * node.js errors
+     */
+    '-1:UNKNOWN:unknown error',
+    '0:OK:success',
+    '1:EOF:end of file',
+    '2:EADDRINFO:getaddrinfo error',
+    '3:EACCES:permission denied',
+    '4:EAGAIN:resource temporarily unavailable',
+    '5:EADDRINUSE:address already in use',
+    '6:EADDRNOTAVAIL:address not available',
+    '7:EAFNOSUPPORT:address family not supported',
+    '8:EALREADY:connection already in progress',
+    '9:EBADF:bad file descriptor',
+    '10:EBUSY:resource busy or locked',
+    '11:ECONNABORTED:software caused connection abort',
+    '12:ECONNREFUSED:connection refused',
+    '13:ECONNRESET:connection reset by peer',
+    '14:EDESTADDRREQ:destination address required',
+    '15:EFAULT:bad address in system call argument',
+    '16:EHOSTUNREACH:host is unreachable',
+    '17:EINTR:interrupted system call',
+    '18:EINVAL:invalid argument',
+    '19:EISCONN:socket is already connected',
+    '20:EMFILE:too many open files',
+    '21:EMSGSIZE:message too long',
+    '22:ENETDOWN:network is down',
+    '23:ENETUNREACH:network is unreachable',
+    '24:ENFILE:file table overflow',
+    '25:ENOBUFS:no buffer space available',
+    '26:ENOMEM:not enough memory',
+    '27:ENOTDIR:not a directory',
+    '28:EISDIR:illegal operation on a directory',
+    '29:ENONET:machine is not on the network',
+    // errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+    '31:ENOTCONN:socket is not connected',
+    '32:ENOTSOCK:socket operation on non-socket',
+    '33:ENOTSUP:operation not supported on socket',
+    '34:ENOENT:no such file or directory',
+    '35:ENOSYS:function not implemented',
+    '36:EPIPE:broken pipe',
+    '37:EPROTO:protocol error',
+    '38:EPROTONOSUPPORT:protocol not supported',
+    '39:EPROTOTYPE:protocol wrong type for socket',
+    '40:ETIMEDOUT:connection timed out',
+    '41:ECHARSET:invalid Unicode character',
+    '42:EAIFAMNOSUPPORT:address family for hostname not supported',
+    // errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+    '44:EAISERVICE:servname not supported for ai_socktype',
+    '45:EAISOCKTYPE:ai_socktype not supported',
+    '46:ESHUTDOWN:cannot send after transport endpoint shutdown',
+    '47:EEXIST:file already exists',
+    '48:ESRCH:no such process',
+    '49:ENAMETOOLONG:name too long',
+    '50:EPERM:operation not permitted',
+    '51:ELOOP:too many symbolic links encountered',
+    '52:EXDEV:cross-device link not permitted',
+    '53:ENOTEMPTY:directory not empty',
+    '54:ENOSPC:no space left on device',
+    '55:EIO:i/o error',
+    '56:EROFS:read-only file system',
+    '57:ENODEV:no such device',
+    '58:ESPIPE:invalid seek',
+    '59:ECANCELED:operation canceled',
+
+    /**
+     * Filer specific errors
+     */
+    '1000:ENOTMOUNTED:not mounted',
+    '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.',
+    '1002:ENOATTR:attribute does not exist'
+  ].forEach(function(e) {
+    e = e.split(':');
+    var errno = e[0],
+        err = e[1],
+        message = e[2];
+
+    function ctor(m) {
+      this.message = m || message;
+    }
+    var proto = ctor.prototype = new Error();
+    proto.errno = errno;
+    proto.code = err;
+    proto.constructor = ctor;
+
+    // We expose the error as both Errors.EINVAL and Errors[18]
+    errors[err] = errors[errno] = ctor;
+  });
+
+  return errors;
+});
+
 define('src/environment',['require','src/constants'],function(require) {
 
   var defaults = require('src/constants').ENVIRONMENT;
@@ -5030,14 +5128,30 @@ define('src/shell',['require','src/path','src/errors','src/environment','async']
       // Make sure the path actually exists, and is a dir
       fs.stat(path, function(err, stats) {
         if(err) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.ENOTDIR());
+=======
+          callback(new Errors.ENotDirectory());
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.ENOTDIR());
+>>>>>>> cd0200b... Rebuilt distribution files
           return;
         }
         if(stats.type === 'DIRECTORY') {
           cwd = path;
           callback();
         } else {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.ENOTDIR());
+=======
+          callback(new Errors.ENotDirectory());
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.ENOTDIR());
+>>>>>>> cd0200b... Rebuilt distribution files
         }
       });
     };
@@ -5303,7 +5417,15 @@ define('src/shell',['require','src/path','src/errors','src/environment','async']
 
           // If not, see if we're allowed to delete recursively
           if(!options.recursive) {
+<<<<<<< HEAD
+<<<<<<< HEAD
             callback(new Errors.ENOTEMPTY());
+=======
+            callback(new Errors.ENotEmpty());
+>>>>>>> 7bd5fa1... Builds
+=======
+            callback(new Errors.ENOTEMPTY());
+>>>>>>> cd0200b... Rebuilt distribution files
             return;
           }
 
@@ -5329,10 +5451,151 @@ define('src/shell',['require','src/path','src/errors','src/environment','async']
   /**
    * Moves the file or directory at the `source` path to the 
    * `destination` path by relinking the source to the destination 
+<<<<<<< HEAD
+<<<<<<< HEAD
    * path.
+=======
+   * path. Currently there are no options, but it might be nice 
+   * to implement an interactive mode at some point.
+=======
+   * path.
+>>>>>>> cd0200b... Rebuilt distribution files
    */
   Shell.prototype.mv = function(source, destination, callback) {
     var fs = this.fs;
+    var shell = this;
+    
+    callback = callback || function() {};
+
+    if(!source) {
+      callback(new Error("Missing source path argument"));
+      return;
+    }
+    else if(source === '/') {
+      callback(new Error("Root is not a valid source argument"));
+      return;
+    }
+
+    if(!destination) {
+      callback(new Error("Missing destination path argument"));
+      return;
+    }
+
+    function move(sourcepath, destpath, callback) {
+      sourcepath = Path.resolve(this.cwd, sourcepath);
+      destpath = Path.resolve(this.cwd, destpath);
+      destdir = Path.resolve(this.cwd, Path.dirname(destpath));
+
+      // Recursively create any directories on the destination path which do not exist
+      shell.mkdirp(destdir, function(error) {
+        if(error) {
+          callback(error);
+          return;
+        }
+      });
+
+      // If there is no node at the source path, error and quit
+      fs.stat(sourcepath, function(error, sourcestats) {
+        if(error) {
+          callback(error);
+          return;
+        }
+
+        fs.stat(destpath, function(error, deststats) {
+          // If there is an error unrelated to the existence of the destination, exit
+          if(error && error.code !== 'ENOENT') {
+            callback(error);
+            return;
+          }
+            
+          if(deststats) {
+            // If the destination is a directory, new destination is destpath/source.basename
+            if(deststats.isDirectory()) {
+              destpath = Path.join(destpath, Path.basename(sourcepath));
+            }
+            // Unlink existing destinations
+            fs.unlink(destpath, function(error) {
+              if (error && error.code !== 'ENOENT') {
+                callback(error);
+                return;
+              }
+            });
+          }
+
+          // If the source is a file, link it to destination and remove the source, then done
+          if(sourcestats.isFile()) {
+            fs.link(sourcepath, destpath, function(error) {
+              if (error) {
+                callback(error);
+                return;
+              }
+              shell.rm(sourcepath, {recursive:true}, function(error) {
+                if (error) {
+                  callback(error);
+                  return;
+                }
+                callback();
+              });    
+            });
+          }
+          // If the source is a directory, create a directory at destination and then recursively
+          // move every dir entry.
+          else if(sourcestats.isDirectory()) {
+            fs.mkdir(destpath, function(error) {
+              if (error) {
+                callback(error);
+                return;
+              }
+
+              fs.readdir(sourcepath, function(error, entries) {
+                if(error) {
+                  callback(error);
+                  return;
+                }
+
+                async.each(entries, 
+                  function(entry, callback) {
+                    move(Path.join(sourcepath, entry), Path.join(destpath, entry), function(error) {
+                      if(error) {
+                        callback(error);
+                        return;
+                      }
+                      callback();
+                    });
+                  },
+                  function(error) {
+                    if(error) {
+                      callback(error);
+                      return;
+                    }
+                    shell.rm(sourcepath, {recursive:true}, function(error) {
+                      if (error) {
+                        callback(error);
+                        return;
+                      }
+                      callback();
+                    });
+                  }
+                );
+              });
+            });
+          }   
+        });
+      });
+    }
+
+    move(source, destination, callback);
+  };
+
+  /**
+   * Gets the path to the temporary directory, creating it if not
+   * present. The directory used is the one specified in
+   * env.TMP. The callback receives (error, tempDirName).
+>>>>>>> 7bd5fa1... Builds
+   */
+  Shell.prototype.mv = function(source, destination, callback) {
+    var fs = this.fs;
+<<<<<<< HEAD
     var shell = this;
     
     callback = callback || function() {};
@@ -5543,6 +5806,87 @@ define('src/shell',['require','src/path','src/errors','src/environment','async']
     _mkdirp(path, callback);
   };
 
+=======
+    var tmp = this.env.get('TMP');
+    callback = callback || function(){};
+
+    // Try and create it, and it will either work or fail
+    // but either way it's now there.
+    fs.mkdir(tmp, function(err) {
+      callback(null, tmp);
+    });
+  };
+
+  /**
+   * Recursively creates the directory at `path`. If the parent
+   * of `path` does not exist, it will be created.
+   * Based off EnsureDir by Sam X. Xu
+   * https://www.npmjs.org/package/ensureDir
+   * MIT License
+   */
+  Shell.prototype.mkdirp = function(path, callback) {
+    var fs = this.fs;
+    callback = callback || function(){};
+
+    if(!path) {
+      callback(new Errors.EINVAL('missing path argument'));
+      return;
+    }
+    else if (path === '/'){
+      callback();
+      return;
+    }
+    function _mkdirp(path, callback){
+      fs.stat(path, function (err, stat) {
+        //doesn't exist
+        if (err && err.code === 'ENOENT') {
+          var parent = Path.dirname(path);
+          if(parent === '/'){ //parent is root
+            fs.mkdir(path, function (err) {
+              if (err && err.code != 'EEXIST') {
+                callback(err);
+                return;
+              }
+              callback();
+              return;
+            });
+          }
+          else { //parent is not root, make parent first
+            _mkdirp(parent, function (err) {
+              if (err) return callback(err);
+              fs.mkdir(path, function (err) { //then make dir
+                if (err && err.code != 'EEXIST') {
+                  callback(err);
+                  return;
+                }
+                callback();
+                return;
+              });
+            });
+          }
+        }
+        //other error
+        else if (err){
+          callback(err);
+          return;
+        }
+        //already exists
+        else if (stat.type === 'DIRECTORY') {
+          callback();
+          return;
+        }
+        //not a directory
+        else if (stat.type === 'FILE') {
+          callback(new Errors.ENOTDIR());
+          return;
+        }
+      });
+    }
+
+    _mkdirp(path, callback);
+  };
+
+>>>>>>> cd0200b... Rebuilt distribution files
   return Shell;
 
 });
@@ -5566,6 +5910,7 @@ define('eventemitter',['require'],function(require) {
 
   EventEmitter.createInterface = function(space) {
     var methods = {};
+<<<<<<< HEAD
 
     methods.on = function(name, fn) {
       if (typeof this[space] === 'undefined') {
@@ -5592,6 +5937,34 @@ define('eventemitter',['require'],function(require) {
         }
       }
     };
+=======
+
+    methods.on = function(name, fn) {
+      if (typeof this[space] === 'undefined') {
+        this[space] = {};
+      }
+      if (!this[space].hasOwnProperty(name)) {
+        this[space][name] = [];
+      }
+      this[space][name].push(fn);
+    };
+
+    methods.off = function(name, fn) {
+      if (typeof this[space] === 'undefined') return;
+      if (this[space].hasOwnProperty(name)) {
+        removeItem(fn, this[space][name]);
+      }
+    };
+
+    methods.trigger = function(name) {
+      if (typeof this[space] !== 'undefined' && this[space].hasOwnProperty(name)) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        for (var i = 0; i < this[space][name].length; i++) {
+          this[space][name][i].apply(this[space][name][i], args);
+        }
+      }
+    };
+>>>>>>> cd0200b... Rebuilt distribution files
 
     methods.removeAllListeners = function(name) {
       if (typeof this[space] === 'undefined') return;
@@ -6197,7 +6570,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   function find_node(context, path, callback) {
     path = normalize(path);
     if(!path) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       return callback(new Errors.ENOENT('path is an empty string'));
+=======
+      return callback(new Errors.ENoEntry('path is an empty string'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      return callback(new Errors.ENOENT('path is an empty string'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     var name = basename(path);
     var parentPath = dirname(path);
@@ -6207,7 +6588,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(!superNode || superNode.mode !== MODE_META || !superNode.rnode) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EFILESYSTEMERROR());
+=======
+        callback(new Errors.EFileSystemError());
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EFILESYSTEMERROR());
+>>>>>>> cd0200b... Rebuilt distribution files
       } else {
         context.get(superNode.rnode, check_root_directory_node);
       }
@@ -6217,7 +6606,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(!rootDirectoryNode) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.ENOENT());
+=======
+        callback(new Errors.ENoEntry());
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.ENOENT());
+>>>>>>> cd0200b... Rebuilt distribution files
       } else {
         callback(null, rootDirectoryNode);
       }
@@ -6229,7 +6626,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.ENOTDIR('a component of the path prefix is not a directory'));
+=======
+        callback(new Errors.ENotDirectory('a component of the path prefix is not a directory'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.ENOTDIR('a component of the path prefix is not a directory'));
+>>>>>>> cd0200b... Rebuilt distribution files
       } else {
         context.get(parentDirectoryNode.data, get_node_from_parent_directory_data);
       }
@@ -6242,7 +6647,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       } else {
         if(!_(parentDirectoryData).has(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.ENOENT());
+=======
+          callback(new Errors.ENoEntry());
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.ENOENT());
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           var nodeId = parentDirectoryData[name].id;
           context.get(nodeId, is_symbolic_link);
@@ -6257,7 +6670,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         if(node.mode == MODE_SYMBOLIC_LINK) {
           followedCount++;
           if(followedCount > SYMLOOP_MAX){
+<<<<<<< HEAD
+<<<<<<< HEAD
             callback(new Errors.ELOOP());
+=======
+            callback(new Errors.ELoop());
+>>>>>>> 7bd5fa1... Builds
+=======
+            callback(new Errors.ELOOP());
+>>>>>>> cd0200b... Rebuilt distribution files
           } else {
             follow_symbolic_link(node.data);
           }
@@ -6308,10 +6729,24 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       }
       else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EEXIST('attribute already exists'));
       }
       else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
         callback(new Errors.ENOATTR());
+=======
+        callback(new Errors.EExists('attribute already exists'));
+      }
+      else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
+        callback(new Errors.ENoAttr());
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EEXIST('attribute already exists'));
+      }
+      else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
+        callback(new Errors.ENOATTR());
+>>>>>>> cd0200b... Rebuilt distribution files
       }
       else {
         node.xattrs[name] = value;
@@ -6328,7 +6763,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       context.get(path_or_fd.id, set_xattr);
     }
     else {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('path or file descriptor of wrong type'));
+=======
+      callback(new Errors.EInvalid('path or file descriptor of wrong type'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('path or file descriptor of wrong type'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
   }
 
@@ -6344,8 +6787,18 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     function write_super_node(error, existingNode) {
       if(!error && existingNode) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EEXIST());
       } else if(error && !(error instanceof Errors.ENOENT)) {
+=======
+        callback(new Errors.EExists());
+      } else if(error && !error instanceof Errors.ENoEntry) {
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EEXIST());
+      } else if(error && !(error instanceof Errors.ENOENT)) {
+>>>>>>> cd0200b... Rebuilt distribution files
         callback(error);
       } else {
         superNode = new SuperNode();
@@ -6391,8 +6844,18 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     function check_if_directory_exists(error, result) {
       if(!error && result) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EEXIST());
       } else if(error && !(error instanceof Errors.ENOENT)) {
+=======
+        callback(new Errors.EExists());
+      } else if(error && !error instanceof Errors.ENoEntry) {
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EEXIST());
+      } else if(error && !(error instanceof Errors.ENOENT)) {
+>>>>>>> cd0200b... Rebuilt distribution files
         callback(error);
       } else {
         find_node(context, parentPath, read_parent_directory_data);
@@ -6476,9 +6939,21 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(ROOT_DIRECTORY_NAME == name) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EBUSY());
       } else if(!_(result).has(name)) {
         callback(new Errors.ENOENT());
+=======
+        callback(new Errors.EBusy());
+      } else if(!_(result).has(name)) {
+        callback(new Errors.ENoEntry());
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EBUSY());
+      } else if(!_(result).has(name)) {
+        callback(new Errors.ENOENT());
+>>>>>>> cd0200b... Rebuilt distribution files
       } else {
         parentDirectoryData = result;
         directoryNode = parentDirectoryData[name].id;
@@ -6490,7 +6965,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(result.mode != MODE_DIRECTORY) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.ENOTDIR());
+=======
+        callback(new Errors.ENotDirectory());
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.ENOTDIR());
+>>>>>>> cd0200b... Rebuilt distribution files
       } else {
         directoryNode = result;
         context.get(directoryNode.data, check_if_directory_is_empty);
@@ -6503,7 +6986,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(_(directoryData).size() > 0) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.ENOTEMPTY());
+=======
+          callback(new Errors.ENotEmpty());
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.ENOTEMPTY());
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           remove_directory_entry_from_parent_directory_node();
         }
@@ -6558,7 +7049,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     if(ROOT_DIRECTORY_NAME == name) {
       if(_(flags).contains(O_WRITE)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+=======
+        callback(new Errors.EIsDirectory('the named file is a directory and O_WRITE is set'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+>>>>>>> cd0200b... Rebuilt distribution files
       } else {
         find_node(context, path, set_file_node);
       }
@@ -6582,18 +7081,42 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         directoryData = result;
         if(_(directoryData).has(name)) {
           if(_(flags).contains(O_EXCLUSIVE)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
             callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
           } else {
             directoryEntry = directoryData[name];
             if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
               callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+=======
+            callback(new Errors.ENoEntry('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
+          } else {
+            directoryEntry = directoryData[name];
+            if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
+              callback(new Errors.EIsDirectory('the named file is a directory and O_WRITE is set'));
+>>>>>>> 7bd5fa1... Builds
+=======
+            callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
+          } else {
+            directoryEntry = directoryData[name];
+            if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
+              callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+>>>>>>> cd0200b... Rebuilt distribution files
             } else {
               context.get(directoryEntry.id, check_if_symbolic_link);
             }
           }
         } else {
           if(!_(flags).contains(O_CREATE)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
             callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist'));
+=======
+            callback(new Errors.ENoEntry('O_CREATE is not set and the named file does not exist'));
+>>>>>>> 7bd5fa1... Builds
+=======
+            callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist'));
+>>>>>>> cd0200b... Rebuilt distribution files
           } else {
             write_file_node();
           }
@@ -6609,7 +7132,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         if(node.mode == MODE_SYMBOLIC_LINK) {
           followedCount++;
           if(followedCount > SYMLOOP_MAX){
+<<<<<<< HEAD
+<<<<<<< HEAD
             callback(new Errors.ELOOP());
+=======
+            callback(new Errors.ELoop('too many symbolic links were encountered'));
+>>>>>>> 7bd5fa1... Builds
+=======
+            callback(new Errors.ELOOP());
+>>>>>>> cd0200b... Rebuilt distribution files
           } else {
             follow_symbolic_link(node.data);
           }
@@ -6625,7 +7156,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       name = basename(data);
       if(ROOT_DIRECTORY_NAME == name) {
         if(_(flags).contains(O_WRITE)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+=======
+          callback(new Errors.EIsDirectory('the named file is a directory and O_WRITE is set'));
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           find_node(context, path, set_file_node);
         }
@@ -6893,7 +7432,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(!_(directoryData).has(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.ENOENT('a component of the path does not name an existing file'));
+=======
+          callback(new Errors.ENoEntry('a component of the path does not name an existing file'));
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.ENOENT('a component of the path does not name an existing file'));
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           context.get(directoryData[name].id, check_file);
         }
@@ -6956,7 +7503,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         newDirectoryData = result;
         if(_(newDirectoryData).has(newname)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.EEXIST('newpath resolves to an existing file'));
+=======
+          callback(new Errors.EExists('newpath resolves to an existing file'));
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.EEXIST('newpath resolves to an existing file'));
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           newDirectoryData[newname] = oldDirectoryData[oldname];
           context.put(newDirectoryNode.data, newDirectoryData, read_directory_entry);
@@ -6979,7 +7534,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         oldDirectoryData = result;
         if(!_(oldDirectoryData).has(oldname)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.ENOENT('a component of either path prefix does not exist'));
+=======
+          callback(new Errors.ENoEntry('a component of either path prefix does not exist'));
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.ENOENT('a component of either path prefix does not exist'));
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           find_node(context, newParentPath, read_new_directory_data);
         }
@@ -7049,7 +7612,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(!_(directoryData).has(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.ENOENT('a component of the path does not name an existing file'));
+=======
+          callback(new Errors.ENoEntry('a component of the path does not name an existing file'));
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.ENOENT('a component of the path does not name an existing file'));
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           context.get(directoryData[name].id, update_file_node);
         }
@@ -7107,7 +7678,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fileNode;
 
     if(ROOT_DIRECTORY_NAME == name) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EEXIST());
+=======
+      callback(new Errors.EExists('the destination path already exists'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EEXIST());
+>>>>>>> cd0200b... Rebuilt distribution files
     } else {
       find_node(context, parentPath, read_directory_data);
     }
@@ -7127,7 +7706,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(_(directoryData).has(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.EEXIST());
+=======
+          callback(new Errors.EExists('the destination path already exists'));
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.EEXIST());
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           write_file_node();
         }
@@ -7186,7 +7773,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(!_(directoryData).has(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.ENOENT('a component of the path does not name an existing file'));
+=======
+          callback(new Errors.ENoEntry('a component of the path does not name an existing file'));
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.ENOENT('a component of the path does not name an existing file'));
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           context.get(directoryData[name].id, check_if_symbolic);
         }
@@ -7198,7 +7793,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       } else {
         if(result.mode != MODE_SYMBOLIC_LINK) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.EINVAL("path not a symbolic link"));
+=======
+          callback(new Errors.EInvalid("path not a symbolic link"));
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.EINVAL("path not a symbolic link"));
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           callback(null, result.data);
         }
@@ -7215,7 +7818,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if (error) {
         callback(error);
       } else if(node.mode == MODE_DIRECTORY ) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EISDIR());
+=======
+        callback(new Errors.EIsDirectory('the named file is a directory'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EISDIR());
+>>>>>>> cd0200b... Rebuilt distribution files
       } else{
         fileNode = node;
         context.get(fileNode.data, truncate_file_data);
@@ -7254,7 +7865,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if(length < 0) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('length cannot be negative'));
+=======
+      callback(new Errors.EInvalid('length cannot be negative'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('length cannot be negative'));
+>>>>>>> cd0200b... Rebuilt distribution files
     } else {
       find_node(context, path, read_file_data);
     }
@@ -7267,7 +7886,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if (error) {
         callback(error);
       } else if(node.mode == MODE_DIRECTORY ) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EISDIR());
+=======
+        callback(new Errors.EIsDirectory('the named file is a directory'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EISDIR());
+>>>>>>> cd0200b... Rebuilt distribution files
       } else{
         fileNode = node;
         context.get(fileNode.data, truncate_file_data);
@@ -7305,7 +7932,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if(length < 0) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('length cannot be negative'));
+=======
+      callback(new Errors.EInvalid('length cannot be negative'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('length cannot be negative'));
+>>>>>>> cd0200b... Rebuilt distribution files
     } else {
       context.get(ofd.id, read_file_data);
     }
@@ -7323,10 +7958,24 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof atime != 'number' || typeof mtime != 'number') {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('atime and mtime must be number'));
     }
     else if (atime < 0 || mtime < 0) {
       callback(new Errors.EINVAL('atime and mtime must be positive integers'));
+=======
+      callback(new Errors.EInvalid('atime and mtime must be number'));
+    }
+    else if (atime < 0 || mtime < 0) {
+      callback(new Errors.EInvalid('atime and mtime must be positive integers'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('atime and mtime must be number'));
+    }
+    else if (atime < 0 || mtime < 0) {
+      callback(new Errors.EINVAL('atime and mtime must be positive integers'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       find_node(context, path, update_times);
@@ -7344,10 +7993,24 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof atime != 'number' || typeof mtime != 'number') {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('atime and mtime must be a number'));
     }
     else if (atime < 0 || mtime < 0) {
       callback(new Errors.EINVAL('atime and mtime must be positive integers'));
+=======
+      callback(new Errors.EInvalid('atime and mtime must be a number'));
+    }
+    else if (atime < 0 || mtime < 0) {
+      callback(new Errors.EInvalid('atime and mtime must be positive integers'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('atime and mtime must be a number'));
+    }
+    else if (atime < 0 || mtime < 0) {
+      callback(new Errors.EINVAL('atime and mtime must be positive integers'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       context.get(ofd.id, update_times);
@@ -7358,6 +8021,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     path = normalize(path);
 
     if (typeof name != 'string') {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
@@ -7366,6 +8031,23 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
       callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+=======
+      callback(new Errors.EInvalid('attribute name must be a string'));
+=======
+      callback(new Errors.EINVAL('attribute name must be a string'));
+>>>>>>> cd0200b... Rebuilt distribution files
+    }
+    else if (!name) {
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+    }
+    else if (flag !== null &&
+        flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
+<<<<<<< HEAD
+      callback(new Errors.EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       set_extended_attribute(context, path, name, value, flag, callback);
@@ -7375,6 +8057,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   function fsetxattr_file (context, ofd, name, value, flag, callback) {
 
     if (typeof name != 'string') {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
@@ -7383,6 +8067,23 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
       callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+=======
+      callback(new Errors.EInvalid('attribute name must be a string'));
+=======
+      callback(new Errors.EINVAL('attribute name must be a string'));
+>>>>>>> cd0200b... Rebuilt distribution files
+    }
+    else if (!name) {
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+    }
+    else if (flag !== null &&
+        flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
+<<<<<<< HEAD
+      callback(new Errors.EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       set_extended_attribute(context, ofd, name, value, flag, callback);
@@ -7399,7 +8100,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback (error);
       }
       else if (!node.xattrs.hasOwnProperty(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.ENOATTR());
+=======
+        callback(new Errors.ENoAttr('attribute does not exist'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.ENOATTR());
+>>>>>>> cd0200b... Rebuilt distribution files
       }
       else {
         callback(null, node.xattrs[name]);
@@ -7407,10 +8116,24 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof name != 'string') {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
       callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+=======
+      callback(new Errors.EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       find_node(context, path, get_xattr);
@@ -7426,7 +8149,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       }
       else if (!node.xattrs.hasOwnProperty(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.ENOATTR());
+=======
+        callback(new Errors.ENoAttr('attribute does not exist'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.ENOATTR());
+>>>>>>> cd0200b... Rebuilt distribution files
       }
       else {
         callback(null, node.xattrs[name]);
@@ -7434,10 +8165,24 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof name != 'string') {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL());
     }
     else if (!name) {
       callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+=======
+      callback(new Errors.EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL());
+    }
+    else if (!name) {
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       context.get(ofd.id, get_xattr);
@@ -7462,7 +8207,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       }
       else if (!xattr.hasOwnProperty(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.ENOATTR());
+=======
+        callback(new Errors.ENoAttr('attribute does not exist'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.ENOATTR());
+>>>>>>> cd0200b... Rebuilt distribution files
       }
       else {
         delete node.xattrs[name];
@@ -7471,10 +8224,24 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof name != 'string') {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
       callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+=======
+      callback(new Errors.EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       find_node(context, path, remove_xattr);
@@ -7496,7 +8263,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       }
       else if (!node.xattrs.hasOwnProperty(name)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.ENOATTR());
+=======
+        callback(new Errors.ENoAttr('attribute does not exist'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.ENOATTR());
+>>>>>>> cd0200b... Rebuilt distribution files
       }
       else {
         delete node.xattrs[name];
@@ -7505,10 +8280,24 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof name != 'string') {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
       callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+=======
+      callback(new Errors.EInvalid('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new Errors.EInvalid('attribute name cannot be an empty string'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('attribute name must be a string'));
+    }
+    else if (!name) {
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       context.get(ofd.id, remove_xattr);
@@ -7757,7 +8546,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     flags = validate_flags(flags);
     if(!flags) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('flags is not valid'));
+=======
+      callback(new Errors.EInvalid('flags is not valid'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('flags is not valid'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
 
     open_file(context, path, flags, check_result);
@@ -7765,7 +8562,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
   function _close(fs, fd, callback) {
     if(!_(fs.openFiles).has(fd)) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EBADF());
+=======
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EBADF());
+>>>>>>> cd0200b... Rebuilt distribution files
     } else {
       fs.releaseDescriptor(fd);
       callback(null);
@@ -7878,9 +8683,21 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_READ)) {
       callback(new Errors.EBADF('descriptor does not permit reading'));
+=======
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
+    } else if(!_(ofd.flags).contains(O_READ)) {
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit reading'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EBADF());
+    } else if(!_(ofd.flags).contains(O_READ)) {
+      callback(new Errors.EBADF('descriptor does not permit reading'));
+>>>>>>> cd0200b... Rebuilt distribution files
     } else {
       read_data(context, ofd, buffer, offset, length, position, check_result);
     }
@@ -7893,7 +8710,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     var flags = validate_flags(options.flag || 'r');
     if(!flags) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('flags is not valid'));
+=======
+      callback(new Errors.EInvalid('flags is not valid'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('flags is not valid'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
 
     open_file(context, path, flags, function(err, fileNode) {
@@ -7945,9 +8770,21 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_WRITE)) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
+=======
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
+    } else if(!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EBADF());
+    } else if(!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBADF('descriptor does not permit writing'));
+>>>>>>> cd0200b... Rebuilt distribution files
     } else if(buffer.length - offset < length) {
       callback(new Errors.EIO('intput buffer is too small'));
     } else {
@@ -7962,7 +8799,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     var flags = validate_flags(options.flag || 'w');
     if(!flags) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('flags is not valid'));
+=======
+      callback(new Errors.EInvalid('flags is not valid'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('flags is not valid'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
 
     data = data || '';
@@ -7997,7 +8842,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     var flags = validate_flags(options.flag || 'a');
     if(!flags) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('flags is not valid'));
+=======
+      callback(new Errors.EInvalid('flags is not valid'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('flags is not valid'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
 
     data = data || '';
@@ -8061,7 +8914,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if (!ofd) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EBADF());
+=======
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EBADF());
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       fgetxattr_file(context, ofd, name, get_result);
@@ -8096,10 +8957,24 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if (!ofd) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EBADF());
     }
     else if (!_(ofd.flags).contains(O_WRITE)) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
+=======
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
+    }
+    else if (!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EBADF());
+    }
+    else if (!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBADF('descriptor does not permit writing'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       fsetxattr_file(context, ofd, name, value, flag, check_result);
@@ -8135,10 +9010,24 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if (!ofd) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EBADF());
     }
     else if (!_(ofd.flags).contains(O_WRITE)) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
+=======
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
+    }
+    else if (!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EBADF());
+    }
+    else if (!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBADF('descriptor does not permit writing'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
     else {
       fremovexattr_file(context, ofd, name, remove_xattr);
@@ -8159,7 +9048,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       } else {
         if(stats.size + offset < 0) {
+<<<<<<< HEAD
+<<<<<<< HEAD
           callback(new Errors.EINVAL('resulting file offset would be negative'));
+=======
+          callback(new Errors.EInvalid('resulting file offset would be negative'));
+>>>>>>> 7bd5fa1... Builds
+=======
+          callback(new Errors.EINVAL('resulting file offset would be negative'));
+>>>>>>> cd0200b... Rebuilt distribution files
         } else {
           ofd.position = stats.size + offset;
           callback(null, ofd.position);
@@ -8170,19 +9067,43 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EBADF());
+=======
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EBADF());
+>>>>>>> cd0200b... Rebuilt distribution files
     }
 
     if('SET' === whence) {
       if(offset < 0) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EINVAL('resulting file offset would be negative'));
+=======
+        callback(new Errors.EInvalid('resulting file offset would be negative'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EINVAL('resulting file offset would be negative'));
+>>>>>>> cd0200b... Rebuilt distribution files
       } else {
         ofd.position = offset;
         callback(null, ofd.position);
       }
     } else if('CUR' === whence) {
       if(ofd.position + offset < 0) {
+<<<<<<< HEAD
+<<<<<<< HEAD
         callback(new Errors.EINVAL('resulting file offset would be negative'));
+=======
+        callback(new Errors.EInvalid('resulting file offset would be negative'));
+>>>>>>> 7bd5fa1... Builds
+=======
+        callback(new Errors.EINVAL('resulting file offset would be negative'));
+>>>>>>> cd0200b... Rebuilt distribution files
       } else {
         ofd.position += offset;
         callback(null, ofd.position);
@@ -8190,7 +9111,15 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     } else if('END' === whence) {
       fstat_file(context, ofd, update_descriptor_position);
     } else {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EINVAL('whence argument is not a proper value'));
+=======
+      callback(new Errors.EInvalid('whence argument is not a proper value'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EINVAL('whence argument is not a proper value'));
+>>>>>>> cd0200b... Rebuilt distribution files
     }
   }
 
@@ -8243,9 +9172,21 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_WRITE)) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
+=======
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
+    } else if(!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EBADF());
+    } else if(!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBADF('descriptor does not permit writing'));
+>>>>>>> cd0200b... Rebuilt distribution files
     } else {
       futimes_file(context, ofd, atime, mtime, check_result);
     }
@@ -8348,9 +9289,21 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
+<<<<<<< HEAD
+<<<<<<< HEAD
       callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_WRITE)) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
+=======
+      callback(new Errors.EBadFileDescriptor('invalid file descriptor'));
+    } else if(!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBadFileDescriptor('descriptor does not permit writing'));
+>>>>>>> 7bd5fa1... Builds
+=======
+      callback(new Errors.EBADF());
+    } else if(!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBADF('descriptor does not permit writing'));
+>>>>>>> cd0200b... Rebuilt distribution files
     } else {
       ftruncate_file(context, ofd, length, check_result);
     }

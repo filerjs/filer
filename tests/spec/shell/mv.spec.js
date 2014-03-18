@@ -370,5 +370,119 @@ define(["Filer", "util"], function(Filer, util) {
         });
       });
     });
+
+    it('should move an empty directory to another empty directory', function(done) {
+      var fs = util.fs();
+      var shell = fs.Shell();
+      
+      fs.mkdir('/dir', function(error) {
+        expect(error).to.not.exist;
+
+        fs.mkdir('/otherdir', function(error) {
+          expect(error).to.not.exist;
+
+          shell.mv('/dir', '/otherdir', function(error) {
+            expect(error).to.not.exist;
+
+            fs.stat('/dir', function(error, stats) {
+              expect(error).to.exist;
+              expect(stats).to.not.exist;
+
+              fs.stat('/otherdir/dir', function(error, stats) {
+                expect(error).to.not.exist;
+                expect(stats).to.exist;
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should move an empty directory to a populated directory', function(done) {
+      var fs = util.fs();
+      var shell = fs.Shell();
+      var contents = "a";
+      
+      fs.mkdir('/dir', function(error) {
+        expect(error).to.not.exist;
+
+        fs.mkdir('/otherdir', function(error) {
+          expect(error).to.not.exist;
+
+          fs.writeFile('/otherdir/file', contents, function(error) {
+            expect(error).to.not.exist;
+
+            shell.mv('/dir', '/otherdir', function(error) {
+              expect(error).to.not.exist;
+
+              fs.stat('/dir', function(error, stats) {
+                expect(error).to.exist;
+                expect(stats).to.not.exist;
+
+                fs.stat('/otherdir/file', function(error, stats) {
+                  expect(error).to.not.exist;
+                  expect(stats).to.exist;
+
+                  fs.stat('/otherdir/dir', function(error, stats) {
+                    expect(error).to.not.exist;
+                    expect(stats).to.exist;
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should move a populated directory to a populated directory', function(done) {
+      var fs = util.fs();
+      var shell = fs.Shell();
+      var contents = "a";
+      
+      fs.mkdir('/dir', function(error) {
+        expect(error).to.not.exist;
+
+        fs.mkdir('/otherdir', function(error) {
+          expect(error).to.not.exist;
+
+          fs.writeFile('/otherdir/file', contents, function(error) {
+            expect(error).to.not.exist;
+
+            fs.writeFile('/dir/file', contents, function(error) {
+              expect(error).to.not.exist;
+
+              shell.mv('/dir', '/otherdir', function(error) {
+                expect(error).to.not.exist;
+
+                fs.stat('/dir', function(error, stats) {
+                  expect(error).to.exist;
+                  expect(stats).to.not.exist;
+
+                  fs.stat('/otherdir/file', function(error, stats) {
+                    expect(error).to.not.exist;
+                    expect(stats).to.exist;
+
+                    fs.stat('/otherdir/dir', function(error, stats) {
+                      expect(error).to.not.exist;
+                      expect(stats).to.exist;
+
+                      fs.stat('/otherdir/dir/file', function(error, stats) {
+                        expect(error).to.not.exist;
+                        expect(stats).to.exist;
+                        done();
+                      })
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
   });
 });
+
