@@ -12,7 +12,6 @@ define(function(require) {
   var isAbsolutePath = require('src/path').isAbsolute;
   var isNullPath = require('src/path').isNull;
 
-  var guid = require('src/shared').guid;
   var hash = require('src/shared').hash;
   var nop = require('src/shared').nop;
 
@@ -42,110 +41,16 @@ define(function(require) {
 
   var providers = require('src/providers/providers');
   var adapters = require('src/adapters/adapters');
+
   var Shell = require('src/shell');
   var Intercom = require('intercom');
-  var FSWatcher = require('src/fswatcher');
+  var FSWatcher = require('src/fs-watcher');
   var Errors = require('src/errors');
-
-  /*
-   * DirectoryEntry
-   */
-
-  function DirectoryEntry(id, type) {
-    this.id = id;
-    this.type = type || MODE_FILE;
-  }
-
-  /*
-   * OpenFileDescription
-   */
-
-  function OpenFileDescription(path, id, flags, position) {
-    this.path = path;
-    this.id = id;
-    this.flags = flags;
-    this.position = position;
-  }
-
-  /*
-   * SuperNode
-   */
-
-  function SuperNode(atime, ctime, mtime) {
-    var now = Date.now();
-
-    this.id = SUPER_NODE_ID;
-    this.mode = MODE_META;
-    this.atime = atime || now;
-    this.ctime = ctime || now;
-    this.mtime = mtime || now;
-    this.rnode = guid(); // root node id (randomly generated)
-  }
-
-  /*
-   * Node
-   */
-
-  function Node(id, mode, size, atime, ctime, mtime, flags, xattrs, nlinks, version) {
-    var now = Date.now();
-
-    this.id = id || guid();
-    this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
-    this.size = size || 0; // size (bytes for files, entries for directories)
-    this.atime = atime || now; // access time (will mirror ctime after creation)
-    this.ctime = ctime || now; // creation/change time
-    this.mtime = mtime || now; // modified time
-    this.flags = flags || []; // file flags
-    this.xattrs = xattrs || {}; // extended attributes
-    this.nlinks = nlinks || 0; // links count
-    this.version = version || 0; // node version
-    this.blksize = undefined; // block size
-    this.nblocks = 1; // blocks count
-    this.data = guid(); // id for data object
-  }
-
-  /*
-   * Stats
-   */
-
-  function Stats(fileNode, devName) {
-    this.node = fileNode.id;
-    this.dev = devName;
-    this.size = fileNode.size;
-    this.nlinks = fileNode.nlinks;
-    this.atime = fileNode.atime;
-    this.mtime = fileNode.mtime;
-    this.ctime = fileNode.ctime;
-    this.type = fileNode.mode;
-  }
-
-  Stats.prototype.isFile = function() {
-    return this.type === MODE_FILE;
-  };
-
-  Stats.prototype.isDirectory = function() {
-    return this.type === MODE_DIRECTORY;
-  };
-
-  Stats.prototype.isBlockDevice = function() {
-    return false;
-  };
-
-  Stats.prototype.isCharacterDevice = function() {
-    return false;
-  };
-
-  Stats.prototype.isSymbolicLink = function() {
-    return this.type === MODE_SYMBOLIC_LINK;
-  };
-
-  Stats.prototype.isFIFO = function() {
-    return false;
-  };
-
-  Stats.prototype.isSocket = function() {
-    return false;
-  };
+  var DirectoryEntry = require('src/directory-entry');
+  var OpenFileDescription = require('src/open-file-description');
+  var SuperNode = require('src/super-node');
+  var Node = require('src/node');
+  var Stats = require('src/stats');
 
   /*
    * Update node times. Only passed times are modified (undefined times are ignored)
@@ -1630,7 +1535,7 @@ define(function(require) {
       if(FS_READY == fs.readyState) {
         operation.call(fs);
       } else if(FS_ERROR == fs.readyState) {
-        error = new EFileSystemError('unknown error');
+        error = new Errors.EFILESYSTEMERROR('unknown error');
       } else {
         queue.push(operation);
       }
@@ -1834,7 +1739,7 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     } else {
       fstat_file(context, ofd, check_result);
     }
