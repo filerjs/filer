@@ -34,7 +34,8 @@ module.exports = function(grunt) {
         'src/open-file-description.js',
         'src/super-node.js',
         'src/node.js',
-        'src/stats.js'
+        'src/stats.js',
+        'src/filesystem/**/*.js'
       ]
     },
 
