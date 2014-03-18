@@ -6,6 +6,21 @@
 
 Filer is a POSIX-like file system interface for browser-based JavaScript.
 
+###Compatibility
+
+Filer is known to work in the following browsers/versions, with the specified [Storage Providers](#providers):
+
+* IE: 10+ (IndexedDB)
+* Firefox: 26+ (IndexedDB)
+* Chrome: 31+ (IndexedDB, WebSQL)
+* Safari: 7.0+ (WebSQL)
+* Opera: 19+ (IndexedDB, WebSQL)
+* iOS: 3.2+ (WebSQL)
+* Android Browser: 2.1-4.4 (WebSQL), 4.4+ (IndexedDB)
+
+NOTE: if you're interested in maximum compatibility, use the `Fallback` provider instead of `Default`.
+See the section on [Storage Providers](#providers).
+
 ### Contributing
 
 Want to join the fun? We'd love to have you! See [CONTRIBUTING](https://github.com/js-platform/filer/blob/develop/CONTRIBUTING.md).
