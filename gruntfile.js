@@ -29,7 +29,12 @@ module.exports = function(grunt) {
         'src/fswatcher.js',
         'src/environment.js',
         'src/providers/**/*.js',
-        'src/adapters/**/*.js'
+        'src/adapters/**/*.js',
+        'src/directory-entry.js',
+        'src/open-file-description.js',
+        'src/super-node.js',
+        'src/node.js',
+        'src/stats.js'
       ]
     },
 
