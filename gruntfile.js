@@ -28,6 +28,7 @@ module.exports = function(grunt) {
         'src/shell.js',
         'src/fswatcher.js',
         'src/environment.js',
+        'src/rsync.js',
         'src/providers/**/*.js',
         'src/adapters/**/*.js',
         'src/directory-entry.js',

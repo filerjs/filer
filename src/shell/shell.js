@@ -5,6 +5,7 @@ define(function(require) {
   var Errors = require('src/errors');
   var Environment = require('src/shell/environment');
   var async = require('async');
+  var rsync = require('src/rsync');
 
   function Shell(fs, options) {
     options = options || {};
@@ -421,6 +422,8 @@ define(function(require) {
 
     _mkdirp(path, callback);
   };
+
+  Shell.prototype.rsync = rsync;
 
   return Shell;
 
