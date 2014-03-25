@@ -476,6 +476,44 @@ define(function(require) {
     request.send();
   };
 
+  Shell.prototype.unzip = function(path, options, callback) {
+    var fs = this.fs;
+    if(typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
+    callback = callback || function(){};
+
+    if(!path) {
+      callback(new Errors.EINVAL('missing path argument'));
+      return;
+    }
+
+    path = Path.resolve(this.cwd, path);
+    var destination = Path.resolve(options.destination || this.cwd);
+
+    var Zip = require('zip.js/zip');
+    Zip.createReader(new Zip.FileReader(path, fs), function(reader) {
+      reader.getEntries(function(entries) {
+
+        function inflate(entry, callback) {
+          var path = Path.join(destination, entry.filename);
+          if(entry.directory) {
+            this.mkdirp(path, callback);
+          } else {
+            entry.getData(new Zip.FileWriter(path, fs, entry.uncompressedSize), function() { callback(); });
+          }
+        }
+
+        async.eachSeries(entries, inflate, function(error) {
+          if(error) return callback(error);
+          reader.close(callback);
+        });
+      });
+    }, callback);
+  };
+
   return Shell;
 
 });
