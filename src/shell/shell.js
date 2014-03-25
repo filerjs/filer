@@ -514,6 +514,59 @@ define(function(require) {
     }, callback);
   };
 
+  Shell.prototype.zip = function(zipfile, paths, options, callback) {
+    var fs = this.fs;
+    if(typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
+    callback = callback || function(){};
+
+    if(!zipfile) {
+      callback(new Errors.EINVAL('missing zipfile argument'));
+      return;
+    }
+    if(!paths) {
+      callback(new Errors.EINVAL('missing paths argument'));
+      return;
+    }
+    if(typeof paths === 'string') {
+      paths = [ paths ];
+    }
+    zipfile = Path.resolve(this.cwd, zipfile);
+
+    var Zip = require('zip.js/zip');
+    Zip.createWriter(new Zip.FileWriter(zipfile, fs), function(writer) {
+
+      function add(path, callback) {
+        var realpath = Path.resolve(this.cwd, path);
+        fs.stat(realpath, function(err, stats) {
+          if(err) {
+            callback(err);
+            return;
+          }
+
+          // Tack on zip entry options we care about.
+          var options = { lastModDate: new Date(stats.mtime) };
+          if(stats.isDirectory()) {
+            options.directory = true;
+          }
+
+          writer.add(path, new Zip.FileReader(realpath, fs),
+                     function onend() { callback(); }, null, options);
+        });
+      }
+
+      async.eachSeries(paths, add, function(error) {
+        if(error) return callback(error);
+        writer.close(function() {
+          callback();
+        });
+      });
+    }, callback);
+  };
+
   return Shell;
 
 });
