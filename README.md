@@ -1133,6 +1133,7 @@ var sh = fs.Shell();
 * [sh.rm(path, [options], callback)](#rm)
 * [sh.tempDir(callback)](#tempDir)
 * [sh.mkdirp(path, callback)](#mkdirp)
+* [sh.rsync(srcPath, destPath, [options], callback)](#rsync)
 
 #### sh.cd(path, callback)<a name="cd"></a>
 
@@ -1336,5 +1337,23 @@ Example:
 sh.mkdirp('/test/mkdirp', function(err) {
   if(err) throw err;
   // the root '/' now contains a directory 'test' containing the directory 'mkdirp'
+});
+```
+
+#### sh.rsync(srcPath, destPath, [options], callback)<a name="rsync"></a>
+
+Rsync copies files locally on the current host (currently no remote functionality). 
+The srcPath can be either a file or a directory, with the destPath being the
+destination directory. If the destination directory does not exist, it will be created.
+Options object can currently have the following attributes:
+
+recursive: true //default 'false'
+size: 5 //default 750. File chunk size in Kb.
+
+Example:
+
+```javascript
+sh.rsync('/test', '/test2', { recursive: true }, function(err) {
+  if(err) throw err;
 });
 ```

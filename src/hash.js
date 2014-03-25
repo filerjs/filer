@@ -7,7 +7,7 @@ define(function(require) {
   require("crypto-js/rollups/md5"); 
 
   function md5(data) {
-    return CryptoJS.MD5(String.fromCharCode.apply(null, data)).toString();
+    return CryptoJS.MD5(String.fromCharCode(data)).toString();
   }
   function weak32(data, prev, start, end) {
     var a = 0,
