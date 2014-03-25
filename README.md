@@ -1133,6 +1133,7 @@ var sh = fs.Shell();
 * [sh.rm(path, [options], callback)](#rm)
 * [sh.tempDir(callback)](#tempDir)
 * [sh.mkdirp(path, callback)](#mkdirp)
+* [sh.wget(path, [options], callback)](#wget)
 
 #### sh.cd(path, callback)<a name="cd"></a>
 
@@ -1336,5 +1337,29 @@ Example:
 sh.mkdirp('/test/mkdirp', function(err) {
   if(err) throw err;
   // the root '/' now contains a directory 'test' containing the directory 'mkdirp'
+});
+```
+
+#### sh.wget(url, [options], callback)<a name="wget"></a>
+
+Downloads the file at `url` and saves it to the filesystem.
+The file is saved to a file named with the current date/time
+unless the `options.filename` is present, in which case that
+filename is used instead. The callback receives `(error, path)`,
+where `path` is the full path to the downloaded file.
+
+Example:
+
+```javascript
+// Download the file at /files/file.json
+sh.wget('/files/file.json', function(err, path) {
+  if(err) throw err;
+  // /file-134134513 is now saved to the fs
+});
+
+// Download the file at /files/file.json, specifying a filename
+sh.wget('/files/file.json', {filename: 'file.json'}, function(err, path) {
+  if(err) throw err;
+  // /file.json is now saved to the fs
 });
 ```

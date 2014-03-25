@@ -421,6 +421,46 @@ define(function(require) {
     _mkdirp(path, callback);
   };
 
+  /**
+   * Downloads the file at `url` and saves it to the filesystem.
+   * The file is saved to a file named with the current date/time
+   * unless the `options.filename` is present, in which case that
+   * filename is used instead. The callback receives (error, path).
+   */
+  Shell.prototype.wget = function(url, options, callback) {
+    var fs = this.fs;
+    if(typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
+    callback = callback || function(){};
+
+    if(!url) {
+      callback(new Errors.EINVAL('missing url argument'));
+      return;
+    }
+
+    var path = options.filename || ('file-' + Date.now());
+    path = Path.resolve(fs.cwd, path);
+
+    var request = new XMLHttpRequest();
+    request.addEventListener("load", function() {
+      var data = new Uint8Array(request.response);
+      fs.writeFile(path, data, function(err) {
+        if(err) {
+          callback(err);
+        } else {
+          callback(null, path);
+        }
+      });
+    }, false);
+    request.addEventListener("error", function(err) { callback(err); }, false);
+    request.open("GET", url);
+    request.responseType = "arraybuffer";
+    request.send();
+  };
+
   return Shell;
 
 });
