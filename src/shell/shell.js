@@ -471,6 +471,7 @@ define(function(require) {
     if("withCredentials" in request) {
       request.withCredentials = true;
     }
+
     request.responseType = "arraybuffer";
     request.send();
   };

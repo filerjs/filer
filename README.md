@@ -1343,6 +1343,7 @@ sh.mkdirp('/test/mkdirp', function(err) {
 #### sh.wget(url, [options], callback)<a name="wget"></a>
 
 Downloads the file at `url` and saves it to the filesystem.
+
 The file is saved to a file named with the filename portion of the url
 unless the `options.filename` is present, in which case that
 filename is used instead. The callback receives `(error, path)`,
