@@ -501,23 +501,24 @@ define(function(require) {
       if(err) return callback(err);
 
       var unzip = new Zlib.Unzip(data);
-      // Separate filenames within the zip archive with what will go in fs
+
+      // Separate filenames within the zip archive with what will go in fs.
+      // Also mark any directories (i.e., paths with a trailing '/')
       var filenames = unzip.getFilenames().map(function(filename) {
         return {
           zipFilename: filename,
-          fsFilename: Path.join(destination, filename)
+          fsFilename: Path.join(destination, filename),
+          isDirectory: /\/$/.test(filename)
         };
       });
 
       function decompress(path, callback) {
         var data = unzip.decompress(path.zipFilename);
-
-        // Make sure the dir(s) we need exist before writing file
-        var dir = Path.dirname(path.fsFilename);
-        sh.mkdirp(dir, function(err) {
-console.log('inflate', path.zipFilename, path.fsFilename);
+        if(path.isDirectory) {
+          sh.mkdirp(path.fsFilename, callback);
+        } else {
           fs.writeFile(path.fsFilename, data, callback);
-        });
+        }
       }
 
       async.eachSeries(filenames, decompress, callback);

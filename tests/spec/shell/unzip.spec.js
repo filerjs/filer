@@ -90,5 +90,65 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
+    it('should be able to handle a deep tree structure in a zip', function(done) {
+      // test-dir.zip has the following structure:
+      //
+      // test-dir/
+      // ├── test-dir2
+      // │   └── test-file.txt
+      // ├── test-file.txt
+      // └── test-file2.txt
+
+      var fs = util.fs();
+      var shell = fs.Shell();
+      var url = "test-dir.zip";
+      var Path = Filer.Path;
+      var contents = "This is a test file used in some of the tests.\n";
+
+      function confirmFile(filename, callback) {
+        filename = Path.join('/', filename);
+        fs.readFile(filename, 'utf8', function(err, data) {
+          if(err) {
+            console.error('Expected ' + filename + ' to exist.');
+            expect(false).to.be.true;
+            return callback(err);
+          }
+          expect(data).to.equal(contents);
+          callback();
+        });
+      }
+
+      function confirmDir(dirname, callback) {
+        dirname = Path.join('/', dirname);
+        fs.stat(dirname, function(err, stats) {
+          if(err) {
+            console.error('Expected ' + dirname + ' to exist.');
+            expect(false).to.be.true;
+            return callback(err);
+          }
+          expect(stats.isDirectory()).to.be.true;
+          callback();
+        });
+      }
+
+      shell.wget(url, {filename: url}, function(err, path) {
+        if(err) throw err;
+
+        shell.unzip(path, function(err) {
+          if(err) throw err;
+
+          // Forgive the crazy indenting, trying to match tree structure ;)
+          confirmDir('test-dir', function() {
+            confirmDir('test-dir/test-dir2', function() {
+              confirmFile('test-dir/test-dir2/test-file.txt', function() {
+            confirmFile('test-dir/test-file.txt', function() {
+            confirmFile('test-dir/test-file2.txt', function() {
+              done();
+          });});});});});
+
+        });
+      });
+    });
+
   });
 });
