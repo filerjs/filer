@@ -502,7 +502,8 @@ define(function(require) {
           if(entry.directory) {
             this.mkdirp(path, callback);
           } else {
-            entry.getData(new Zip.FileWriter(path, fs, entry.uncompressedSize), function() { callback(); });
+console.log('inflate', path);
+            entry.getData(new Zip.FileWriter(path, fs), function() { callback(); });
           }
         }
 
@@ -537,9 +538,8 @@ define(function(require) {
     zipfile = Path.resolve(this.cwd, zipfile);
 
     var Zip = require('zip.js/zip');
-    Zip.createWriter(new Zip.FileWriter(zipfile, fs), function(writer) {
-
-      function add(path, callback) {
+    function zipPath(path, callback) {
+      Zip.createWriter(new Zip.FileWriter(zipfile, fs), function(writer) {
         var realpath = Path.resolve(this.cwd, path);
         fs.stat(realpath, function(err, stats) {
           if(err) {
@@ -554,17 +554,12 @@ define(function(require) {
           }
 
           writer.add(path, new Zip.FileReader(realpath, fs),
-                     function onend() { callback(); }, null, options);
+                     function() { writer.close(function() { callback(); }); }, null, options);
         });
-      }
+      }, function(err) { callback(err); });
+    }
 
-      async.eachSeries(paths, add, function(error) {
-        if(error) return callback(error);
-        writer.close(function() {
-          callback();
-        });
-      });
-    }, callback);
+    async.eachSeries(paths, zipPath, callback);
   };
 
   return Shell;

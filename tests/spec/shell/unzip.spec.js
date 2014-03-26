@@ -51,24 +51,28 @@ define(["Filer", "util"], function(Filer, util) {
 
     it('should be able to zip and unzip a file', function(done) {
       var fs = util.fs();
-      var file = '/test-file.txt';
+      var file = 'test-file.txt';
       var zipfile = file + '.zip';
       var shell = fs.Shell();
+      var Path = Filer.Path;
       var contents = "This is a test file used in some of the tests.\n";
 
-      fs.writeFile(file, contents, function(err) {
+      shell.tempDir(function(err, tmp) {
         if(err) throw err;
 
-        shell.zip(zipfile, file, function(err) {
+        var filepath = Path.join(tmp, file);
+        var zipfilepath = Path.join('/', zipfile);
+
+        fs.writeFile(filepath, contents, function(err) {
           if(err) throw err;
 
-          shell.rm(file, function(err) {
+          shell.zip(zipfilepath, filepath, function(err) {
             if(err) throw err;
 
-            shell.unzip(zipfile, function(err) {
+            shell.unzip(zipfilepath, function(err) {
               if(err) throw err;
 
-              fs.readFile(file, 'utf8', function(err, data) {
+              fs.readFile(Path.join('/', file), 'utf8', function(err, data) {
                 if(err) throw err;
                 expect(data).to.equal(contents);
                 done();
