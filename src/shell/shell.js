@@ -6,6 +6,9 @@ define(function(require) {
   var Environment = require('src/shell/environment');
   var async = require('async');
 
+  require('zip');
+  require('unzip');
+
   function Shell(fs, options) {
     options = options || {};
 
@@ -478,6 +481,7 @@ define(function(require) {
 
   Shell.prototype.unzip = function(path, options, callback) {
     var fs = this.fs;
+    var sh = this;
     if(typeof options === 'function') {
       callback = options;
       options = {};
@@ -493,26 +497,31 @@ define(function(require) {
     path = Path.resolve(this.cwd, path);
     var destination = Path.resolve(options.destination || this.cwd);
 
-    var Zip = require('zip.js/zip');
-    Zip.createReader(new Zip.FileReader(path, fs), function(reader) {
-      reader.getEntries(function(entries) {
+    fs.readFile(path, function(err, data) {
+      if(err) return callback(err);
 
-        function inflate(entry, callback) {
-          var path = Path.join(destination, entry.filename);
-          if(entry.directory) {
-            this.mkdirp(path, callback);
-          } else {
-console.log('inflate', path);
-            entry.getData(new Zip.FileWriter(path, fs), function() { callback(); });
-          }
-        }
-
-        async.eachSeries(entries, inflate, function(error) {
-          if(error) return callback(error);
-          reader.close(callback);
-        });
+      var unzip = new Zlib.Unzip(data);
+      // Separate filenames within the zip archive with what will go in fs
+      var filenames = unzip.getFilenames().map(function(filename) {
+        return {
+          zipFilename: filename,
+          fsFilename: Path.join(destination, filename)
+        };
       });
-    }, callback);
+
+      function decompress(path, callback) {
+        var data = unzip.decompress(path.zipFilename);
+
+        // Make sure the dir(s) we need exist before writing file
+        var dir = Path.dirname(path.fsFilename);
+        sh.mkdirp(dir, function(err) {
+console.log('inflate', path.zipFilename, path.fsFilename);
+          fs.writeFile(path.fsFilename, data, callback);
+        });
+      }
+
+      async.eachSeries(filenames, decompress, callback);
+    });
   };
 
   Shell.prototype.zip = function(zipfile, paths, options, callback) {
@@ -537,29 +546,28 @@ console.log('inflate', path);
     }
     zipfile = Path.resolve(this.cwd, zipfile);
 
-    var Zip = require('zip.js/zip');
-    function zipPath(path, callback) {
-      Zip.createWriter(new Zip.FileWriter(zipfile, fs), function(writer) {
-        var realpath = Path.resolve(this.cwd, path);
-        fs.stat(realpath, function(err, stats) {
-          if(err) {
-            callback(err);
-            return;
-          }
-
-          // Tack on zip entry options we care about.
-          var options = { lastModDate: new Date(stats.mtime) };
-          if(stats.isDirectory()) {
-            options.directory = true;
-          }
-
-          writer.add(path, new Zip.FileReader(realpath, fs),
-                     function() { writer.close(function() { callback(); }); }, null, options);
-        });
-      }, function(err) { callback(err); });
+    function encode(s) {
+      return new TextEncoder('utf8').encode(s);
     }
 
-    async.eachSeries(paths, zipPath, callback);
+    function add(path, callback) {
+      fs.readFile(path, function(err, data) {
+        if(err) return callback(err);
+
+        // Make path relative within the zip
+        var relpath = path.replace(/^\//, '');
+        zip.addFile(data, { filename: encode(relpath) });
+        callback();
+      });
+    }
+
+    var zip = new Zlib.Zip();
+    async.eachSeries(paths, add, function(err) {
+      if(err) return callback(err);
+
+      var compressed = zip.compress();
+      fs.writeFile(zipfile, compressed, callback);
+    });
   };
 
   return Shell;

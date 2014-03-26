@@ -51,31 +51,38 @@ define(["Filer", "util"], function(Filer, util) {
 
     it('should be able to zip and unzip a file', function(done) {
       var fs = util.fs();
-      var file = 'test-file.txt';
+      var file = '/test-file.txt';
       var zipfile = file + '.zip';
       var shell = fs.Shell();
       var Path = Filer.Path;
       var contents = "This is a test file used in some of the tests.\n";
 
-      shell.tempDir(function(err, tmp) {
+      fs.writeFile(file, contents, function(err) {
         if(err) throw err;
 
-        var filepath = Path.join(tmp, file);
-        var zipfilepath = Path.join('/', zipfile);
-
-        fs.writeFile(filepath, contents, function(err) {
+        shell.zip(zipfile, file, function(err) {
           if(err) throw err;
 
-          shell.zip(zipfilepath, filepath, function(err) {
+          fs.stat(zipfile, function(err, stats) {
             if(err) throw err;
+            expect(stats.isFile()).to.be.true;
 
-            shell.unzip(zipfilepath, function(err) {
+            shell.rm(file, function(err) {
               if(err) throw err;
 
-              fs.readFile(Path.join('/', file), 'utf8', function(err, data) {
+              shell.unzip(zipfile, function(err) {
                 if(err) throw err;
-                expect(data).to.equal(contents);
-                done();
+
+                fs.stat(file, function(err, stats) {
+                  if(err) throw err;
+                  expect(stats.isFile()).to.be.true;
+
+                  fs.readFile(Path.join('/', file), 'utf8', function(err, data) {
+                    if(err) throw err;
+                    expect(data).to.equal(contents);
+                    done();
+                  });
+                });
               });
             });
           });
