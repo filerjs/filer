@@ -339,22 +339,22 @@ define(function(require) {
   /**
    * Moves the file or directory at the `source` path to the 
    * `destination` path by relinking the source to the destination 
-   * path. Currently there are no options, but it might be nice 
-   * to implement an interactive mode at some point.
+   * path.
    */
-  Shell.prototype.mv = function(source, destination, options, callback) {
+  Shell.prototype.mv = function(source, destination, callback) {
     var fs = this.fs;
-    if(typeof options === 'function') {
-      callback = options;
-      options = {};
-    }
-    options = options || {};
+    
     callback = callback || function() {};
 
     if(!source) {
       callback(new Error("Missing source path argument"));
       return;
     }
+    else if(source === '/') {
+      callback(new Error("Root is not a valid source argument"));
+      return;
+    }
+
     if(!destination) {
       callback(new Error("Missing destination path argument"));
       return;
@@ -363,6 +363,18 @@ define(function(require) {
     function move(sourcepath, destpath, callback) {
       sourcepath = Path.resolve(this.cwd, sourcepath);
       destpath = Path.resolve(this.cwd, destpath);
+      destdir = Path.resolve(this.cwd, destpath.dirname);
+
+      fs.stat(destdir, function(error, stats) {
+        if(error && error.code === 'ENOENT') {
+          fs.mkdirp(destdir, function(error) {
+            callback(error);
+            throw error;
+            return;
+          });
+        }
+      });
+
       fs.stat(sourcepath, function(error, stats) {
         if(error) {
           callback(error);
@@ -370,7 +382,7 @@ define(function(require) {
         }
 
         // If the source is a file, stat the destination path
-        if(stats.type === 'FILE') {
+        if(stats.isFile()) {
           fs.stat(destpath, function(error, stats) {
             // If the destination doesn't exist, relink source and we're done
             if(error) {
@@ -379,7 +391,7 @@ define(function(require) {
             }
             
             // If the destination is a file, delete the destination, relink source and we're done
-            if(stats.type === 'FILE') {
+            if(stats.isFile()) {
               fs.unlink(destpath, callback);
               fs.link(sourcepath, destpath, callback);
               return;
