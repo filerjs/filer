@@ -479,7 +479,7 @@ define(function(require) {
     request.send();
   };
 
-  Shell.prototype.unzip = function(path, options, callback) {
+  Shell.prototype.unzip = function(zipfile, options, callback) {
     var fs = this.fs;
     var sh = this;
     if(typeof options === 'function') {
@@ -489,12 +489,12 @@ define(function(require) {
     options = options || {};
     callback = callback || function(){};
 
-    if(!path) {
-      callback(new Errors.EINVAL('missing path argument'));
+    if(!zipfile) {
+      callback(new Errors.EINVAL('missing zipfile argument'));
       return;
     }
 
-    path = Path.resolve(this.cwd, path);
+    var path = Path.resolve(this.cwd, zipfile);
     var destination = Path.resolve(options.destination || this.cwd);
 
     fs.readFile(path, function(err, data) {
