@@ -527,6 +527,7 @@ define(function(require) {
 
   Shell.prototype.zip = function(zipfile, paths, options, callback) {
     var fs = this.fs;
+    var sh = this;
     if(typeof options === 'function') {
       callback = options;
       options = {};
@@ -551,7 +552,7 @@ define(function(require) {
       return new TextEncoder('utf8').encode(s);
     }
 
-    function add(path, callback) {
+    function addFile(path, callback) {
       fs.readFile(path, function(err, data) {
         if(err) return callback(err);
 
@@ -562,12 +563,52 @@ define(function(require) {
       });
     }
 
-    var zip = new Zlib.Zip();
-    async.eachSeries(paths, add, function(err) {
-      if(err) return callback(err);
+    function addDir(path, callback) {
+      fs.readdir(path, function(err, list) {
+        // Add the directory itself (with no data) and a trailing /
+        zip.addFile([], {
+          filename: encode(path + '/'),
+          compressionMethod: Zlib.Zip.CompressionMethod.STORE
+        });
 
-      var compressed = zip.compress();
-      fs.writeFile(zipfile, compressed, callback);
+        if(!options.recursive) {
+          callback();
+        }
+
+        // Add all children of this dir, too
+        async.eachSeries(list, function(entry, callback) {
+          add(Path.join(path, entry), callback);
+        }, callback);
+      });
+    }
+
+    function add(path, callback) {
+      path = Path.resolve(sh.cwd, path);
+      fs.stat(path, function(err, stats) {
+        if(err) return callback(err);
+
+        if(stats.isDirectory()) {
+          addDir(path, callback);
+        } else {
+          addFile(path, callback);
+        }
+      });
+    }
+
+    var zip = new Zlib.Zip();
+
+    // Make sure the zipfile doesn't already exist.
+    fs.stat(zipfile, function(err, stats) {
+      if(stats) {
+        return callback(new Errors.EEXIST('zipfile already exists'));
+      }
+
+      async.eachSeries(paths, add, function(err) {
+        if(err) return callback(err);
+
+        var compressed = zip.compress();
+        fs.writeFile(zipfile, compressed, callback);
+      });
     });
   };
 
