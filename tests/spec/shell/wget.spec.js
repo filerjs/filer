@@ -20,6 +20,17 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
+    it('should fail when the url does not exist (404)', function(done) {
+      var fs = util.fs();
+      var shell = fs.Shell();
+
+      shell.wget("no-such-url", function(err, data) {
+        expect(err).to.exist;
+        expect(data).not.to.exist;
+        done();
+      });
+    });
+
     it('should download the contents of a file from a url to default filename', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();

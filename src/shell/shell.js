@@ -444,8 +444,16 @@ define(function(require) {
     var path = options.filename || ('file-' + Date.now());
     path = Path.resolve(fs.cwd, path);
 
+    function onerror() {
+     callback(new Error('unable to get resource'));
+    }
+
     var request = new XMLHttpRequest();
-    request.addEventListener("load", function() {
+    request.onload = function() {
+      if(request.status !== 200) {
+        return onerror();
+      }
+
       var data = new Uint8Array(request.response);
       fs.writeFile(path, data, function(err) {
         if(err) {
@@ -454,9 +462,12 @@ define(function(require) {
           callback(null, path);
         }
       });
-    }, false);
-    request.addEventListener("error", function(err) { callback(err); }, false);
-    request.open("GET", url);
+    };
+    request.onerror = onerror;
+    request.open("GET", url, true);
+    if("withCredentials" in request) {
+      request.withCredentials = true;
+    }
     request.responseType = "arraybuffer";
     request.send();
   };
