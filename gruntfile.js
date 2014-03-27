@@ -39,11 +39,21 @@ module.exports = function(grunt) {
       ]
     },
 
+    connect: {
+      server: {
+        options: {
+          port: 9001,
+          hostname: '127.0.0.1',
+          base: '.'
+        }
+      }
+    },
+
     mocha: {
       test: {
-        src: 'tests/index.html',
         options: {
-          log: true
+          log: true,
+          urls: [ 'http://127.0.0.1:9001/tests/index.html' ]
         }
       }
     },
@@ -81,11 +91,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-mocha');
+  grunt.loadNpmTasks('grunt-contrib-connect');
 
   grunt.registerTask('develop', ['clean', 'requirejs']);
   grunt.registerTask('release', ['develop', 'uglify']);
   grunt.registerTask('check', ['jshint']);
-  grunt.registerTask('test', ['check', 'mocha']);
+  grunt.registerTask('test', ['check', 'connect', 'mocha']);
 
   grunt.registerTask('default', ['develop']);
 };
