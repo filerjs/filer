@@ -40,8 +40,7 @@ define(["Filer", "util"], function(Filer, util) {
       shell.wget(url, function(err, path) {
         if(err) throw err;
 
-        // The filename should be something like /file-13424512341
-        expect(path).to.match(/^\/file\-\d+$/);
+        expect(path).to.equal('/test-file.txt');
 
         fs.readFile(path, 'utf8', function(err, data) {
           if(err) throw err;

@@ -441,7 +441,15 @@ define(function(require) {
       return;
     }
 
-    var path = options.filename || ('file-' + Date.now());
+    var path = options.filename || (function() {
+      // Strip any query string or hash portions of the url first, then
+      // Grab whatever is after the last / (assuming there is one) and
+      // remove any non-filename type chars.
+      var filename = url.replace(/\?.*$/, '');
+      filename = filename.replace(/\#.*$/, '');
+      filename = filename.split('/').pop();
+      return filename.replace(/[^a-zA-Z0-9-_\.\~]/, '');
+    }());
     path = Path.resolve(fs.cwd, path);
 
     function onerror() {
