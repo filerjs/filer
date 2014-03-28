@@ -366,6 +366,7 @@ define(function(require) {
       destpath = Path.resolve(this.cwd, destpath);
       destdir = Path.resolve(this.cwd, Path.dirname(destpath));
 
+      // Recursively create any directories on the destination path which do not exist
       shell.mkdirp(destdir, function(error) {
         if(error) {
           callback(error);
@@ -373,6 +374,7 @@ define(function(require) {
         }
       });
 
+      // If there is no node at the source path, error and quit
       fs.stat(sourcepath, function(error, sourcestats) {
         if(error) {
           callback(error);
@@ -386,11 +388,12 @@ define(function(require) {
             return;
           }
             
-          // If the destination is a directory, new destination is destpath/source.basename
           if(deststats) {
+            // If the destination is a directory, new destination is destpath/source.basename
             if(deststats.isDirectory()) {
               destpath = Path.join(destpath, Path.basename(sourcepath));
             }
+            // Unlink existing destinations
             fs.unlink(destpath, function(error) {
               if (error && error.code !== 'ENOENT') {
                 callback(error);
@@ -399,6 +402,7 @@ define(function(require) {
             });
           }
 
+          // If the source is a file, link it to destination and remove the source, then done
           if(sourcestats.isFile()) {
             fs.link(sourcepath, destpath, function(error) {
               if (error) {
@@ -414,6 +418,8 @@ define(function(require) {
               });    
             });
           }
+          // If the source is a directory, create a directory at destination and then recursively
+          // move every dir entry.
           else if(sourcestats.isDirectory()) {
             fs.mkdir(destpath, function(error) {
               if (error) {
