@@ -343,6 +343,7 @@ define(function(require) {
    */
   Shell.prototype.mv = function(source, destination, callback) {
     var fs = this.fs;
+    var shell = this;
     
     callback = callback || function() {};
 
@@ -363,119 +364,96 @@ define(function(require) {
     function move(sourcepath, destpath, callback) {
       sourcepath = Path.resolve(this.cwd, sourcepath);
       destpath = Path.resolve(this.cwd, destpath);
-      destdir = Path.resolve(this.cwd, destpath.dirname);
+      destdir = Path.resolve(this.cwd, Path.dirname(destpath));
 
-      fs.stat(destdir, function(error, stats) {
-        if(error && error.code === 'ENOENT') {
-          fs.mkdirp(destdir, function(error) {
-            callback(error);
-            throw error;
-            return;
-          });
+      shell.mkdirp(destdir, function(error) {
+        if(error) {
+          callback(error);
+          return;
         }
       });
 
-      fs.stat(sourcepath, function(error, stats) {
+      fs.stat(sourcepath, function(error, sourcestats) {
         if(error) {
           callback(error);
           return;
         }
 
-        // If the source is a file, stat the destination path
-        if(stats.isFile()) {
-          fs.stat(destpath, function(error, stats) {
-            // If the destination doesn't exist, relink source and we're done
-            if(error) {
-              fs.link(sourcepath, destpath, callback);
-              return;
-            }
+        fs.stat(destpath, function(error, deststats) {
+          // If there is an error unrelated to the existence of the destination, exit
+          if(error && error.code !== 'ENOENT') {
+            callback(error);
+            return;
+          }
             
-            // If the destination is a file, delete the destination, relink source and we're done
-            if(stats.isFile()) {
-              fs.unlink(destpath, callback);
-              fs.link(sourcepath, destpath, callback);
-              return;
+          // If the destination is a directory, new destination is destpath/source.basename
+          if(deststats) {
+            if(deststats.isDirectory()) {
+              destpath = Path.join(destpath, Path.basename(sourcepath));
             }
-
-            // If the destination is a dir, check to see if a file with the source name already exists
-            fs.readdir(destname, function(error, entries) {
-              if(error) {
+            fs.unlink(destpath, function(error) {
+              if (error && error.code !== 'ENOENT') {
                 callback(error);
                 return;
               }
+            });
+          }
 
-              // If dir is empty, relink source and we're done
-              if(entries.length === 0) {
-                destpath = Path.join(destpath, sourcepath.basename);
-                fs.link(sourcepath, destpath, callback);
+          if(sourcestats.isFile()) {
+            fs.link(sourcepath, destpath, function(error) {
+              if (error) {
+                callback(error);
                 return;
               }
-
-              // Iterate through dir entries; if a node with the same name exists, unlink it, 
-              // relink source and we're done
-              for(var i = 0; i < entries.length; i++) {
-                if(entries[i].basename === sourcepath.basename) {
-                  destpath = Path.join(destpath, sourcepath.basename);
-                  fs.unlink(destpath, callback);
-                  fs.link(sourcepath, destpath, callback);
+              shell.rm(sourcepath, {recursive:true}, function(error) {
+                if (error) {
+                  callback(error);
                   return;
                 }
-              }
-
-              // If a matching node can't be found, relink source and we're done
-              destpath = Path.join(destpath, sourcepath.basename);
-              fs.link(sourcepath, destpath, callback);
-              return;
+                callback();
+              });    
             });
-          });
-        }
-
-        // If the source is a directory, stat the destination path
-        fs.stat(destpath, function(error, stats) {
-          // If the destination doesn't exist, relink the source and we're done
-          if(error) {
-            fs.link(sourcepath, destpath, callback);
-            return;
           }
-
-          // If the destination is a file, delete the destination, relink source and we're done
-          if(stats.type === 'FILE') {
-            fs.unlink(destpath, callback);
-            fs.link(sourcepath, destpath, callback);
-            return;
-          }
-
-          // If the destination is a dir, compare basenames for equality
-          if(sourcepath.basename === destpath.basename) {
-            // If they're the same, attempt to relink each source entry to the destination
-            fs.readdir(sourcepath, function(error, entries) {
-              if(error) {
+          else if(sourcestats.isDirectory()) {
+            fs.mkdir(destpath, function(error) {
+              if (error) {
                 callback(error);
                 return;
               }
 
-              // If there are no entries in source, unlink the source and we're done
-              if(entries.length === 0) {
-                fs.unlink(sourcepath, callback);
-                return;
-              }
+              fs.readdir(sourcepath, function(error, entries) {
+                if(error) {
+                  callback(error);
+                  return;
+                }
 
-              // Iterate through the entries, unlinking destinations and relinking sources
-              for(var i = 0; i < entries.length; i++) {
-                var temppath = Path.join(destpath, sourcepath.basename);
-                fs.unlink(temppath, callback);
-                fs.link(sourcepath, temppath, callback);
-              }
-
-              // We're done after relinking all
-              return;
+                async.each(entries, 
+                  function(entry, callback) {
+                    move(Path.join(sourcepath, entry), Path.join(destpath, entry), function(error) {
+                      if(error) {
+                        callback(error);
+                        return;
+                      }
+                      callback();
+                    });
+                  },
+                  function(error) {
+                    if(error) {
+                      callback(error);
+                      return;
+                    }
+                    shell.rm(sourcepath, {recursive:true}, function(error) {
+                      if (error) {
+                        callback(error);
+                        return;
+                      }
+                      callback();
+                    });
+                  }
+                );
+              });
             });
-          }
-
-          // If they're different, link the source as a subdir of the destination
-          destpath = Path.join(destpath, sourcepath.basename);
-          fs.link(sourcepath, destpath, callback);
-          return;
+          }   
         });
       });
     }
