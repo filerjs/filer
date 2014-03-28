@@ -337,6 +337,137 @@ define(function(require) {
   };
 
   /**
+   * Moves the file or directory at the `source` path to the 
+   * `destination` path by relinking the source to the destination 
+   * path.
+   */
+  Shell.prototype.mv = function(source, destination, callback) {
+    var fs = this.fs;
+    var shell = this;
+    
+    callback = callback || function() {};
+
+    if(!source) {
+      callback(new Error("Missing source path argument"));
+      return;
+    }
+    else if(source === '/') {
+      callback(new Error("Root is not a valid source argument"));
+      return;
+    }
+
+    if(!destination) {
+      callback(new Error("Missing destination path argument"));
+      return;
+    }
+
+    function move(sourcepath, destpath, callback) {
+      sourcepath = Path.resolve(this.cwd, sourcepath);
+      destpath = Path.resolve(this.cwd, destpath);
+      destdir = Path.resolve(this.cwd, Path.dirname(destpath));
+
+      // Recursively create any directories on the destination path which do not exist
+      shell.mkdirp(destdir, function(error) {
+        if(error) {
+          callback(error);
+          return;
+        }
+      });
+
+      // If there is no node at the source path, error and quit
+      fs.stat(sourcepath, function(error, sourcestats) {
+        if(error) {
+          callback(error);
+          return;
+        }
+
+        fs.stat(destpath, function(error, deststats) {
+          // If there is an error unrelated to the existence of the destination, exit
+          if(error && error.code !== 'ENOENT') {
+            callback(error);
+            return;
+          }
+            
+          if(deststats) {
+            // If the destination is a directory, new destination is destpath/source.basename
+            if(deststats.isDirectory()) {
+              destpath = Path.join(destpath, Path.basename(sourcepath));
+            }
+            // Unlink existing destinations
+            fs.unlink(destpath, function(error) {
+              if (error && error.code !== 'ENOENT') {
+                callback(error);
+                return;
+              }
+            });
+          }
+
+          // If the source is a file, link it to destination and remove the source, then done
+          if(sourcestats.isFile()) {
+            fs.link(sourcepath, destpath, function(error) {
+              if (error) {
+                callback(error);
+                return;
+              }
+              shell.rm(sourcepath, {recursive:true}, function(error) {
+                if (error) {
+                  callback(error);
+                  return;
+                }
+                callback();
+              });    
+            });
+          }
+          // If the source is a directory, create a directory at destination and then recursively
+          // move every dir entry.
+          else if(sourcestats.isDirectory()) {
+            fs.mkdir(destpath, function(error) {
+              if (error) {
+                callback(error);
+                return;
+              }
+
+              fs.readdir(sourcepath, function(error, entries) {
+                if(error) {
+                  callback(error);
+                  return;
+                }
+
+                async.each(entries, 
+                  function(entry, callback) {
+                    move(Path.join(sourcepath, entry), Path.join(destpath, entry), function(error) {
+                      if(error) {
+                        callback(error);
+                        return;
+                      }
+                      callback();
+                    });
+                  },
+                  function(error) {
+                    if(error) {
+                      callback(error);
+                      return;
+                    }
+                    shell.rm(sourcepath, {recursive:true}, function(error) {
+                      if (error) {
+                        callback(error);
+                        return;
+                      }
+                      callback();
+                    });
+                  }
+                );
+              });
+            });
+          }   
+        });
+      });
+    }
+
+    move(source, destination, callback);
+  };
+
+  /**
    * Gets the path to the temporary directory, creating it if not
    * present. The directory used is the one specified in
    * env.TMP. The callback receives (error, tempDirName).

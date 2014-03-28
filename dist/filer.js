@@ -25,7 +25,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
   }
 
 }( this, function() {
-
 /**
  * almond 0.2.5 Copyright (c) 2011-2012, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
@@ -3156,587 +3155,6 @@ define('src/shared',['require','crypto-js/rollups/sha256'],function(require) {
 
 });
 
-/*
-Copyright (c) 2012, Alan Kligman
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-    Neither the name of the Mozilla Foundation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-Errors based off Node.js custom errors (https://github.com/rvagg/node-errno) made available under the MIT license 
-*/
-
-define('src/error',['require'],function(require) {
-  // 
-  
-  function Unknown(message){
-    this.message = message || 'unknown error';
-  }
-  Unknown.prototype = new Error();
-  Unknown.prototype.errno = -1;
-  Unknown.prototype.code = "UNKNOWN";
-  Unknown.prototype.constructor = Unknown;
-
-  function OK(message){
-    this.message = message || 'success';
-  }
-  OK.prototype = new Error();
-  OK.prototype.errno = 0;
-  OK.prototype.code = "OK";
-  OK.prototype.constructor = OK;
-
-  function EOF(message){
-    this.message = message || 'end of file';
-  }
-  EOF.prototype = new Error();
-  EOF.prototype.errno = 1;
-  EOF.prototype.code = "EOF";
-  EOF.prototype.constructor = EOF;
-    
-  function EAddrInfo(message){
-    this.message = message || 'getaddrinfo error';
-  }
-  EAddrInfo.prototype = new Error();
-  EAddrInfo.prototype.errno = 2;
-  EAddrInfo.prototype.code = "EADDRINFO";
-  EAddrInfo.prototype.constructor = EAddrInfo;
-    
-  function EAcces(message){
-    this.message = message || 'permission denied';
-  }
-  EAcces.prototype = new Error();
-  EAcces.prototype.errno = 3;
-  EAcces.prototype.code = "EACCES";
-  EAcces.prototype.constructor = EAcces;
-    
-  function EAgain(message){
-    this.message = message || 'resource temporarily unavailable';
-  }
-  EAgain.prototype = new Error();
-  EAgain.prototype.errno = 4;
-  EAgain.prototype.code = "EAGAIN";
-  EAgain.prototype.constructor = EAgain;
-    
-  function EAddrInUse(message){
-    this.message = message || 'address already in use';
-  }
-  EAddrInUse.prototype = new Error();
-  EAddrInUse.prototype.errno = 5;
-  EAddrInUse.prototype.code = "EADDRINUSE";
-  EAddrInUse.prototype.constructor = EAddrInUse;
-    
-  function EAddrNotAvail(message){
-    this.message = message || 'address not available';
-  }
-  EAddrNotAvail.prototype = new Error();
-  EAddrNotAvail.prototype.errno = 6;
-  EAddrNotAvail.prototype.code = "EADDRNOTAVAIL";
-  EAddrNotAvail.prototype.constructor = EAddrNotAvail;
-    
-  function EAFNoSupport(message){
-    this.message = message || 'address family not supported';
-  }
-  EAFNoSupport.prototype = new Error();
-  EAFNoSupport.prototype.errno = 7;
-  EAFNoSupport.prototype.code = "EAFNOSUPPORT";
-  EAFNoSupport.prototype.constructor = EAFNoSupport;
-
-  function EAlready(message){
-    this.message = message || 'connection already in progress';
-  }
-  EAlready.prototype = new Error();
-  EAlready.prototype.errno = 8;
-  EAlready.prototype.code = "EALREADY";
-  EAlready.prototype.constructor = EAlready;
-
-  function EBadFileDescriptor(message){
-    this.message = message || 'bad file descriptor';
-  }
-  EBadFileDescriptor.prototype = new Error();
-  EBadFileDescriptor.prototype.errno = 9;
-  EBadFileDescriptor.prototype.code = "EBADF";
-  EBadFileDescriptor.prototype.constructor = EBadFileDescriptor;
-
-  function EBusy(message){
-    this.message = message || 'resource busy or locked';
-  }
-  EBusy.prototype = new Error();
-  EBusy.prototype.errno = 10;
-  EBusy.prototype.code = "EBUSY";
-  EBusy.prototype.constructor = EBusy;
-
-  function EConnAborted(message){
-    this.message = message || 'software caused connection abort';
-  }
-  EConnAborted.prototype = new Error();
-  EConnAborted.prototype.errno = 11;
-  EConnAborted.prototype.code = "ECONNABORTED";
-  EConnAborted.prototype.constructor = EConnAborted;
-
-  function EConnRefused(message){
-    this.message = message || 'connection refused';
-  }
-  EConnRefused.prototype = new Error();
-  EConnRefused.prototype.errno = 12;
-  EConnRefused.prototype.code = "ECONNREFUSED";
-  EConnRefused.prototype.constructor = EConnRefused;
-
-  function EConnReset(message){
-    this.message = message || 'connection reset by peer';
-  }
-  EConnReset.prototype = new Error();
-  EConnReset.prototype.errno = 13;
-  EConnReset.prototype.code = "ECONNRESET";
-  EConnReset.prototype.constructor = EConnReset;
-
-  function EDestAddrReq(message){
-    this.message = message || 'destination address required';
-  }
-  EDestAddrReq.prototype = new Error();
-  EDestAddrReq.prototype.errno = 14;
-  EDestAddrReq.prototype.code = "EDESTADDRREQ";
-  EDestAddrReq.prototype.constructor = EDestAddrReq;
-
-  function EFault(message){
-    this.message = message || 'bad address in system call argument';
-  }
-  EFault.prototype = new Error();
-  EFault.prototype.errno = 15;
-  EFault.prototype.code = "EFAULT";
-  EFault.prototype.constructor = EFault;
-
-  function EHostUnreach(message){
-    this.message = message || 'host is unreachable';
-  }
-  EHostUnreach.prototype = new Error();
-  EHostUnreach.prototype.errno = 16;
-  EHostUnreach.prototype.code = "EHOSTUNREACH";
-  EHostUnreach.prototype.constructor = EHostUnreach;
-
-  function EIntr(message){
-    this.message = message || 'interrupted system call';
-  }
-  EIntr.prototype = new Error();
-  EIntr.prototype.errno = 17;
-  EIntr.prototype.code = "EINTR";
-  EIntr.prototype.constructor = EIntr;
-  
-  function EInvalid(message){
-    this.message = message || 'invalid argument';
-  }
-  EInvalid.prototype = new Error();
-  EInvalid.prototype.errno = 18;
-  EInvalid.prototype.code = "EINVAL";
-  EInvalid.prototype.constructor = EInvalid;
-
-  function EIsConn(message){
-    this.message = message || 'socket is already connected';
-  }
-  EIsConn.prototype = new Error();
-  EIsConn.prototype.errno = 19;
-  EIsConn.prototype.code = "EISCONN";
-  EIsConn.prototype.constructor = EIsConn;
-
-  function EMFile(message){
-    this.message = message || 'too many open files';
-  }
-  EMFile.prototype = new Error();
-  EMFile.prototype.errno = 20;
-  EMFile.prototype.code = "EMFILE";
-  EMFile.prototype.constructor = EMFile;
-
-  function EMsgSize(message){
-    this.message = message || 'message too long';
-  }
-  EMsgSize.prototype = new Error();
-  EMsgSize.prototype.errno = 21;
-  EMsgSize.prototype.code = "EMSGSIZE";
-  EMsgSize.prototype.constructor = EMsgSize;
-
-  function ENetDown(message){
-    this.message = message || 'network is down';
-  }
-  ENetDown.prototype = new Error();
-  ENetDown.prototype.errno = 22;
-  ENetDown.prototype.code = "ENETDOWN";
-  ENetDown.prototype.constructor = ENetDown;
-
-  function ENetUnreach(message){
-    this.message = message || 'network is unreachable';
-  }
-  ENetUnreach.prototype = new Error();
-  ENetUnreach.prototype.errno = 23;
-  ENetUnreach.prototype.code = "ENETUNREACH";
-  ENetUnreach.prototype.constructor = ENetUnreach;
-
-  function ENFile(message){
-    this.message = message || 'file table overflow';
-  }
-  ENFile.prototype = new Error();
-  ENFile.prototype.errno = 24;
-  ENFile.prototype.code = "ENFILE";
-  ENFile.prototype.constructor = ENFile;
-
-  function ENoBufS(message){
-    this.message = message || 'no buffer space available';
-  }
-  ENoBufS.prototype = new Error();
-  ENoBufS.prototype.errno = 25;
-  ENoBufS.prototype.code = "ENOBUFS";
-  ENoBufS.prototype.constructor = ENoBufS;
-
-  function ENoMem(message){
-    this.message = message || 'not enough memory';
-  }
-  ENoMem.prototype = new Error();
-  ENoMem.prototype.errno = 26;
-  ENoMem.prototype.code = "ENOMEM";
-  ENoMem.prototype.constructor = ENoMem;
-
-  function ENotDirectory(message){
-    this.message = message || 'not a directory';
-  }
-  ENotDirectory.prototype = new Error();
-  ENotDirectory.prototype.errno = 27;
-  ENotDirectory.prototype.code = "ENOTDIR";
-  ENotDirectory.prototype.constructor = ENotDirectory;
-
-  function EIsDirectory(message){
-    this.message = message || 'illegal operation on a directory';
-  }
-  EIsDirectory.prototype = new Error();
-  EIsDirectory.prototype.errno = 28;
-  EIsDirectory.prototype.code = "EISDIR";
-  EIsDirectory.prototype.constructor = EIsDirectory;
-
-  function ENoNet(message){
-    this.message = message || 'machine is not on the network';
-  }
-  ENoNet.prototype = new Error();
-  ENoNet.prototype.errno = 29;
-  ENoNet.prototype.code = "ENONET";
-  ENoNet.prototype.constructor = ENoNet;
-
-  function ENotConn(message){
-    this.message = message || 'socket is not connected';
-  }
-  ENotConn.prototype = new Error();
-  ENotConn.prototype.errno = 31;
-  ENotConn.prototype.code = "ENOTCONN";
-  ENotConn.prototype.constructor = ENotConn;
-
-  function ENotSock(message){
-    this.message = message || 'socket operation on non-socket';
-  }
-  ENotSock.prototype = new Error();
-  ENotSock.prototype.errno = 32;
-  ENotSock.prototype.code = "ENOTSOCK";
-  ENotSock.prototype.constructor = ENotSock;
-
-  function ENotSup(message){
-    this.message = message || 'operation not supported on socket';
-  }
-  ENotSup.prototype = new Error();
-  ENotSup.prototype.errno = 33;
-  ENotSup.prototype.code = "ENOTSUP";
-  ENotSup.prototype.constructor = ENotSup;
-
-  function ENoEntry(message){
-    this.message = message || 'no such file or directory';
-  }
-  ENoEntry.prototype = new Error();
-  ENoEntry.prototype.errno = 34;
-  ENoEntry.prototype.code = "ENOENT";
-  ENoEntry.prototype.constructor = ENoEntry;
-
-  function ENotImplemented(message){
-    this.message = message || 'function not implemented';
-  }
-  ENotImplemented.prototype = new Error();
-  ENotImplemented.prototype.errno = 35;
-  ENotImplemented.prototype.code = "ENOSYS";
-  ENotImplemented.prototype.constructor = ENotImplemented;
-
-  function EPipe(message){
-    this.message = message || 'broken pipe';
-  }
-  EPipe.prototype = new Error();
-  EPipe.prototype.errno = 36;
-  EPipe.prototype.code = "EPIPE";
-  EPipe.prototype.constructor = EPipe;
-
-  function EProto(message){
-    this.message = message || 'protocol error';
-  }
-  EProto.prototype = new Error();
-  EProto.prototype.errno = 37;
-  EProto.prototype.code = "EPROTO";
-  EProto.prototype.constructor = EProto;
-
-  function EProtoNoSupport(message){
-    this.message = message || 'protocol not supported';
-  }
-  EProtoNoSupport.prototype = new Error();
-  EProtoNoSupport.prototype.errno = 38;
-  EProtoNoSupport.prototype.code = "EPROTONOSUPPORT";
-  EProtoNoSupport.prototype.constructor = EProtoNoSupport;
-
-  function EPrototype(message){
-    this.message = message || 'protocol wrong type for socket';
-  }
-  EPrototype.prototype = new Error();
-  EPrototype.prototype.errno = 39;
-  EPrototype.prototype.code = "EPROTOTYPE";
-  EPrototype.prototype.constructor = EPrototype;
-
-  function ETimedOut(message){
-    this.message = message || 'connection timed out';
-  }
-  ETimedOut.prototype = new Error();
-  ETimedOut.prototype.errno = 40;
-  ETimedOut.prototype.code = "ETIMEDOUT";
-  ETimedOut.prototype.constructor = ETimedOut;
-
-  function ECharset(message){
-    this.message = message || 'invalid Unicode character';
-  }
-  ECharset.prototype = new Error();
-  ECharset.prototype.errno = 41;
-  ECharset.prototype.code = "ECHARSET";
-  ECharset.prototype.constructor = ECharset;
-
-  function EAIFamNoSupport(message){
-    this.message = message || 'address family for hostname not supported';
-  }
-  EAIFamNoSupport.prototype = new Error();
-  EAIFamNoSupport.prototype.errno = 42;
-  EAIFamNoSupport.prototype.code = "EAIFAMNOSUPPORT";
-  EAIFamNoSupport.prototype.constructor = EAIFamNoSupport;
-
-  function EAIService(message){
-    this.message = message || 'servname not supported for ai_socktype';
-  }
-  EAIService.prototype = new Error();
-  EAIService.prototype.errno = 44;
-  EAIService.prototype.code = "EAISERVICE";
-  EAIService.prototype.constructor = EAIService;
-
-  function EAISockType(message){
-    this.message = message || 'ai_socktype not supported';
-  }
-  EAISockType.prototype = new Error();
-  EAISockType.prototype.errno = 45;
-  EAISockType.prototype.code = "EAISOCKTYPE";
-  EAISockType.prototype.constructor = EAISockType;
-
-  function EShutdown(message){
-    this.message = message || 'cannot send after transport endpoint shutdown';
-  }
-  EShutdown.prototype = new Error();
-  EShutdown.prototype.errno = 46;
-  EShutdown.prototype.code = "ESHUTDOWN";
-  EShutdown.prototype.constructor = EShutdown;
-
-  function EExists(message){
-    this.message = message || 'file already exists';
-  }
-  EExists.prototype = new Error();
-  EExists.prototype.errno = 47;
-  EExists.prototype.code = "EEXIST";
-  EExists.prototype.constructor = EExists;
-  
-  function ESrch(message){
-    this.message = message || 'no such process';
-  }
-  ESrch.prototype = new Error();
-  ESrch.prototype.errno = 48;
-  ESrch.prototype.code = "ESRCH";
-  ESrch.prototype.constructor = ESrch;
-
-  function ENameTooLong(message){
-    this.message = message || 'name too long';
-  }
-  ENameTooLong.prototype = new Error();
-  ENameTooLong.prototype.errno = 49;
-  ENameTooLong.prototype.code = "ENAMETOOLONG";
-  ENameTooLong.prototype.constructor = ENameTooLong;
-
-  function EPerm(message){
-    this.message = message || 'operation not permitted';
-  }
-  EPerm.prototype = new Error();
-  EPerm.prototype.errno = 50;
-  EPerm.prototype.code = "EPERM";
-  EPerm.prototype.constructor = EPerm;
-
-  function ELoop(message){
-    this.message = message || 'too many symbolic links encountered';
-  }
-  ELoop.prototype = new Error();
-  ELoop.prototype.errno = 51;
-  ELoop.prototype.code = "ELOOP";
-  ELoop.prototype.constructor = ELoop;
-
-  function EXDev(message){
-    this.message = message || 'cross-device link not permitted';
-  }
-  EXDev.prototype = new Error();
-  EXDev.prototype.errno = 52;
-  EXDev.prototype.code = "EXDEV";
-  EXDev.prototype.constructor = EXDev;
-
-  function ENotEmpty(message){
-    this.message = message || 'directory not empty';
-  }
-  ENotEmpty.prototype = new Error();
-  ENotEmpty.prototype.errno = 53;
-  ENotEmpty.prototype.code = "ENOTEMPTY";
-  ENotEmpty.prototype.constructor = ENotEmpty;
-
-  function ENoSpc(message){
-    this.message = message || 'no space left on device';
-  }
-  ENoSpc.prototype = new Error();
-  ENoSpc.prototype.errno = 54;
-  ENoSpc.prototype.code = "ENOSPC";
-  ENoSpc.prototype.constructor = ENoSpc;
-
-  function EIO(message){
-    this.message = message || 'i/o error';
-  }
-  EIO.prototype = new Error();
-  EIO.prototype.errno = 55;
-  EIO.prototype.code = "EIO";
-  EIO.prototype.constructor = EIO;
-
-  function EROFS(message){
-    this.message = message || 'read-only file system';
-  }
-  EROFS.prototype = new Error();
-  EROFS.prototype.errno = 56;
-  EROFS.prototype.code = "EROFS";
-  EROFS.prototype.constructor = EROFS;
-
-  function ENoDev(message){
-    this.message = message || 'no such device';
-  }
-  ENoDev.prototype = new Error();
-  ENoDev.prototype.errno = 57;
-  ENoDev.prototype.code = "ENODEV";
-  ENoDev.prototype.constructor = ENoDev;
-
-  function ESPipe(message){
-    this.message = message || 'invalid seek';
-  }
-  ESPipe.prototype = new Error();
-  ESPipe.prototype.errno = 58;
-  ESPipe.prototype.code = "ESPIPE";
-  ESPipe.prototype.constructor = ESPipe;
-
-  function ECanceled(message){
-    this.message = message || 'operation canceled';
-  }
-  ECanceled.prototype = new Error();
-  ECanceled.prototype.errno = 59;
-  ECanceled.prototype.code = "ECANCELED";
-  ECanceled.prototype.constructor = ECanceled;
-
-  function ENotMounted(message){
-    this.message = message || 'not mounted';
-  }
-  ENotMounted.prototype = new Error();
-  ENotMounted.prototype.errno = 60;
-  ENotMounted.prototype.code = "ENotMounted";
-  ENotMounted.prototype.constructor = ENotMounted;
-
-  function EFileSystemError(message){
-    this.message = message || 'missing super node';
-  }
-  EFileSystemError.prototype = new Error();
-  EFileSystemError.prototype.errno = 61;
-  EFileSystemError.prototype.code = "EFileSystemError";
-  EFileSystemError.prototype.constructor = EFileSystemError;
-
-  function ENoAttr(message) {
-    this.message = message || 'attribute does not exist';
-  }
-  ENoAttr.prototype = new Error();
-  ENoAttr.prototype.errno = 62;
-  ENoAttr.prototype.code = 'ENoAttr';
-  ENoAttr.prototype.constructor = ENoAttr;
-
-  return {
-    Unknown: Unknown,
-    OK: OK,
-    EOF: EOF,
-    EAddrInfo: EAddrInfo,
-    EAcces: EAcces,
-    EAgain: EAgain,
-    EAddrInUse: EAddrInUse,
-    EAddrNotAvail: EAddrNotAvail,
-    EAFNoSupport: EAFNoSupport,
-    EAlready: EAlready,
-    EBadFileDescriptor: EBadFileDescriptor,
-    EBusy: EBusy,
-    EConnAborted: EConnAborted,
-    EConnRefused: EConnRefused,
-    EConnReset: EConnReset,
-    EDestAddrReq: EDestAddrReq,
-    EFault: EFault,
-    EHostUnreach: EHostUnreach,
-    EIntr: EIntr,
-    EInvalid: EInvalid,
-    EIsConn: EIsConn,
-    EMFile: EMFile,
-    EMsgSize: EMsgSize,
-    ENetDown: ENetDown,
-    ENetUnreach: ENetUnreach,
-    ENFile: ENFile,
-    ENoBufS: ENoBufS,
-    ENoMem: ENoMem,
-    ENotDirectory: ENotDirectory,
-    EIsDirectory: EIsDirectory,
-    ENoNet: ENoNet,
-    ENotConn: ENotConn,
-    ENotSock: ENotSock,
-    ENotSup: ENotSup,
-    ENoEntry: ENoEntry,
-    ENotImplemented: ENotImplemented,
-    EPipe: EPipe,
-    EProto: EProto,
-    EProtoNoSupport: EProtoNoSupport,
-    EPrototype: EPrototype,
-    ETimedOut: ETimedOut,
-    ECharset: ECharset,
-    EAIFamNoSupport: EAIFamNoSupport,
-    EAIService: EAIService,
-    EAISockType: EAISockType,
-    EShutdown: EShutdown,
-    EExists: EExists,
-    ESrch: ESrch,
-    ENameTooLong: ENameTooLong,
-    EPerm: EPerm,
-    ELoop: ELoop,
-    EXDev: EXDev,
-    ENotEmpty: ENotEmpty,
-    ENoSpc: ENoSpc,
-    EIO: EIO,
-    EROFS: EROFS,
-    ENoDev: ENoDev,
-    ESPipe: ESPipe,
-    ECanceled: ECanceled,
-    ENotMounted: ENotMounted,
-    EFileSystemError: EFileSystemError,
-    ENoAttr: ENoAttr
-  };
-
-});
-
 define('src/constants',['require'],function(require) {
 
   var O_READ = 'READ';
@@ -5454,6 +4872,101 @@ define('src/adapters/adapters',['require','src/adapters/zlib','src/adapters/cryp
 
 });
 
+define('src/errors',['require'],function(require) {
+  var errors = {};
+  [
+    /**
+     * node.js errors
+     */
+    '-1:UNKNOWN:unknown error',
+    '0:OK:success',
+    '1:EOF:end of file',
+    '2:EADDRINFO:getaddrinfo error',
+    '3:EACCES:permission denied',
+    '4:EAGAIN:resource temporarily unavailable',
+    '5:EADDRINUSE:address already in use',
+    '6:EADDRNOTAVAIL:address not available',
+    '7:EAFNOSUPPORT:address family not supported',
+    '8:EALREADY:connection already in progress',
+    '9:EBADF:bad file descriptor',
+    '10:EBUSY:resource busy or locked',
+    '11:ECONNABORTED:software caused connection abort',
+    '12:ECONNREFUSED:connection refused',
+    '13:ECONNRESET:connection reset by peer',
+    '14:EDESTADDRREQ:destination address required',
+    '15:EFAULT:bad address in system call argument',
+    '16:EHOSTUNREACH:host is unreachable',
+    '17:EINTR:interrupted system call',
+    '18:EINVAL:invalid argument',
+    '19:EISCONN:socket is already connected',
+    '20:EMFILE:too many open files',
+    '21:EMSGSIZE:message too long',
+    '22:ENETDOWN:network is down',
+    '23:ENETUNREACH:network is unreachable',
+    '24:ENFILE:file table overflow',
+    '25:ENOBUFS:no buffer space available',
+    '26:ENOMEM:not enough memory',
+    '27:ENOTDIR:not a directory',
+    '28:EISDIR:illegal operation on a directory',
+    '29:ENONET:machine is not on the network',
+    // errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+    '31:ENOTCONN:socket is not connected',
+    '32:ENOTSOCK:socket operation on non-socket',
+    '33:ENOTSUP:operation not supported on socket',
+    '34:ENOENT:no such file or directory',
+    '35:ENOSYS:function not implemented',
+    '36:EPIPE:broken pipe',
+    '37:EPROTO:protocol error',
+    '38:EPROTONOSUPPORT:protocol not supported',
+    '39:EPROTOTYPE:protocol wrong type for socket',
+    '40:ETIMEDOUT:connection timed out',
+    '41:ECHARSET:invalid Unicode character',
+    '42:EAIFAMNOSUPPORT:address family for hostname not supported',
+    // errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+    '44:EAISERVICE:servname not supported for ai_socktype',
+    '45:EAISOCKTYPE:ai_socktype not supported',
+    '46:ESHUTDOWN:cannot send after transport endpoint shutdown',
+    '47:EEXIST:file already exists',
+    '48:ESRCH:no such process',
+    '49:ENAMETOOLONG:name too long',
+    '50:EPERM:operation not permitted',
+    '51:ELOOP:too many symbolic links encountered',
+    '52:EXDEV:cross-device link not permitted',
+    '53:ENOTEMPTY:directory not empty',
+    '54:ENOSPC:no space left on device',
+    '55:EIO:i/o error',
+    '56:EROFS:read-only file system',
+    '57:ENODEV:no such device',
+    '58:ESPIPE:invalid seek',
+    '59:ECANCELED:operation canceled',
+
+    /**
+     * Filer specific errors
+     */
+    '1000:ENOTMOUNTED:not mounted',
+    '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.',
+    '1002:ENOATTR:attribute does not exist'
+  ].forEach(function(e) {
+    e = e.split(':');
+    var errno = e[0],
+        err = e[1],
+        message = e[2];
+
+    function ctor(m) {
+      this.message = m || message;
+    }
+    var proto = ctor.prototype = new Error();
+    proto.errno = errno;
+    proto.code = err;
+    proto.constructor = ctor;
+
+    // We expose the error as both Errors.EINVAL and Errors[18]
+    errors[err] = errors[errno] = ctor;
+  });
+
+  return errors;
+});
+
 define('src/environment',['require','src/constants'],function(require) {
 
   var defaults = require('src/constants').ENVIRONMENT;
@@ -5476,10 +4989,10 @@ define('src/environment',['require','src/constants'],function(require) {
 });
 
 /* jshint evil:true */
-define('src/shell',['require','src/path','src/error','src/environment','async'],function(require) {
+define('src/shell',['require','src/path','src/errors','src/environment','async'],function(require) {
 
   var Path = require('src/path');
-  var FilerError = require('src/error');
+  var Errors = require('src/errors');
   var Environment = require('src/environment');
   var async = require('async');
 
@@ -5517,14 +5030,14 @@ define('src/shell',['require','src/path','src/error','src/environment','async'],
       // Make sure the path actually exists, and is a dir
       fs.stat(path, function(err, stats) {
         if(err) {
-          callback(new FilerError.ENotDirectory());
+          callback(new Errors.ENOTDIR());
           return;
         }
         if(stats.type === 'DIRECTORY') {
           cwd = path;
           callback();
         } else {
-          callback(new FilerError.ENotDirectory());
+          callback(new Errors.ENOTDIR());
         }
       });
     };
@@ -5790,7 +5303,7 @@ define('src/shell',['require','src/path','src/error','src/environment','async'],
 
           // If not, see if we're allowed to delete recursively
           if(!options.recursive) {
-            callback(new FilerError.ENotEmpty());
+            callback(new Errors.ENOTEMPTY());
             return;
           }
 
@@ -5814,6 +5327,137 @@ define('src/shell',['require','src/path','src/error','src/environment','async'],
   };
 
   /**
+   * Moves the file or directory at the `source` path to the 
+   * `destination` path by relinking the source to the destination 
+   * path.
+   */
+  Shell.prototype.mv = function(source, destination, callback) {
+    var fs = this.fs;
+    var shell = this;
+    
+    callback = callback || function() {};
+
+    if(!source) {
+      callback(new Error("Missing source path argument"));
+      return;
+    }
+    else if(source === '/') {
+      callback(new Error("Root is not a valid source argument"));
+      return;
+    }
+
+    if(!destination) {
+      callback(new Error("Missing destination path argument"));
+      return;
+    }
+
+    function move(sourcepath, destpath, callback) {
+      sourcepath = Path.resolve(this.cwd, sourcepath);
+      destpath = Path.resolve(this.cwd, destpath);
+      destdir = Path.resolve(this.cwd, Path.dirname(destpath));
+
+      // Recursively create any directories on the destination path which do not exist
+      shell.mkdirp(destdir, function(error) {
+        if(error) {
+          callback(error);
+          return;
+        }
+      });
+
+      // If there is no node at the source path, error and quit
+      fs.stat(sourcepath, function(error, sourcestats) {
+        if(error) {
+          callback(error);
+          return;
+        }
+
+        fs.stat(destpath, function(error, deststats) {
+          // If there is an error unrelated to the existence of the destination, exit
+          if(error && error.code !== 'ENOENT') {
+            callback(error);
+            return;
+          }
+            
+          if(deststats) {
+            // If the destination is a directory, new destination is destpath/source.basename
+            if(deststats.isDirectory()) {
+              destpath = Path.join(destpath, Path.basename(sourcepath));
+            }
+            // Unlink existing destinations
+            fs.unlink(destpath, function(error) {
+              if (error && error.code !== 'ENOENT') {
+                callback(error);
+                return;
+              }
+            });
+          }
+
+          // If the source is a file, link it to destination and remove the source, then done
+          if(sourcestats.isFile()) {
+            fs.link(sourcepath, destpath, function(error) {
+              if (error) {
+                callback(error);
+                return;
+              }
+              shell.rm(sourcepath, {recursive:true}, function(error) {
+                if (error) {
+                  callback(error);
+                  return;
+                }
+                callback();
+              });    
+            });
+          }
+          // If the source is a directory, create a directory at destination and then recursively
+          // move every dir entry.
+          else if(sourcestats.isDirectory()) {
+            fs.mkdir(destpath, function(error) {
+              if (error) {
+                callback(error);
+                return;
+              }
+
+              fs.readdir(sourcepath, function(error, entries) {
+                if(error) {
+                  callback(error);
+                  return;
+                }
+
+                async.each(entries, 
+                  function(entry, callback) {
+                    move(Path.join(sourcepath, entry), Path.join(destpath, entry), function(error) {
+                      if(error) {
+                        callback(error);
+                        return;
+                      }
+                      callback();
+                    });
+                  },
+                  function(error) {
+                    if(error) {
+                      callback(error);
+                      return;
+                    }
+                    shell.rm(sourcepath, {recursive:true}, function(error) {
+                      if (error) {
+                        callback(error);
+                        return;
+                      }
+                      callback();
+                    });
+                  }
+                );
+              });
+            });
+          }   
+        });
+      });
+    }
+
+    move(source, destination, callback);
+  };
+
+  /**
    * Gets the path to the temporary directory, creating it if not
    * present. The directory used is the one specified in
    * env.TMP. The callback receives (error, tempDirName).
@@ -5830,579 +5474,161 @@ define('src/shell',['require','src/path','src/error','src/environment','async'],
     });
   };
 
+  /**
+   * Recursively creates the directory at `path`. If the parent
+   * of `path` does not exist, it will be created.
+   * Based off EnsureDir by Sam X. Xu
+   * https://www.npmjs.org/package/ensureDir
+   * MIT License
+   */
+  Shell.prototype.mkdirp = function(path, callback) {
+    var fs = this.fs;
+    callback = callback || function(){};
+
+    if(!path) {
+      callback(new Errors.EINVAL('missing path argument'));
+      return;
+    }
+    else if (path === '/'){
+      callback();
+      return;
+    }
+    function _mkdirp(path, callback){
+      fs.stat(path, function (err, stat) {
+        //doesn't exist
+        if (err && err.code === 'ENOENT') {
+          var parent = Path.dirname(path);
+          if(parent === '/'){ //parent is root
+            fs.mkdir(path, function (err) {
+              if (err && err.code != 'EEXIST') {
+                callback(err);
+                return;
+              }
+              callback();
+              return;
+            });
+          }
+          else { //parent is not root, make parent first
+            _mkdirp(parent, function (err) {
+              if (err) return callback(err);
+              fs.mkdir(path, function (err) { //then make dir
+                if (err && err.code != 'EEXIST') {
+                  callback(err);
+                  return;
+                }
+                callback();
+                return;
+              });
+            });
+          }
+        }
+        //other error
+        else if (err){
+          callback(err);
+          return;
+        }
+        //already exists
+        else if (stat.type === 'DIRECTORY') {
+          callback();
+          return;
+        }
+        //not a directory
+        else if (stat.type === 'FILE') {
+          callback(new Errors.ENOTDIR());
+          return;
+        }
+      });
+    }
+
+    _mkdirp(path, callback);
+  };
+
   return Shell;
 
 });
 
-;!function(exports, undefined) {
+define('eventemitter',['require'],function(require) {
 
-  var isArray = Array.isArray ? Array.isArray : function _isArray(obj) {
-    return Object.prototype.toString.call(obj) === "[object Array]";
-  };
-  var defaultMaxListeners = 10;
+  // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
+  // Copyright 2012 DIY Co Apache License, Version 2.0
+  // http://www.apache.org/licenses/LICENSE-2.0
 
-  function init() {
-    this._events = {};
-    if (this._conf) {
-      configure.call(this, this._conf);
+  function removeItem(item, array) {
+    for (var i = array.length - 1; i >= 0; i--) {
+      if (array[i] === item) {
+        array.splice(i, 1);
+      }
     }
+    return array;
   }
 
-  function configure(conf) {
-    if (conf) {
+  var EventEmitter = function() {};
 
-      this._conf = conf;
+  EventEmitter.createInterface = function(space) {
+    var methods = {};
 
-      conf.delimiter && (this.delimiter = conf.delimiter);
-      conf.maxListeners && (this._events.maxListeners = conf.maxListeners);
-      conf.wildcard && (this.wildcard = conf.wildcard);
-      conf.newListener && (this.newListener = conf.newListener);
-
-      if (this.wildcard) {
-        this.listenerTree = {};
+    methods.on = function(name, fn) {
+      if (typeof this[space] === 'undefined') {
+        this[space] = {};
       }
-    }
-  }
-
-  function EventEmitter(conf) {
-    this._events = {};
-    this.newListener = false;
-    configure.call(this, conf);
-  }
-
-  //
-  // Attention, function return type now is array, always !
-  // It has zero elements if no any matches found and one or more
-  // elements (leafs) if there are matches
-  //
-  function searchListenerTree(handlers, type, tree, i) {
-    if (!tree) {
-      return [];
-    }
-    var listeners=[], leaf, len, branch, xTree, xxTree, isolatedBranch, endReached,
-        typeLength = type.length, currentType = type[i], nextType = type[i+1];
-    if (i === typeLength && tree._listeners) {
-      //
-      // If at the end of the event(s) list and the tree has listeners
-      // invoke those listeners.
-      //
-      if (typeof tree._listeners === 'function') {
-        handlers && handlers.push(tree._listeners);
-        return [tree];
-      } else {
-        for (leaf = 0, len = tree._listeners.length; leaf < len; leaf++) {
-          handlers && handlers.push(tree._listeners[leaf]);
-        }
-        return [tree];
+      if (!this[space].hasOwnProperty(name)) {
+        this[space][name] = [];
       }
-    }
+      this[space][name].push(fn);
+    };
 
-    if ((currentType === '*' || currentType === '**') || tree[currentType]) {
-      //
-      // If the event emitted is '*' at this part
-      // or there is a concrete match at this patch
-      //
-      if (currentType === '*') {
-        for (branch in tree) {
-          if (branch !== '_listeners' && tree.hasOwnProperty(branch)) {
-            listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], i+1));
-          }
-        }
-        return listeners;
-      } else if(currentType === '**') {
-        endReached = (i+1 === typeLength || (i+2 === typeLength && nextType === '*'));
-        if(endReached && tree._listeners) {
-          // The next element has a _listeners, add it to the handlers.
-          listeners = listeners.concat(searchListenerTree(handlers, type, tree, typeLength));
-        }
-
-        for (branch in tree) {
-          if (branch !== '_listeners' && tree.hasOwnProperty(branch)) {
-            if(branch === '*' || branch === '**') {
-              if(tree[branch]._listeners && !endReached) {
-                listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], typeLength));
-              }
-              listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], i));
-            } else if(branch === nextType) {
-              listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], i+2));
-            } else {
-              // No match on this one, shift into the tree but not in the type array.
-              listeners = listeners.concat(searchListenerTree(handlers, type, tree[branch], i));
-            }
-          }
-        }
-        return listeners;
+    methods.off = function(name, fn) {
+      if (typeof this[space] === 'undefined') return;
+      if (this[space].hasOwnProperty(name)) {
+        removeItem(fn, this[space][name]);
       }
+    };
 
-      listeners = listeners.concat(searchListenerTree(handlers, type, tree[currentType], i+1));
-    }
-
-    xTree = tree['*'];
-    if (xTree) {
-      //
-      // If the listener tree will allow any match for this part,
-      // then recursively explore all branches of the tree
-      //
-      searchListenerTree(handlers, type, xTree, i+1);
-    }
-
-    xxTree = tree['**'];
-    if(xxTree) {
-      if(i < typeLength) {
-        if(xxTree._listeners) {
-          // If we have a listener on a '**', it will catch all, so add its handler.
-          searchListenerTree(handlers, type, xxTree, typeLength);
+    methods.trigger = function(name) {
+      if (typeof this[space] !== 'undefined' && this[space].hasOwnProperty(name)) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        for (var i = 0; i < this[space][name].length; i++) {
+          this[space][name][i].apply(this[space][name][i], args);
         }
-
-        // Build arrays of matching next branches and others.
-        for(branch in xxTree) {
-          if(branch !== '_listeners' && xxTree.hasOwnProperty(branch)) {
-            if(branch === nextType) {
-              // We know the next element will match, so jump twice.
-              searchListenerTree(handlers, type, xxTree[branch], i+2);
-            } else if(branch === currentType) {
-              // Current node matches, move into the tree.
-              searchListenerTree(handlers, type, xxTree[branch], i+1);
-            } else {
-              isolatedBranch = {};
-              isolatedBranch[branch] = xxTree[branch];
-              searchListenerTree(handlers, type, { '**': isolatedBranch }, i+1);
-            }
-          }
-        }
-      } else if(xxTree._listeners) {
-        // We have reached the end and still on a '**'
-        searchListenerTree(handlers, type, xxTree, typeLength);
-      } else if(xxTree['*'] && xxTree['*']._listeners) {
-        searchListenerTree(handlers, type, xxTree['*'], typeLength);
       }
-    }
+    };
 
-    return listeners;
-  }
+    methods.removeAllListeners = function(name) {
+      if (typeof this[space] === 'undefined') return;
+      var self = this;
+      self[space][name].forEach(function(fn) {
+        self.off(name, fn);
+      });
+    };
 
-  function growListenerTree(type, listener) {
-
-    type = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
-
-    //
-    // Looks for two consecutive '**', if so, don't add the event at all.
-    //
-    for(var i = 0, len = type.length; i+1 < len; i++) {
-      if(type[i] === '**' && type[i+1] === '**') {
-        return;
-      }
-    }
-
-    var tree = this.listenerTree;
-    var name = type.shift();
-
-    while (name) {
-
-      if (!tree[name]) {
-        tree[name] = {};
-      }
-
-      tree = tree[name];
-
-      if (type.length === 0) {
-
-        if (!tree._listeners) {
-          tree._listeners = listener;
-        }
-        else if(typeof tree._listeners === 'function') {
-          tree._listeners = [tree._listeners, listener];
-        }
-        else if (isArray(tree._listeners)) {
-
-          tree._listeners.push(listener);
-
-          if (!tree._listeners.warned) {
-
-            var m = defaultMaxListeners;
-
-            if (typeof this._events.maxListeners !== 'undefined') {
-              m = this._events.maxListeners;
-            }
-
-            if (m > 0 && tree._listeners.length > m) {
-
-              tree._listeners.warned = true;
-              console.error('(node) warning: possible EventEmitter memory ' +
-                            'leak detected. %d listeners added. ' +
-                            'Use emitter.setMaxListeners() to increase limit.',
-                            tree._listeners.length);
-              console.trace();
-            }
-          }
-        }
-        return true;
-      }
-      name = type.shift();
-    }
-    return true;
-  }
-
-  // By default EventEmitters will print a warning if more than
-  // 10 listeners are added to it. This is a useful default which
-  // helps finding memory leaks.
-  //
-  // Obviously not all Emitters should be limited to 10. This function allows
-  // that to be increased. Set to zero for unlimited.
-
-  EventEmitter.prototype.delimiter = '.';
-
-  EventEmitter.prototype.setMaxListeners = function(n) {
-    this._events || init.call(this);
-    this._events.maxListeners = n;
-    if (!this._conf) this._conf = {};
-    this._conf.maxListeners = n;
+    return methods;
   };
 
-  EventEmitter.prototype.event = '';
+  var pvt = EventEmitter.createInterface('_handlers');
+  EventEmitter.prototype._on = pvt.on;
+  EventEmitter.prototype._off = pvt.off;
+  EventEmitter.prototype._trigger = pvt.trigger;
 
-  EventEmitter.prototype.once = function(event, fn) {
-    this.many(event, 1, fn);
-    return this;
+  var pub = EventEmitter.createInterface('handlers');
+  EventEmitter.prototype.on = function() {
+    pub.on.apply(this, arguments);
+    Array.prototype.unshift.call(arguments, 'on');
+    this._trigger.apply(this, arguments);
   };
+  EventEmitter.prototype.off = pub.off;
+  EventEmitter.prototype.trigger = pub.trigger;
+  EventEmitter.prototype.removeAllListeners = pub.removeAllListeners;
 
-  EventEmitter.prototype.many = function(event, ttl, fn) {
-    var self = this;
+  return EventEmitter;
+});
 
-    if (typeof fn !== 'function') {
-      throw new Error('many only accepts instances of Function');
-    }
-
-    function listener() {
-      if (--ttl === 0) {
-        self.off(event, listener);
-      }
-      fn.apply(this, arguments);
-    }
-
-    listener._origin = fn;
-
-    this.on(event, listener);
-
-    return self;
-  };
-
-  EventEmitter.prototype.emit = function() {
-
-    this._events || init.call(this);
-
-    var type = arguments[0];
-
-    if (type === 'newListener' && !this.newListener) {
-      if (!this._events.newListener) { return false; }
-    }
-
-    // Loop through the *_all* functions and invoke them.
-    if (this._all) {
-      var l = arguments.length;
-      var args = new Array(l - 1);
-      for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
-      for (i = 0, l = this._all.length; i < l; i++) {
-        this.event = type;
-        this._all[i].apply(this, args);
-      }
-    }
-
-    // If there is no 'error' event listener then throw.
-    if (type === 'error') {
-
-      if (!this._all &&
-        !this._events.error &&
-        !(this.wildcard && this.listenerTree.error)) {
-
-        if (arguments[1] instanceof Error) {
-          throw arguments[1]; // Unhandled 'error' event
-        } else {
-          throw new Error("Uncaught, unspecified 'error' event.");
-        }
-        return false;
-      }
-    }
-
-    var handler;
-
-    if(this.wildcard) {
-      handler = [];
-      var ns = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
-      searchListenerTree.call(this, handler, ns, this.listenerTree, 0);
-    }
-    else {
-      handler = this._events[type];
-    }
-
-    if (typeof handler === 'function') {
-      this.event = type;
-      if (arguments.length === 1) {
-        handler.call(this);
-      }
-      else if (arguments.length > 1)
-        switch (arguments.length) {
-          case 2:
-            handler.call(this, arguments[1]);
-            break;
-          case 3:
-            handler.call(this, arguments[1], arguments[2]);
-            break;
-          // slower
-          default:
-            var l = arguments.length;
-            var args = new Array(l - 1);
-            for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
-            handler.apply(this, args);
-        }
-      return true;
-    }
-    else if (handler) {
-      var l = arguments.length;
-      var args = new Array(l - 1);
-      for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
-
-      var listeners = handler.slice();
-      for (var i = 0, l = listeners.length; i < l; i++) {
-        this.event = type;
-        listeners[i].apply(this, args);
-      }
-      return (listeners.length > 0) || this._all;
-    }
-    else {
-      return this._all;
-    }
-
-  };
-
-  EventEmitter.prototype.on = function(type, listener) {
-
-    if (typeof type === 'function') {
-      this.onAny(type);
-      return this;
-    }
-
-    if (typeof listener !== 'function') {
-      throw new Error('on only accepts instances of Function');
-    }
-    this._events || init.call(this);
-
-    // To avoid recursion in the case that type == "newListeners"! Before
-    // adding it to the listeners, first emit "newListeners".
-    this.emit('newListener', type, listener);
-
-    if(this.wildcard) {
-      growListenerTree.call(this, type, listener);
-      return this;
-    }
-
-    if (!this._events[type]) {
-      // Optimize the case of one listener. Don't need the extra array object.
-      this._events[type] = listener;
-    }
-    else if(typeof this._events[type] === 'function') {
-      // Adding the second element, need to change to array.
-      this._events[type] = [this._events[type], listener];
-    }
-    else if (isArray(this._events[type])) {
-      // If we've already got an array, just append.
-      this._events[type].push(listener);
-
-      // Check for listener leak
-      if (!this._events[type].warned) {
-
-        var m = defaultMaxListeners;
-
-        if (typeof this._events.maxListeners !== 'undefined') {
-          m = this._events.maxListeners;
-        }
-
-        if (m > 0 && this._events[type].length > m) {
-
-          this._events[type].warned = true;
-          console.error('(node) warning: possible EventEmitter memory ' +
-                        'leak detected. %d listeners added. ' +
-                        'Use emitter.setMaxListeners() to increase limit.',
-                        this._events[type].length);
-          console.trace();
-        }
-      }
-    }
-    return this;
-  };
-
-  EventEmitter.prototype.onAny = function(fn) {
-
-    if(!this._all) {
-      this._all = [];
-    }
-
-    if (typeof fn !== 'function') {
-      throw new Error('onAny only accepts instances of Function');
-    }
-
-    // Add the function to the event listener collection.
-    this._all.push(fn);
-    return this;
-  };
-
-  EventEmitter.prototype.addListener = EventEmitter.prototype.on;
-
-  EventEmitter.prototype.off = function(type, listener) {
-    if (typeof listener !== 'function') {
-      throw new Error('removeListener only takes instances of Function');
-    }
-
-    var handlers,leafs=[];
-
-    if(this.wildcard) {
-      var ns = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
-      leafs = searchListenerTree.call(this, null, ns, this.listenerTree, 0);
-    }
-    else {
-      // does not use listeners(), so no side effect of creating _events[type]
-      if (!this._events[type]) return this;
-      handlers = this._events[type];
-      leafs.push({_listeners:handlers});
-    }
-
-    for (var iLeaf=0; iLeaf<leafs.length; iLeaf++) {
-      var leaf = leafs[iLeaf];
-      handlers = leaf._listeners;
-      if (isArray(handlers)) {
-
-        var position = -1;
-
-        for (var i = 0, length = handlers.length; i < length; i++) {
-          if (handlers[i] === listener ||
-            (handlers[i].listener && handlers[i].listener === listener) ||
-            (handlers[i]._origin && handlers[i]._origin === listener)) {
-            position = i;
-            break;
-          }
-        }
-
-        if (position < 0) {
-          continue;
-        }
-
-        if(this.wildcard) {
-          leaf._listeners.splice(position, 1);
-        }
-        else {
-          this._events[type].splice(position, 1);
-        }
-
-        if (handlers.length === 0) {
-          if(this.wildcard) {
-            delete leaf._listeners;
-          }
-          else {
-            delete this._events[type];
-          }
-        }
-        return this;
-      }
-      else if (handlers === listener ||
-        (handlers.listener && handlers.listener === listener) ||
-        (handlers._origin && handlers._origin === listener)) {
-        if(this.wildcard) {
-          delete leaf._listeners;
-        }
-        else {
-          delete this._events[type];
-        }
-      }
-    }
-
-    return this;
-  };
-
-  EventEmitter.prototype.offAny = function(fn) {
-    var i = 0, l = 0, fns;
-    if (fn && this._all && this._all.length > 0) {
-      fns = this._all;
-      for(i = 0, l = fns.length; i < l; i++) {
-        if(fn === fns[i]) {
-          fns.splice(i, 1);
-          return this;
-        }
-      }
-    } else {
-      this._all = [];
-    }
-    return this;
-  };
-
-  EventEmitter.prototype.removeListener = EventEmitter.prototype.off;
-
-  EventEmitter.prototype.removeAllListeners = function(type) {
-    if (arguments.length === 0) {
-      !this._events || init.call(this);
-      return this;
-    }
-
-    if(this.wildcard) {
-      var ns = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
-      var leafs = searchListenerTree.call(this, null, ns, this.listenerTree, 0);
-
-      for (var iLeaf=0; iLeaf<leafs.length; iLeaf++) {
-        var leaf = leafs[iLeaf];
-        leaf._listeners = null;
-      }
-    }
-    else {
-      if (!this._events[type]) return this;
-      this._events[type] = null;
-    }
-    return this;
-  };
-
-  EventEmitter.prototype.listeners = function(type) {
-    if(this.wildcard) {
-      var handlers = [];
-      var ns = typeof type === 'string' ? type.split(this.delimiter) : type.slice();
-      searchListenerTree.call(this, handlers, ns, this.listenerTree, 0);
-      return handlers;
-    }
-
-    this._events || init.call(this);
-
-    if (!this._events[type]) this._events[type] = [];
-    if (!isArray(this._events[type])) {
-      this._events[type] = [this._events[type]];
-    }
-    return this._events[type];
-  };
-
-  EventEmitter.prototype.listenersAny = function() {
-
-    if(this._all) {
-      return this._all;
-    }
-    else {
-      return [];
-    }
-
-  };
-
-  if (typeof define === 'function' && define.amd) {
-    define('EventEmitter',[],function() {
-      return EventEmitter;
-    });
-  } else {
-    exports.EventEmitter2 = EventEmitter;
-  }
-
-}(typeof process !== 'undefined' && typeof process.title !== 'undefined' && typeof exports !== 'undefined' ? exports : window);
-
-define('intercom',['require','EventEmitter','src/shared'],function(require) {
+define('intercom',['require','eventemitter','src/shared'],function(require) {
 
   // Based on https://github.com/diy/intercom.js/blob/master/lib/intercom.js
   // Copyright 2012 DIY Co Apache License, Version 2.0
   // http://www.apache.org/licenses/LICENSE-2.0
 
-  var EventEmitter = require('EventEmitter');
+  var EventEmitter = require('eventemitter');
   var guid = require('src/shared').guid;
 
   function throttle(delay, fn) {
@@ -6711,9 +5937,9 @@ define('intercom',['require','EventEmitter','src/shared'],function(require) {
   return Intercom;
 });
 
-define('src/fswatcher',['require','EventEmitter','src/path','intercom'],function(require) {
+define('src/fswatcher',['require','eventemitter','src/path','intercom'],function(require) {
 
-  var EventEmitter = require('EventEmitter');
+  var EventEmitter = require('eventemitter');
   var isNullPath = require('src/path').isNull;
   var Intercom = require('intercom');
 
@@ -6727,10 +5953,10 @@ define('src/fswatcher',['require','EventEmitter','src/path','intercom'],function
     var recursive = false;
     var filename;
 
-    function onchange(event, path) {
+    function onchange(path) {
       // Watch for exact filename, or parent path when recursive is true
       if(filename === path || (recursive && path.indexOf(filename + '/') === 0)) {
-        self.emit('change', 'change', path);
+        self.trigger('change', 'change', path);
       }
     }
 
@@ -6766,7 +5992,7 @@ define('src/fswatcher',['require','EventEmitter','src/path','intercom'],function
   return FSWatcher;
 });
 
-define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/error','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters','src/shell','intercom','src/fswatcher'],function(require) {
+define('src/fs',['require','nodash','encoding','src/path','src/path','src/path','src/path','src/path','src/shared','src/shared','src/shared','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/constants','src/providers/providers','src/adapters/adapters','src/shell','intercom','src/fswatcher','src/errors'],function(require) {
 
   var _ = require('nodash');
 
@@ -6783,21 +6009,6 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   var guid = require('src/shared').guid;
   var hash = require('src/shared').hash;
   var nop = require('src/shared').nop;
-
-  var EExists = require('src/error').EExists;
-  var EIsDirectory = require('src/error').EIsDirectory;
-  var ENoEntry = require('src/error').ENoEntry;
-  var EBusy = require('src/error').EBusy;
-  var ENotEmpty = require('src/error').ENotEmpty;
-  var ENotDirectory = require('src/error').ENotDirectory;
-  var EBadFileDescriptor = require('src/error').EBadFileDescriptor;
-  var ENotImplemented = require('src/error').ENotImplemented;
-  var ENotMounted = require('src/error').ENotMounted;
-  var EInvalid = require('src/error').EInvalid;
-  var EIO = require('src/error').EIO;
-  var ELoop = require('src/error').ELoop;
-  var EFileSystemError = require('src/error').EFileSystemError;
-  var ENoAttr = require('src/error').ENoAttr;
 
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
   var FS_FORMAT = require('src/constants').FS_FORMAT;
@@ -6828,6 +6039,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   var Shell = require('src/shell');
   var Intercom = require('intercom');
   var FSWatcher = require('src/fswatcher');
+  var Errors = require('src/errors');
 
   /*
    * DirectoryEntry
@@ -6985,7 +6197,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   function find_node(context, path, callback) {
     path = normalize(path);
     if(!path) {
-      return callback(new ENoEntry('path is an empty string'));
+      return callback(new Errors.ENOENT('path is an empty string'));
     }
     var name = basename(path);
     var parentPath = dirname(path);
@@ -6995,7 +6207,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(!superNode || superNode.mode !== MODE_META || !superNode.rnode) {
-        callback(new EFileSystemError('missing super node'));
+        callback(new Errors.EFILESYSTEMERROR());
       } else {
         context.get(superNode.rnode, check_root_directory_node);
       }
@@ -7005,7 +6217,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(!rootDirectoryNode) {
-        callback(new ENoEntry('path does not exist'));
+        callback(new Errors.ENOENT());
       } else {
         callback(null, rootDirectoryNode);
       }
@@ -7017,7 +6229,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
-        callback(new ENotDirectory('a component of the path prefix is not a directory'));
+        callback(new Errors.ENOTDIR('a component of the path prefix is not a directory'));
       } else {
         context.get(parentDirectoryNode.data, get_node_from_parent_directory_data);
       }
@@ -7030,7 +6242,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       } else {
         if(!_(parentDirectoryData).has(name)) {
-          callback(new ENoEntry('path does not exist'));
+          callback(new Errors.ENOENT());
         } else {
           var nodeId = parentDirectoryData[name].id;
           context.get(nodeId, is_symbolic_link);
@@ -7045,7 +6257,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         if(node.mode == MODE_SYMBOLIC_LINK) {
           followedCount++;
           if(followedCount > SYMLOOP_MAX){
-            callback(new ELoop('too many symbolic links were encountered'));
+            callback(new Errors.ELOOP());
           } else {
             follow_symbolic_link(node.data);
           }
@@ -7096,10 +6308,10 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       }
       else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
-        callback(new EExists('attribute already exists'));
+        callback(new Errors.EEXIST('attribute already exists'));
       }
       else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENOATTR());
       }
       else {
         node.xattrs[name] = value;
@@ -7116,7 +6328,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       context.get(path_or_fd.id, set_xattr);
     }
     else {
-      callback(new EInvalid('path or file descriptor of wrong type'));
+      callback(new Errors.EINVAL('path or file descriptor of wrong type'));
     }
   }
 
@@ -7132,8 +6344,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     function write_super_node(error, existingNode) {
       if(!error && existingNode) {
-        callback(new EExists());
-      } else if(error && !error instanceof ENoEntry) {
+        callback(new Errors.EEXIST());
+      } else if(error && !(error instanceof Errors.ENOENT)) {
         callback(error);
       } else {
         superNode = new SuperNode();
@@ -7179,8 +6391,8 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     function check_if_directory_exists(error, result) {
       if(!error && result) {
-        callback(new EExists());
-      } else if(error && !error instanceof ENoEntry) {
+        callback(new Errors.EEXIST());
+      } else if(error && !(error instanceof Errors.ENOENT)) {
         callback(error);
       } else {
         find_node(context, parentPath, read_parent_directory_data);
@@ -7264,9 +6476,9 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(ROOT_DIRECTORY_NAME == name) {
-        callback(new EBusy());
+        callback(new Errors.EBUSY());
       } else if(!_(result).has(name)) {
-        callback(new ENoEntry());
+        callback(new Errors.ENOENT());
       } else {
         parentDirectoryData = result;
         directoryNode = parentDirectoryData[name].id;
@@ -7278,7 +6490,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if(error) {
         callback(error);
       } else if(result.mode != MODE_DIRECTORY) {
-        callback(new ENotDirectory());
+        callback(new Errors.ENOTDIR());
       } else {
         directoryNode = result;
         context.get(directoryNode.data, check_if_directory_is_empty);
@@ -7291,7 +6503,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(_(directoryData).size() > 0) {
-          callback(new ENotEmpty());
+          callback(new Errors.ENOTEMPTY());
         } else {
           remove_directory_entry_from_parent_directory_node();
         }
@@ -7346,7 +6558,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     if(ROOT_DIRECTORY_NAME == name) {
       if(_(flags).contains(O_WRITE)) {
-        callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
+        callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
       } else {
         find_node(context, path, set_file_node);
       }
@@ -7370,18 +6582,18 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         directoryData = result;
         if(_(directoryData).has(name)) {
           if(_(flags).contains(O_EXCLUSIVE)) {
-            callback(new ENoEntry('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
+            callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
           } else {
             directoryEntry = directoryData[name];
             if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
-              callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
+              callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
             } else {
               context.get(directoryEntry.id, check_if_symbolic_link);
             }
           }
         } else {
           if(!_(flags).contains(O_CREATE)) {
-            callback(new ENoEntry('O_CREATE is not set and the named file does not exist'));
+            callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist'));
           } else {
             write_file_node();
           }
@@ -7397,7 +6609,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         if(node.mode == MODE_SYMBOLIC_LINK) {
           followedCount++;
           if(followedCount > SYMLOOP_MAX){
-            callback(new ELoop('too many symbolic links were encountered'));
+            callback(new Errors.ELOOP());
           } else {
             follow_symbolic_link(node.data);
           }
@@ -7413,7 +6625,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       name = basename(data);
       if(ROOT_DIRECTORY_NAME == name) {
         if(_(flags).contains(O_WRITE)) {
-          callback(new EIsDirectory('the named file is a directory and O_WRITE is set'));
+          callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
         } else {
           find_node(context, path, set_file_node);
         }
@@ -7681,7 +6893,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(!_(directoryData).has(name)) {
-          callback(new ENoEntry('a component of the path does not name an existing file'));
+          callback(new Errors.ENOENT('a component of the path does not name an existing file'));
         } else {
           context.get(directoryData[name].id, check_file);
         }
@@ -7744,7 +6956,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         newDirectoryData = result;
         if(_(newDirectoryData).has(newname)) {
-          callback(new EExists('newpath resolves to an existing file'));
+          callback(new Errors.EEXIST('newpath resolves to an existing file'));
         } else {
           newDirectoryData[newname] = oldDirectoryData[oldname];
           context.put(newDirectoryNode.data, newDirectoryData, read_directory_entry);
@@ -7767,7 +6979,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         oldDirectoryData = result;
         if(!_(oldDirectoryData).has(oldname)) {
-          callback(new ENoEntry('a component of either path prefix does not exist'));
+          callback(new Errors.ENOENT('a component of either path prefix does not exist'));
         } else {
           find_node(context, newParentPath, read_new_directory_data);
         }
@@ -7837,7 +7049,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(!_(directoryData).has(name)) {
-          callback(new ENoEntry('a component of the path does not name an existing file'));
+          callback(new Errors.ENOENT('a component of the path does not name an existing file'));
         } else {
           context.get(directoryData[name].id, update_file_node);
         }
@@ -7895,7 +7107,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var fileNode;
 
     if(ROOT_DIRECTORY_NAME == name) {
-      callback(new EExists('the destination path already exists'));
+      callback(new Errors.EEXIST());
     } else {
       find_node(context, parentPath, read_directory_data);
     }
@@ -7915,7 +7127,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(_(directoryData).has(name)) {
-          callback(new EExists('the destination path already exists'));
+          callback(new Errors.EEXIST());
         } else {
           write_file_node();
         }
@@ -7974,7 +7186,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       } else {
         directoryData = result;
         if(!_(directoryData).has(name)) {
-          callback(new ENoEntry('a component of the path does not name an existing file'));
+          callback(new Errors.ENOENT('a component of the path does not name an existing file'));
         } else {
           context.get(directoryData[name].id, check_if_symbolic);
         }
@@ -7986,7 +7198,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       } else {
         if(result.mode != MODE_SYMBOLIC_LINK) {
-          callback(new EInvalid("path not a symbolic link"));
+          callback(new Errors.EINVAL("path not a symbolic link"));
         } else {
           callback(null, result.data);
         }
@@ -8003,7 +7215,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if (error) {
         callback(error);
       } else if(node.mode == MODE_DIRECTORY ) {
-        callback(new EIsDirectory('the named file is a directory'));
+        callback(new Errors.EISDIR());
       } else{
         fileNode = node;
         context.get(fileNode.data, truncate_file_data);
@@ -8042,7 +7254,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if(length < 0) {
-      callback(new EInvalid('length cannot be negative'));
+      callback(new Errors.EINVAL('length cannot be negative'));
     } else {
       find_node(context, path, read_file_data);
     }
@@ -8055,7 +7267,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       if (error) {
         callback(error);
       } else if(node.mode == MODE_DIRECTORY ) {
-        callback(new EIsDirectory('the named file is a directory'));
+        callback(new Errors.EISDIR());
       } else{
         fileNode = node;
         context.get(fileNode.data, truncate_file_data);
@@ -8093,7 +7305,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if(length < 0) {
-      callback(new EInvalid('length cannot be negative'));
+      callback(new Errors.EINVAL('length cannot be negative'));
     } else {
       context.get(ofd.id, read_file_data);
     }
@@ -8111,10 +7323,10 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof atime != 'number' || typeof mtime != 'number') {
-      callback(new EInvalid('atime and mtime must be number'));
+      callback(new Errors.EINVAL('atime and mtime must be number'));
     }
     else if (atime < 0 || mtime < 0) {
-      callback(new EInvalid('atime and mtime must be positive integers'));
+      callback(new Errors.EINVAL('atime and mtime must be positive integers'));
     }
     else {
       find_node(context, path, update_times);
@@ -8132,10 +7344,10 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof atime != 'number' || typeof mtime != 'number') {
-      callback(new EInvalid('atime and mtime must be a number'));
+      callback(new Errors.EINVAL('atime and mtime must be a number'));
     }
     else if (atime < 0 || mtime < 0) {
-      callback(new EInvalid('atime and mtime must be positive integers'));
+      callback(new Errors.EINVAL('atime and mtime must be positive integers'));
     }
     else {
       context.get(ofd.id, update_times);
@@ -8146,14 +7358,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     path = normalize(path);
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
     }
     else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
-      callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+      callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
     else {
       set_extended_attribute(context, path, name, value, flag, callback);
@@ -8163,14 +7375,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
   function fsetxattr_file (context, ofd, name, value, flag, callback) {
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
     }
     else if (flag !== null &&
         flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
-      callback(new EInvalid('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+      callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
     }
     else {
       set_extended_attribute(context, ofd, name, value, flag, callback);
@@ -8187,7 +7399,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback (error);
       }
       else if (!node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENOATTR());
       }
       else {
         callback(null, node.xattrs[name]);
@@ -8195,10 +7407,10 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
     }
     else {
       find_node(context, path, get_xattr);
@@ -8214,7 +7426,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       }
       else if (!node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENOATTR());
       }
       else {
         callback(null, node.xattrs[name]);
@@ -8222,10 +7434,10 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EINVAL());
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
     }
     else {
       context.get(ofd.id, get_xattr);
@@ -8250,7 +7462,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       }
       else if (!xattr.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENOATTR());
       }
       else {
         delete node.xattrs[name];
@@ -8259,10 +7471,10 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
     }
     else {
       find_node(context, path, remove_xattr);
@@ -8284,7 +7496,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       }
       else if (!node.xattrs.hasOwnProperty(name)) {
-        callback(new ENoAttr('attribute does not exist'));
+        callback(new Errors.ENOATTR());
       }
       else {
         delete node.xattrs[name];
@@ -8293,10 +7505,10 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     }
 
     if (typeof name != 'string') {
-      callback(new EInvalid('attribute name must be a string'));
+      callback(new Errors.EINVAL('attribute name must be a string'));
     }
     else if (!name) {
-      callback(new EInvalid('attribute name cannot be an empty string'));
+      callback(new Errors.EINVAL('attribute name cannot be an empty string'));
     }
     else {
       context.get(ofd.id, remove_xattr);
@@ -8453,7 +7665,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
       }
       var intercom = Intercom.getInstance();
       changes.forEach(function(change) {
-        intercom.emit(change.event, change.event, change.path);
+        intercom.emit(change.event, change.path);
       });
     }
 
@@ -8545,7 +7757,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     flags = validate_flags(flags);
     if(!flags) {
-      callback(new EInvalid('flags is not valid'));
+      callback(new Errors.EINVAL('flags is not valid'));
     }
 
     open_file(context, path, flags, check_result);
@@ -8553,7 +7765,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
   function _close(fs, fd, callback) {
     if(!_(fs.openFiles).has(fd)) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     } else {
       fs.releaseDescriptor(fd);
       callback(null);
@@ -8666,9 +7878,9 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_READ)) {
-      callback(new EBadFileDescriptor('descriptor does not permit reading'));
+      callback(new Errors.EBADF('descriptor does not permit reading'));
     } else {
       read_data(context, ofd, buffer, offset, length, position, check_result);
     }
@@ -8681,7 +7893,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     var flags = validate_flags(options.flag || 'r');
     if(!flags) {
-      callback(new EInvalid('flags is not valid'));
+      callback(new Errors.EINVAL('flags is not valid'));
     }
 
     open_file(context, path, flags, function(err, fileNode) {
@@ -8733,11 +7945,11 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBADF('descriptor does not permit writing'));
     } else if(buffer.length - offset < length) {
-      callback(new EIO('intput buffer is too small'));
+      callback(new Errors.EIO('intput buffer is too small'));
     } else {
       write_data(context, ofd, buffer, offset, length, position, check_result);
     }
@@ -8750,7 +7962,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     var flags = validate_flags(options.flag || 'w');
     if(!flags) {
-      callback(new EInvalid('flags is not valid'));
+      callback(new Errors.EINVAL('flags is not valid'));
     }
 
     data = data || '';
@@ -8785,7 +7997,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
     var flags = validate_flags(options.flag || 'a');
     if(!flags) {
-      callback(new EInvalid('flags is not valid'));
+      callback(new Errors.EINVAL('flags is not valid'));
     }
 
     data = data || '';
@@ -8849,7 +8061,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if (!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     }
     else {
       fgetxattr_file(context, ofd, name, get_result);
@@ -8884,10 +8096,10 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if (!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     }
     else if (!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBADF('descriptor does not permit writing'));
     }
     else {
       fsetxattr_file(context, ofd, name, value, flag, check_result);
@@ -8923,10 +8135,10 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if (!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     }
     else if (!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBADF('descriptor does not permit writing'));
     }
     else {
       fremovexattr_file(context, ofd, name, remove_xattr);
@@ -8947,7 +8159,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
         callback(error);
       } else {
         if(stats.size + offset < 0) {
-          callback(new EInvalid('resulting file offset would be negative'));
+          callback(new Errors.EINVAL('resulting file offset would be negative'));
         } else {
           ofd.position = stats.size + offset;
           callback(null, ofd.position);
@@ -8958,19 +8170,19 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     }
 
     if('SET' === whence) {
       if(offset < 0) {
-        callback(new EInvalid('resulting file offset would be negative'));
+        callback(new Errors.EINVAL('resulting file offset would be negative'));
       } else {
         ofd.position = offset;
         callback(null, ofd.position);
       }
     } else if('CUR' === whence) {
       if(ofd.position + offset < 0) {
-        callback(new EInvalid('resulting file offset would be negative'));
+        callback(new Errors.EINVAL('resulting file offset would be negative'));
       } else {
         ofd.position += offset;
         callback(null, ofd.position);
@@ -8978,7 +8190,7 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     } else if('END' === whence) {
       fstat_file(context, ofd, update_descriptor_position);
     } else {
-      callback(new EInvalid('whence argument is not a proper value'));
+      callback(new Errors.EINVAL('whence argument is not a proper value'));
     }
   }
 
@@ -9031,9 +8243,9 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBADF('descriptor does not permit writing'));
     } else {
       futimes_file(context, ofd, atime, mtime, check_result);
     }
@@ -9136,9 +8348,9 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
     var ofd = fs.openFiles[fd];
 
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_WRITE)) {
-      callback(new EBadFileDescriptor('descriptor does not permit writing'));
+      callback(new Errors.EBADF('descriptor does not permit writing'));
     } else {
       ftruncate_file(context, ofd, length, check_result);
     }
@@ -9643,16 +8855,14 @@ define('src/fs',['require','nodash','encoding','src/path','src/path','src/path',
 
 });
 
-define('src/index',['require','src/fs','src/fs','src/path'],function(require) {
-
-  var fs = require('src/fs');
-
+define('src/index',['require','src/fs','src/path','src/errors'],function(require) {
   return {
     FileSystem: require('src/fs'),
-    Path: require('src/path')
+    Path: require('src/path'),
+    Errors: require('src/errors')
   };
-
 });
+
 
   var Filer = require( "src/index" );
 
