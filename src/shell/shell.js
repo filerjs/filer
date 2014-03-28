@@ -3,7 +3,7 @@ define(function(require) {
 
   var Path = require('src/path');
   var Errors = require('src/errors');
-  var Environment = require('src/environment');
+  var Environment = require('src/shell/environment');
   var async = require('async');
 
   function Shell(fs, options) {

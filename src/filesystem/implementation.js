@@ -1,10 +1,10 @@
 define(function(require) {
 
-  var _ = require('nodash');
-
   // TextEncoder and TextDecoder will either already be present, or use this shim.
   // Because of the way the spec is defined, we need to get them off the global.
   require('encoding');
+
+  var _ = require('nodash');
 
   var normalize = require('src/path').normalize;
   var dirname = require('src/path').dirname;
@@ -12,22 +12,15 @@ define(function(require) {
   var isAbsolutePath = require('src/path').isAbsolute;
   var isNullPath = require('src/path').isNull;
 
-  var guid = require('src/shared').guid;
-  var hash = require('src/shared').hash;
-  var nop = require('src/shared').nop;
-
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
-  var FS_FORMAT = require('src/constants').FS_FORMAT;
   var MODE_FILE = require('src/constants').MODE_FILE;
   var MODE_DIRECTORY = require('src/constants').MODE_DIRECTORY;
   var MODE_SYMBOLIC_LINK = require('src/constants').MODE_SYMBOLIC_LINK;
   var MODE_META = require('src/constants').MODE_META;
+
   var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
   var SUPER_NODE_ID = require('src/constants').SUPER_NODE_ID;
   var SYMLOOP_MAX = require('src/constants').SYMLOOP_MAX;
-  var FS_READY = require('src/constants').FS_READY;
-  var FS_PENDING = require('src/constants').FS_PENDING;
-  var FS_ERROR = require('src/constants').FS_ERROR;
+
   var O_READ = require('src/constants').O_READ;
   var O_WRITE = require('src/constants').O_WRITE;
   var O_CREATE = require('src/constants').O_CREATE;
@@ -35,117 +28,36 @@ define(function(require) {
   var O_TRUNCATE = require('src/constants').O_TRUNCATE;
   var O_APPEND = require('src/constants').O_APPEND;
   var O_FLAGS = require('src/constants').O_FLAGS;
+
   var XATTR_CREATE = require('src/constants').XATTR_CREATE;
   var XATTR_REPLACE = require('src/constants').XATTR_REPLACE;
   var FS_NOMTIME = require('src/constants').FS_NOMTIME;
   var FS_NOCTIME = require('src/constants').FS_NOCTIME;
 
-  var providers = require('src/providers/providers');
-  var adapters = require('src/adapters/adapters');
-  var Shell = require('src/shell');
-  var Intercom = require('intercom');
-  var FSWatcher = require('src/fswatcher');
   var Errors = require('src/errors');
+  var DirectoryEntry = require('src/directory-entry');
+  var OpenFileDescription = require('src/open-file-description');
+  var SuperNode = require('src/super-node');
+  var Node = require('src/node');
+  var Stats = require('src/stats');
 
-  /*
-   * DirectoryEntry
+  /**
+   * Many functions below use this callback pattern. If it's not
+   * re-defined, we use this to generate a callback. NOTE: this
+   * can be use for callbacks of both forms without problem (i.e.,
+   * since result will be undefined if not returned):
+   *  - callback(error)
+   *  - callback(error, result)
    */
-
-  function DirectoryEntry(id, type) {
-    this.id = id;
-    this.type = type || MODE_FILE;
+  function standard_check_result_cb(callback) {
+    return function(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        callback(null, result);
+      }
+    };
   }
-
-  /*
-   * OpenFileDescription
-   */
-
-  function OpenFileDescription(path, id, flags, position) {
-    this.path = path;
-    this.id = id;
-    this.flags = flags;
-    this.position = position;
-  }
-
-  /*
-   * SuperNode
-   */
-
-  function SuperNode(atime, ctime, mtime) {
-    var now = Date.now();
-
-    this.id = SUPER_NODE_ID;
-    this.mode = MODE_META;
-    this.atime = atime || now;
-    this.ctime = ctime || now;
-    this.mtime = mtime || now;
-    this.rnode = guid(); // root node id (randomly generated)
-  }
-
-  /*
-   * Node
-   */
-
-  function Node(id, mode, size, atime, ctime, mtime, flags, xattrs, nlinks, version) {
-    var now = Date.now();
-
-    this.id = id || guid();
-    this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
-    this.size = size || 0; // size (bytes for files, entries for directories)
-    this.atime = atime || now; // access time (will mirror ctime after creation)
-    this.ctime = ctime || now; // creation/change time
-    this.mtime = mtime || now; // modified time
-    this.flags = flags || []; // file flags
-    this.xattrs = xattrs || {}; // extended attributes
-    this.nlinks = nlinks || 0; // links count
-    this.version = version || 0; // node version
-    this.blksize = undefined; // block size
-    this.nblocks = 1; // blocks count
-    this.data = guid(); // id for data object
-  }
-
-  /*
-   * Stats
-   */
-
-  function Stats(fileNode, devName) {
-    this.node = fileNode.id;
-    this.dev = devName;
-    this.size = fileNode.size;
-    this.nlinks = fileNode.nlinks;
-    this.atime = fileNode.atime;
-    this.mtime = fileNode.mtime;
-    this.ctime = fileNode.ctime;
-    this.type = fileNode.mode;
-  }
-
-  Stats.prototype.isFile = function() {
-    return this.type === MODE_FILE;
-  };
-
-  Stats.prototype.isDirectory = function() {
-    return this.type === MODE_DIRECTORY;
-  };
-
-  Stats.prototype.isBlockDevice = function() {
-    return false;
-  };
-
-  Stats.prototype.isCharacterDevice = function() {
-    return false;
-  };
-
-  Stats.prototype.isSymbolicLink = function() {
-    return this.type === MODE_SYMBOLIC_LINK;
-  };
-
-  Stats.prototype.isFIFO = function() {
-    return false;
-  };
-
-  Stats.prototype.isSocket = function() {
-    return false;
-  };
 
   /*
    * Update node times. Only passed times are modified (undefined times are ignored)
@@ -823,14 +735,6 @@ define(function(require) {
       }
     }
 
-    function update_time(error) {
-      if(error) {
-        callback(error);
-      } else {
-
-      }
-    }
-
     function read_file_data(error, result) {
       if(error) {
         callback(error);
@@ -846,28 +750,11 @@ define(function(require) {
   function stat_file(context, path, callback) {
     path = normalize(path);
     var name = basename(path);
-
-    function check_file(error, result) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null, result);
-      }
-    }
-
-    find_node(context, path, check_file);
+    find_node(context, path, standard_check_result_cb(callback));
   }
 
   function fstat_file(context, ofd, callback) {
-    function check_file(error, result) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null, result);
-      }
-    }
-
-    context.get(ofd.id, check_file);
+    context.get(ofd.id, standard_check_result_cb(callback));
   }
 
   function lstat_file(context, path, callback) {
@@ -879,7 +766,7 @@ define(function(require) {
     var directoryData;
 
     if(ROOT_DIRECTORY_NAME == name) {
-      find_node(context, path, check_file);
+      find_node(context, path, standard_check_result_cb(callback));
     } else {
       find_node(context, parentPath, read_directory_data);
     }
@@ -901,16 +788,8 @@ define(function(require) {
         if(!_(directoryData).has(name)) {
           callback(new Errors.ENOENT('a component of the path does not name an existing file'));
         } else {
-          context.get(directoryData[name].id, check_file);
+          context.get(directoryData[name].id, standard_check_result_cb(callback));
         }
-      }
-    }
-
-    function check_file(error, result) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null, result);
       }
     }
   }
@@ -1360,7 +1239,7 @@ define(function(require) {
     }
   }
 
-  function setxattr_file (context, path, name, value, flag, callback) {
+  function setxattr_file(context, path, name, value, flag, callback) {
     path = normalize(path);
 
     if (typeof name != 'string') {
@@ -1379,7 +1258,6 @@ define(function(require) {
   }
 
   function fsetxattr_file (context, ofd, name, value, flag, callback) {
-
     if (typeof name != 'string') {
       callback(new Errors.EINVAL('attribute name must be a string'));
     }
@@ -1554,195 +1432,11 @@ define(function(require) {
     return true;
   }
 
-  // node.js supports a calling pattern that leaves off a callback.
-  function maybeCallback(callback) {
-    if(typeof callback === "function") {
-      return callback;
-    }
-    return function(err) {
-      if(err) {
-        throw err;
-      }
-    };
-  }
 
-
-  /*
-   * FileSystem
-   *
-   * A FileSystem takes an `options` object, which can specify a number of,
-   * options.  All options are optional, and include:
-   *
-   * name: the name of the file system, defaults to "local"
-   *
-   * flags: one or more flags to use when creating/opening the file system.
-   *        For example: "FORMAT" will cause the file system to be formatted.
-   *        No explicit flags are set by default.
-   *
-   * provider: an explicit storage provider to use for the file
-   *           system's database context provider.  A number of context
-   *           providers are included (see /src/providers), and users
-   *           can write one of their own and pass it in to be used.
-   *           By default an IndexedDB provider is used.
-   *
-   * callback: a callback function to be executed when the file system becomes
-   *           ready for use. Depending on the context provider used, this might
-   *           be right away, or could take some time. The callback should expect
-   *           an `error` argument, which will be null if everything worked.  Also
-   *           users should check the file system's `readyState` and `error`
-   *           properties to make sure it is usable.
-   */
-  function FileSystem(options, callback) {
-    options = options || {};
-    callback = callback || nop;
-
-    var name = options.name || FILE_SYSTEM_NAME;
-    var flags = options.flags;
-    var provider = options.provider || new providers.Default(name);
-    var forceFormatting = _(flags).contains(FS_FORMAT);
-
-    var fs = this;
-    fs.readyState = FS_PENDING;
-    fs.name = name;
-    fs.error = null;
-
-    // Safely expose the list of open files and file
-    // descriptor management functions
-    var openFiles = {};
-    var nextDescriptor = 1;
-    Object.defineProperty(this, "openFiles", {
-      get: function() { return openFiles; }
-    });
-    this.allocDescriptor = function(openFileDescription) {
-      var fd = nextDescriptor ++;
-      openFiles[fd] = openFileDescription;
-      return fd;
-    };
-    this.releaseDescriptor = function(fd) {
-      delete openFiles[fd];
-    };
-
-    // Safely expose the operation queue
-    var queue = [];
-    this.queueOrRun = function(operation) {
-      var error;
-
-      if(FS_READY == fs.readyState) {
-        operation.call(fs);
-      } else if(FS_ERROR == fs.readyState) {
-        error = new EFileSystemError('unknown error');
-      } else {
-        queue.push(operation);
-      }
-
-      return error;
-    };
-    function runQueued() {
-      queue.forEach(function(operation) {
-        operation.call(this);
-      }.bind(fs));
-      queue = null;
-    }
-
-    // We support the optional `options` arg from node, but ignore it
-    this.watch = function(filename, options, listener) {
-      if(isNullPath(filename)) {
-        throw new Error('Path must be a string without null bytes.');
-      }
-      if(typeof options === 'function') {
-        listener = options;
-        options = {};
-      }
-      options = options || {};
-      listener = listener || nop;
-
-      var watcher = new FSWatcher();
-      watcher.start(filename, false, options.recursive);
-      watcher.on('change', listener);
-
-      return watcher;
-    };
-
-    // Let other instances (in this or other windows) know about
-    // any changes to this fs instance.
-    function broadcastChanges(changes) {
-      if(!changes.length) {
-        return;
-      }
-      var intercom = Intercom.getInstance();
-      changes.forEach(function(change) {
-        intercom.emit(change.event, change.path);
-      });
-    }
-
-    // Open file system storage provider
-    provider.open(function(err, needsFormatting) {
-      function complete(error) {
-
-        function wrappedContext(methodName) {
-          var context = provider[methodName]();
-          context.flags = flags;
-          context.changes = [];
-
-          // When the context is finished, let the fs deal with any change events
-          context.close = function() {
-            var changes = context.changes;
-            broadcastChanges(changes);
-            changes.length = 0;
-          };
-
-          return context;
-        }
-
-        // Wrap the provider so we can extend the context with fs flags and
-        // an array of changes (e.g., watch event 'change' and 'rename' events
-        // for paths updated during the lifetime of the context). From this
-        // point forward we won't call open again, so it's safe to drop it.
-        fs.provider = {
-          openReadWriteContext: function() {
-            return wrappedContext('getReadWriteContext');
-          },
-          openReadOnlyContext: function() {
-            return wrappedContext('getReadOnlyContext');
-          }
-        };
-
-        if(error) {
-          fs.readyState = FS_ERROR;
-        } else {
-          fs.readyState = FS_READY;
-          runQueued();
-        }
-        callback(error, fs);
-      }
-
-      if(err) {
-        return complete(err);
-      }
-
-      // If we don't need or want formatting, we're done
-      if(!(forceFormatting || needsFormatting)) {
-        return complete(null);
-      }
-      // otherwise format the fs first
-      var context = provider.getReadWriteContext();
-      context.clear(function(err) {
-        if(err) {
-          complete(err);
-          return;
-        }
-        make_root_directory(context, complete);
-      });
-    });
-  }
-
-  // Expose storage providers on FileSystem constructor
-  FileSystem.providers = providers;
-
-  // Expose adatpers on FileSystem constructor
-  FileSystem.adapters = adapters;
-
-  function _open(fs, context, path, flags, callback) {
+  function open(fs, context, path, flags, mode, callback) {
+    // NOTE: we support the same signature as node with a `mode` arg,
+    // but ignore it.
+    callback = arguments[arguments.length - 1];
     if(!pathCheck(path, callback)) return;
 
     function check_result(error, fileNode) {
@@ -1769,7 +1463,7 @@ define(function(require) {
     open_file(context, path, flags, check_result);
   }
 
-  function _close(fs, fd, callback) {
+  function close(fs, context, fd, callback) {
     if(!_(fs.openFiles).has(fd)) {
       callback(new Errors.EBADF());
     } else {
@@ -1778,42 +1472,26 @@ define(function(require) {
     }
   }
 
-  function _mkdir(context, path, callback) {
+  function mkdir(fs, context, path, mode, callback) {
+    // NOTE: we support passing a mode arg, but we ignore it internally for now.
+    callback = arguments[arguments.length - 1];
     if(!pathCheck(path, callback)) return;
-
-    function check_result(error) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null);
-      }
-    }
-
-    make_directory(context, path, check_result);
+    make_directory(context, path, standard_check_result_cb(callback));
   }
 
-  function _rmdir(context, path, callback) {
+  function rmdir(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
-
-    function check_result(error) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null);
-      }
-    }
-
-    remove_directory(context, path, check_result);
+    remove_directory(context, path, standard_check_result_cb(callback));
   }
 
-  function _stat(context, name, path, callback) {
+  function stat(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
 
     function check_result(error, result) {
       if(error) {
         callback(error);
       } else {
-        var stats = new Stats(result, name);
+        var stats = new Stats(result, fs.name);
         callback(null, stats);
       }
     }
@@ -1821,7 +1499,7 @@ define(function(require) {
     stat_file(context, path, check_result);
   }
 
-  function _fstat(fs, context, fd, callback) {
+  function fstat(fs, context, fd, callback) {
     function check_result(error, result) {
       if(error) {
         callback(error);
@@ -1832,67 +1510,47 @@ define(function(require) {
     }
 
     var ofd = fs.openFiles[fd];
-
     if(!ofd) {
-      callback(new EBadFileDescriptor('invalid file descriptor'));
+      callback(new Errors.EBADF());
     } else {
       fstat_file(context, ofd, check_result);
     }
   }
 
-  function _link(context, oldpath, newpath, callback) {
+  function link(fs, context, oldpath, newpath, callback) {
     if(!pathCheck(oldpath, callback)) return;
     if(!pathCheck(newpath, callback)) return;
-
-    function check_result(error) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null);
-      }
-    }
-
-    link_node(context, oldpath, newpath, check_result);
+    link_node(context, oldpath, newpath, standard_check_result_cb(callback));
   }
 
-  function _unlink(context, path, callback) {
+  function unlink(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
-
-    function check_result(error) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null);
-      }
-    }
-
-    unlink_node(context, path, check_result);
+    unlink_node(context, path, standard_check_result_cb(callback));
   }
 
-  function _read(fs, context, fd, buffer, offset, length, position, callback) {
+  function read(fs, context, fd, buffer, offset, length, position, callback) {
+    // Follow how node.js does this
+    function wrapped_cb(err, bytesRead) {
+      // Retain a reference to buffer so that it can't be GC'ed too soon.
+      callback(err, bytesRead || 0, buffer);
+    }
+
     offset = (undefined === offset) ? 0 : offset;
     length = (undefined === length) ? buffer.length - offset : length;
-
-    function check_result(error, nbytes) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null, nbytes);
-      }
-    }
+    callback = arguments[arguments.length - 1];
 
     var ofd = fs.openFiles[fd];
-
     if(!ofd) {
       callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_READ)) {
       callback(new Errors.EBADF('descriptor does not permit reading'));
     } else {
-      read_data(context, ofd, buffer, offset, length, position, check_result);
+      read_data(context, ofd, buffer, offset, length, position, standard_check_result_cb(wrapped_cb));
     }
   }
 
-  function _readFile(fs, context, path, options, callback) {
+  function readFile(fs, context, path, options, callback) {
+    callback = arguments[arguments.length - 1];
     options = validate_file_options(options, null, 'r');
 
     if(!pathCheck(path, callback)) return;
@@ -1936,20 +1594,12 @@ define(function(require) {
     });
   }
 
-  function _write(fs, context, fd, buffer, offset, length, position, callback) {
+  function write(fs, context, fd, buffer, offset, length, position, callback) {
+    callback = arguments[arguments.length - 1];
     offset = (undefined === offset) ? 0 : offset;
     length = (undefined === length) ? buffer.length - offset : length;
 
-    function check_result(error, nbytes) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null, nbytes);
-      }
-    }
-
     var ofd = fs.openFiles[fd];
-
     if(!ofd) {
       callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_WRITE)) {
@@ -1957,11 +1607,12 @@ define(function(require) {
     } else if(buffer.length - offset < length) {
       callback(new Errors.EIO('intput buffer is too small'));
     } else {
-      write_data(context, ofd, buffer, offset, length, position, check_result);
+      write_data(context, ofd, buffer, offset, length, position, standard_check_result_cb(callback));
     }
   }
 
-  function _writeFile(fs, context, path, data, options, callback) {
+  function writeFile(fs, context, path, data, options, callback) {
+    callback = arguments[arguments.length - 1];
     options = validate_file_options(options, 'utf8', 'w');
 
     if(!pathCheck(path, callback)) return;
@@ -1996,7 +1647,8 @@ define(function(require) {
     });
   }
 
-  function _appendFile(fs, context, path, data, options, callback) {
+  function appendFile(fs, context, path, data, options, callback) {
+    callback = arguments[arguments.length - 1];
     options = validate_file_options(options, 'utf8', 'a');
 
     if(!pathCheck(path, callback)) return;
@@ -2031,76 +1683,45 @@ define(function(require) {
     });
   }
 
-  function _exists (context, name, path, callback) {
+  function exists(fs, context, path, callback) {
     function cb(err, stats) {
       callback(err ? false : true);
     }
-    _stat(context, name, path, cb);
+    stat(fs, context, path, cb);
   }
 
-  function _getxattr (context, path, name, callback) {
+  function getxattr(fs, context, path, name, callback) {
     if (!pathCheck(path, callback)) return;
-
-    function fetch_value (error, value) {
-      if (error) {
-        callback(error);
-      }
-      else {
-        callback(null, value);
-      }
-    }
-
-    getxattr_file(context, path, name, fetch_value);
+    getxattr_file(context, path, name, standard_check_result_cb(callback));
   }
 
-  function _fgetxattr (fs, context, fd, name, callback) {
-
-    function get_result (error, value) {
-      if (error) {
-        callback(error);
-      }
-      else {
-        callback(null, value);
-      }
-    }
-
+  function fgetxattr(fs, context, fd, name, callback) {
     var ofd = fs.openFiles[fd];
-
     if (!ofd) {
       callback(new Errors.EBADF());
     }
     else {
-      fgetxattr_file(context, ofd, name, get_result);
+      fgetxattr_file(context, ofd, name, standard_check_result_cb(callback));
     }
   }
 
-  function _setxattr (context, path, name, value, flag, callback) {
+  function setxattr(fs, context, path, name, value, flag, callback) {
+    if(typeof flag === 'function') {
+      callback = flag;
+      flag = null;
+    }
+
     if (!pathCheck(path, callback)) return;
-
-    function check_result (error) {
-      if (error) {
-        callback(error);
-      }
-      else {
-        callback(null);
-      }
-    }
-
-    setxattr_file(context, path, name, value, flag, check_result);
+    setxattr_file(context, path, name, value, flag, standard_check_result_cb(callback));
   }
 
-  function _fsetxattr (fs, context, fd, name, value, flag, callback) {
-    function check_result (error) {
-      if (error) {
-        callback(error);
-      }
-      else {
-        callback(null);
-      }
+  function fsetxattr(fs, context, fd, name, value, flag, callback) {
+    if(typeof flag === 'function') {
+      callback = flag;
+      flag = null;
     }
 
     var ofd = fs.openFiles[fd];
-
     if (!ofd) {
       callback(new Errors.EBADF());
     }
@@ -2108,38 +1729,17 @@ define(function(require) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
     }
     else {
-      fsetxattr_file(context, ofd, name, value, flag, check_result);
+      fsetxattr_file(context, ofd, name, value, flag, standard_check_result_cb(callback));
     }
   }
 
-  function _removexattr (context, path, name, callback) {
+  function removexattr(fs, context, path, name, callback) {
     if (!pathCheck(path, callback)) return;
-
-    function remove_xattr (error) {
-      if (error) {
-        callback(error);
-      }
-      else {
-        callback(null);
-      }
-    }
-
-    removexattr_file (context, path, name, remove_xattr);
+    removexattr_file(context, path, name, standard_check_result_cb(callback));
   }
 
-  function _fremovexattr (fs, context, fd, name, callback) {
-
-    function remove_xattr (error) {
-      if (error) {
-        callback(error);
-      }
-      else {
-        callback(null);
-      }
-    }
-
+  function fremovexattr(fs, context, fd, name, callback) {
     var ofd = fs.openFiles[fd];
-
     if (!ofd) {
       callback(new Errors.EBADF());
     }
@@ -2147,19 +1747,11 @@ define(function(require) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
     }
     else {
-      fremovexattr_file(context, ofd, name, remove_xattr);
+      fremovexattr_file(context, ofd, name, standard_check_result_cb(callback));
     }
   }
 
-  function _lseek(fs, context, fd, offset, whence, callback) {
-    function check_result(error, offset) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(offset);
-      }
-    }
-
+  function lseek(fs, context, fd, offset, whence, callback) {
     function update_descriptor_position(error, stats) {
       if(error) {
         callback(error);
@@ -2174,7 +1766,6 @@ define(function(require) {
     }
 
     var ofd = fs.openFiles[fd];
-
     if(!ofd) {
       callback(new Errors.EBADF());
     }
@@ -2200,120 +1791,65 @@ define(function(require) {
     }
   }
 
-  function _readdir(context, path, callback) {
+  function readdir(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
-
-    function check_result(error, files) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null, files);
-      }
-    }
-
-    read_directory(context, path, check_result);
+    read_directory(context, path, standard_check_result_cb(callback));
   }
 
-  function _utimes(context, path, atime, mtime, callback) {
+  function utimes(fs, context, path, atime, mtime, callback) {
     if(!pathCheck(path, callback)) return;
 
     var currentTime = Date.now();
     atime = (atime) ? atime : currentTime;
     mtime = (mtime) ? mtime : currentTime;
 
-    function check_result(error) {
-      if (error) {
-        callback(error);
-      }
-      else {
-        callback(null);
-      }
-    }
-    utimes_file(context, path, atime, mtime, check_result);
+    utimes_file(context, path, atime, mtime, standard_check_result_cb(callback));
   }
 
-  function _futimes(fs, context, fd, atime, mtime, callback) {
-    function check_result(error) {
-      if (error) {
-        callback(error);
-      }
-      else {
-        callback(null);
-      }
-    }
-
+  function futimes(fs, context, fd, atime, mtime, callback) {
     var currentTime = Date.now();
     atime = (atime) ? atime : currentTime;
     mtime = (mtime) ? mtime : currentTime;
 
     var ofd = fs.openFiles[fd];
-
     if(!ofd) {
       callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_WRITE)) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
     } else {
-      futimes_file(context, ofd, atime, mtime, check_result);
+      futimes_file(context, ofd, atime, mtime, standard_check_result_cb(callback));
     }
   }
 
-  function _rename(context, oldpath, newpath, callback) {
+  function rename(fs, context, oldpath, newpath, callback) {
     if(!pathCheck(oldpath, callback)) return;
     if(!pathCheck(newpath, callback)) return;
-
-    function check_result(error) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null);
-      }
-    }
 
     function unlink_old_node(error) {
       if(error) {
         callback(error);
       } else {
-        unlink_node(context, oldpath, check_result);
+        unlink_node(context, oldpath, standard_check_result_cb(callback));
       }
     }
 
     link_node(context, oldpath, newpath, unlink_old_node);
   }
 
-  function _symlink(context, srcpath, dstpath, callback) {
+  function symlink(fs, context, srcpath, dstpath, type, callback) {
+    // NOTE: we support passing the `type` arg, but ignore it.
+    callback = arguments[arguments.length - 1];
     if(!pathCheck(srcpath, callback)) return;
     if(!pathCheck(dstpath, callback)) return;
-
-    function check_result(error) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null);
-      }
-    }
-
-    make_symbolic_link(context, srcpath, dstpath, check_result);
+    make_symbolic_link(context, srcpath, dstpath, standard_check_result_cb(callback));
   }
 
-  function _readlink(context, path, callback) {
+  function readlink(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
-
-    function check_result(error, result) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null, result);
-      }
-    }
-
-    read_link(context, path, check_result);
+    read_link(context, path, standard_check_result_cb(callback));
   }
 
-  function _realpath(fd, length, callback) {
-    // TODO
-  }
-
-  function _lstat(fs, context, path, callback) {
+  function lstat(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
 
     function check_result(error, result) {
@@ -2328,535 +1864,62 @@ define(function(require) {
     lstat_file(context, path, check_result);
   }
 
-  function _truncate(context, path, length, callback) {
+  function truncate(fs, context, path, length, callback) {
+    // NOTE: length is optional
+    callback = arguments[arguments.length - 1];
+    length = length || 0;
+
     if(!pathCheck(path, callback)) return;
-
-    function check_result(error) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null);
-      }
-    }
-
-    truncate_file(context, path, length, check_result);
+    truncate_file(context, path, length, standard_check_result_cb(callback));
   }
 
-  function _ftruncate(fs, context, fd, length, callback) {
-    function check_result(error) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null);
-      }
-    }
+  function ftruncate(fs, context, fd, length, callback) {
+    // NOTE: length is optional
+    callback = arguments[arguments.length - 1];
+    length = length || 0;
 
     var ofd = fs.openFiles[fd];
-
     if(!ofd) {
       callback(new Errors.EBADF());
     } else if(!_(ofd.flags).contains(O_WRITE)) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
     } else {
-      ftruncate_file(context, ofd, length, check_result);
+      ftruncate_file(context, ofd, length, standard_check_result_cb(callback));
     }
   }
 
-
-  /**
-   * Public API for FileSystem
-   */
-
-  FileSystem.prototype.open = function(path, flags, mode, callback) {
-    // We support the same signature as node with a `mode` arg, but
-    // ignore it. Find the callback.
-    callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _open(fs, context, path, flags, complete);
-      }
-    );
-    if(error) callback(error);
+  return {
+    makeRootDirectory: make_root_directory,
+    open: open,
+    close: close,
+    mkdir: mkdir,
+    rmdir: rmdir,
+    unlink: unlink,
+    stat: stat,
+    fstat: fstat,
+    link: link,
+    read: read,
+    readFile: readFile,
+    write: write,
+    writeFile: writeFile,
+    appendFile: appendFile,
+    exists: exists,
+    getxattr: getxattr,
+    fgetxattr: fgetxattr,
+    setxattr: setxattr,
+    fsetxattr: fsetxattr,
+    removexattr: removexattr,
+    fremovexattr: fremovexattr,
+    lseek: lseek,
+    readdir: readdir,
+    utimes: utimes,
+    futimes: futimes,
+    rename: rename,
+    symlink: symlink,
+    readlink: readlink,
+    lstat: lstat,
+    truncate: truncate,
+    ftruncate: ftruncate
   };
-  FileSystem.prototype.close = function(fd, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _close(fs, fd, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.mkdir = function(path, mode, callback) {
-    // Support passing a mode arg, but we ignore it internally for now.
-    if(typeof mode === 'function') {
-      callback = mode;
-    }
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _mkdir(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.rmdir = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _rmdir(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.stat = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _stat(context, fs.name, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.fstat = function(fd, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _fstat(fs, context, fd, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.link = function(oldpath, newpath, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _link(context, oldpath, newpath, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.unlink = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _unlink(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.read = function(fd, buffer, offset, length, position, callback) {
-    // Follow how node.js does this
-    callback = maybeCallback(callback);
-    function wrapper(err, bytesRead) {
-      // Retain a reference to buffer so that it can't be GC'ed too soon.
-      callback(err, bytesRead || 0, buffer);
-    }
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          wrapper.apply(this, arguments);
-        }
-        _read(fs, context, fd, buffer, offset, length, position, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.readFile = function(path, options, callback_) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _readFile(fs, context, path, options, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.write = function(fd, buffer, offset, length, position, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _write(fs, context, fd, buffer, offset, length, position, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.writeFile = function(path, data, options, callback_) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _writeFile(fs, context, path, data, options, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.appendFile = function(path, data, options, callback_) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _appendFile(fs, context, path, data, options, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.exists = function(path, callback_) {
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _exists(context, fs.name, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.lseek = function(fd, offset, whence, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _lseek(fs, context, fd, offset, whence, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.readdir = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _readdir(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.rename = function(oldpath, newpath, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _rename(context, oldpath, newpath, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.readlink = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _readlink(context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.symlink = function(srcpath, dstpath, type, callback_) {
-    // Follow node.js in allowing the `type` arg to be passed, but we ignore it.
-    var callback = maybeCallback(arguments[arguments.length - 1]);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _symlink(context, srcpath, dstpath, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.lstat = function(path, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _lstat(fs, context, path, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.truncate = function(path, length, callback) {
-    // Follow node.js in allowing the `length` to be optional
-    if(typeof length === 'function') {
-      callback = length;
-      length = 0;
-    }
-    callback = maybeCallback(callback);
-    length = typeof length === 'number' ? length : 0;
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _truncate(context, path, length, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.ftruncate = function(fd, length, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function() {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _ftruncate(fs, context, fd, length, complete);
-      }
-    );
-    if(error) callback(error);
-  };
-  FileSystem.prototype.utimes = function(path, atime, mtime, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _utimes(context, path, atime, mtime, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.futimes = function(fd, atime, mtime, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _futimes(fs, context, fd, atime, mtime, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.setxattr = function (path, name, value, flag, callback) {
-    callback = maybeCallback(arguments[arguments.length - 1]);
-    var _flag = (typeof flag != 'function') ? flag : null;
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _setxattr(context, path, name, value, _flag, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.getxattr = function (path, name, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _getxattr(context, path, name, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.fsetxattr = function (fd, name, value, flag, callback) {
-    callback = maybeCallback(arguments[arguments.length - 1]);
-    var _flag = (typeof flag != 'function') ? flag : null;
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _fsetxattr(fs, context, fd, name, value, _flag, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.fgetxattr = function (fd, name, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _fgetxattr(fs, context, fd, name, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.removexattr = function (path, name, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _removexattr(context, path, name, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.fremovexattr = function (fd, name, callback) {
-    callback = maybeCallback(callback);
-    var fs = this;
-    var error = fs.queueOrRun(
-      function () {
-        var context = fs.provider.openReadWriteContext();
-        function complete() {
-          context.close();
-          callback.apply(fs, arguments);
-        }
-        _fremovexattr(fs, context, fd, name, complete);
-      }
-    );
-    if (error) {
-      callback(error);
-    }
-  };
-  FileSystem.prototype.Shell = function(options) {
-    return new Shell(this, options);
-  };
-
-  return FileSystem;
 
 });
