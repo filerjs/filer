@@ -5,6 +5,7 @@ define(function(require) {
   var WSQL_SIZE = require('src/constants').WSQL_SIZE;
   var WSQL_DESC = require('src/constants').WSQL_DESC;
   var u8toArray = require('src/shared').u8toArray;
+  var Errors = require('src/errors');
 
   function WebSQLContext(db, isReadOnly) {
     var that = this;
@@ -116,6 +117,9 @@ define(function(require) {
     }
 
     function onError(transaction, error) {
+      if (error.code === 5) {
+        callback(new Errors.EINVAL('WebSQL access not authorized. If private browsing is enabled, disable it.'));
+      }
       callback(error);
     }
     function onSuccess(transaction, result) {
