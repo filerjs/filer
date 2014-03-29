@@ -1882,16 +1882,16 @@ define(function(require) {
     if(!pathCheck(path, callback)) return;
 
     var currentTime = Date.now();
-    atime = (atime) ? atime : currentTime;
-    mtime = (mtime) ? mtime : currentTime;
+    atime = toUnixTimestamp((atime) ? atime : currentTime, callback);
+    mtime = toUnixTimestamp((mtime) ? mtime : currentTime, callback);
 
     utimes_file(context, path, atime, mtime, standard_check_result_cb(callback));
   }
 
   function futimes(fs, context, fd, atime, mtime, callback) {
     var currentTime = Date.now();
-    atime = (atime) ? atime : currentTime;
-    mtime = (mtime) ? mtime : currentTime;
+    atime = toUnixTimestamp((atime) ? atime : currentTime, callback);
+    mtime = toUnixTimestamp((mtime) ? mtime : currentTime, callback);
 
     var ofd = fs.openFiles[fd];
     if(!ofd) {
@@ -1901,6 +1901,17 @@ define(function(require) {
     } else {
       futimes_file(context, ofd, atime, mtime, standard_check_result_cb(callback));
     }
+  }
+
+  function toUnixTimestamp(time, callback) {
+    if (typeof time === 'number') {
+      return time;
+    }
+    if (typeof time === 'object' && Object.prototype.toString.call(time) === '[object Time]') {
+      return time.getTime() / 1000;
+    }
+    callback(new Errors.EINVAL('Cannot parse time: ' + time));
+    return;
   }
 
   function rename(fs, context, oldpath, newpath, callback) {
