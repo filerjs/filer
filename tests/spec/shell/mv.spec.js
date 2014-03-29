@@ -1,7 +1,7 @@
 define(["Filer", "util"], function(Filer, util) {
   
   describe('FileSystemShell.mv', function() {
-  	beforeEach(util.setup);
+    beforeEach(util.setup);
     afterEach(util.cleanup);
 
     it('should be a function', function() {
@@ -91,6 +91,40 @@ define(["Filer", "util"], function(Filer, util) {
               expect(error).to.not.exist;
               expect(stats).to.exist;
               done();
+            });
+          });
+        });
+      });
+    });
+
+    it('should rename a symlink which is moved to the same directory under a different name', function(done) {
+      var fs = util.fs();
+      var shell = fs.Shell();
+      var contents = "a";
+
+      fs.writeFile('/file', contents, function(error) {
+        expect(error).to.not.exist;
+
+        fs.symlink('/file', '/newfile', function(error) {
+          expect(error).to.not.exist;
+
+          shell.mv('/newfile', '/newerfile', function(error) {
+            expect(error).to.not.exist;
+          
+            fs.stat('/file', function(error, stats) {
+              expect(error).to.not.exist;
+              expect(stats).to.exist;
+            
+              fs.stat('/newfile', function(error, stats) {
+                expect(error).to.exist;
+                expect(stats).to.not.exist;
+                
+                fs.stat('/newerfile', function(error, stats) {
+                  expect(error).to.not.exist;
+                  expect(stats).to.exist;
+                  done();
+                });
+              });
             });
           });
         });
