@@ -1,15 +1,25 @@
 var Constants = require('./constants.js');
 var Path = require('./path.js');
 
+// https://github.com/nodejs/node/blob/4f1297f259b09d129ac01afbd4c674263b7ac124/lib/internal/fs/utils.js#L231
+function dateFromNumeric(num) {
+  return new Date(Number(num) * 1000);
+}
+
 function Stats(path, fileNode, devName) {
   this.dev = devName;
   this.node = fileNode.id;
   this.type = fileNode.type;
   this.size = fileNode.size;
   this.nlinks = fileNode.nlinks;
-  this.atime = fileNode.atime;
-  this.mtime = fileNode.mtime;
-  this.ctime = fileNode.ctime;
+  // Date objects
+  this.atime = dateFromNumeric(fileNode.atime);
+  this.mtime = dateFromNumeric(fileNode.mtime);
+  this.ctime = dateFromNumeric(fileNode.ctime);
+  // Unix timestamp Numbers
+  this.atimeMs = fileNode.atime;
+  this.mtimeMs = fileNode.mtime;
+  this.ctimeMs = fileNode.ctime;
   this.version = fileNode.version;
   this.mode = fileNode.mode;
   this.uid = fileNode.uid;

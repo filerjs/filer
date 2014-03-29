@@ -1,7 +1,7 @@
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
-describe('node times (atime, mtime, ctime)', function() {
+describe('node times (atime, mtime, ctimeMs)', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
@@ -41,9 +41,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat(newfilename, function(stats2) {
-            expect(stats2.ctime).to.be.at.least(stats1.ctime);
-            expect(stats2.mtime).to.equal(stats1.mtime);
-            expect(stats2.atime).to.be.at.least(stats1.atime);
+            expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
             done();
           });
         });
@@ -61,9 +61,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat(filename, function(stats2) {
-            expect(stats2.ctime).to.be.at.least(stats1.ctime);
-            expect(stats2.mtime).to.be.at.least(stats1.mtime);
-            expect(stats2.atime).to.be.at.least(stats1.atime);
+            expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.be.at.least(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
             done();
           });
         });
@@ -84,9 +84,9 @@ describe('node times (atime, mtime, ctime)', function() {
             if(error) throw error;
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.be.at.least(stats1.ctime);
-              expect(stats2.mtime).to.be.at.least(stats1.mtime);
-              expect(stats2.atime).to.be.at.least(stats1.atime);
+              expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.be.at.least(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
 
               fs.close(fd, done);
             });
@@ -105,9 +105,9 @@ describe('node times (atime, mtime, ctime)', function() {
         fs.stat(filename, function(error, stats2) {
           if(error) throw error;
 
-          expect(stats2.ctime).to.equal(stats1.ctime);
-          expect(stats2.mtime).to.equal(stats1.mtime);
-          expect(stats2.atime).to.equal(stats1.atime);
+          expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+          expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+          expect(stats2.atimeMs).to.equal(stats1.atimeMs);
           done();
         });
       });
@@ -126,9 +126,9 @@ describe('node times (atime, mtime, ctime)', function() {
           fs.fstat(fd, function(error, stats2) {
             if(error) throw error;
 
-            expect(stats2.ctime).to.equal(stats1.ctime);
-            expect(stats2.mtime).to.equal(stats1.mtime);
-            expect(stats2.atime).to.equal(stats1.atime);
+            expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.equal(stats1.atimeMs);
 
             fs.close(fd, done);
           });
@@ -148,9 +148,9 @@ describe('node times (atime, mtime, ctime)', function() {
           fs.lstat('/link', function(error, stats2) {
             if(error) throw error;
 
-            expect(stats2.ctime).to.equal(stats1.ctime);
-            expect(stats2.mtime).to.equal(stats1.mtime);
-            expect(stats2.atime).to.equal(stats1.atime);
+            expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.equal(stats1.atimeMs);
             done();
           });
         });
@@ -170,9 +170,9 @@ describe('node times (atime, mtime, ctime)', function() {
           fs.stat(filename, function(error, stats2) {
             if(error) throw error;
 
-            expect(stats2.ctime).to.equal(stats1.ctime);
-            expect(stats2.mtime).to.equal(stats1.mtime);
-            expect(stats2.atime).to.equal(stats1.atime);
+            expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.equal(stats1.atimeMs);
             done();
           });
         });
@@ -189,9 +189,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat(filename, function(stats2) {
-            expect(stats2.ctime).to.be.at.least(stats1.ctime);
-            expect(stats2.mtime).to.equal(stats1.mtime);
-            expect(stats2.atime).to.be.at.least(stats1.atime);
+            expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
             done();
           });
         });
@@ -208,9 +208,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat(filename, function(stats2) {
-            expect(stats2.ctime).to.equal(stats1.ctime);
-            expect(stats2.mtime).to.equal(stats1.mtime);
-            expect(stats2.atime).to.equal(stats1.atime);
+            expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.equal(stats1.atimeMs);
             done();
           });
         });
@@ -231,9 +231,9 @@ describe('node times (atime, mtime, ctime)', function() {
             expect(contents).to.equal(filename);
 
             stat('/link', function(stats2) {
-              expect(stats2.ctime).to.equal(stats1.ctime);
-              expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.equal(stats1.atime);
+              expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.equal(stats1.atimeMs);
               done();
             });
           });
@@ -251,9 +251,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat(dirname, function(stats2) {
-            expect(stats2.ctime).to.be.at.least(stats1.ctime);
-            expect(stats2.mtime).to.be.at.least(stats1.mtime);
-            expect(stats2.atime).to.be.at.least(stats1.atime);
+            expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.be.at.least(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
             done();
           });
         });
@@ -274,9 +274,9 @@ describe('node times (atime, mtime, ctime)', function() {
             if(error) throw error;
 
             stat('/', function(stats2) {
-              expect(stats2.ctime).to.be.at.least(stats1.ctime);
-              expect(stats2.mtime).to.be.at.least(stats1.mtime);
-              expect(stats2.atime).to.be.at.least(stats1.atime);
+              expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.be.at.least(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
               done();
             });
           });
@@ -295,9 +295,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat('/', function(stats2) {
-            expect(stats2.ctime).to.be.at.least(stats1.ctime);
-            expect(stats2.mtime).to.be.at.least(stats1.mtime);
-            expect(stats2.atime).to.be.at.least(stats1.atime);
+            expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.be.at.least(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
             done();
           });
         });
@@ -317,9 +317,9 @@ describe('node times (atime, mtime, ctime)', function() {
             if(error) throw error;
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.equal(stats1.ctime);
-              expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.equal(stats1.atime);
+              expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.equal(stats1.atimeMs);
               done();
             });
           });
@@ -337,9 +337,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat(filename, function(stats2) {
-            expect(stats2.ctime).to.equal(stats1.ctime);
-            expect(stats2.mtime).to.equal(stats1.mtime);
-            expect(stats2.atime).to.equal(stats1.atime);
+            expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.equal(stats1.atimeMs);
 
             fs.close(fd, done);
           });
@@ -369,9 +369,9 @@ describe('node times (atime, mtime, ctime)', function() {
               if(error) throw error;
 
               stat('/myfile', function(stats2) {
-                expect(stats2.ctime).to.be.at.least(stats1.ctime);
-                expect(stats2.mtime).to.be.at.least(stats1.mtime);
-                expect(stats2.atime).to.be.at.least(stats1.atime);
+                expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+                expect(stats2.mtimeMs).to.be.at.least(stats1.mtimeMs);
+                expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
                 done();
               });
             });
@@ -410,9 +410,9 @@ describe('node times (atime, mtime, ctime)', function() {
                     if(error) throw error;
 
                     stat('/myfile', function(stats2) {
-                      expect(stats2.ctime).to.equal(stats1.ctime);
-                      expect(stats2.mtime).to.equal(stats1.mtime);
-                      expect(stats2.atime).to.equal(stats1.atime);
+                      expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+                      expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+                      expect(stats2.atimeMs).to.equal(stats1.atimeMs);
                       done();
                     });
                   });
@@ -435,9 +435,9 @@ describe('node times (atime, mtime, ctime)', function() {
           expect(data).to.exist;
 
           stat(filename, function(stats2) {
-            expect(stats2.ctime).to.equal(stats1.ctime);
-            expect(stats2.mtime).to.equal(stats1.mtime);
-            expect(stats2.atime).to.equal(stats1.atime);
+            expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.equal(stats1.atimeMs);
             done();
           });
         });
@@ -454,9 +454,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat(filename, function(stats2) {
-            expect(stats2.ctime).to.be.at.least(stats1.ctime);
-            expect(stats2.mtime).to.be.at.least(stats1.mtime);
-            expect(stats2.atime).to.be.at.least(stats1.atime);
+            expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.be.at.least(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
             done();
           });
         });
@@ -473,9 +473,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat(filename, function(stats2) {
-            expect(stats2.ctime).to.be.at.least(stats1.ctime);
-            expect(stats2.mtime).to.be.at.least(stats1.mtime);
-            expect(stats2.atime).to.be.at.least(stats1.atime);
+            expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.be.at.least(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
             done();
           });
         });
@@ -492,9 +492,9 @@ describe('node times (atime, mtime, ctime)', function() {
           if(error) throw error;
 
           stat(filename, function(stats2) {
-            expect(stats2.ctime).to.be.at.least(stats1.ctime);
-            expect(stats2.mtime).to.equal(stats1.mtime);
-            expect(stats2.atime).to.be.at.least(stats1.atime);
+            expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+            expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+            expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
             done();
           });
         });
@@ -514,9 +514,9 @@ describe('node times (atime, mtime, ctime)', function() {
             if(error) throw error;
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.be.at.least(stats1.ctime);
-              expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.be.at.least(stats1.atime);
+              expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
               done();
             });
           });
@@ -538,9 +538,9 @@ describe('node times (atime, mtime, ctime)', function() {
             expect(value).to.equal('data');
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.equal(stats1.ctime);
-              expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.equal(stats1.atime);
+              expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.equal(stats1.atimeMs);
               done();
             });
           });
@@ -565,9 +565,9 @@ describe('node times (atime, mtime, ctime)', function() {
               expect(value).to.equal('data');
 
               stat(filename, function(stats2) {
-                expect(stats2.ctime).to.equal(stats1.ctime);
-                expect(stats2.mtime).to.equal(stats1.mtime);
-                expect(stats2.atime).to.equal(stats1.atime);
+                expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+                expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+                expect(stats2.atimeMs).to.equal(stats1.atimeMs);
                 done();
               });
             });
@@ -589,9 +589,9 @@ describe('node times (atime, mtime, ctime)', function() {
             if(error) throw error;
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.be.at.least(stats1.ctime);
-              expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.be.at.least(stats1.atime);
+              expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
               done();
             });
           });
@@ -615,9 +615,9 @@ describe('node times (atime, mtime, ctime)', function() {
               if(error) throw error;
 
               stat(filename, function(stats2) {
-                expect(stats2.ctime).to.be.at.least(stats1.ctime);
-                expect(stats2.mtime).to.equal(stats1.mtime);
-                expect(stats2.atime).to.be.at.least(stats1.atime);
+                expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+                expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+                expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
                 done();
               });
             });

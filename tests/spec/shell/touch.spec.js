@@ -4,7 +4,7 @@ var expect = require('chai').expect;
 function getTimes(fs, path, callback) {
   fs.stat(path, function(error, stats) {
     if(error) throw error;
-    callback({mtime: stats.mtime, atime: stats.atime});
+    callback({mtime: stats.mtimeMs, atime: stats.atimeMs});
   });
 }
 

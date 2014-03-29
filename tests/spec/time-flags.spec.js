@@ -53,9 +53,9 @@ describe('node times (atime, mtime, ctime) with mount flags', function() {
             if(error) throw error;
 
             stat(fs, newfilename, function(stats2) {
-              expect(stats2.ctime).to.equal(stats1.ctime);
-              expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.equal(stats1.atime);
+              expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.equal(stats1.atimeMs);
               done();
             });
           });
@@ -73,9 +73,9 @@ describe('node times (atime, mtime, ctime) with mount flags', function() {
             if(error) throw error;
 
             stat(fs, filename, function(stats2) {
-              expect(stats2.ctime).to.equal(stats1.ctime);
-              expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.equal(stats1.atime);
+              expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.equal(stats1.atimeMs);
               done();
             });
           });
@@ -93,9 +93,9 @@ describe('node times (atime, mtime, ctime) with mount flags', function() {
             if(error) throw error;
 
             stat(fs, filename, function(stats2) {
-              expect(stats2.ctime).to.be.at.least(stats1.ctime);
-              expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.be.at.least(stats1.atime);
+              expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
+              expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
+              expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
               done();
             });
           });

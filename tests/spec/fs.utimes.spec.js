@@ -1,5 +1,7 @@
 var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+var chai = require('chai');
+chai.use(require('chai-datetime'));
+var expect = chai.expect;
 
 describe('fs.utimes', function() {
   beforeEach(util.setup);
@@ -78,7 +80,28 @@ describe('fs.utimes', function() {
     });
   });
 
-  it('should change atime and mtime of a file path', function(done) {
+  it('should change atime and mtime of a file path with Date', function(done) {
+    var fs = util.fs();
+    var atime = new Date('1 Oct 2000 15:33:22');
+    var mtime = new Date('30 Sep 2000 06:43:54');
+
+    fs.writeFile('/testfile', '', function (error) {
+      if (error) throw error;
+
+      fs.utimes('/testfile', atime, mtime, function (error) {
+        expect(error).not.to.exist;
+
+        fs.stat('/testfile', function (error, stat) {
+          expect(error).not.to.exist;
+          expect(stat.atime).to.equalDate(atime);
+          expect(stat.mtime).to.equalDate(mtime);
+          done();
+        });
+      });
+    });
+  });
+
+  it('should change atime and mtime of a file path with Unix timestamp', function(done) {
     var fs = util.fs();
     var atime = Date.parse('1 Oct 2000 15:33:22');
     var mtime = Date.parse('30 Sep 2000 06:43:54');
@@ -91,7 +114,8 @@ describe('fs.utimes', function() {
 
         fs.stat('/testfile', function (error, stat) {
           expect(error).not.to.exist;
-          expect(stat.mtime).to.equal(mtime);
+          expect(stat.atimeMs).to.equal(atime);
+          expect(stat.mtimeMs).to.equal(mtime);
           done();
         });
       });
@@ -111,7 +135,7 @@ describe('fs.utimes', function() {
 
         fs.stat('/testdir', function (error, stat) {
           expect(error).not.to.exist;
-          expect(stat.mtime).to.equal(mtime);
+          expect(stat.mtimeMs).to.equal(mtime);
           done();
         });
       });
@@ -133,8 +157,8 @@ describe('fs.utimes', function() {
           // Note: testing estimation as time may differ by a couple of milliseconds
           // This number should be increased if tests are on slow systems
           var delta = Date.now() - then;
-          expect(then - stat.atime).to.be.at.most(delta);
-          expect(then - stat.mtime).to.be.at.most(delta);
+          expect(then - stat.atimeMs).to.be.at.most(delta);
+          expect(then - stat.mtimeMs).to.be.at.most(delta);
           done();
         });
       });
@@ -196,7 +220,7 @@ describe('fs.promises.utimes', function () {
       .writeFile('/testfile', '')
       .then(() => fs.utimes('/testfile', atime, mtime))
       .then(() => fs.stat('/testfile'))
-      .then(stat => expect(stat.mtime).to.equal(mtime));
+      .then(stat => expect(stat.mtimeMs).to.equal(mtime));
   });
 
   it('should update atime and mtime of directory path', function () {
@@ -209,7 +233,7 @@ describe('fs.promises.utimes', function () {
       .then(() => fs.utimes('/testdir', atime, mtime))
       .then(() => fs.stat('/testdir'))
       .then(stat => {
-        expect(stat.mtime).to.equal(mtime);
+        expect(stat.mtimeMs).to.equal(mtime);
       });
   });
 
@@ -228,8 +252,8 @@ describe('fs.promises.utimes', function () {
         // Note: testing estimation as time may differ by a couple of milliseconds
         // This number should be increased if tests are on slow systems
         var delta = Date.now() - t1;
-        expect(t1 - stat.atime).to.be.at.most(delta);
-        expect(t1 - stat.mtime).to.be.at.most(delta);
+        expect(t1 - stat.atimeMs).to.be.at.most(delta);
+        expect(t1 - stat.mtimeMs).to.be.at.most(delta);
       });
   });
 });

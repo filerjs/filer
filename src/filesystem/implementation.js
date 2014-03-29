@@ -2157,20 +2157,29 @@ function readdir(fs, context, path, callback) {
   read_directory(context, path, callback);
 }
 
+function toUnixTimestamp(time) {
+  if (typeof time === 'number') {
+    return time;
+  }
+  if (typeof time === 'object' && typeof time.getTime === 'function') {
+    return time.getTime() / 1000;
+  }
+}
+
 function utimes(fs, context, path, atime, mtime, callback) {
   if(!pathCheck(path, callback)) return;
 
   var currentTime = Date.now();
-  atime = (atime) ? atime : currentTime;
-  mtime = (mtime) ? mtime : currentTime;
+  atime = (atime) ? toUnixTimestamp(atime) : toUnixTimestamp(currentTime);
+  mtime = (mtime) ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
 
   utimes_file(context, path, atime, mtime, callback);
 }
 
 function futimes(fs, context, fd, atime, mtime, callback) {
   var currentTime = Date.now();
-  atime = (atime) ? atime : currentTime;
-  mtime = (mtime) ? mtime : currentTime;
+  atime = (atime) ? toUnixTimestamp(atime) : toUnixTimestamp(currentTime);
+  mtime = (mtime) ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
 
   var ofd = fs.openFiles[fd];
   if(!ofd) {

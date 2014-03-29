@@ -445,9 +445,12 @@ Callback gets `(error, stats)`, where `stats` is an object with the following pr
   name: <string>    // the entry's name (basename)
   size: <number>    // file size in bytes
   nlinks: <number>  // number of links
-  atime: <number>   // last access time
-  mtime: <number>   // last modified time
-  ctime: <number>   // creation time
+  atime: <date>   // last access time as JS Date Object
+  mtime: <date>   // last modified time as JS Date Object
+  ctime: <date>   // creation time as JS Date Object
+  atimeMs: <number>   // last access time as Unix Timestamp
+  mtimeMs: <number>   // last modified time as Unix Timestamp
+  ctimeMs: <number>   // creation time as Unix Timestamp
   type: <string>    // file type (FILE, DIRECTORY, SYMLINK),
   gid: <number>     // group name
   uid: <number>     // owner name
@@ -796,7 +799,7 @@ fs.open('/myfile', 'w', function(err, fd) {
 
 #### fs.utimes(path, atime, mtime, callback)<a name="utimes"></a>
 
-Changes the file timestamps for the file given at path `path`. Asynchronous [utimes(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/utimes.html). Callback gets no additional arguments. Both `atime` (access time) and `mtime` (modified time) arguments should be a JavaScript Date.
+Changes the file timestamps for the file given at path `path`. Asynchronous [utimes(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/utimes.html). Callback gets no additional arguments. Both `atime` (access time) and `mtime` (modified time) arguments should be a JavaScript Date or Number.
 
 Example:
 
@@ -810,7 +813,7 @@ fs.utimes('/myfile.txt', now, now, function(err) {
 
 #### fs.futimes(fd, atime, mtime, callback)<a name="futimes"></a>
 
-Changes the file timestamps for the open file represented by the file descriptor `fd`. Asynchronous [utimes(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/utimes.html). Callback gets no additional arguments. Both `atime` (access time) and `mtime` (modified time) arguments should be a JavaScript Date.
+Changes the file timestamps for the open file represented by the file descriptor `fd`. Asynchronous [utimes(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/utimes.html). Callback gets no additional arguments. Both `atime` (access time) and `mtime` (modified time) arguments should be a JavaScript Date or Number.
 
 Example:
 

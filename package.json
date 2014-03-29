@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
+    "chai-datetime": "^1.5.0",
     "eslint": "^5.0.1",
     "karma": "^3.0.0",
     "karma-chai": "^0.1.0",

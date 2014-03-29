@@ -32,14 +32,37 @@ describe('fs.stat', function() {
       expect(result['dev']).to.equal(fs.name);
       expect(result['size']).to.be.a('number');
       expect(result['nlinks']).to.be.a('number');
-      expect(result['atime']).to.be.a('number');
-      expect(result['mtime']).to.be.a('number');
-      expect(result['ctime']).to.be.a('number');
+      expect(result['atime']).to.be.a('date');
+      expect(result['mtime']).to.be.a('date');
+      expect(result['ctime']).to.be.a('date');
+      expect(result['atimeMs']).to.be.a('number');
+      expect(result['mtimeMs']).to.be.a('number');
+      expect(result['ctimeMs']).to.be.a('number');
       expect(result['type']).to.equal('DIRECTORY');
 
       done();
     });
   });
+
+  it('should return a stat object with equal Date and Unix Timestamps', function(done) {
+    var fs = util.fs();
+
+    fs.stat('/', function(error, result) {
+      expect(error).not.to.exist;
+      expect(result).to.exist;
+
+      expect(result['atime']).to.be.a('date');
+      expect(result['mtime']).to.be.a('date');
+      expect(result['ctime']).to.be.a('date');
+
+      expect(result.atime.getTime()/1000).to.equal(result.atimeMs);
+      expect(result.mtime.getTime()/1000).to.equal(result.mtimeMs);
+      expect(result.ctime.getTime()/1000).to.equal(result.ctimeMs);
+
+      done();
+    });
+  });
+
 
   it('should follow symbolic links and return a stat object for the resulting path', function(done) {
     var fs = util.fs();
@@ -82,9 +105,12 @@ describe('fs.stat', function() {
         expect(result['dev']).to.equal(fs.name);
         expect(result['size']).to.be.a('number');
         expect(result['nlinks']).to.be.a('number');
-        expect(result['atime']).to.be.a('number');
-        expect(result['mtime']).to.be.a('number');
-        expect(result['ctime']).to.be.a('number');
+        expect(result['atime']).to.be.a('date');
+        expect(result['mtime']).to.be.a('date');
+        expect(result['ctime']).to.be.a('date');
+        expect(result['atimeMs']).to.be.a('number');
+        expect(result['mtimeMs']).to.be.a('number');
+        expect(result['ctimeMs']).to.be.a('number');
         expect(result['type']).to.equal('FILE');
 
         done();
@@ -117,9 +143,12 @@ describe('fs.stat', function() {
         expect(result.dev).to.equal(fs.name);
         expect(result.size).to.be.a('number');
         expect(result.nlinks).to.be.a('number');
-        expect(result.atime).to.be.a('number');
-        expect(result.mtime).to.be.a('number');
-        expect(result.ctime).to.be.a('number');
+        expect(result['atime']).to.be.a('date');
+        expect(result['mtime']).to.be.a('date');
+        expect(result['ctime']).to.be.a('date');
+        expect(result['atimeMs']).to.be.a('number');
+        expect(result['mtimeMs']).to.be.a('number');
+        expect(result['ctimeMs']).to.be.a('number');
         expect(result.isDirectory()).to.be.true;
       }); 
   });
