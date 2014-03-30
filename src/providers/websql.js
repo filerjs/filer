@@ -118,7 +118,7 @@ define(function(require) {
 
     function onError(transaction, error) {
       if (error.code === 5) {
-        callback(new Errors.EINVAL('WebSQL access not authorized. If private browsing is enabled, disable it.'));
+        callback(new Errors.EINVAL('WebSQL cannot be accessed. If private browsing is enabled, disable it.'));
       }
       callback(error);
     }
