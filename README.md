@@ -1345,15 +1345,23 @@ sh.mkdirp('/test/mkdirp', function(err) {
 Rsync copies files locally on the current host (currently no remote functionality). 
 The srcPath can be either a file or a directory, with the destPath being the
 destination directory. If the destination directory does not exist, it will be created.
-Options object can currently have the following attributes:
+Options object can currently have the following attributes (and their default values):
 
 recursive: true //default 'false'
 size: 5 //default 750. File chunk size in Kb.
+checksum: false //default 'false'. False will skip files if their size AND modified times are the same (regardless of content difference)
 
 Example:
 
 ```javascript
-sh.rsync('/test', '/test2', { recursive: true }, function(err) {
+fs.writeFile('/1.txt','This is my file.', 'utf8', function(err) { 
   if(err) throw err;
+  shell.rsync('/1.txt', '/test', { size: 5 }, function(err) {
+    if(err) throw err;
+    fs.readFile('/test/1.txt', 'utf8', function(err, data){
+      if(err) throw err;
+      //data will equal 'This is my file.'
+    });
+  });
 });
 ```

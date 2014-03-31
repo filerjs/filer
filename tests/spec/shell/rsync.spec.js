@@ -52,7 +52,7 @@ define(["Filer", "util"], function(Filer, util) {
         });
     });
 
-    it('should succeed if the source file is altered in content but not length from the destination file. (Destination edited)', function(done) {
+    it('should succeed if the source file is different in content but not length from the destination file. (Destination edited)', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
 
@@ -60,11 +60,11 @@ define(["Filer", "util"], function(Filer, util) {
         expect(err).to.not.exist;
         fs.writeFile('/1.txt','This is my file. It does not have any typos.','utf8',function(err) { 
           expect(err).to.not.exist;
-          fs.writeFile('/test/1.txt','This is my fivth file. It doez not have any topos,', 'utf8', function(err) {
+          fs.writeFile('/test/1.txt','This iz mi fiel. It doez not have any topos,', 'utf8', function(err) {
             expect(err).to.not.exist;
             shell.rsync('/1.txt', '/test', { size: 5 }, function(err) {
               expect(err).to.not.exist;
-              fs.readFile('/test/1.txt', 'utf8', function(err, data){
+              fs.readFile('/test/1.txt', 'utf8', function(err, data) {
                 expect(err).to.not.exist;
                 expect(data).to.exist;
                 expect(data).to.equal('This is my file. It does not have any typos.');
@@ -142,6 +142,83 @@ define(["Filer", "util"], function(Filer, util) {
             });
           }); 
         });   
+      });
+    });
+
+    it('should succeed if no options are provided', function(done) {
+      var fs = util.fs();
+      var shell = fs.Shell();
+
+      fs.mkdir('/test', function(err) {
+        expect(err).to.not.exist;
+        fs.writeFile('/1.txt','This is my file. It does not exist in the destination folder.', 'utf8', function(err) { 
+          expect(err).to.not.exist;
+          shell.rsync('/1.txt', '/test', function(err) {
+            expect(err).to.not.exist;
+            fs.readFile('/test/1.txt', 'utf8', function(err, data){
+              expect(err).to.not.exist;
+              expect(data).to.exist;
+              expect(data).to.equal('This is my file. It does not exist in the destination folder.');
+              done();
+            });
+          }); 
+        });   
+      });
+    });
+
+    it('should do nothing if the source file and destination file have the same mtime and size with \'checksum = false\' flag (Default)', function(done){
+      var fs = util.fs();
+      var shell = fs.Shell();
+      var date = Date.parse('1 Oct 2000 15:33:22'); 
+      fs.mkdir('/test', function(err) {
+        expect(err).to.not.exist;
+        fs.writeFile('/1.txt', 'This is a file.', 'utf8', function(err) {
+          expect(err).to.not.exist;
+          fs.writeFile('/test/1.txt', 'Different file.', 'utf8', function(err) {
+            expect(err).to.not.exist;
+            fs.utimes('/1.txt', date, date, function(err) {
+              expect(err).to.not.exist;
+              fs.utimes('/test/1.txt', date, date, function(err) {
+                expect(err).to.not.exist;
+                shell.ls('/', {recursive: true}, function(err, stuff){
+                  shell.rsync('/1.txt', '/test', {size: 5, checksum: false }, function(err) {
+                    expect(err).to.not.exist;
+                    fs.readFile('/test/1.txt', 'utf8', function(err, data) {
+                      expect(err).to.not.exist;
+                      expect(data).to.exist;
+                      expect(data).to.equal('Different file.');
+                      done();
+                    });
+                  });
+                });   
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should suceed if the source file and destination file have the same mtime and size with \'checksum = true\' flag', function(done){
+      var fs = util.fs();
+      var shell = fs.Shell();
+
+      fs.mkdir('/test', function(err) {
+        expect(err).to.not.exist;
+        fs.writeFile('/1.txt', 'This is a file.', 'utf8', function(err) {
+          expect(err).to.not.exist;
+          fs.writeFile('/test/1.txt', 'Different file.', 'utf8', function(err) {
+            expect(err).to.not.exist;
+            shell.rsync('/1.txt', '/test', {size: 5, checksum: true }, function(err) {
+              expect(err).to.not.exist;
+              fs.readFile('/test/1.txt', 'utf8', function(err, data) {
+                expect(err).to.not.exist;
+                expect(data).to.exist;
+                expect(data).to.equal('This is a file.');
+                done();
+              });
+            });
+          });
+        });
       });
     });
 
@@ -224,79 +301,59 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    it('should succeed syncing a directory recursively (recursive: true)', function(done) {
+    it('should succeed syncing a directory recursively, skipping same-size and time files (recursive: true)', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
-      fs.mkdir('/test', function(err) {
+      var date = Date.parse('1 Oct 2000 15:33:22'); 
+
+      shell.mkdirp('/test/sync', function(err){
         expect(err).to.not.exist;
-        fs.mkdir('/test2', function(err) {
+        shell.mkdirp('/test2/sync', function(err){
           expect(err).to.not.exist;
-          fs.mkdir('/test/sync', function(err) {
+          fs.writeFile('/test/1.txt','This is my 1st file.', 'utf8', function(err) { 
             expect(err).to.not.exist;
-            fs.mkdir('/test2/sync', function(err) {
+            fs.writeFile('/test/sync/2.txt','This is my 2nd file.', 'utf8', function(err) { 
               expect(err).to.not.exist;
-
-              fs.writeFile('/test/1.txt','This is my 1st file. It does not have any typos.', 'utf8', function(err) { 
+              fs.writeFile('/test/sync/3.txt','This is my 3rd file.', 'utf8', function(err) { 
                 expect(err).to.not.exist;
-                fs.writeFile('/test/2.txt','This is my 2nd file. It is longer than the destination file.', 'utf8', function(err) { 
+                fs.writeFile('/test2/sync/3.txt','This shouldn\'t sync.', 'utf8', function(err) { 
                   expect(err).to.not.exist;
-                  fs.writeFile('/test/sync/3.txt','This is my 3rd file.', 'utf8', function(err) { 
-                    expect(err).to.not.exist;
-                    fs.writeFile('/test/sync/5.txt','This is my 5th file. It does not exist in the destination folder.', 'utf8', function(err) { 
-                      expect(err).to.not.exist;
-                      fs.writeFile('/test2/1.txt','This is my 1st file. It doez not have any topos,', 'utf8', function(err) { 
-                        expect(err).to.not.exist;
-                        fs.writeFile('/test2/2.txt','This is my 2nd file.', 'utf8', function(err) { 
-                          expect(err).to.not.exist;
-                          fs.writeFile('/test2/sync/3.txt','This is my 3rd file. It is longer than the source version.', 'utf8', function(err) { 
-                            expect(err).to.not.exist;
-                            fs.writeFile('/test2/sync/4.txt','This is my 4th file. It does not exist in the source folder.', 'utf8', function(err) { 
-                              expect(err).to.not.exist;
-                              
-                              shell.rsync('/test', '/test2', { recursive: true, size: 5 }, function(err) {
-                                expect(err).to.not.exist;
-                                fs.readFile('/test2/1.txt', 'utf8', function(err, data){
-                                  expect(err).to.not.exist;
-                                  expect(data).to.exist;
-                                  expect(data).to.equal('This is my 1st file. It does not have any typos.');
-                                  fs.readFile('/test2/2.txt', 'utf8', function(err, data){
-                                    expect(err).to.not.exist;
-                                    expect(data).to.exist;
-                                    expect(data).to.equal('This is my 2nd file. It is longer than the destination file.');
-                                    fs.readFile('/test2/sync/3.txt', 'utf8', function(err, data){
-                                      expect(err).to.not.exist;
-                                      expect(data).to.exist;
-                                      expect(data).to.equal('This is my 3rd file.')
-                                      fs.readFile('/test2/sync/4.txt', 'utf8', function(err, data){
-                                        expect(err).to.not.exist;
-                                        expect(data).to.exist;
-                                        expect(data).to.equal('This is my 4th file. It does not exist in the source folder.')
-                                        fs.readFile('/test2/sync/5.txt', 'utf8', function(err, data){
-                                          expect(err).to.not.exist;
-                                          expect(data).to.exist;
-                                          expect(data).to.equal('This is my 5th file. It does not exist in the destination folder.')
-                                          done();
-                                        });
-                                      }); 
-                                    });
-                                  }); 
-                                });
-                              });
 
+                  fs.utimes('/test/sync/3.txt', date, date, function(err) {
+                    expect(err).to.not.exist;
+                    fs.utimes('/test2/sync/3.txt', date, date, function(err) {
+                      expect(err).to.not.exist;
+
+                      shell.rsync('/test', '/test2', { recursive: true, size: 5 }, function(err) {
+                        expect(err).to.not.exist;
+                        fs.readFile('/test2/1.txt', 'utf8', function(err, data){
+                          expect(err).to.not.exist;
+                          expect(data).to.exist;
+                          expect(data).to.equal('This is my 1st file.');
+                          fs.readFile('/test2/sync/2.txt', 'utf8', function(err, data){
+                            expect(err).to.not.exist;
+                            expect(data).to.exist;
+                            expect(data).to.equal('This is my 2nd file.');
+                            fs.readFile('/test2/sync/3.txt', 'utf8', function(err, data){
+                              expect(err).to.not.exist;
+                              expect(data).to.exist;
+                              expect(data).to.equal('This shouldn\'t sync.')
+                      
+                              done();
                             });
                           });
-                        });
+                        }); 
                       });
-                    });
-                  }); 
+                                    
+                    }); 
+                  });
+
                 });
               });
-
             });
           });
         });
       });
-
     });
 
   });

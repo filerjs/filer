@@ -95,10 +95,14 @@ define(function(require) {
       callback = opts;
       options = {};
       options.size = 750;
+      options.checksum = false;
     }
-    options = opts || {};
-    options.size = options.size || 750;
-    callback = callback || function() {};
+    else {
+      options = opts || {};
+      options.size = options.size || 750;
+      options.checksum = options.checksum || false;
+      callback = callback || function() {};
+    }
     if(srcPath === null || srcPath === '/' || srcPath === '') {
       callback (new Errors.EINVAL('invalid source path'));
       return;
@@ -111,7 +115,7 @@ define(function(require) {
           callback(err);
           return;
         }
-        if(stats.type === 'DIRECTORY') {
+        if(stats.isDirectory()) {
           self.fs.readdir(path, function(err, entries) {
             if(err) {
               callback(err);
@@ -128,9 +132,10 @@ define(function(require) {
                 var entry = { 
                   path: Path.basename(name),
                   modified: stats.mtime,
+                  size: stats.size,
                   type: stats.type
                 };
-                if(options.recursive && stats.type === 'DIRECTORY') {
+                if(options.recursive && stats.isDirectory()) {
                   getSrcList(Path.join(srcPath, entry.path), function(error, items) {
                     if(error) {
                       callback(error);
@@ -140,7 +145,7 @@ define(function(require) {
                     result.push(entry);
                     callback();
                   });
-                } else if(stats.type === 'FILE') {
+                } else if(stats.isFile()) {
                     result.push(entry);                
                     callback();
                 } else {
@@ -158,6 +163,7 @@ define(function(require) {
           var entry = { 
             path: Path.basename(path),
             modified: stats.mtime,
+            size: stats.size,
             type: stats.type
           };
           result.push(entry);
@@ -166,7 +172,7 @@ define(function(require) {
       });
     }
  
-    function getChecksums(destPath, srcList, callback){     
+    function getChecksums(destPath, srcList, callback) {     
       var result = [];
       function getDirChecksums(entry, callback) {
         var item = { path: entry.path };
@@ -180,18 +186,38 @@ define(function(require) {
             result.push(item);
             callback();
           });
-        } else if(entry.type === 'FILE'){
-          checksum.call(self, Path.join(destPath, entry.path), function(err, checksums) {
-            if(err) {
-              callback(err);
-              return;
-            }
-            item.checksum = checksums;
-            result.push(item); 
-            callback();               
-          });
+        } else if(entry.type === 'FILE') {
+          if(options.checksum === false) {
+            self.fs.stat(Path.join(destPath, entry.path), function(err, stat) {
+              if(!err && stat.mtime === entry.modified && stat.size === entry.size) {
+                  callback();
+                }
+              else {
+                checksum.call(self, Path.join(destPath, entry.path), function(err, checksums) {
+                  if(err) {
+                    callback(err);
+                    return;
+                  }
+                  item.checksum = checksums;
+                  result.push(item); 
+                  callback();               
+                });
+              }
+            }); 
+          }
+          else {
+            checksum.call(self, Path.join(destPath, entry.path), function(err, checksums) {
+              if(err) {
+                callback(err);
+                return;
+              }
+              item.checksum = checksums;
+              result.push(item); 
+              callback();               
+            });
+          }
         }
-        else{
+        else {
           callback();
         }           
       }
@@ -200,23 +226,27 @@ define(function(require) {
       });
     }
     
-    getSrcList(srcPath, function(err, result){
+    getSrcList(srcPath, function(err, result) {
       if(err) {
         callback(err);
         return;
       }
-      self.mkdirp(destPath, function(err){
-        getChecksums(destPath, result, function(err, result){
-          if(err){
+      self.mkdirp(destPath, function(err) {
+        getChecksums(destPath, result, function(err, result) {
+          if(err) {
             callback(err);
             return;
           }
+          else if (result.length === 0) {
+            callback();
+            return;
+          }
           diff.call(self, srcPath, result, function(err, diffs) {
-            if(err){
+            if(err) {
               callback(err);
               return;
             }
-            sync.call(self, destPath, diffs, function(err){
+            sync.call(self, destPath, diffs, function(err) {
               callback(err);
             });
           });
@@ -228,11 +258,11 @@ define(function(require) {
   function checksum (path, callback) {
     var self = this;
     self.fs.readFile(path, function (err, data) {
-      if (!err){
+      if (!err) {
         // cache file
         cache[path] = data;  
       }
-      else if (err && err.code === 'ENOENT'){
+      else if (err && err.code === 'ENOENT') {
         cache[path] = [];
       }
       else {
@@ -265,12 +295,10 @@ define(function(require) {
   
   function diff(path, checksums, callback) {
     var self = this;
-    if (!checksums.length) 
-      return callback(new Error('attribute does not exist'), null);
     // roll through the file
     var diffs = [];
-    self.fs.stat(path, function(err, stat){
-      if(stat.type ==='DIRECTORY') {
+    self.fs.stat(path, function(err, stat) {
+      if(stat.isDirectory()) {
         async.each(checksums, getDiff, function(err) {
           callback(err, diffs);
         }); 
@@ -316,7 +344,7 @@ define(function(require) {
   function sync(path, diff, callback) {
     var self = this;
 
-    function syncEach(entry, callback){ 
+    function syncEach(entry, callback) { 
 
       //get slice of raw file from block's index
       function rawslice(index) {
@@ -326,7 +354,7 @@ define(function(require) {
       }
 
       if(entry.hasOwnProperty('contents')) {
-        sync.call(self, Path.join(path, entry.path), entry.contents, function(err){
+        sync.call(self, Path.join(path, entry.path), entry.contents, function(err) {
           if(err) {
             callback(err);
             return;
@@ -338,7 +366,7 @@ define(function(require) {
         var raw = cache[Path.join(path,entry.path)];
         var i = 0;
         var len = entry.diff.length;
-        if(typeof raw === 'undefined'){
+        if(typeof raw === 'undefined') {
           return callback(new Error('must do checksum() first'), null);
         }
 
@@ -355,8 +383,8 @@ define(function(require) {
           }
         }
         delete cache[Path.join(path,entry.path)];
-        self.fs.writeFile(Path.join(path,entry.path), buf, function(err){
-          if(err){
+        self.fs.writeFile(Path.join(path,entry.path), buf, function(err) {
+          if(err) {
             callback(err);
             return;
           }
