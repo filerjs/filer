@@ -1911,7 +1911,6 @@ define(function(require) {
       return time.getTime() / 1000;
     }
     callback(new Errors.EINVAL('Cannot parse time: ' + time));
-    return;
   }
 
   function rename(fs, context, oldpath, newpath, callback) {
