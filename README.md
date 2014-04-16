@@ -850,7 +850,7 @@ Examples:
 ```javascript
 // Append UTF8 text file
 fs.writeFile('/myfile.txt', "More...", function (err) {
-	if (err) throw err;
+  if (err) throw err;
 });
 fs.appendFile('/myfile.txt', "Data...", function (err) {
   if (err) throw err;
@@ -861,7 +861,7 @@ fs.appendFile('/myfile.txt', "Data...", function (err) {
 var more = new Uint8Array([1, 2, 3, 4]);
 var data = new Uint8Array([5, 6, 7, 8]);
 fs.writeFile('/myfile', more, function (err) {
-	if (err) throw err;
+  if (err) throw err;
 });
 fs.appendFile('/myfile', buffer, function (err) {
   if (err) throw err;
@@ -1324,7 +1324,7 @@ sh.tempDir(function(err, tmp) {
 });
 ```
 
-#### sh.mkdirp(callback)<a name="mkdirp"></a>
+#### sh.mkdirp(path, callback)<a name="mkdirp"></a>
 
 Recursively creates the directory at the provided path. If the 
 directory already exists, no error is returned. All parents must
@@ -1349,7 +1349,9 @@ Options object can currently have the following attributes (and their default va
 
 recursive: true //default 'false'
 size: 5 //default 750. File chunk size in Kb.
-checksum: false //default 'false'. False will skip files if their size AND modified times are the same (regardless of content difference)
+checksum: false //default 'false'. False will skip files if their size AND modified times are the same (regardless of content difference).
+time: true //default 'false'. Preserves file modified time when syncing.
+links: true //default 'false'. Copies symlinks as links instead of resolving.
 
 Example:
 

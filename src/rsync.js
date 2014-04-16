@@ -1,17 +1,71 @@
 // RSync Module for Filer
-// Based on the Anchor module for node.js (https://github.com/ttezel/anchor)
-// Used under MIT
 
 define(function(require) {
   var Path = require('src/path');
   var Errors = require('src/errors');
   var async = require('async');
-  var _md5 = require('./hash').md5;
-  var _weak16 = require('./hash').weak16;
-  var _weak32 = require('./hash').weak32;
   var cache = {};
   var options;
 
+  //MD5 hashing for RSync
+  //Used from Node.js Anchor module
+  //MIT Licensed
+  //https://github.com/ttezel/anchor
+  function _md5(data) {
+    return CryptoJS.MD5(String.fromCharCode(data)).toString();
+  }
+
+  //Weak32 hashing for RSync
+  //Used from Node.js Anchor module
+  //MIT Licensed
+  //https://github.com/ttezel/anchor
+  function _weak32(data, prev, start, end) {
+    var a = 0;
+    var b = 0;
+    var sum = 0;
+    var M = 1 << 16;
+
+    if (!prev) {
+      var len = start >= 0 && end >= 0 ? end - start : data.length;
+      var i = 0;
+
+        for (; i < len; i++) {
+          a += data[i];
+          b += a;
+        }
+
+        a %= M;
+        b %= M;
+    } else {
+      var k = start;
+      var l = end - 1;
+      var prev_k = k - 1;
+      var prev_l = l - 1;
+      var prev_first = data[prev_k];
+      var prev_last = data[prev_l];
+      var curr_first = data[k];
+      var curr_last = data[l];
+      
+      a = (prev.a - prev_first + curr_last) % M;
+      b = (prev.b - (prev_l - prev_k + 1) * prev_first + a) % M;
+    }
+    return { a: a, b: b, sum: a + b * M };
+  }
+
+  //Weak16 hashing for RSync
+  //Used from Node.js Anchor module
+  //MIT Licensed
+  //https://github.com/ttezel/anchor
+  function _weak16(data) {
+    return 0xffff & (data >> 16 ^ data*1009);
+  }
+
+  /* RSync Algorithm function
+  * Copyright(c) 2011 Mihai Tomescu <matomesc@gmail.com>
+  * Copyright(c) 2011 Tolga Tezel <tolgatezel11@gmail.com>
+  * https://github.com/ttezel/anchor
+  * MIT Licensed
+  */
   function createHashtable(checksums) {
     var hashtable = {};
     var len = checksums.length;
@@ -28,6 +82,12 @@ define(function(require) {
     return hashtable;
   }
 
+  /* RSync Algorithm function
+  * Copyright(c) 2011 Mihai Tomescu <matomesc@gmail.com>
+  * Copyright(c) 2011 Tolga Tezel <tolgatezel11@gmail.com>
+  * https://github.com/ttezel/anchor
+  * MIT Licensed
+  */
   function roll(data, checksums, chunkSize) {
     var results = [];
     var hashtable = createHashtable(checksums);
@@ -96,11 +156,17 @@ define(function(require) {
       options = {};
       options.size = 750;
       options.checksum = false;
+      options.recursive = false;
+      options.time = false;
+      options.links = false;
     }
     else {
       options = opts || {};
       options.size = options.size || 750;
       options.checksum = options.checksum || false;
+      options.recursive = options.recursive || false;
+      options.time = options.time || false;
+      options.links = options.links || false;
       callback = callback || function() {};
     }
     if(srcPath === null || srcPath === '/' || srcPath === '') {
@@ -110,7 +176,7 @@ define(function(require) {
 
     function getSrcList(path, callback) {
       var result = [];
-      self.fs.stat(path, function(err, stats) {
+      self.fs.lstat(path, function(err, stats) {
         if(err) {
           callback(err);
           return;
@@ -124,11 +190,13 @@ define(function(require) {
 
             function getSrcContents(_name, callback) {
               var name = Path.join(path, _name);
-              self.fs.stat(name, function(error, stats) {
+              self.fs.lstat(name, function(error, stats) {
+                
                 if(error) {
                   callback(error);
                   return;
                 }
+
                 var entry = { 
                   path: Path.basename(name),
                   modified: stats.mtime,
@@ -145,10 +213,11 @@ define(function(require) {
                     result.push(entry);
                     callback();
                   });
-                } else if(stats.isFile()) {
+                } else if(stats.isFile() || !options.links) {
                     result.push(entry);                
                     callback();
-                } else {
+                } else if (entry.type === 'SYMLINK'){
+                  result.push(entry);                
                   callback();
                 }              
               });
@@ -159,12 +228,12 @@ define(function(require) {
             });
           });
         }
-        else{
+        else {
           var entry = { 
             path: Path.basename(path),
-            modified: stats.mtime,
             size: stats.size,
-            type: stats.type
+            type: stats.type,
+            modified: stats.mtime
           };
           result.push(entry);
           callback(err, result);
@@ -186,12 +255,12 @@ define(function(require) {
             result.push(item);
             callback();
           });
-        } else if(entry.type === 'FILE') {
-          if(options.checksum === false) {
+        } else if(entry.type === 'FILE' || !options.links) {
+          if(!options.checksum) {
             self.fs.stat(Path.join(destPath, entry.path), function(err, stat) {
               if(!err && stat.mtime === entry.modified && stat.size === entry.size) {
-                  callback();
-                }
+                callback();
+              }
               else {
                 checksum.call(self, Path.join(destPath, entry.path), function(err, checksums) {
                   if(err) {
@@ -199,6 +268,7 @@ define(function(require) {
                     return;
                   }
                   item.checksum = checksums;
+                  item.modified = entry.modified;
                   result.push(item); 
                   callback();               
                 });
@@ -212,13 +282,29 @@ define(function(require) {
                 return;
               }
               item.checksum = checksums;
+              item.modified = entry.modified;
               result.push(item); 
               callback();               
             });
           }
         }
-        else {
-          callback();
+        else if(entry.type === 'SYMLINK'){
+          if(!options.checksum) {
+            self.fs.stat(Path.join(destPath, entry.path), function(err, stat){
+              if(!err && stat.mtime === entry.modified && stat.size === entry.size) {
+                callback();
+              }
+              else {
+                item.link = true;
+                result.push(item);
+                callback();
+              }
+            });
+          } else {
+            item.link = true;
+            result.push(item);
+            callback();
+          }
         }           
       }
       async.each(srcList, getDirChecksums, function(error) {
@@ -255,6 +341,13 @@ define(function(require) {
     });
   }
 
+  /* RSync Checksum Function
+  * Based on Node.js Anchor module checksum function
+  * Copyright(c) 2011 Mihai Tomescu <matomesc@gmail.com>
+  * Copyright(c) 2011 Tolga Tezel <tolgatezel11@gmail.com>
+  * https://github.com/ttezel/anchor
+  * MIT Licensed
+  */
   function checksum (path, callback) {
     var self = this;
     self.fs.readFile(path, function (err, data) {
@@ -293,24 +386,52 @@ define(function(require) {
     });
   }
   
+  /* RSync Checksum Function
+  * Based on Node.js Anchor module diff function
+  * Copyright(c) 2011 Mihai Tomescu <matomesc@gmail.com>
+  * Copyright(c) 2011 Tolga Tezel <tolgatezel11@gmail.com>
+  * https://github.com/ttezel/anchor
+  * MIT Licensed
+  */
   function diff(path, checksums, callback) {
     var self = this;
     // roll through the file
     var diffs = [];
-    self.fs.stat(path, function(err, stat) {
+    self.fs.lstat(path, function(err, stat) {
       if(stat.isDirectory()) {
         async.each(checksums, getDiff, function(err) {
           callback(err, diffs);
         }); 
       }
-      else {
+      else if (stat.isFile() || !options.links) {
         self.fs.readFile(path, function (err, data) {
           if (err) { return callback(err); }
           diffs.push({
             diff: roll(data, checksums[0].checksum, options.size),
+            modified: checksums[0].modified,
             path: checksums[0].path
           });
           callback(err, diffs);
+        });
+      }
+      else if (stat.isSymbolicLink()) {
+        self.fs.readlink(path, function(err, linkContents) {
+          if(err) {
+            callback(err);
+            return;
+          }
+          self.fs.lstat(path, function(err, stats){
+            if(err) {
+              callback(err);
+              return;
+            }
+            diffs.push({
+              link: linkContents,
+              modified: stats.mtime,
+              path: path
+            });
+            callback(err, diffs);
+          });
         });
       }
     });
@@ -328,11 +449,31 @@ define(function(require) {
           });
           callback();
         });
+      } else if (entry.hasOwnProperty('link')) {
+        fs.readlink(Path.join(path, entry.path), function(err, linkContents) {
+          if(err) {
+            callback(err);
+            return;
+          }
+          fs.lstat(Path.join(path, entry.path), function(err, stats){
+            if(err) {
+              callback(err);
+              return;
+            }
+            diffs.push({
+              link: linkContents,
+              modified: stats.mtime,
+              path: entry.path
+            });
+            callback(err, diffs);
+          });
+        });
       } else {
         self.fs.readFile(Path.join(path,entry.path), function (err, data) {
           if (err) { return callback(err); }
           diffs.push({
             diff: roll(data, entry.checksum, options.size),
+            modified: entry.modified,
             path: entry.path
           });
           callback(err, diffs);
@@ -341,6 +482,13 @@ define(function(require) {
     }
   }
 
+  /* RSync Checksum Function
+  * Based on Node.js Anchor module sync function
+  * Copyright(c) 2011 Mihai Tomescu <matomesc@gmail.com>
+  * Copyright(c) 2011 Tolga Tezel <tolgatezel11@gmail.com>
+  * https://github.com/ttezel/anchor
+  * MIT Licensed
+  */
   function sync(path, diff, callback) {
     var self = this;
 
@@ -362,7 +510,17 @@ define(function(require) {
           callback();
         });
       }
-      else {
+      else if (entry.hasOwnProperty('link')) {
+        
+        var syncPath = Path.join(path,entry.path);
+        self.fs.symlink(entry.link, syncPath, function(err){ 
+          if(err) {
+            callback(err);
+            return;
+          }
+          return callback();
+        }); 
+      } else {
         var raw = cache[Path.join(path,entry.path)];
         var i = 0;
         var len = entry.diff.length;
@@ -388,7 +546,18 @@ define(function(require) {
             callback(err);
             return;
           }
-         return callback(null);  
+          if(options.time) {
+            self.fs.utimes(Path.join(path,entry.path), entry.modified, entry.modified, function(err) {
+              if(err) {
+                callback(err);
+                return;
+              }
+              return callback();
+            });
+          }
+          else {
+            return callback();
+          }
         });
         
       }

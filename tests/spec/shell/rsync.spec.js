@@ -9,7 +9,7 @@ define(["Filer", "util"], function(Filer, util) {
       expect(shell.rsync).to.be.a('function');
     });
 
-    it('should fail without a source path provided (null)', function(done) {
+    it('should fail if source path is null', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
 
@@ -20,7 +20,7 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    it('should fail without a source path provided (\'\')', function(done) {
+    it('should fail if source path is empty string', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
 
@@ -42,7 +42,7 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    it('should fail with a non-existant path', function(done) {
+    it('should fail if source path doesn\'t exist', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
         shell.rsync('/1.txt', '/', function(err) {
@@ -198,7 +198,7 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    it('should suceed if the source file and destination file have the same mtime and size with \'checksum = true\' flag', function(done){
+    it('should succeed if the source file and destination file have the same mtime and size with \'checksum = true\' flag', function(done){
       var fs = util.fs();
       var shell = fs.Shell();
 
@@ -222,7 +222,139 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    it('should succeed if the destination folder does not exist (Destination file created)', function(done) {
+    it('should succeed and update mtime with \'time = true\' flag', function(done) {
+      var fs = util.fs();
+      var shell = fs.Shell();
+      var mtime;
+
+      fs.mkdir('/test', function(err) {
+        expect(err).to.not.exist;
+        fs.writeFile('/1.txt','This is my file.', 'utf8', function(err) { 
+          expect(err).to.not.exist;
+          fs.stat('/1.txt', function(err, stats){
+            expect(err).to.not.exist;
+            expect(stats).to.exist;
+            mtime = stats.mtime;
+            shell.rsync('/1.txt', '/test', { time: true, size: 5 }, function(err) {
+              expect(err).to.not.exist;
+              fs.readFile('/test/1.txt', 'utf8', function(err, data){
+                expect(err).to.not.exist;
+                expect(data).to.exist;
+                expect(data).to.equal('This is my file.');
+                fs.stat('/test/1.txt', function(err, stats){
+                  expect(err).to.not.exist;
+                  expect(stats).to.exist;
+                  expect(stats.mtime).to.equal(mtime);
+                  done();
+                });
+              });
+            }); 
+          })
+        });   
+      });
+    });
+
+   it('should copy a symlink as a file with \'links = false\' flag (Default)', function(done){
+      var fs = util.fs();
+      var shell = fs.Shell();
+
+      fs.mkdir('/test', function(err){
+        expect(err).to.not.exist;
+        fs.writeFile('/1.txt', 'This is a file', function(err){
+          expect(err).to.not.exist;
+          fs.symlink('/1.txt', '/2', function(err){
+            expect(err).to.not.exist;
+            shell.rsync('/2', '/test', function(err){
+              expect(err).to.not.exist;
+              fs.unlink('/1.txt', function(err){
+                expect(err).to.not.exist;
+                fs.lstat('/test/2', function(err, stats){
+                  expect(err).to.not.exist;
+                  expect(stats).to.exist;
+                  expect(stats.type).to.equal('FILE');
+                  fs.readFile('/test/2', 'utf8', function(err, data){
+                    expect(err).to.not.exist;
+                    expect(data).to.exist;
+                    expect(data).to.equal('This is a file');
+                    done();
+                  });
+                });  
+              });
+            });
+          });
+        });
+      });
+    });
+
+   it('should copy a symlink as a file with \'links = true\' flag', function(done){
+      var fs = util.fs();
+      var shell = fs.Shell();
+
+      fs.mkdir('/test', function(err){
+        expect(err).to.not.exist;
+        fs.writeFile('/apple.txt', 'This is a file', function(err){
+          expect(err).to.not.exist;
+          fs.symlink('/apple.txt', '/apple', function(err){
+            expect(err).to.not.exist;
+            shell.rsync('/apple', '/test', { links:true }, function(err){
+              expect(err).to.not.exist;
+              fs.lstat('/test/apple', function(err, stats){
+                expect(err).to.not.exist;
+                expect(stats).to.exist;
+                expect(stats.type).to.equal('SYMLINK');
+                fs.readFile('/test/apple', 'utf8', function(err, data){
+                  expect(err).to.not.exist;
+                  expect(data).to.exist;
+                  expect(data).to.equal('This is a file');
+                  done();
+                });
+              });  
+            });
+          });
+        });
+      });
+    });
+
+  it('should copy a symlink as a file with \'links = false\' flag and update time with \'time: true\' flag', function(done){
+      var fs = util.fs();
+      var shell = fs.Shell();
+      var mtime;
+
+      fs.mkdir('/test', function(err){
+        expect(err).to.not.exist;
+        fs.writeFile('/1.txt', 'This is a file', function(err){
+          expect(err).to.not.exist;
+          fs.symlink('/1.txt', '/2', function(err){
+            expect(err).to.not.exist;
+            fs.lstat('/2', function(err, stats){
+              expect(err).to.not.exist;
+              expect(stats).to.exist;
+              mtime = stats.mtime;
+              shell.rsync('/2', '/test', { time: true }, function(err){
+                expect(err).to.not.exist;
+                fs.unlink('/1.txt', function(err){
+                  expect(err).to.not.exist;
+                  fs.lstat('/test/2', function(err, stats){
+                    expect(err).to.not.exist;
+                    expect(stats).to.exist;
+                    expect(stats.mtime).to.equal(mtime);
+                    expect(stats.type).to.equal('FILE');
+                    fs.readFile('/test/2', 'utf8', function(err, data){
+                      expect(err).to.not.exist;
+                      expect(data).to.exist;
+                      expect(data).to.equal('This is a file');
+                      done();
+                    });
+                  });  
+                });
+              });
+            })
+          });
+        });
+      });
+    });
+
+    it('should succeed if the destination folder does not exist (Destination directory created)', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
 
