@@ -1881,17 +1881,25 @@ define(function(require) {
   function utimes(fs, context, path, atime, mtime, callback) {
     if(!pathCheck(path, callback)) return;
 
-    var currentTime = Date.now();
-    atime = toUnixTimestamp((atime) ? atime : currentTime, callback);
-    mtime = toUnixTimestamp((mtime) ? mtime : currentTime, callback);
-
+    try {
+      atime = toUnixTimestamp(atime);
+      mtime = toUnixTimestamp(mtime);
+    } catch (e) {
+      callback(e);
+      return;
+    }
+    
     utimes_file(context, path, atime, mtime, standard_check_result_cb(callback));
   }
 
   function futimes(fs, context, fd, atime, mtime, callback) {
-    var currentTime = Date.now();
-    atime = toUnixTimestamp((atime) ? atime : currentTime, callback);
-    mtime = toUnixTimestamp((mtime) ? mtime : currentTime, callback);
+    try {
+      atime = toUnixTimestamp(atime);
+      mtime = toUnixTimestamp(mtime);
+    } catch (e) {
+      callback(e);
+      return;
+    }
 
     var ofd = fs.openFiles[fd];
     if(!ofd) {
@@ -1903,14 +1911,17 @@ define(function(require) {
     }
   }
 
-  function toUnixTimestamp(time, callback) {
+  function toUnixTimestamp(time) {
+    if (typeof(time) == 'undefined' || time === null) {
+      time = Date.now();
+    }
     if (typeof time === 'number') {
       return time;
     }
     if (typeof time === 'object' && Object.prototype.toString.call(time) === '[object Time]') {
       return time.getTime() / 1000;
     }
-    callback(new Errors.EINVAL('Cannot parse time: ' + time));
+    throw new Errors.EINVAL('Cannot parse time: ' + time);
   }
 
   function rename(fs, context, oldpath, newpath, callback) {
