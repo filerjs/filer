@@ -38,6 +38,35 @@ define(["Filer", "util"], function(Filer, util) {
         if(error) throw error;
       });
     });
+
+    it('should get a change event when a file hardlink is being watched and the original file is changed', function(done) {
+      var fs = util.fs();
+
+      fs.writeFile('/myfile', 'data', function(error) {
+        if(error) throw error;
+
+        fs.link('/myfile', '/hardlink', function(error) {
+          if(error) throw error;
+
+          var watcher = fs.watch('/hardlink', function(event, filename) {
+            expect(event).to.equal('change');
+            expect(filename).to.equal('/hardlink');
+            watcher.close();
+            done();
+          });
+
+          fs.appendFile('/myfile', '...more data', function(error) {
+            if(error) throw error;
+
+            fs.readFile('/hardlink', 'utf8', function(error, data) {
+              if(error) throw error;
+
+              expect(data).to.equal('data...more data')
+            });
+          });
+        });
+      });
+    });
   });
 
 });
