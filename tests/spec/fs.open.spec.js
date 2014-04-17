@@ -14,6 +14,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.open('/tmp/myfile', 'w+', function(error, result) {
         expect(error).to.exist;
+        expect(error.code).to.equal("ENOENT");
         expect(result).not.to.exist;
         done();
       });
@@ -24,6 +25,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.open('/myfile', 'r+', function(error, result) {
         expect(error).to.exist;
+        expect(error.code).to.equal("ENOENT");
         expect(result).not.to.exist;
         done();
       });
@@ -37,6 +39,7 @@ define(["Filer", "util"], function(Filer, util) {
         if(error) throw error;
         fs.open('/tmp', 'w', function(error, result) {
           expect(error).to.exist;
+          expect(error.code).to.equal("EISDIR");
           expect(result).not.to.exist;
           done();
         });
@@ -50,6 +53,7 @@ define(["Filer", "util"], function(Filer, util) {
         if(error) throw error;
         fs.open('/tmp', 'a', function(error, result) {
           expect(error).to.exist;
+          expect(error.code).to.equal("EISDIR");
           expect(result).not.to.exist;
           done();
         });
