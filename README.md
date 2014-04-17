@@ -1306,19 +1306,19 @@ which share names by default.
 Example
 
 ```javascript
-sh.mv('./file', './renamed', function(err) {
+sh.mv('file', 'renamed', function(err) {
   if(err) throw err;
-  // ./file has been moved to the same directory under a new name
+  // file has been moved to the same directory under a new name
 });
 
-sh.mv('./dir', './otherdir', function(err) {
+sh.mv('dir', 'otherdir', function(err) {
   if(err) throw err;
-  // ./dir has been moved to ./otherdir/dir 
+  // dir has been moved to otherdir/dir 
 });
 
-sh.mv('./file', './dir', function(err) {
+sh.mv('file', 'dir', function(err) {
   if(err) throw err;
-  // ./file has been moved to ./dir/file
+  // file has been moved to dir/file
 });
 ```
 
