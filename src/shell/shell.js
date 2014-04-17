@@ -365,19 +365,32 @@ define(function(require) {
     callback = callback || function(){};
 
     if(!path) {
-      callback(new Errors.EINVAL('missing path argument'));
+      callback(new Errors.EINVAL("Missing path argument"));
       return;
     }
-    else if (path === '/'){
+    else if (path === '/') {
       callback();
       return;
     }
-    function _mkdirp(path, callback){
+    function _mkdirp(path, callback) {
       fs.stat(path, function (err, stat) {
-        //doesn't exist
-        if (err && err.code === 'ENOENT') {
+        if(stat) {
+          if(stat.isDirectory()) {
+            callback();
+            return;
+          }
+          else if (stat.isFile()) {
+            callback(new Errors.ENOTDIR());
+            return;
+          }
+        }
+        else if (err && err.code !== 'ENOENT') {
+          callback(err);
+          return;
+        }
+        else {
           var parent = Path.dirname(path);
-          if(parent === '/'){ //parent is root
+          if(parent === '/') {
             fs.mkdir(path, function (err) {
               if (err && err.code != 'EEXIST') {
                 callback(err);
@@ -387,10 +400,10 @@ define(function(require) {
               return;
             });
           }
-          else { //parent is not root, make parent first
+          else {
             _mkdirp(parent, function (err) {
               if (err) return callback(err);
-              fs.mkdir(path, function (err) { //then make dir
+              fs.mkdir(path, function (err) {
                 if (err && err.code != 'EEXIST') {
                   callback(err);
                   return;
@@ -401,21 +414,7 @@ define(function(require) {
             });
           }
         }
-        //other error
-        else if (err){
-          callback(err);
-          return;
-        }
-        //already exists
-        else if (stat.type === 'DIRECTORY') {
-          callback();
-          return;
-        }
-        //not a directory
-        else if (stat.type === 'FILE') {
-          callback(new Errors.ENOTDIR());
-          return;
-        }
+
       });
     }
 
