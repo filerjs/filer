@@ -1348,7 +1348,7 @@ sh.tempDir(function(err, tmp) {
 });
 ```
 
-#### sh.mkdirp(callback)<a name="mkdirp"></a>
+#### sh.mkdirp(path, callback)<a name="mkdirp"></a>
 
 Recursively creates the directory at the provided path. If the 
 directory already exists, no error is returned. All parents must

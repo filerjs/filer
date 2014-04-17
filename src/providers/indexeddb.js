@@ -9,6 +9,7 @@ define(function(require) {
 
   var IDB_RW = require('src/constants').IDB_RW;
   var IDB_RO = require('src/constants').IDB_RO;
+  var Errors = require('src/errors');
 
   function IndexedDBContext(db, mode) {
     var transaction = db.transaction(FILE_STORE_NAME, mode);
@@ -112,7 +113,7 @@ define(function(require) {
       callback(null, firstAccess);
     };
     openRequest.onerror = function onerror(error) {
-      callback(error);
+      callback(new Errors.EINVAL('IndexedDB cannot be accessed. If private browsing is enabled, disable it.'));
     };
   };
   IndexedDB.prototype.getReadOnlyContext = function() {
