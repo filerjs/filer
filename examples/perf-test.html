@@ -52,6 +52,9 @@ require(["Filer", "util"], function(Filer, util) {
     test(done);
   }
 
+  var random_data = new Uint8Array(1024); // 1kB buffer
+  var read_buffer = new Uint8Array(1024);
+
   function run(iter) {
     iter = (undefined == iter) ? 0 : iter;
 
@@ -64,8 +67,6 @@ require(["Filer", "util"], function(Filer, util) {
     function during() {
       var fs = util.fs();
 
-      var random_data = new Uint8Array(1024); // 1kB buffer
-      var read_buffer = new Uint8Array(1024);
       window.crypto.getRandomValues(random_data);
       time(function(done) {
         fs.mkdir('/tmp', function(err) {
