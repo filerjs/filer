@@ -24,6 +24,7 @@ require('./spec/fs.writeFile-readFile.spec');
 require('./spec/fs.appendFile.spec');
 require('./spec/fs.read.spec');
 require('./spec/fs.close.spec');
+require('./spec/fs.fsync.spec');
 require('./spec/fs.link.spec');
 require('./spec/fs.unlink.spec');
 require('./spec/fs.rename.spec');

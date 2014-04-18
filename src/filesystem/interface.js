@@ -282,6 +282,7 @@ function FileSystem(options, callback) {
     { name: 'rmdir', promises: true },
     { name: 'stat', promises: true },
     { name: 'fstat' },
+    { name: 'fsync' },
     { name: 'link', promises: true },
     { name: 'unlink', promises: true },
     { name: 'read' },
