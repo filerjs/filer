@@ -724,7 +724,7 @@ NOTE: Not yet implemented, see https://github.com/js-platform/filer/issues/87
 
 #### fs.write(fd, buffer, offset, length, position, callback)<a name="write"></a>
 
-Writes bytes from `buffer` to the file specified by `fd`. Asynchronous [write(2), pwrite(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/write.html). The `offset` and `length` arguments describe the part of the buffer to be written. The `position` refers to the offset from the beginning of the file where this data should be written. If `position` is `null`, the data will be written at the current position. The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes written.
+Writes bytes from `buffer` to the file specified by `fd`. 'buffer' must be given an ArrayBufferView as an argument. Asynchronous [write(2), pwrite(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/write.html). The `offset` and `length` arguments describe the part of the buffer to be written. The `position` refers to the offset from the beginning of the file where this data should be written. If `position` is `null`, the data will be written at the current position. The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes written.
 
 NOTE: Filer currently writes the entire buffer in a single operation. However, future versions may do it in chunks.
 
@@ -761,7 +761,7 @@ fs.open('/myfile', 'w', function(err, fd) {
 
 #### fs.read(fd, buffer, offset, length, position, callback)<a name="read"></a>
 
-Read bytes from the file specified by `fd` into `buffer`. Asynchronous [read(2), pread(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html). The `offset` and `length` arguments describe the part of the buffer to be used. The `position` refers to the offset from the beginning of the file where this data should be read. If `position` is `null`, the data will be written at the current position. The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes read.
+Read bytes from the file specified by `fd` into `buffer`. 'buffer' must be given an ArrayBufferView as an argument. Asynchronous [read(2), pread(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html). The `offset` and `length` arguments describe the part of the buffer to be used. The `position` refers to the offset from the beginning of the file where this data should be read. If `position` is `null`, the data will be written at the current position. The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes read.
 
 NOTE: Filer currently reads into the buffer in a single operation. However, future versions may do it in chunks.
 
@@ -824,7 +824,7 @@ fs.readFile('/myfile.txt', function (err, data) {
 
 #### fs.writeFile(filename, data, [options], callback)<a name="writeFile"></a>
 
-Writes data to a file. `data` can be a string or a buffer, in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
+Writes data to a file. `data` can be a string or a buffer (an ArrayBufferView), in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
 
 Examples:
 
@@ -843,7 +843,7 @@ fs.writeFile('/myfile', buffer, function (err) {
 
 #### fs.appendFile(filename, data, [options], callback)<a name="appendFile"></a>
 
-Writes data to the end of a file. `data` can be a string or a buffer, in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
+Writes data to the end of a file. `data` can be a string or a buffer (an ArrayBufferView), in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
 
 Examples:
 
