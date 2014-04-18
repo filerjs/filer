@@ -1529,7 +1529,7 @@ define(function(require) {
   }
 
   function read(fs, context, fd, buffer, offset, length, position, callback) {
-    var argsClone = Array.slice(arguments);
+    var argsClone = Array.prototype.slice.call(arguments, 0);
 
     // Follow how node.js does this
     function wrapped_cb(err, bytesRead) {
