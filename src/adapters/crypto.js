@@ -70,7 +70,7 @@ define(function(require) {
 
   // It is up to the app using this wrapper how the passphrase is acquired, probably by
   // prompting the user to enter it when the file system is being opened.
-  function CryptoAdapter(passphrase, provider) {
+  function CryptoAdapter(provider, passphrase) {
     this.provider = provider;
 
     // Cache cipher algorithm we'll use in encrypt/decrypt

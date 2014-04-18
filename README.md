@@ -170,7 +170,7 @@ adapters can be used together in order to compose complex functionality on top o
 There are currently 2 adapters available:
 
 * `FileSystem.adapters.Compression(provider)` - a compression adapter that uses [Zlib](https://github.com/imaya/zlib.js)
-* `FileSystem.adapters.Encryption(passphrase, provider)` - an encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
+* `FileSystem.adapters.Encryption(provider, passphrase)` - an encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
 
 ```javascript
 var FileSystem = Filer.FileSystem;
@@ -180,7 +180,7 @@ var adapters = FileSystem.adapters;
 // Create a WebSQL-based, Encrypted, Compressed File System by
 // composing a provider and adatpers.
 var webSQLProvider = new providers.WebSQL();
-var encryptionAdatper = new adapters.Encryption('super-secret-passphrase', webSQLProvider);
+var encryptionAdatper = new adapters.Encryption(webSQLProvider, 'super-secret-passphrase');
 var compressionAdatper = new adatpers.Compression(encryptionAdapter);
 var fs = new FileSystem({ provider: compressionAdapter });
 ```
