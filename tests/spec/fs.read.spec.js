@@ -57,6 +57,24 @@ define(["Filer", "util"], function(Filer, util) {
         });
       });
     });
+
+    it('should still work using node.js legacy argument format', function(done) {
+      var fs = util.fs();
+      var wbuffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+
+      fs.open('/myfile', 'w+', function(error, fd) {
+        if(error) throw error;
+        fs.write(fd, wbuffer, 0, wbuffer.length, 0, function(error, result) {
+          if(error) throw error;
+
+          fs.read(fd, wbuffer.length, 0, undefined, function(error, result) {
+            expect(error).not.to.exist;
+            expect(result).to.equal(wbuffer.length);
+            done();
+          });
+        });
+      });
+    });
   });
 
 });

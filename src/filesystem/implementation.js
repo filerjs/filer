@@ -1529,6 +1529,8 @@ define(function(require) {
   }
 
   function read(fs, context, fd, buffer, offset, length, position, callback) {
+    var argsClone = Array.slice(arguments);
+
     // Follow how node.js does this
     function wrapped_cb(err, bytesRead) {
       // Retain a reference to buffer so that it can't be GC'ed too soon.
@@ -1538,6 +1540,13 @@ define(function(require) {
     offset = (undefined === offset) ? 0 : offset;
     length = (undefined === length) ? buffer.length - offset : length;
     callback = arguments[arguments.length - 1];
+
+    if(typeof(buffer) === 'number') {
+      // node.js' legacy string interface(fd, length, position, encoding, callback)
+      length = argsClone[3];
+      position = argsClone[4];
+      buffer = new Uint8Array(length);
+    }
 
     var ofd = fs.openFiles[fd];
     if(!ofd) {
