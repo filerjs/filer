@@ -556,7 +556,7 @@ fs.symlink('/logs/august.log', '/logs/current', function(error) {
 
 #### fs.realpath(path, [cache], callback)<a name="realpath"></a>
 
-NOTE: Not yet implemented, see https://github.com/js-platform/filer/issues/85
+As per the conversation in https://github.com/js-platform/filer/issues/85, filer will not be implementing realpath() at this level. Any functionality which is aware of the user's current working directory will be part of https://github.com/js-platform/filer.io, which will provide a VFS and shell context.
 
 #### fs.unlink(path, callback)<a name="unlink"></a>
 
