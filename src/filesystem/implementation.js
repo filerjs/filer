@@ -1528,6 +1528,17 @@ define(function(require) {
     unlink_node(context, path, standard_check_result_cb(callback));
   }
 
+  function fsync(fs, context, fd, callback) {
+    var ofd = fs.openFiles[fd];
+    if(!ofd) {
+      callback(new Errors.EBADF());
+    } else if(!_(ofd.flags).contains(O_WRITE)) {
+      callback(new Errors.EBADF('descriptor does not permit writing'));
+    } else {
+      callback();
+    }
+  }
+
   function read(fs, context, fd, buffer, offset, length, position, callback) {
     // Follow how node.js does this
     function wrapped_cb(err, bytesRead) {
@@ -1898,6 +1909,7 @@ define(function(require) {
     stat: stat,
     fstat: fstat,
     link: link,
+    fsync: fsync,
     read: read,
     readFile: readFile,
     write: write,

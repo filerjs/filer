@@ -222,6 +222,7 @@ define(function(require) {
     'fstat',
     'link',
     'unlink',
+    'fsync',
     'read',
     'readFile',
     'write',

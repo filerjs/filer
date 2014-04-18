@@ -17,6 +17,7 @@ define([
   "spec/fs.readdir.spec",
   "spec/fs.rmdir.spec",
   "spec/fs.open.spec",
+  "spec/fs.fsync.spec",
   "spec/fs.write.spec",
   "spec/fs.writeFile-readFile.spec",
   "spec/fs.appendFile.spec",

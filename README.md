@@ -720,7 +720,7 @@ fs.open('/myfile.txt', function(err, fd) {
 
 #### fs.fsync(fd, callback)<a name="fsync"></a>
 
-NOTE: Not yet implemented, see https://github.com/js-platform/filer/issues/87
+NOTE: Currently implemented as a no-op. Will error if a file descriptor is invalid or if the descriptor is not opened in a write context, but otherwise returns an empty callback.
 
 #### fs.write(fd, buffer, offset, length, position, callback)<a name="write"></a>
 
