@@ -1761,6 +1761,16 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   }
 }
 
+function fsync(fs, context, fd, callback) {
+  if(validateInteger(fd, callback) !== fd) return;
+  var ofd = fs.openFiles[fd];
+  if(!ofd) {
+    callback(new Errors.EBADF());
+  } else {
+    callback();
+  }
+}
+
 function readFile(fs, context, path, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, null, 'r');
@@ -2413,6 +2423,7 @@ module.exports = {
   stat: stat,
   fstat: fstat,
   link: link,
+  fsync: fsync,
   read: read,
   readFile: readFile,
   write: write,
