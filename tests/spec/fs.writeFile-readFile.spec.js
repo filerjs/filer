@@ -16,6 +16,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.readFile('/no-such-file', 'utf8', function(error, data) {
         expect(error).to.exist;
+        expect(error.code).to.equal("ENOENT");
         expect(data).not.to.exist;
         done();
       });

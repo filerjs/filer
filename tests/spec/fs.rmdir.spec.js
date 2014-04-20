@@ -14,6 +14,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.rmdir('/tmp/mydir', function(error) {
         expect(error).to.exist;
+        expect(error.code).to.equal("ENOENT");
         done();
       });
     });
@@ -23,6 +24,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.rmdir('/', function(error) {
         expect(error).to.exist;
+        expect(error.code).to.equal("EBUSY");
         done();
       });
     });
@@ -36,6 +38,7 @@ define(["Filer", "util"], function(Filer, util) {
           if(error) throw error;
           fs.rmdir('/', function(error) {
             expect(error).to.exist;
+            expect(error.code).to.equal("EBUSY");
             done();
           });
         });
@@ -53,6 +56,7 @@ define(["Filer", "util"], function(Filer, util) {
             if(error) throw error;
             fs.rmdir('/tmp/myfile', function(error) {
               expect(error).to.exist;
+              expect(error.code).to.equal("ENOTDIR");
               done();
             });
           });
@@ -69,6 +73,7 @@ define(["Filer", "util"], function(Filer, util) {
           if(error) throw error;
           fs.rmdir('/tmp/myfile', function (error) {
             expect(error).to.exist;
+            expect(error.code).to.equal("ENOTDIR");
             done();
           });
         });

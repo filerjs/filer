@@ -87,9 +87,9 @@ define(["Filer", "util"], function(Filer, util) {
       fs.writeFile('/test.txt', 'test', function(err){
         expect(err).to.not.exist;
         shell.mkdirp('/test.txt/test', function(err) {
-            expect(err).to.exist;
-            expect(err.code).to.equal('ENOTDIR');
-            done();
+          expect(err).to.exist;
+          expect(err.code).to.equal('ENOTDIR');
+          done();
         });
       });
     });

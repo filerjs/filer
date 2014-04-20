@@ -18,6 +18,7 @@ define(["Filer", "util"], function(Filer, util) {
 
         fs.truncate('/myfile', -1, function(error) {
           expect(error).to.exist;
+          expect(error.code).to.equal("EINVAL");
           done();
         });
       });
@@ -28,6 +29,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.truncate('/', 0, function(error) {
         expect(error).to.exist;
+        expect(error.code).to.equal("EISDIR");
         done();
       });
     });
