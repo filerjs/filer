@@ -156,7 +156,7 @@ define(["Filer", "util"], function(Filer, util) {
   // Encryption
   buildTestsFor('Encryption', function buildAdapter(provider) {
     var passphrase = '' + Date.now();
-    return new Filer.FileSystem.adapters.Encryption(passphrase, provider);
+    return new Filer.FileSystem.adapters.Encryption(provider, passphrase);
   });
 
   // Compression
@@ -168,7 +168,7 @@ define(["Filer", "util"], function(Filer, util) {
   buildTestsFor('Encryption+Compression', function buildAdapter(provider) {
     var passphrase = '' + Date.now();
     var compression = new Filer.FileSystem.adapters.Compression(provider);
-    var encryptionWithCompression = new Filer.FileSystem.adapters.Encryption(passphrase, compression);
+    var encryptionWithCompression = new Filer.FileSystem.adapters.Encryption(compression, passphrase);
     return encryptionWithCompression;
   });
 
