@@ -2,6 +2,7 @@ define(function(require) {
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
 
   var asyncCallback = require('async').nextTick;
+  var dbInstances = {};
 
   function MemoryContext(db, readOnly) {
     this.readOnly = readOnly;
@@ -50,7 +51,10 @@ define(function(require) {
 
   function Memory(name) {
     this.name = name || FILE_SYSTEM_NAME;
-    this.db = {};
+    if(!dbInstances[this.name]) {
+      dbInstances[this.name] = {};
+    }
+    this.db = dbInstances[this.name];
   }
   Memory.isSupported = function() {
     return true;
