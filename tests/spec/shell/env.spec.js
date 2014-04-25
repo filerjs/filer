@@ -36,6 +36,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       shell.cat(null, function(error, list) {
         expect(error).to.exist;
+        expect(error.code).to.equal("EINVAL");
         expect(list).not.to.exist;
         done();
       });

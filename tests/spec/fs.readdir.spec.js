@@ -14,6 +14,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.readdir('/tmp/mydir', function(error, files) {
         expect(error).to.exist;
+        expect(error.code).to.equal("ENOENT");
         expect(files).not.to.exist;
         done();
       });
