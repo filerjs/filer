@@ -1532,8 +1532,6 @@ define(function(require) {
     var ofd = fs.openFiles[fd];
     if(!ofd) {
       callback(new Errors.EBADF());
-    } else if(!_(ofd.flags).contains(O_WRITE)) {
-      callback(new Errors.EBADF('descriptor does not permit writing'));
     } else {
       callback();
     }
