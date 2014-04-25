@@ -1529,7 +1529,7 @@ define(function(require) {
   }
 
   function read(fs, context, fd, buffer, offset, length, position, callback) {
-    var argsClone = Array.prototype.slice.call(arguments, 0);
+    var args = Array.prototype.slice.call(arguments, 0);
 
     // Follow how node.js does this
     function wrapped_cb(err, bytesRead) {
@@ -1543,8 +1543,8 @@ define(function(require) {
 
     if(typeof(buffer) === 'number') {
       // node.js' legacy string interface(fd, length, position, encoding, callback)
-      length = argsClone[3];
-      position = argsClone[4];
+      length = args[3];
+      position = args[4];
       buffer = new Uint8Array(length);
     }
 
