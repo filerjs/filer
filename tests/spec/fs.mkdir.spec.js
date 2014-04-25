@@ -14,6 +14,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.mkdir('/tmp/mydir', function(error) {
         expect(error).to.exist;
+        expect(error.code).to.equal("ENOENT");
         done();
       });
     });
@@ -23,6 +24,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.mkdir('/', function(error) {
         expect(error).to.exist;
+        expect(error.code).to.equal("EEXIST");
         done();
       });
     });

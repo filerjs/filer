@@ -15,6 +15,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       shell.cat(null, function(error, data) {
         expect(error).to.exist;
+        expect(error.code).to.equal("EINVAL");
         expect(data).not.to.exist;
         done();
       });
@@ -71,6 +72,7 @@ define(["Filer", "util"], function(Filer, util) {
 
           shell.cat(['/file', '/nofile'], function(err, data) {
             expect(err).to.exist;
+            expect(err.code).to.equal("ENOENT");
             expect(data).not.to.exist;
             done();
           });

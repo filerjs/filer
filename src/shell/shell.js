@@ -154,7 +154,7 @@ define(function(require) {
     callback = callback || function(){};
 
     if(!files) {
-      callback(new Error("Missing files argument"));
+      callback(new Errors.EINVAL("Missing files argument"));
       return;
     }
 
@@ -208,7 +208,7 @@ define(function(require) {
     callback = callback || function(){};
 
     if(!dir) {
-      callback(new Error("Missing dir argument"));
+      callback(new Errors.EINVAL("Missing dir argument"));
       return;
     }
 
@@ -280,7 +280,7 @@ define(function(require) {
     callback = callback || function(){};
 
     if(!path) {
-      callback(new Error("Missing path argument"));
+      callback(new Errors.EINVAL("Missing path argument"));
       return;
     }
 
