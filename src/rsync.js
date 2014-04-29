@@ -6,6 +6,7 @@ define(function(require) {
   var async = require('async');
   var cache = {};
   var options;
+  var destFS;
 
   //MD5 hashing for RSync
   //Used from Node.js Anchor module
@@ -150,7 +151,7 @@ define(function(require) {
   }
 
   function rsync (srcPath, destPath, opts, callback) {
-    var self = this;
+    var srcFS = this.fs;
     if(typeof opts === 'function') {
       callback = opts;
       options = {};
@@ -159,6 +160,7 @@ define(function(require) {
       options.recursive = false;
       options.time = false;
       options.links = false;
+      destFS = srcFS;
     }
     else {
       options = opts || {};
@@ -167,6 +169,7 @@ define(function(require) {
       options.recursive = options.recursive || false;
       options.time = options.time || false;
       options.links = options.links || false;
+      destFS = options.fs || srcFS;
       callback = callback || function() {};
     }
     if(srcPath === null || srcPath === '/' || srcPath === '') {
@@ -176,13 +179,13 @@ define(function(require) {
 
     function getSrcList(path, callback) {
       var result = [];
-      self.fs.lstat(path, function(err, stats) {
+      srcFS.lstat(path, function(err, stats) {
         if(err) {
           callback(err);
           return;
         }
         if(stats.isDirectory()) {
-          self.fs.readdir(path, function(err, entries) {
+          srcFS.readdir(path, function(err, entries) {
             if(err) {
               callback(err);
               return;
@@ -190,7 +193,7 @@ define(function(require) {
 
             function getSrcContents(_name, callback) {
               var name = Path.join(path, _name);
-              self.fs.lstat(name, function(error, stats) {
+              srcFS.lstat(name, function(error, stats) {
                 
                 if(error) {
                   callback(error);
@@ -257,12 +260,12 @@ define(function(require) {
           });
         } else if(entry.type === 'FILE' || !options.links) {
           if(!options.checksum) {
-            self.fs.stat(Path.join(destPath, entry.path), function(err, stat) {
+            destFS.stat(Path.join(destPath, entry.path), function(err, stat) {
               if(!err && stat.mtime === entry.modified && stat.size === entry.size) {
                 callback();
               }
               else {
-                checksum.call(self, Path.join(destPath, entry.path), function(err, checksums) {
+                checksum.call(destFS, Path.join(destPath, entry.path), function(err, checksums) {
                   if(err) {
                     callback(err);
                     return;
@@ -276,7 +279,7 @@ define(function(require) {
             }); 
           }
           else {
-            checksum.call(self, Path.join(destPath, entry.path), function(err, checksums) {
+            checksum.call(destFS, Path.join(destPath, entry.path), function(err, checksums) {
               if(err) {
                 callback(err);
                 return;
@@ -290,7 +293,7 @@ define(function(require) {
         }
         else if(entry.type === 'SYMLINK'){
           if(!options.checksum) {
-            self.fs.stat(Path.join(destPath, entry.path), function(err, stat){
+            destFS.stat(Path.join(destPath, entry.path), function(err, stat){
               if(!err && stat.mtime === entry.modified && stat.size === entry.size) {
                 callback();
               }
@@ -317,7 +320,7 @@ define(function(require) {
         callback(err);
         return;
       }
-      self.mkdirp(destPath, function(err) {
+      destFS.Shell().mkdirp(destPath, function(err) {
         getChecksums(destPath, result, function(err, result) {
           if(err) {
             callback(err);
@@ -327,13 +330,15 @@ define(function(require) {
             callback();
             return;
           }
-          diff.call(self, srcPath, result, function(err, diffs) {
+          diff.call(srcFS, srcPath, result, function(err, diffs) {
             if(err) {
               callback(err);
               return;
             }
-            sync.call(self, destPath, diffs, function(err) {
-              callback(err);
+            destFS.readdir('/', function(err, stuff){
+              sync(destPath, diffs, function(err) {
+                callback(err);
+              });
             });
           });
         });
@@ -349,8 +354,8 @@ define(function(require) {
   * MIT Licensed
   */
   function checksum (path, callback) {
-    var self = this;
-    self.fs.readFile(path, function (err, data) {
+    //var destFS = this;
+    destFS.readFile(path, function (err, data) {
       if (!err) {
         // cache file
         cache[path] = data;  
@@ -394,17 +399,17 @@ define(function(require) {
   * MIT Licensed
   */
   function diff(path, checksums, callback) {
-    var self = this;
+    var srcFS = this;
     // roll through the file
     var diffs = [];
-    self.fs.lstat(path, function(err, stat) {
+    srcFS.lstat(path, function(err, stat) {
       if(stat.isDirectory()) {
         async.each(checksums, getDiff, function(err) {
           callback(err, diffs);
         }); 
       }
       else if (stat.isFile() || !options.links) {
-        self.fs.readFile(path, function (err, data) {
+        srcFS.readFile(path, function (err, data) {
           if (err) { return callback(err); }
           diffs.push({
             diff: roll(data, checksums[0].checksum, options.size),
@@ -415,12 +420,12 @@ define(function(require) {
         });
       }
       else if (stat.isSymbolicLink()) {
-        self.fs.readlink(path, function(err, linkContents) {
+        srcFS.readlink(path, function(err, linkContents) {
           if(err) {
             callback(err);
             return;
           }
-          self.fs.lstat(path, function(err, stats){
+          srcFS.lstat(path, function(err, stats){
             if(err) {
               callback(err);
               return;
@@ -438,7 +443,7 @@ define(function(require) {
 
     function getDiff(entry, callback) {
       if(entry.hasOwnProperty('contents')) {
-        diff.call(self, Path.join(path, entry.path), entry.contents, function(err, stuff) {
+        diff.call(srcFS, Path.join(path, entry.path), entry.contents, function(err, stuff) {
           if(err) {
             callback(err);
             return;
@@ -469,7 +474,7 @@ define(function(require) {
           });
         });
       } else {
-        self.fs.readFile(Path.join(path,entry.path), function (err, data) {
+        srcFS.readFile(Path.join(path,entry.path), function (err, data) {
           if (err) { return callback(err); }
           diffs.push({
             diff: roll(data, entry.checksum, options.size),
@@ -490,8 +495,6 @@ define(function(require) {
   * MIT Licensed
   */
   function sync(path, diff, callback) {
-    var self = this;
-
     function syncEach(entry, callback) { 
 
       //get slice of raw file from block's index
@@ -500,9 +503,8 @@ define(function(require) {
         var end = start + options.size > raw.length ? raw.length : start + options.size;
         return raw.subarray(start, end);
       }
-
       if(entry.hasOwnProperty('contents')) {
-        sync.call(self, Path.join(path, entry.path), entry.contents, function(err) {
+        sync(Path.join(path, entry.path), entry.contents, function(err) {
           if(err) {
             callback(err);
             return;
@@ -511,9 +513,8 @@ define(function(require) {
         });
       }
       else if (entry.hasOwnProperty('link')) {
-        
         var syncPath = Path.join(path,entry.path);
-        self.fs.symlink(entry.link, syncPath, function(err){ 
+        destFS.symlink(entry.link, syncPath, function(err){ 
           if(err) {
             callback(err);
             return;
@@ -541,13 +542,13 @@ define(function(require) {
           }
         }
         delete cache[Path.join(path,entry.path)];
-        self.fs.writeFile(Path.join(path,entry.path), buf, function(err) {
+        destFS.writeFile(Path.join(path,entry.path), buf, function(err) {
           if(err) {
             callback(err);
             return;
           }
           if(options.time) {
-            self.fs.utimes(Path.join(path,entry.path), entry.modified, entry.modified, function(err) {
+            destFS.utimes(Path.join(path,entry.path), entry.modified, entry.modified, function(err) {
               if(err) {
                 callback(err);
                 return;
@@ -562,10 +563,15 @@ define(function(require) {
         
       }
     }
-
-    async.each(diff, syncEach, function(err) {
-      callback(err);
-    }); 
+    destFS.mkdir(path, function(err){
+      if(err && err.code != "EEXIST"){
+        callback(err);
+        return;   
+      }
+      async.each(diff, syncEach, function(err) {
+        callback(err);
+      });
+    });
   }
 
   function appendBuffer( buffer1, buffer2 ) {

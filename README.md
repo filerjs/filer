@@ -1352,6 +1352,7 @@ size: 5 //default 750. File chunk size in Kb.
 checksum: false //default 'false'. False will skip files if their size AND modified times are the same (regardless of content difference).
 time: true //default 'false'. Preserves file modified time when syncing.
 links: true //default 'false'. Copies symlinks as links instead of resolving.
+fs: new Filer.FileSystem() //takes an optional FS reference to sync the changes to. If absent syncs to/from the same FS.
 
 Example:
 
