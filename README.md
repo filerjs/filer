@@ -850,7 +850,7 @@ Examples:
 ```javascript
 // Append UTF8 text file
 fs.writeFile('/myfile.txt', "More...", function (err) {
-	if (err) throw err;
+  if (err) throw err;
 });
 fs.appendFile('/myfile.txt', "Data...", function (err) {
   if (err) throw err;
@@ -861,7 +861,7 @@ fs.appendFile('/myfile.txt', "Data...", function (err) {
 var more = new Uint8Array([1, 2, 3, 4]);
 var data = new Uint8Array([5, 6, 7, 8]);
 fs.writeFile('/myfile', more, function (err) {
-	if (err) throw err;
+  if (err) throw err;
 });
 fs.appendFile('/myfile', buffer, function (err) {
   if (err) throw err;
@@ -1133,6 +1133,7 @@ var sh = fs.Shell();
 * [sh.rm(path, [options], callback)](#rm)
 * [sh.tempDir(callback)](#tempDir)
 * [sh.mkdirp(path, callback)](#mkdirp)
+* [sh.rsync(srcPath, destPath, [options], callback)](#rsync)
 
 #### sh.cd(path, callback)<a name="cd"></a>
 
@@ -1336,5 +1337,34 @@ Example:
 sh.mkdirp('/test/mkdirp', function(err) {
   if(err) throw err;
   // the root '/' now contains a directory 'test' containing the directory 'mkdirp'
+});
+```
+
+#### sh.rsync(srcPath, destPath, [options], callback)<a name="rsync"></a>
+
+Rsync copies files locally on the current host (currently no remote functionality). 
+The srcPath can be either a file or a directory, with the destPath being the
+destination directory. If the destination directory does not exist, it will be created.
+Options object can currently have the following attributes (and their default values):
+
+recursive: true //default 'false'
+size: 5 //default 750. File chunk size in Kb.
+checksum: false //default 'false'. False will skip files if their size AND modified times are the same (regardless of content difference).
+time: true //default 'false'. Preserves file modified time when syncing.
+links: true //default 'false'. Copies symlinks as links instead of resolving.
+fs: new Filer.FileSystem() //takes an optional FS reference to sync the changes to. If absent syncs to/from the same FS.
+
+Example:
+
+```javascript
+fs.writeFile('/1.txt','This is my file.', 'utf8', function(err) { 
+  if(err) throw err;
+  shell.rsync('/1.txt', '/test', { size: 5 }, function(err) {
+    if(err) throw err;
+    fs.readFile('/test/1.txt', 'utf8', function(err, data){
+      if(err) throw err;
+      //data will equal 'This is my file.'
+    });
+  });
 });
 ```
