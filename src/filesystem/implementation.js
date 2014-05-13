@@ -105,6 +105,83 @@ define(function(require) {
       complete();
     }
   }
+  
+  /*
+   * make_node()
+   */
+  // in: file or directory path
+  // out: new node representing file/directory
+  function make_node(context, path, mode, callback) {
+    if(mode !== MODE_DIRECTORY && mode !== MODE_FILE) {
+        return callback(new Errors.EINVAL('mode must be a directory or file'));
+    }
+    
+    path = normalize(path);
+    
+    var name = basename(path);
+    var parentPath = dirname(path);
+    var parentNode;
+    var parentNodeData;
+    var node;
+    
+    // Check if the parent node exists
+    function create_node_in_parent(error, parentDirectoryNode) {
+      if(error) {
+        callback(error);
+      } else if(parentDirectoryNode.mode !== MODE_DIRECTORY) {
+        callback(new Errors.ENOTDIR('a component of the path prefix is not a directory'));
+      } else {
+        parentNode = parentDirectoryNode;
+        find_node(context, path, check_if_node_exists);
+      }
+    }
+    
+    // Check if the node to be created already exists
+    function check_if_node_exists(error, result) {
+      if(!error && result) {
+        callback(new Errors.EEXIST('path name already exists'));
+      } else if(error && !(error instanceof Errors.ENOENT)) {
+        callback(error);
+      } else {
+        context.get(parentNode.data, create_node);
+      }
+    }
+    
+    // Create the new node
+    function create_node(error, result) {
+      if(error) {
+        callback(error);
+      } else {
+        parentNodeData = result;
+        node = new Node(undefined, mode);
+        node.nlinks += 1;
+        context.put(node.id, node, update_parent_node_data);
+      }
+    }
+    
+    // Update parent node time
+    function update_time(error) {
+      if(error) {
+        callback(error);
+      } else {
+        var now = Date.now();
+        update_node_times(context, parentPath, node, { mtime: now, ctime: now }, callback);
+      }
+    }
+    
+    // Update the parent nodes data
+    function update_parent_node_data(error) {
+      if(error) {
+        callback(error);
+      } else {
+        parentNodeData[name] = new DirectoryEntry(node.id, mode);
+        context.put(parentNode.data, parentNodeData, update_time);
+      }
+    }
+    
+    // Find the parent node
+    find_node(context, parentPath, create_node_in_parent);
+  }
 
   /*
    * find_node
@@ -1471,6 +1548,11 @@ define(function(require) {
       callback(null);
     }
   }
+      
+  function mknod(fs, context, path, mode, callback) {
+    if(!pathCheck(path, callback)) return;
+    make_node(context, path, mode, callback);
+  }
 
   function mkdir(fs, context, path, mode, callback) {
     // NOTE: we support passing a mode arg, but we ignore it internally for now.
@@ -1892,6 +1974,7 @@ define(function(require) {
     makeRootDirectory: make_root_directory,
     open: open,
     close: close,
+    mknod: mknod,
     mkdir: mkdir,
     rmdir: rmdir,
     unlink: unlink,

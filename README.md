@@ -277,6 +277,7 @@ var fs = new Filer.FileSystem();
 * [fs.readlink(path, callback)](#readlink)
 * [fs.realpath(path, [cache], callback)](#realpath)
 * [fs.unlink(path, callback)](#unlink)
+* [fs.mknod(path, mode, callback)](#mknod)
 * [fs.rmdir(path, callback)](#rmdir)
 * [fs.mkdir(path, [mode], callback)](#mkdir)
 * [fs.readdir(path, callback)](#readdir)
@@ -571,6 +572,26 @@ Example:
 fs.unlink('/backup.old', function(err) {
   if(err) throw err;
   // /backup.old is now removed
+});
+```
+
+#### fs.mknod(path, mode, callback)<a name="mknod"></a>
+
+Creates a node at `path` based on the mode passed which is either `FILE` or `DIRECTORY`. Asynchronous [mknod(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/mknod.html). Callback gets no additional arguments.
+
+Example:
+
+```javascript
+// Create a /dir directory
+fs.mknod('/dir', 'DIRECTORY', function(err) {
+  if(err) throw err;
+  // /dir is now created
+  
+  // Create a file inside /dir
+  fs.mknod('/dir/myfile', 'FILE', function(err) {
+    if(err) throw err;
+    // /dir/myfile now exists
+  });
 });
 ```
 
