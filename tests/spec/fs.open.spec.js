@@ -58,7 +58,7 @@ define(["Filer", "util"], function(Filer, util) {
 
     it('should return a unique file descriptor', function(done) {
       var fs = util.fs();
-      var fd1
+      var fd1;
 
       fs.open('/file1', 'w+', function(error, fd) {
         if(error) throw error;
@@ -72,6 +72,25 @@ define(["Filer", "util"], function(Filer, util) {
           expect(fd).not.to.equal(fd1);
           done();
         });
+      });
+    });
+
+    it('should return the argument value of the file descriptor index matching the value set by the first useable file descriptor constant', function(done) {
+      var fs = util.fs();
+      var openFileDescription = require('src/open-file-description');
+      fs.firstFD = require('src/constants').FIRST_DESCRIPTOR;
+      var fd1;
+
+      fs.open('/file1', 'w+', function(error, fd) {
+        if(error) throw error;
+          expect(error).not.to.exist;
+          expect(fd).to.be.a('number');
+          expect(fd).not.to.equal(fd1);
+
+        this.allocDescriptor = function(openFileDescription) {
+          expect(fd).to.equal(fs.firstFD);
+        };
+        done();
       });
     });
 

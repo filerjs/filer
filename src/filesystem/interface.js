@@ -82,7 +82,7 @@ define(function(require) {
     fs.stdin = STDIN;
     fs.stdout = STDOUT;
     fs.stderr = STDERR;
-    fs.firstFD = FD;
+    fs.firstFD = FIRST_DESCRIPTOR;
 
     // Safely expose the list of open files and file
     // descriptor management functions
