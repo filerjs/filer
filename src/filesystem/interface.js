@@ -22,7 +22,7 @@ define(function(require) {
   var STDIN = require('src/constants').STDIN;
   var STDOUT = require('src/constants').STDOUT;
   var STDERR = require('src/constants').STDERR;
-  var FD = require('src/constants').FIRST_DESCRIPTOR;
+  var FIRST_DESCRIPTOR = require('src/constants').FIRST_DESCRIPTOR;
 
   // The core fs operations live on impl
   var impl = require('src/filesystem/implementation');
@@ -87,7 +87,7 @@ define(function(require) {
     // Safely expose the list of open files and file
     // descriptor management functions
     var openFiles = {};
-    var nextDescriptor = 3;
+    var nextDescriptor = FIRST_DESCRIPTOR;
     Object.defineProperty(this, "openFiles", {
       get: function() { return openFiles; }
     });
