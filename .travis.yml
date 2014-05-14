@@ -5,3 +5,5 @@ before_install: npm install -g grunt-cli
 notifications:
   email: false
   irc: "irc.mozilla.org#filer"
+env:
+  - "FILER_UPSTREAM_URI=\"default\" FILER_UPSTREAM_BRANCH=\"default\" FILER_UPSTREAM_REMOTE_NAME=\"default\""
