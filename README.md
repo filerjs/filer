@@ -556,7 +556,7 @@ fs.symlink('/logs/august.log', '/logs/current', function(error) {
 
 #### fs.realpath(path, [cache], callback)<a name="realpath"></a>
 
-NOTE: Not yet implemented, see https://github.com/js-platform/filer/issues/85
+NOTE: Not implemented, see https://github.com/js-platform/filer/issues/85
 
 #### fs.unlink(path, callback)<a name="unlink"></a>
 
