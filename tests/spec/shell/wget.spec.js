@@ -60,7 +60,6 @@ define(["Filer", "util"], function(Filer, util) {
       shell.wget(url, { filename: 'test-file.txt' }, function(err, path) {
         if(err) throw err;
 
-        // The filename should be something like /file-13424512341
         expect(path).to.equal('/test-file.txt');
 
         fs.readFile(path, 'utf8', function(err, data) {
@@ -71,6 +70,47 @@ define(["Filer", "util"], function(Filer, util) {
         });
       });
     });
+
+    it('should download the contents of a file from a url with query string', function(done) {
+      var fs = util.fs();
+      var shell = fs.Shell();
+      var url = "test-file.txt?foo";
+      var contents = "This is a test file used in some of the tests.\n";
+
+      shell.wget(url, function(err, path) {
+        if(err) throw err;
+
+        expect(path).to.equal('/test-file.txt?foo');
+
+        fs.readFile(path, 'utf8', function(err, data) {
+          if(err) throw err;
+
+          expect(data).to.equal(contents);
+          done();
+        });
+      });
+    });
+
+    it('should download the contents of a file from a url to specified filename, stripping : and /', function(done) {
+      var fs = util.fs();
+      var shell = fs.Shell();
+      var url = "test-file.txt?foo=:/";
+      var contents = "This is a test file used in some of the tests.\n";
+
+      shell.wget(url, function(err, path) {
+        if(err) throw err;
+
+        expect(path).to.equal('/test-file.txt?foo=');
+
+        fs.readFile(path, 'utf8', function(err, data) {
+          if(err) throw err;
+
+          expect(data).to.equal(contents);
+          done();
+        });
+      });
+    });
+
 
   });
 });

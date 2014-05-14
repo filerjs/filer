@@ -441,15 +441,10 @@ define(function(require) {
       return;
     }
 
-    var path = options.filename || (function() {
-      // Strip any query string or hash portions of the url first, then
-      // Grab whatever is after the last / (assuming there is one) and
-      // remove any non-filename type chars.
-      var filename = url.replace(/\?.*$/, '');
-      filename = filename.replace(/\#.*$/, '');
-      filename = filename.split('/').pop();
-      return filename.replace(/[^a-zA-Z0-9-_\.\~]/, '');
-    }());
+    // Grab whatever is after the last / (assuming there is one) and
+    // remove any non-filename type chars(i.e., : and /). Like the real
+    // wget, we leave query string or hash portions in tact.
+    var path = options.filename || url.replace(/[:/]/g, '').split('/').pop();
     path = Path.resolve(fs.cwd, path);
 
     function onerror() {
