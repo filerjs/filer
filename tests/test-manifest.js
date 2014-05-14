@@ -57,6 +57,8 @@ define([
   "spec/shell/rm.spec",
   "spec/shell/env.spec",
   "spec/shell/mkdirp.spec",
+  "spec/shell/wget.spec",
+  "spec/shell/zip-unzip.spec",
 
   // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
   "spec/node-js/simple/test-fs-mkdir",

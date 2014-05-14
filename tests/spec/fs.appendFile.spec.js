@@ -110,6 +110,20 @@ define(["Filer", "util"], function(Filer, util) {
         });
       });
     });
-  });
 
+    it('should work when file does not exist, and create the file', function(done) {
+      var fs = util.fs();
+      var contents = "This is a file.";
+
+      fs.appendFile('/newfile', contents, { encoding: 'utf8' }, function(error) {
+        expect(error).not.to.exist;
+
+        fs.readFile('/newfile', 'utf8', function(err, data) {
+          if(err) throw err;
+          expect(data).to.equal(contents);
+          done();
+        });
+      });
+    });
+  });
 });
