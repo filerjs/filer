@@ -421,6 +421,60 @@ define(function(require) {
     _mkdirp(path, callback);
   };
 
+  /**
+   * Downloads the file at `url` and saves it to the filesystem.
+   * The file is saved to a file named with the current date/time
+   * unless the `options.filename` is present, in which case that
+   * filename is used instead. The callback receives (error, path).
+   */
+  Shell.prototype.wget = function(url, options, callback) {
+    var fs = this.fs;
+    if(typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    options = options || {};
+    callback = callback || function(){};
+
+    if(!url) {
+      callback(new Errors.EINVAL('missing url argument'));
+      return;
+    }
+
+    // Grab whatever is after the last / (assuming there is one) and
+    // remove any non-filename type chars(i.e., : and /). Like the real
+    // wget, we leave query string or hash portions in tact.
+    var path = options.filename || url.replace(/[:/]/g, '').split('/').pop();
+    path = Path.resolve(fs.cwd, path);
+
+    function onerror() {
+     callback(new Error('unable to get resource'));
+    }
+
+    var request = new XMLHttpRequest();
+    request.onload = function() {
+      if(request.status !== 200) {
+        return onerror();
+      }
+
+      var data = new Uint8Array(request.response);
+      fs.writeFile(path, data, function(err) {
+        if(err) {
+          callback(err);
+        } else {
+          callback(null, path);
+        }
+      });
+    };
+    request.onerror = onerror;
+    request.open("GET", url, true);
+    if("withCredentials" in request) {
+      request.withCredentials = true;
+    }
+    request.responseType = "arraybuffer";
+    request.send();
+  };
+
   return Shell;
 
 });
