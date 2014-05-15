@@ -1358,11 +1358,11 @@ Example:
 // Download the file at /files/file.json
 sh.wget('/files/file.json', function(err, path) {
   if(err) throw err;
-  // /file-134134513 is now saved to the fs
+  // /file.json is now saved to the fs
 });
 
 // Download the file at /files/file.json, specifying a filename
-sh.wget('/files/file.json', {filename: 'file.json'}, function(err, path) {
+sh.wget('/data?id=17', {filename: 'file.json'}, function(err, path) {
   if(err) throw err;
   // /file.json is now saved to the fs
 });
