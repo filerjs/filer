@@ -68,6 +68,12 @@ define(function(require) {
 
     SUPER_NODE_ID: '00000000-0000-0000-0000-000000000000',
 
+    //Reserved FileDescriptors for streams
+    STDIN: 0,
+    STDOUT: 1,
+    STDERR: 2,
+    FIRST_DESCRIPTOR: 3,
+
     ENVIRONMENT: {
       TMP: '/tmp',
       PATH: ''

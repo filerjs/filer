@@ -19,6 +19,11 @@ define(function(require) {
   var FSWatcher = require('src/fs-watcher');
   var Errors = require('src/errors');
 
+  var STDIN = require('src/constants').STDIN;
+  var STDOUT = require('src/constants').STDOUT;
+  var STDERR = require('src/constants').STDERR;
+  var FD = require('src/constants').FIRST_DESCRIPTOR;
+
   // The core fs operations live on impl
   var impl = require('src/filesystem/implementation');
 
@@ -74,10 +79,15 @@ define(function(require) {
     fs.name = name;
     fs.error = null;
 
+    fs.stdin = STDIN;
+    fs.stdout = STDOUT;
+    fs.stderr = STDERR;
+    fs.firstFD = FD;
+
     // Safely expose the list of open files and file
     // descriptor management functions
     var openFiles = {};
-    var nextDescriptor = 1;
+    var nextDescriptor = 3;
     Object.defineProperty(this, "openFiles", {
       get: function() { return openFiles; }
     });
