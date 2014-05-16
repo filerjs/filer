@@ -49,12 +49,9 @@ module.exports = function(grunt) {
       }
     },
 
-    mocha: {
-      test: {
-        options: {
-          log: true,
-          urls: [ 'http://127.0.0.1:9001/tests/index.html' ]
-        }
+    shell: {
+      mocha: {
+        command: './node_modules/.bin/mocha --reporter list --no-exit tests/node-runner.js'
       }
     },
 
@@ -90,13 +87,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-mocha');
-  grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('develop', ['clean', 'requirejs']);
   grunt.registerTask('release', ['develop', 'uglify']);
   grunt.registerTask('check', ['jshint']);
-  grunt.registerTask('test', ['check', 'connect', 'mocha']);
+  grunt.registerTask('test', ['check', 'shell:mocha']);
 
   grunt.registerTask('default', ['develop']);
 };
