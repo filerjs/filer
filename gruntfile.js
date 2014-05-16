@@ -92,7 +92,7 @@ module.exports = function(grunt) {
   grunt.registerTask('develop', ['clean', 'requirejs']);
   grunt.registerTask('release', ['develop', 'uglify']);
   grunt.registerTask('check', ['jshint']);
-  grunt.registerTask('test', ['check', 'shell:mocha']);
+  grunt.registerTask('test', ['check', 'develop', 'shell:mocha']);
 
-  grunt.registerTask('default', ['develop']);
+  grunt.registerTask('default', ['test']);
 };
