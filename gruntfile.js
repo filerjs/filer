@@ -201,7 +201,7 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
-  grunt.registerTask('test', ['check', 'shell:mocha']);
+  grunt.registerTask('test', ['check', 'develop', 'shell:mocha']);
 
-  grunt.registerTask('default', ['develop']);
+  grunt.registerTask('default', ['test']);
 };
