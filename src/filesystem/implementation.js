@@ -49,15 +49,6 @@ define(function(require) {
    *  - callback(error)
    *  - callback(error, result)
    */
-  function standard_check_result_cb(callback) {
-    return function(error, result) {
-      if(error) {
-        callback(error);
-      } else {
-        callback(null, result);
-      }
-    };
-  }
 
   /*
    * Update node times. Only passed times are modified (undefined times are ignored)
@@ -750,11 +741,11 @@ define(function(require) {
   function stat_file(context, path, callback) {
     path = normalize(path);
     var name = basename(path);
-    find_node(context, path, standard_check_result_cb(callback));
+    find_node(context, path, callback);
   }
 
   function fstat_file(context, ofd, callback) {
-    context.get(ofd.id, standard_check_result_cb(callback));
+    context.get(ofd.id, callback);
   }
 
   function lstat_file(context, path, callback) {
@@ -766,7 +757,7 @@ define(function(require) {
     var directoryData;
 
     if(ROOT_DIRECTORY_NAME == name) {
-      find_node(context, path, standard_check_result_cb(callback));
+      find_node(context, path, callback);
     } else {
       find_node(context, parentPath, read_directory_data);
     }
@@ -788,7 +779,7 @@ define(function(require) {
         if(!_(directoryData).has(name)) {
           callback(new Errors.ENOENT('a component of the path does not name an existing file'));
         } else {
-          context.get(directoryData[name].id, standard_check_result_cb(callback));
+          context.get(directoryData[name].id, callback);
         }
       }
     }
@@ -1476,12 +1467,12 @@ define(function(require) {
     // NOTE: we support passing a mode arg, but we ignore it internally for now.
     callback = arguments[arguments.length - 1];
     if(!pathCheck(path, callback)) return;
-    make_directory(context, path, standard_check_result_cb(callback));
+    make_directory(context, path, callback);
   }
 
   function rmdir(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
-    remove_directory(context, path, standard_check_result_cb(callback));
+    remove_directory(context, path, callback);
   }
 
   function stat(fs, context, path, callback) {
@@ -1520,12 +1511,12 @@ define(function(require) {
   function link(fs, context, oldpath, newpath, callback) {
     if(!pathCheck(oldpath, callback)) return;
     if(!pathCheck(newpath, callback)) return;
-    link_node(context, oldpath, newpath, standard_check_result_cb(callback));
+    link_node(context, oldpath, newpath, callback);
   }
 
   function unlink(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
-    unlink_node(context, path, standard_check_result_cb(callback));
+    unlink_node(context, path, callback);
   }
 
   function read(fs, context, fd, buffer, offset, length, position, callback) {
@@ -1545,7 +1536,7 @@ define(function(require) {
     } else if(!_(ofd.flags).contains(O_READ)) {
       callback(new Errors.EBADF('descriptor does not permit reading'));
     } else {
-      read_data(context, ofd, buffer, offset, length, position, standard_check_result_cb(wrapped_cb));
+      read_data(context, ofd, buffer, offset, length, position, callback);
     }
   }
 
@@ -1607,7 +1598,7 @@ define(function(require) {
     } else if(buffer.length - offset < length) {
       callback(new Errors.EIO('intput buffer is too small'));
     } else {
-      write_data(context, ofd, buffer, offset, length, position, standard_check_result_cb(callback));
+      write_data(context, ofd, buffer, offset, length, position, callback);
     }
   }
 
@@ -1692,7 +1683,7 @@ define(function(require) {
 
   function getxattr(fs, context, path, name, callback) {
     if (!pathCheck(path, callback)) return;
-    getxattr_file(context, path, name, standard_check_result_cb(callback));
+    getxattr_file(context, path, name, callback);
   }
 
   function fgetxattr(fs, context, fd, name, callback) {
@@ -1701,7 +1692,7 @@ define(function(require) {
       callback(new Errors.EBADF());
     }
     else {
-      fgetxattr_file(context, ofd, name, standard_check_result_cb(callback));
+      fgetxattr_file(context, ofd, name, callback);
     }
   }
 
@@ -1712,7 +1703,7 @@ define(function(require) {
     }
 
     if (!pathCheck(path, callback)) return;
-    setxattr_file(context, path, name, value, flag, standard_check_result_cb(callback));
+    setxattr_file(context, path, name, value, flag, callback);
   }
 
   function fsetxattr(fs, context, fd, name, value, flag, callback) {
@@ -1729,13 +1720,13 @@ define(function(require) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
     }
     else {
-      fsetxattr_file(context, ofd, name, value, flag, standard_check_result_cb(callback));
+      fsetxattr_file(context, ofd, name, value, flag, callback);
     }
   }
 
   function removexattr(fs, context, path, name, callback) {
     if (!pathCheck(path, callback)) return;
-    removexattr_file(context, path, name, standard_check_result_cb(callback));
+    removexattr_file(context, path, name, callback);
   }
 
   function fremovexattr(fs, context, fd, name, callback) {
@@ -1747,7 +1738,7 @@ define(function(require) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
     }
     else {
-      fremovexattr_file(context, ofd, name, standard_check_result_cb(callback));
+      fremovexattr_file(context, ofd, name, callback);
     }
   }
 
@@ -1793,7 +1784,7 @@ define(function(require) {
 
   function readdir(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
-    read_directory(context, path, standard_check_result_cb(callback));
+    read_directory(context, path, callback);
   }
 
   function utimes(fs, context, path, atime, mtime, callback) {
@@ -1803,7 +1794,7 @@ define(function(require) {
     atime = (atime) ? atime : currentTime;
     mtime = (mtime) ? mtime : currentTime;
 
-    utimes_file(context, path, atime, mtime, standard_check_result_cb(callback));
+    utimes_file(context, path, atime, mtime, callback);
   }
 
   function futimes(fs, context, fd, atime, mtime, callback) {
@@ -1817,7 +1808,7 @@ define(function(require) {
     } else if(!_(ofd.flags).contains(O_WRITE)) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
     } else {
-      futimes_file(context, ofd, atime, mtime, standard_check_result_cb(callback));
+      futimes_file(context, ofd, atime, mtime, callback);
     }
   }
 
@@ -1829,7 +1820,7 @@ define(function(require) {
       if(error) {
         callback(error);
       } else {
-        unlink_node(context, oldpath, standard_check_result_cb(callback));
+        unlink_node(context, oldpath, callback);
       }
     }
 
@@ -1841,12 +1832,12 @@ define(function(require) {
     callback = arguments[arguments.length - 1];
     if(!pathCheck(srcpath, callback)) return;
     if(!pathCheck(dstpath, callback)) return;
-    make_symbolic_link(context, srcpath, dstpath, standard_check_result_cb(callback));
+    make_symbolic_link(context, srcpath, dstpath, callback);
   }
 
   function readlink(fs, context, path, callback) {
     if(!pathCheck(path, callback)) return;
-    read_link(context, path, standard_check_result_cb(callback));
+    read_link(context, path, callback);
   }
 
   function lstat(fs, context, path, callback) {
@@ -1870,7 +1861,7 @@ define(function(require) {
     length = length || 0;
 
     if(!pathCheck(path, callback)) return;
-    truncate_file(context, path, length, standard_check_result_cb(callback));
+    truncate_file(context, path, length, callback);
   }
 
   function ftruncate(fs, context, fd, length, callback) {
@@ -1884,7 +1875,7 @@ define(function(require) {
     } else if(!_(ofd.flags).contains(O_WRITE)) {
       callback(new Errors.EBADF('descriptor does not permit writing'));
     } else {
-      ftruncate_file(context, ofd, length, standard_check_result_cb(callback));
+      ftruncate_file(context, ofd, length, callback);
     }
   }
 
