@@ -12,10 +12,14 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
   }
 
   function findBestProvider() {
+    if(typeof module !== 'undefined' && module.exports) {
+      return MemoryTestProvider;
+    }
+
     // When running tests, and when no explicit provider is defined,
     // prefer providers in this order: IndexedDB, WebSQL, Memory.
     // However, if we're running in PhantomJS, use Memory first.
-    if(navigator.userAgent.indexOf('PhantomJS') > -1) {
+    if(typeof navigator !== 'undefined' && navigator.userAgent.indexOf('PhantomJS') > -1) {
       return MemoryTestProvider;
     }
 
@@ -60,7 +64,7 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
 
     // Create a file system and wait for it to get setup
     _provider.init();
-console.log('here!');
+
     function complete(err, fs) {
       if(err) throw err;
       _fs = fs;
