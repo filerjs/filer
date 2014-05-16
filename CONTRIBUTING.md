@@ -28,9 +28,11 @@ make a pull request. If you're patch includes code, make sure to check that all 
 unit tests pass, including any new tests you wrote. Finally, make sure you add yourself
 to the `AUTHORS` file.
 
-<<<<<<< HEAD
 =======
 ### Releasing a new version
+=======
+### Releasing a new version
+**NOTE:** This step should only ever be attempted by the owner of the repo (@modeswitch).
 
 `grunt publish` will:
 
@@ -57,7 +59,7 @@ to the `AUTHORS` file.
 
 The user *must* be on their local `develop` branch before running any form of `grunt publish`, or else the task will fail loudly.
 
->>>>>>> 13e682b... Updated tag/commit messages
+=======
 ## Tests
 
 Tests are writting using [Mocha](http://visionmedia.github.io/mocha/) and [Chai](http://chaijs.com/api/bdd/).
