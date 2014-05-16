@@ -60,7 +60,7 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
 
     // Create a file system and wait for it to get setup
     _provider.init();
-
+console.log('here!');
     function complete(err, fs) {
       if(err) throw err;
       _fs = fs;
