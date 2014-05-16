@@ -51,22 +51,9 @@ module.exports = function(grunt) {
       ]
     },
 
-    connect: {
-      server: {
-        options: {
-          port: 9001,
-          hostname: '127.0.0.1',
-          base: '.'
-        }
-      }
-    },
-
-    mocha: {
-      test: {
-        options: {
-          log: true,
-          urls: [ 'http://127.0.0.1:9001/tests/index.html' ]
-        }
+    shell: {
+      mocha: {
+        command: './node_modules/.bin/mocha --reporter list --no-exit tests/node-runner.js'
       }
     },
 
@@ -179,11 +166,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-npm');
   grunt.loadNpmTasks('grunt-git');
   grunt.loadNpmTasks('grunt-prompt');
+  grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('develop', ['clean', 'requirejs']);
   grunt.registerTask('release', ['develop', 'uglify']);
   grunt.registerTask('check', ['jshint']);
-  grunt.registerTask('test', ['check', 'connect', 'mocha']);
 
   grunt.registerTask('publish', 'Publish filer as a new version to NPM, bower and github.', function(patchLevel) {
     var allLevels = ['patch', 'minor', 'major'];
@@ -214,6 +201,7 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
+  grunt.registerTask('test', ['check', 'shell:mocha']);
 
   grunt.registerTask('default', ['develop']);
 };
