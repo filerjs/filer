@@ -168,8 +168,8 @@ define(["Filer", "util"], function(Filer, util) {
             // Note: testing estimation as time may differ by a couple of milliseconds
             // This number should be increased if tests are on slow systems
             var delta = Date.now() - then;
-            expect(then - stat.atime).to.be.below(delta);
-            expect(then - stat.mtime).to.be.below(delta);
+            expect(then - stat.atime).to.be.at.most(delta);
+            expect(then - stat.mtime).to.be.at.most(delta);
             done();
           });
         });

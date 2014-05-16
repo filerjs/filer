@@ -40,9 +40,9 @@ define(["Filer", "util"], function(Filer, util) {
             if(error) throw error;
 
             stat(newfilename, function(stats2) {
-              expect(stats2.ctime).to.be.above(stats1.ctime);
+              expect(stats2.ctime).to.be.at.least(stats1.ctime);
               expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.be.above(stats1.atime);
+              expect(stats2.atime).to.be.at.least(stats1.atime);
               done();
             });
           });
@@ -60,9 +60,9 @@ define(["Filer", "util"], function(Filer, util) {
             if(error) throw error;
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.be.above(stats1.ctime);
-              expect(stats2.mtime).to.be.above(stats1.mtime);
-              expect(stats2.atime).to.be.above(stats1.atime);
+              expect(stats2.ctime).to.be.at.least(stats1.ctime);
+              expect(stats2.mtime).to.be.at.least(stats1.mtime);
+              expect(stats2.atime).to.be.at.least(stats1.atime);
               done();
             });
           });
@@ -83,9 +83,9 @@ define(["Filer", "util"], function(Filer, util) {
               if(error) throw error;
 
               stat(filename, function(stats2) {
-                expect(stats2.ctime).to.be.above(stats1.ctime);
-                expect(stats2.mtime).to.be.above(stats1.mtime);
-                expect(stats2.atime).to.be.above(stats1.atime);
+                expect(stats2.ctime).to.be.at.least(stats1.ctime);
+                expect(stats2.mtime).to.be.at.least(stats1.mtime);
+                expect(stats2.atime).to.be.at.least(stats1.atime);
 
                 fs.close(fd, done);
               });
@@ -188,9 +188,9 @@ define(["Filer", "util"], function(Filer, util) {
             if(error) throw error;
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.be.above(stats1.ctime);
+              expect(stats2.ctime).to.be.at.least(stats1.ctime);
               expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.be.above(stats1.atime);
+              expect(stats2.atime).to.be.at.least(stats1.atime);
               done();
             });
           });
@@ -250,9 +250,9 @@ define(["Filer", "util"], function(Filer, util) {
             if(error) throw error;
 
             stat(dirname, function(stats2) {
-              expect(stats2.ctime).to.be.above(stats1.ctime);
-              expect(stats2.mtime).to.be.above(stats1.mtime);
-              expect(stats2.atime).to.be.above(stats1.atime);
+              expect(stats2.ctime).to.be.at.least(stats1.ctime);
+              expect(stats2.mtime).to.be.at.least(stats1.mtime);
+              expect(stats2.atime).to.be.at.least(stats1.atime);
               done();
             });
           });
@@ -273,9 +273,9 @@ define(["Filer", "util"], function(Filer, util) {
               if(error) throw error;
 
               stat('/', function(stats2) {
-                expect(stats2.ctime).to.be.above(stats1.ctime);
-                expect(stats2.mtime).to.be.above(stats1.mtime);
-                expect(stats2.atime).to.be.above(stats1.atime);
+                expect(stats2.ctime).to.be.at.least(stats1.ctime);
+                expect(stats2.mtime).to.be.at.least(stats1.mtime);
+                expect(stats2.atime).to.be.at.least(stats1.atime);
                 done();
               });
             });
@@ -294,9 +294,9 @@ define(["Filer", "util"], function(Filer, util) {
             if(error) throw error;
 
             stat('/', function(stats2) {
-              expect(stats2.ctime).to.be.above(stats1.ctime);
-              expect(stats2.mtime).to.be.above(stats1.mtime);
-              expect(stats2.atime).to.be.above(stats1.atime);
+              expect(stats2.ctime).to.be.at.least(stats1.ctime);
+              expect(stats2.mtime).to.be.at.least(stats1.mtime);
+              expect(stats2.atime).to.be.at.least(stats1.atime);
               done();
             });
           });
@@ -367,9 +367,9 @@ define(["Filer", "util"], function(Filer, util) {
                 if(error) throw error;
 
                 stat('/myfile', function(stats2) {
-                  expect(stats2.ctime).to.be.above(stats1.ctime);
-                  expect(stats2.mtime).to.be.above(stats1.mtime);
-                  expect(stats2.atime).to.be.above(stats1.atime);
+                  expect(stats2.ctime).to.be.at.least(stats1.ctime);
+                  expect(stats2.mtime).to.be.at.least(stats1.mtime);
+                  expect(stats2.atime).to.be.at.least(stats1.atime);
                   done();
                 });
               });
@@ -447,9 +447,9 @@ define(["Filer", "util"], function(Filer, util) {
             if(error) throw error;
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.be.above(stats1.ctime);
-              expect(stats2.mtime).to.be.above(stats1.mtime);
-              expect(stats2.atime).to.be.above(stats1.atime);
+              expect(stats2.ctime).to.be.at.least(stats1.ctime);
+              expect(stats2.mtime).to.be.at.least(stats1.mtime);
+              expect(stats2.atime).to.be.at.least(stats1.atime);
               done();
             });
           });
@@ -466,9 +466,9 @@ define(["Filer", "util"], function(Filer, util) {
             if(error) throw error;
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.be.above(stats1.ctime);
-              expect(stats2.mtime).to.be.above(stats1.mtime);
-              expect(stats2.atime).to.be.above(stats1.atime);
+              expect(stats2.ctime).to.be.at.least(stats1.ctime);
+              expect(stats2.mtime).to.be.at.least(stats1.mtime);
+              expect(stats2.atime).to.be.at.least(stats1.atime);
               done();
             });
           });
@@ -485,9 +485,9 @@ define(["Filer", "util"], function(Filer, util) {
             if(error) throw error;
 
             stat(filename, function(stats2) {
-              expect(stats2.ctime).to.be.above(stats1.ctime);
+              expect(stats2.ctime).to.be.at.least(stats1.ctime);
               expect(stats2.mtime).to.equal(stats1.mtime);
-              expect(stats2.atime).to.be.above(stats1.atime);
+              expect(stats2.atime).to.be.at.least(stats1.atime);
               done();
             });
           });
@@ -507,9 +507,9 @@ define(["Filer", "util"], function(Filer, util) {
               if(error) throw error;
 
               stat(filename, function(stats2) {
-                expect(stats2.ctime).to.be.above(stats1.ctime);
+                expect(stats2.ctime).to.be.at.least(stats1.ctime);
                 expect(stats2.mtime).to.equal(stats1.mtime);
-                expect(stats2.atime).to.be.above(stats1.atime);
+                expect(stats2.atime).to.be.at.least(stats1.atime);
                 done();
               });
             });
@@ -580,9 +580,9 @@ define(["Filer", "util"], function(Filer, util) {
               if(error) throw error;
 
               stat(filename, function(stats2) {
-                expect(stats2.ctime).to.be.above(stats1.ctime);
+                expect(stats2.ctime).to.be.at.least(stats1.ctime);
                 expect(stats2.mtime).to.equal(stats1.mtime);
-                expect(stats2.atime).to.be.above(stats1.atime);
+                expect(stats2.atime).to.be.at.least(stats1.atime);
                 done();
               });
             });
@@ -606,9 +606,9 @@ define(["Filer", "util"], function(Filer, util) {
                 if(error) throw error;
 
                 stat(filename, function(stats2) {
-                  expect(stats2.ctime).to.be.above(stats1.ctime);
+                  expect(stats2.ctime).to.be.at.least(stats1.ctime);
                   expect(stats2.mtime).to.equal(stats1.mtime);
-                  expect(stats2.atime).to.be.above(stats1.atime);
+                  expect(stats2.atime).to.be.at.least(stats1.atime);
                   done();
                 });
               });
