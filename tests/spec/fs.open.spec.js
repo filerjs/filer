@@ -82,9 +82,7 @@ define(["Filer", "util"], function(Filer, util) {
 
       fs.open('/file1', 'w+', function(error, fd) {
         if(error) throw error;
-          expect(error).not.to.exist;
-          expect(fd).to.be.a('number');
-          expect(fd).to.equal(firstFD);
+        expect(fd).to.equal(firstFD);
         done();
       });
     });
