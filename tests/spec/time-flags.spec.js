@@ -91,9 +91,9 @@ define(["Filer", "util"], function(Filer, util) {
               if(error) throw error;
 
               stat(fs, filename, function(stats2) {
-                expect(stats2.ctime).to.be.above(stats1.ctime);
+                expect(stats2.ctime).to.be.at.least(stats1.ctime);
                 expect(stats2.mtime).to.equal(stats1.mtime);
-                expect(stats2.atime).to.be.above(stats1.atime);
+                expect(stats2.atime).to.be.at.least(stats1.atime);
                 done();
               });
             });

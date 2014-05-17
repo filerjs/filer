@@ -1,9 +1,11 @@
 define(["Filer"], function(Filer) {
 
   var needsCleanup = [];
-  window.addEventListener('beforeunload', function() {
-    needsCleanup.forEach(function(f) { f(); });
-  });
+  if(typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', function() {
+      needsCleanup.forEach(function(f) { f(); });
+    });
+  }
 
   function WebSQLTestProvider(name) {
     var _done = false;
