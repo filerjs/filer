@@ -2,10 +2,12 @@ define(function(require) {
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
   var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
 
-  var indexedDB = window.indexedDB       ||
-                  window.mozIndexedDB    ||
-                  window.webkitIndexedDB ||
-                  window.msIndexedDB;
+  var indexedDB = (function(window) {
+    return window.indexedDB       ||
+           window.mozIndexedDB    ||
+           window.webkitIndexedDB ||
+           window.msIndexedDB;
+  }(this));
 
   var IDB_RW = require('src/constants').IDB_RW;
   var IDB_RO = require('src/constants').IDB_RO;
