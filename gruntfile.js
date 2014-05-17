@@ -4,7 +4,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
-    clean: ['dist/'],
+    clean: ['dist/filer-test.js'],
 
     uglify: {
       options: {
@@ -69,6 +69,30 @@ module.exports = function(grunt) {
             }
           }
         }
+      },
+      test: {
+        options: {
+          paths: {
+            "src": "../src",
+            "build": "../build"
+          },
+          baseUrl: "lib",
+          name: "build/almond",
+          include: ["src/index"],
+          out: "dist/filer-test.js",
+          optimize: "none",
+          wrap: {
+            startFile: 'build/wrap.start',
+            endFile: 'build/wrap.end'
+          },
+          shim: {
+            // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
+            // and we use a fake one for reduced size, since we only care about utf8.
+            "encoding": {
+              deps: ["encoding-indexes-shim"]
+            }
+          }
+        }
       }
     }
   });
@@ -79,10 +103,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-shell');
 
-  grunt.registerTask('develop', ['clean', 'requirejs']);
+  grunt.registerTask('develop', ['clean', 'requirejs:develop']);
+  grunt.registerTask('filer-test', ['clean', 'requirejs:test']);
   grunt.registerTask('release', ['develop', 'uglify']);
   grunt.registerTask('check', ['jshint']);
-  grunt.registerTask('test', ['check', 'develop', 'shell:mocha']);
+  grunt.registerTask('test', ['check', 'filer-test', 'shell:mocha']);
 
   grunt.registerTask('default', ['test']);
 };
