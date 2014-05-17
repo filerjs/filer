@@ -38,7 +38,8 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     // (e.g., ?filer-provider=IndexedDB). If not specified, we use
     // the Memory provider by default.  See test/require-config.js
     // for definition of window.filerArgs.
-    var providerType = window.filerArgs && window.filerArgs.provider ?
+    var providerType = (typeof window !== 'undefined' &&
+      window.filerArgs && window.filerArgs.provider) ?
       window.filerArgs.provider : 'Memory';
 
     var name = uniqueName();
@@ -59,7 +60,8 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     }
 
     // Allow passing FS flags on query string
-    var flags = window.filerArgs && window.filerArgs.flags ?
+    var flags = (typeof window !== 'undefined' &&
+      window && window.filerArgs && window.filerArgs.flags) ?
       window.filerArgs.flags : 'FORMAT';
 
     // Create a file system and wait for it to get setup

@@ -1,5 +1,12 @@
-var requirejs = require('requirejs');
+// If there's something broken in filer or a test,
+// requirejs can blow up, and mocha sees it as tests
+// not getting added (i.e., it just exists with only
+// 1 test run). Display an error so it's clear what happened.
+process.on('uncaughtException', function(err) {
+  console.error('Error in require.js trying to build test suite, filer:\n', err.stack);
+});
 
+var requirejs = require('requirejs');
 requirejs.config({
   paths: {
     "tests": "../tests",
@@ -22,16 +29,10 @@ requirejs.config({
   nodeRequire: require
 });
 
-GLOBAL.document = {};
-GLOBAL.navigator = { userAgent: ""};
-GLOBAL.window = {
-  addEventListener: function(){},
-  navigator: navigator,
-  document: document,
-  setTimeout: setTimeout
-};
+// We use Chai's expect assertions in all the tests via a global
 GLOBAL.expect = require('chai').expect;
 
+// Workaround for Mocha bug, see https://github.com/visionmedia/mocha/issues/362
 describe("Mocha needs one test in order to wait on requirejs tests", function() {
   it('should wait for other tests', function(){
     require('assert').ok(true);
