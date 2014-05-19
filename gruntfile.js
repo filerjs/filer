@@ -175,6 +175,21 @@ module.exports = function(grunt) {
           remote: GIT_REMOTE,
           branch: 'gh-pages',
           force: true
+        },
+      }
+    },
+    connect: {
+      server_for_node: {
+        options: {
+          port: 1234,
+          base: '.'
+        }
+      },
+      server_for_browser: {
+        options: {
+          port: 1234,
+          base: '.',
+          keepalive: true
         }
       }
     }
@@ -191,6 +206,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-git');
   grunt.loadNpmTasks('grunt-prompt');
   grunt.loadNpmTasks('grunt-shell');
+  grunt.loadNpmTasks('grunt-contrib-connect');
 
   grunt.registerTask('develop', ['clean', 'requirejs:develop']);
   grunt.registerTask('filer-test', ['clean', 'requirejs:test']);
@@ -214,7 +230,6 @@ module.exports = function(grunt) {
       ' to ' + semver.inc(currentVersion, patchLevel).yellow + '?';
     grunt.config('prompt.confirm.options', promptOpts);
 
-    // TODO: ADD NPM RELEASE
     grunt.task.run([
       'prompt:confirm',
       'checkBranch',
@@ -226,7 +241,9 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
-  grunt.registerTask('test', ['check', 'filer-test', 'shell:mocha']);
+  grunt.registerTask('test-node', ['check', 'filer-test', 'connect:server_for_node', 'shell:mocha']);
+  grunt.registerTask('test-browser', ['check', 'filer-test', 'connect:server_for_browser']);
+  grunt.registerTask('test', ['test-node']);
 
   grunt.registerTask('default', ['test']);
 };

@@ -7,7 +7,8 @@
 //
 // ?filer-dist/filer.js     --> use dist/filer.js
 // ?filer-dist/filer.min.js --> use dist/filer.min.js
-// ?<default>               --> (default) use src/filer.js with require
+// ?filer-src/filer.js      --> use src/filer.js with require
+// ?<default>               --> (default) use dist/filer-test.js with require
 var filerArgs = window.filerArgs = {};
 var config = (function() {
   var query = window.location.search.substring(1);
@@ -51,24 +52,39 @@ var config = (function() {
   }
 
   // Support src/ filer via require
+  if(filerArgs['filer-src/filer.js']) {
+    return {
+      paths: {
+        "tests": "../tests",
+        "src": "../src",
+        "spec": "../tests/spec",
+        "bugs": "../tests/bugs",
+        "util": "../tests/lib/test-utils",
+        "Filer": "../src/index"
+      },
+      baseUrl: "../lib",
+      optimize: "none",
+      shim: {
+        // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
+        // and we use a fake one for reduced size, since we only care about utf8.
+        "encoding": {
+          deps: ["encoding-indexes-shim"]
+        }
+      }
+    };
+  }
+
+  // Support dist/filer-test.js
   return {
     paths: {
       "tests": "../tests",
-      "src": "../src",
       "spec": "../tests/spec",
       "bugs": "../tests/bugs",
       "util": "../tests/lib/test-utils",
-      "Filer": "../src/index"
+      "Filer": "../dist/filer-test"
     },
     baseUrl: "../lib",
-    optimize: "none",
-    shim: {
-      // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
-      // and we use a fake one for reduced size, since we only care about utf8.
-      "encoding": {
-        deps: ["encoding-indexes-shim"]
-      }
-    }
+    optimize: "none"
   };
 }());
 

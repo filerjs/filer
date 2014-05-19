@@ -5,6 +5,7 @@ define(function(require) {
   var Errors = require('src/errors');
   var Environment = require('src/shell/environment');
   var async = require('async');
+  var Network = require('src/network');
 
   require('zip');
   require('unzip');
@@ -447,20 +448,18 @@ define(function(require) {
     // Grab whatever is after the last / (assuming there is one) and
     // remove any non-filename type chars(i.e., : and /). Like the real
     // wget, we leave query string or hash portions in tact.
-    var path = options.filename || url.replace(/[:/]/g, '').split('/').pop();
+    var path = options.filename || url.replace(/[:/]/, '').split('/').pop();
     path = Path.resolve(fs.cwd, path);
 
     function onerror() {
-     callback(new Error('unable to get resource'));
+      callback(new Error('unable to get resource'));
     }
 
-    var request = new XMLHttpRequest();
-    request.onload = function() {
-      if(request.status !== 200) {
+    Network.download('get', url, function(err, data) {
+      if (err || !data) {
         return onerror();
       }
 
-      var data = new Uint8Array(request.response);
       fs.writeFile(path, data, function(err) {
         if(err) {
           callback(err);
@@ -468,15 +467,7 @@ define(function(require) {
           callback(null, path);
         }
       });
-    };
-    request.onerror = onerror;
-    request.open("GET", url, true);
-    if("withCredentials" in request) {
-      request.withCredentials = true;
     }
-
-    request.responseType = "arraybuffer";
-    request.send();
   };
 
   Shell.prototype.unzip = function(zipfile, options, callback) {
