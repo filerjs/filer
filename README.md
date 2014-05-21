@@ -1152,6 +1152,7 @@ var sh = fs.Shell();
 * [sh.touch(path, [options], callback)](#touch)
 * [sh.cat(files, callback)](#cat)
 * [sh.rm(path, [options], callback)](#rm)
+* [sh.mv(source, destination, callback)](#mv)
 * [sh.tempDir(callback)](#tempDir)
 * [sh.mkdirp(path, callback)](#mkdirp)
 * [sh.wget(path, [options], callback)](#wget)
@@ -1319,6 +1320,30 @@ sh.rm('./file', function(err) {
 sh.rm('/dir', { recursive: true }, function(err) {
   if(err) throw err;
   // /dir and all its children are now removed
+});
+```
+
+#### sh.mv(source, destination, callback)<a name="mv"></a>
+
+Moves the file or directory located at `source` to `destination`. Overwrites files
+which share names by default.
+
+Example
+
+```javascript
+sh.mv('file', 'renamed', function(err) {
+  if(err) throw err;
+  // file has been moved to the same directory under a new name
+});
+
+sh.mv('dir', 'otherdir', function(err) {
+  if(err) throw err;
+  // dir has been moved to otherdir/dir 
+});
+
+sh.mv('file', 'dir', function(err) {
+  if(err) throw err;
+  // file has been moved to dir/file
 });
 ```
 

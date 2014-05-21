@@ -56,6 +56,7 @@ define([
   "spec/shell/cat.spec",
   "spec/shell/ls.spec",
   "spec/shell/rm.spec",
+  "spec/shell/mv.spec",
   "spec/shell/env.spec",
   "spec/shell/mkdirp.spec",
   "spec/shell/wget.spec",
