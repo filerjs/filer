@@ -1907,7 +1907,7 @@ define(function(require) {
     if (typeof time === 'number') {
       return time;
     }
-    if (typeof time === 'object' && Object.prototype.toString.call(time) === '[object Time]') {
+    if (typeof time === 'object' && typeof time.getTime === 'function') {
       return time.getTime() / 1000;
     }
   }
