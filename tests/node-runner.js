@@ -15,7 +15,7 @@ requirejs.config({
     "bugs": "../tests/bugs",
     "util": "../tests/lib/test-utils",
     // see gruntfile.js for how dist/filer-test.js gets built
-    "Filer": "../dist/filer-test"
+    "Filer": "../dist/filer_node-test"
   },
   baseUrl: "./lib",
   optimize: "none",

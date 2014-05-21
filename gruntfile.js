@@ -15,7 +15,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
-    clean: ['dist/filer-test.js'],
+    clean: ['dist/filer-test.js', 'dist/filer_node-test.js'],
 
     uglify: {
       options: {
@@ -58,7 +58,7 @@ module.exports = function(grunt) {
     },
 
     requirejs: {
-      develop: {
+      browser_develop: {
         options: {
           paths: {
             "src": "../src",
@@ -70,8 +70,8 @@ module.exports = function(grunt) {
           out: "dist/filer.js",
           optimize: "none",
           wrap: {
-            startFile: 'build/wrap.start',
-            endFile: 'build/wrap.end'
+            startFile: 'build/browser_wrap.start',
+            endFile: 'build/browser_wrap.end'
           },
           shim: {
             // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
@@ -82,7 +82,32 @@ module.exports = function(grunt) {
           }
         }
       },
-      test: {
+      node_develop: {
+        options: {
+          paths: {
+            "src": "../src",
+            "build": "../build"
+          },
+          baseUrl: "lib",
+          name: "require",
+          include: ["src/index"],
+          out: "dist/filer_node.js",
+          optimize: "none",
+          wrap: {
+            startFile: 'build/node_wrap.start',
+            endFile: 'build/node_wrap.end'
+          },
+          shim: {
+            // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
+            // and we use a fake one for reduced size, since we only care about utf8.
+            "encoding": {
+              deps: ["encoding-indexes-shim"]
+            }
+          },
+          nodeRequire: require
+        }
+      },
+      browser_test: {
         options: {
           paths: {
             "src": "../src",
@@ -94,8 +119,8 @@ module.exports = function(grunt) {
           out: "dist/filer-test.js",
           optimize: "none",
           wrap: {
-            startFile: 'build/wrap.start',
-            endFile: 'build/wrap.end'
+            startFile: 'build/browser_wrap.start',
+            endFile: 'build/browser_wrap.end'
           },
           shim: {
             // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
@@ -104,6 +129,31 @@ module.exports = function(grunt) {
               deps: ["encoding-indexes-shim"]
             }
           }
+        }
+    },
+      node_test: {
+        options: {
+          paths: {
+            "src": "../src",
+            "build": "../build"
+          },
+          baseUrl: "lib",
+          name: "require",
+          include: ["src/index"],
+          out: "dist/filer_node-test.js",
+          optimize: "none",
+          wrap: {
+            startFile: 'build/node_wrap.start',
+            endFile: 'build/node_wrap.end'
+          },
+          shim: {
+            // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
+            // and we use a fake one for reduced size, since we only care about utf8.
+            "encoding": {
+              deps: ["encoding-indexes-shim"]
+            }
+          },
+          nodeRequire: require
         }
       }
     },
@@ -208,8 +258,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-contrib-connect');
 
-  grunt.registerTask('develop', ['clean', 'requirejs:develop']);
-  grunt.registerTask('filer-test', ['clean', 'requirejs:test']);
+  grunt.registerTask('develop', ['clean', 'requirejs:browser_develop', 'requirejs:node_develop']);
+  grunt.registerTask('filer-test', ['clean', 'requirejs:node_test', 'requirejs:browser_test']);
   grunt.registerTask('release', ['develop', 'uglify']);
   grunt.registerTask('check', ['jshint']);
 

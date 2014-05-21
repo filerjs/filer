@@ -1,0 +1,7 @@
+
+  var Filer = require( "src/index" );
+
+  return Filer;
+
+}));
+
