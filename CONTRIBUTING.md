@@ -28,6 +28,38 @@ make a pull request. If you're patch includes code, make sure to check that all 
 unit tests pass, including any new tests you wrote. Finally, make sure you add yourself
 to the `AUTHORS` file.
 
+=======
+### Releasing a new version
+=======
+### Releasing a new version
+**NOTE:** This step should only ever be attempted by the owner of the repo (@modeswitch).
+
+`grunt publish` will:
+
+* Run the `grunt release` task
+* Bump `bower.json` & `package.json` version numbers according to a [Semver](http://semver.org/) compatible scheme (see "How to Publish" below)
+* Create a git tag at the new version number
+* Create a release commit including `dist/filer.js`, `dist/filer.min.js`, `bower.json` and `package.json`
+* Push tag & commit to `origin/develop`
+* Update the `gh-pages` branch with the contents of the `develop` branch
+* Force push the `gh-pages` branch to `origin/gh-pages`
+* Publish the new version of the module to NPM
+
+#### How to configure
+1. Copy `env.sample` to `.env`
+2. Modify as needed, or leave alone for defaults
+
+#### How to Publish
+`grunt publish` can be run in four ways:
+
+1.  `grunt publish` - does a patch (x.x.X) bump
+2.  `grunt publish:patch` - also does a patch (x.x.X) bump
+3.  `grunt publish:minor` - does a minor (x.X.x) bump
+4.  `grunt publish:major` - does a major (X.x.x) bump
+
+The user *must* be on their local `develop` branch before running any form of `grunt publish`, or else the task will fail loudly.
+
+=======
 ## Tests
 
 Tests are writting using [Mocha](http://visionmedia.github.io/mocha/) and [Chai](http://chaijs.com/api/bdd/).
