@@ -13,6 +13,7 @@ define([
   "spec/fs.stat.spec",
   "spec/fs.lstat.spec",
   "spec/fs.exists.spec",
+  "spec/fs.mknod.spec",
   "spec/fs.mkdir.spec",
   "spec/fs.readdir.spec",
   "spec/fs.rmdir.spec",

@@ -226,6 +226,7 @@ define(function(require) {
   [
     'open',
     'close',
+    'mknod',
     'mkdir',
     'rmdir',
     'stat',
