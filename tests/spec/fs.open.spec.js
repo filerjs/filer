@@ -1,4 +1,4 @@
-define(["Filer", "util"], function(Filer, util) {
+define(["Filer", "util", "src/constants"], function(Filer, util, constants) {
 
   describe('fs.open', function() {
     beforeEach(util.setup);
@@ -81,7 +81,7 @@ define(["Filer", "util"], function(Filer, util) {
 
     it('should return the argument value of the file descriptor index matching the value set by the first useable file descriptor constant', function(done) {
       var fs = util.fs();
-      var firstFD = require('src/constants').FIRST_DESCRIPTOR;
+      var firstFD = constants.FIRST_DESCRIPTOR;
       var fd1;
 
       fs.open('/file1', 'w+', function(error, fd) {

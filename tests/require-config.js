@@ -80,6 +80,7 @@ var config = (function() {
       "tests": "../tests",
       "spec": "../tests/spec",
       "bugs": "../tests/bugs",
+      "src": "../src",
       "util": "../tests/lib/test-utils",
       "Filer": "../dist/filer-test"
     },

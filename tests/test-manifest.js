@@ -68,6 +68,9 @@ define([
   "spec/node-js/simple/test-fs-watch",
   "spec/node-js/simple/test-fs-watch-recursive",
 
+  // Nodejs compatibility
+  "spec/node-js/simple/nodejs.spec",
+
   // Regressions, Bugs
   "bugs/issue105",
   "bugs/issue106"

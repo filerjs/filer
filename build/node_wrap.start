@@ -12,5 +12,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 
 (function( root, factory ) {
-  module.exports = factory();
+  if (typeof exports === "object") {
+    module.exports = factory();
+  } else if (typeof define === "function" && define.amd) {
+    // AMD. Register as an anonymous module.
+    define( factory );
+  }
 }( this, function() {

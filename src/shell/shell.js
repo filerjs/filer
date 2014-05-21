@@ -445,17 +445,19 @@ define(function(require) {
       return;
     }
 
-    // Grab whatever is after the last / (assuming there is one) and
-    // remove any non-filename type chars(i.e., : and /). Like the real
-    // wget, we leave query string or hash portions in tact.
-    var path = options.filename || url.replace(/[:/]/, '').split('/').pop();
+    // Grab whatever is after the last / (assuming there is one). Like the real
+    // wget, we leave query string or hash portions in tact. This assumes a
+    // properly encoded URL.
+    // i.e. instead of "/foo?bar/" we would expect "/foo?bar%2F"
+    var path = options.filename || url.split('/').pop();
+
     path = Path.resolve(fs.cwd, path);
 
     function onerror() {
       callback(new Error('unable to get resource'));
     }
 
-    Network.download('get', url, function(err, data) {
+    Network.download(url, function(err, data) {
       if (err || !data) {
         return onerror();
       }
@@ -467,7 +469,7 @@ define(function(require) {
           callback(null, path);
         }
       });
-    }
+    });
   };
 
   Shell.prototype.unzip = function(zipfile, options, callback) {
