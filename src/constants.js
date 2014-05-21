@@ -68,7 +68,7 @@ define(function(require) {
 
     SUPER_NODE_ID: '00000000-0000-0000-0000-000000000000',
 
-    //Reserved FileDescriptors for streams
+    // Reserved File Descriptors for streams
     STDIN: 0,
     STDOUT: 1,
     STDERR: 2,
