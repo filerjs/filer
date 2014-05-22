@@ -8,10 +8,14 @@ define(function(require) {
   var createDB = (function() {
     var pool = {};
     return function getOrCreate(name) {
-      if(!pool[name]) {
+      var firstAccess = !pool.hasOwnProperty(name);
+      if(firstAccess) {
         pool[name] = {};
       }
-      return pool[name];
+      return {
+        firstAccess: firstAccess, 
+        db: pool[name]
+      };
     };
   }());
 
@@ -62,15 +66,16 @@ define(function(require) {
 
   function Memory(name) {
     this.name = name || FILE_SYSTEM_NAME;
-    this.db = createDB(this.name);
   }
   Memory.isSupported = function() {
     return true;
   };
 
   Memory.prototype.open = function(callback) {
+    var result = createDB(this.name);
+    this.db = result.db;
     asyncCallback(function() {
-      callback(null, true);
+      callback(null, result.firstAccess);
     });
   };
   Memory.prototype.getReadOnlyContext = function() {

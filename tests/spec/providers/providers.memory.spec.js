@@ -12,6 +12,39 @@ define(["Filer"], function(Filer) {
       expect(memoryProvider.getReadWriteContext).to.be.a('function');
     });
 
+    describe("Memory provider DBs are sharable", function() {
+      it("should share a single memory db when name is the same", function(done) {
+        var provider1;
+	var provider2;
+        var provider3;
+        var name1 = 'memory-db';
+        var name2 = 'memory-db2';
+
+        provider1 = new Filer.FileSystem.providers.Memory(name1);
+          provider1.open(function(error, firstAccess) {
+            expect(error).not.to.exist;
+            expect(firstAccess).to.be.true;
+
+            provider2 = new Filer.FileSystem.providers.Memory(name1);
+            provider2.open(function(error, firstAccess) {
+              expect(error).not.to.exist;
+              expect(firstAccess).to.be.false;
+              expect(provider1.db).to.equal(provider2.db);
+
+              provider3 = new Filer.FileSystem.providers.Memory(name2);
+              provider3.open(function(error, firstAccess) {
+                expect(error).not.to.exist;
+                expect(firstAccess).to.be.true;
+                expect(provider3.db).not.to.equal(provider2.db);
+
+                done();
+	      });
+	    });
+	  });
+        });
+      });
+    });
+
     describe("open an Memory provider", function() {
       it("should open a new Memory database", function(done) {
         var provider = new Filer.FileSystem.providers.Memory();
