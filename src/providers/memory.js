@@ -1,7 +1,19 @@
 define(function(require) {
   var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
-
   var asyncCallback = require('async').nextTick;
+
+  /**
+   * Make shared in-memory DBs possible when using the same name.
+   */
+  var createDB = (function() {
+    var pool = {};
+    return function getOrCreate(name) {
+      if(!pool[name]) {
+        pool[name] = {};
+      }
+      return pool[name];
+    };
+  }());
 
   function MemoryContext(db, readOnly) {
     this.readOnly = readOnly;
@@ -50,7 +62,7 @@ define(function(require) {
 
   function Memory(name) {
     this.name = name || FILE_SYSTEM_NAME;
-    this.db = {};
+    this.db = createDB(this.name);
   }
   Memory.isSupported = function() {
     return true;
