@@ -46,10 +46,10 @@ function nodeDownload(uri, callback) {
   });
 }
 
-module.exports = function(uri, callback) {
+module.exports.download = (function() {
   if (typeof XMLHttpRequest === 'undefined') {
-    nodeDownload(uri, callback);
+    return nodeDownload;
   } else {
-    browserDownload(uri, callback);
+    return browserDownload;
   }
-};
+}());

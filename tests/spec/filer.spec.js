@@ -1,5 +1,5 @@
 var Filer = require('../..');
-var expect = require('chai');
+var expect = require('chai').expect;
 
 describe("Filer", function() {
   it("is defined", function() {
