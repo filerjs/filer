@@ -1,9 +1,15 @@
 // If there's something broken in filer or a test,
 // requirejs can blow up, and mocha sees it as tests
 // not getting added (i.e., it just exists with only
-// 1 test run). Display an error so it's clear what happened.
+// 1 test run). Display an error and crash loudly
+// so it's clear what happened.
 process.on('uncaughtException', function(err) {
-  console.error('Error in require.js trying to build test suite, filer:\n', err.stack);
+  describe('requirejs errors: ', function() {
+    it('requirejs has crashed building the test suite...', function(done) {
+      console.error(err.stack);
+      require('assert').ok(false);
+    });
+  });
 });
 
 var requirejs = require('requirejs');

@@ -42,7 +42,6 @@ define([
 
   // Filer.FileSystem.providers.*
   "spec/providers/providers.spec",
-  "spec/providers/providers.memory.spec",
   "spec/providers/providers.indexeddb.spec",
   "spec/providers/providers.websql.spec",
 
@@ -68,11 +67,9 @@ define([
   "spec/node-js/simple/test-fs-watch",
   "spec/node-js/simple/test-fs-watch-recursive",
 
-  // Nodejs compatibility
-  "spec/node-js/simple/nodejs.spec",
-
   // Regressions, Bugs
   "bugs/issue105",
-  "bugs/issue106"
+  "bugs/issue106" ,
+  "spec/providers/providers.memory.spec"
 
 ]);
