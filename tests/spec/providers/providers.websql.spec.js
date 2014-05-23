@@ -1,15 +1,10 @@
-define(["Filer", "util"], function(Filer, util) {
+var Filer = require('../../..');
+var util = require('../../lib/test-utils.js');
+var expect = require('chai').expect;
 
-  if(!Filer.FileSystem.providers.WebSQL.isSupported()) {
-    console.log("Skipping Filer.FileSystem.providers.WebSQL tests, since WebSQL isn't supported.");
-    return;
-  }
-
-  if(navigator.userAgent.indexOf('PhantomJS') > -1) {
-    console.log("Skipping Filer.FileSystem.providers.WebSQL tests, since PhantomJS doesn't support it.");
-    return;
-  }
-
+if(!Filer.FileSystem.providers.WebSQL.isSupported()) {
+  console.log("Skipping Filer.FileSystem.providers.WebSQL tests, since WebSQL isn't supported.");
+} else {
   describe("Filer.FileSystem.providers.WebSQL", function() {
     it("is supported -- if it isn't, none of these tests can run.", function() {
       expect(Filer.FileSystem.providers.WebSQL.isSupported()).to.be.true;
@@ -145,4 +140,4 @@ define(["Filer", "util"], function(Filer, util) {
     });
   });
 
-});
+}

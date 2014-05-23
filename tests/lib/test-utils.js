@@ -52,7 +52,7 @@
     }
 
     // Allow passing FS flags on query string
-    var flags = global.filerArgs && global.filerArgs.flags) ?
+    var flags = global.filerArgs && global.filerArgs.flags ?
       global.filerArgs.flags : 'FORMAT';
 
     // Create a file system and wait for it to get setup
