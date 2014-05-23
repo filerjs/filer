@@ -4,9 +4,6 @@ define(function(require) {
   var Path = require('src/path');
   var Errors = require('src/errors');
   var async = require('async');
-  var cache = {};
-  var options;
-  var destFS;
 
   //MD5 hashing for RSync
   //Used from Node.js Anchor module
@@ -83,6 +80,17 @@ define(function(require) {
     return hashtable;
   }
 
+  /* Append Buffer function
+  * Used to append the contents of buffer2
+  * to the end of buffer1 using a new array
+  */
+  function appendBuffer( buffer1, buffer2 ) {
+    var tmp = new Uint8Array( buffer1.byteLength + buffer2.byteLength );
+    tmp.set( new Uint8Array( buffer1 ), 0 );
+    tmp.set( new Uint8Array( buffer2 ), buffer1.byteLength );
+    return tmp;
+  }
+
   /* RSync Algorithm function
   * Copyright(c) 2011 Mihai Tomescu <matomesc@gmail.com>
   * Copyright(c) 2011 Tolga Tezel <tolgatezel11@gmail.com>
@@ -95,9 +103,9 @@ define(function(require) {
     var length = data.length;
     var start = 0;
     var end = chunkSize > length ? length : chunkSize;
-        // Updated when a block matches
+    // Updated when a block matches
     var lastMatchedEnd = 0;
-        // This gets updated every iteration with the previous weak 32bit hash
+    // This gets updated every iteration with the previous weak 32bit hash
     var prevRollingWeak = null;
     for (; end <= length; start++, end++) {
       var weak = _weak32(data, prevRollingWeak, start, end);
@@ -152,6 +160,8 @@ define(function(require) {
 
   function rsync (srcPath, destPath, opts, callback) {
     var srcFS = this.fs;
+    var options;
+    var cache = {};
     if(typeof opts === 'function') {
       callback = opts;
       options = {};
@@ -160,7 +170,7 @@ define(function(require) {
       options.recursive = false;
       options.time = false;
       options.links = false;
-      destFS = srcFS;
+      options.fs = srcFS;
     }
     else {
       options = opts || {};
@@ -169,13 +179,14 @@ define(function(require) {
       options.recursive = options.recursive || false;
       options.time = options.time || false;
       options.links = options.links || false;
-      destFS = options.fs || srcFS;
+      options.fs = options.fs || srcFS;
       callback = callback || function() {};
     }
-    if(srcPath === null || srcPath === '/' || srcPath === '') {
+    if(srcPath === null || srcPath === '') {
       callback (new Errors.EINVAL('invalid source path'));
       return;
     }
+    var destFS = options.fs;
 
     function getSrcList(path, callback) {
       var result = [];
@@ -265,7 +276,7 @@ define(function(require) {
                 callback();
               }
               else {
-                checksum.call(destFS, Path.join(destPath, entry.path), function(err, checksums) {
+                checksum.call(destFS, Path.join(destPath, entry.path), options, cache, function(err, checksums) {
                   if(err) {
                     callback(err);
                     return;
@@ -279,7 +290,7 @@ define(function(require) {
             }); 
           }
           else {
-            checksum.call(destFS, Path.join(destPath, entry.path), function(err, checksums) {
+            checksum.call(destFS, Path.join(destPath, entry.path), options, cache, function(err, checksums) {
               if(err) {
                 callback(err);
                 return;
@@ -330,15 +341,13 @@ define(function(require) {
             callback();
             return;
           }
-          diff.call(srcFS, srcPath, result, function(err, diffs) {
+          diff.call(srcFS, srcPath, result, options, function(err, diffs) {
             if(err) {
               callback(err);
               return;
             }
-            destFS.readdir('/', function(err, stuff){
-              sync(destPath, diffs, function(err) {
-                callback(err);
-              });
+            sync(destPath, diffs, options, cache, function(err) {
+              callback(err);
             });
           });
         });
@@ -353,8 +362,8 @@ define(function(require) {
   * https://github.com/ttezel/anchor
   * MIT Licensed
   */
-  function checksum (path, callback) {
-    //var destFS = this;
+  function checksum (path, options, cache, callback) {
+    var destFS = options.fs;
     destFS.readFile(path, function (err, data) {
       if (!err) {
         // cache file
@@ -398,7 +407,7 @@ define(function(require) {
   * https://github.com/ttezel/anchor
   * MIT Licensed
   */
-  function diff(path, checksums, callback) {
+  function diff(path, checksums, options, callback) {
     var srcFS = this;
     // roll through the file
     var diffs = [];
@@ -443,7 +452,7 @@ define(function(require) {
 
     function getDiff(entry, callback) {
       if(entry.hasOwnProperty('contents')) {
-        diff.call(srcFS, Path.join(path, entry.path), entry.contents, function(err, stuff) {
+        diff.call(srcFS, Path.join(path, entry.path), entry.contents, options, function(err, stuff) {
           if(err) {
             callback(err);
             return;
@@ -494,17 +503,18 @@ define(function(require) {
   * https://github.com/ttezel/anchor
   * MIT Licensed
   */
-  function sync(path, diff, callback) {
-    function syncEach(entry, callback) { 
+  function sync(path, diff, options, cache, callback) {
+    var destFS = options.fs;
 
+    function syncEach(entry, callback) { 
       //get slice of raw file from block's index
-      function rawslice(index) {
+      function rawSlice(index) {
         var start = index*options.size;
         var end = start + options.size > raw.length ? raw.length : start + options.size;
         return raw.subarray(start, end);
       }
       if(entry.hasOwnProperty('contents')) {
-        sync(Path.join(path, entry.path), entry.contents, function(err) {
+        sync(Path.join(path, entry.path), entry.contents, options, cache, function(err) {
           if(err) {
             callback(err);
             return;
@@ -533,11 +543,11 @@ define(function(require) {
         for(; i < len; i++) {
           var chunk = entry.diff[i];
           if(typeof chunk.data === 'undefined') { //use slice of original file
-            buf = appendBuffer(buf, rawslice(chunk.index));
+            buf = appendBuffer(buf, rawSlice(chunk.index));
           } else {
             buf = appendBuffer(buf, chunk.data);
             if(typeof chunk.index !== 'undefined') {
-              buf = appendBuffer(buf, rawslice(chunk.index));
+              buf = appendBuffer(buf, rawSlice(chunk.index));
             }
           }
         }
@@ -572,13 +582,6 @@ define(function(require) {
         callback(err);
       });
     });
-  }
-
-  function appendBuffer( buffer1, buffer2 ) {
-    var tmp = new Uint8Array( buffer1.byteLength + buffer2.byteLength );
-    tmp.set( new Uint8Array( buffer1 ), 0 );
-    tmp.set( new Uint8Array( buffer2 ), buffer1.byteLength );
-    return tmp;
   }
 
   return rsync;

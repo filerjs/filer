@@ -31,17 +31,6 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    it('should fail with root provided (\'/\')', function(done) {
-      var fs = util.fs();
-      var shell = fs.Shell();
-
-      shell.rsync('/', '/', function(err) {
-          expect(err).to.exist;
-          expect(err.code).to.equal('EINVAL');
-          done();
-      });
-    });
-
     it('should fail if source path doesn\'t exist', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
@@ -485,6 +474,28 @@ define(["Filer", "util"], function(Filer, util) {
             });
           });
         });
+      });
+    });
+
+    it('should successfully sync to a different local filesystem using the \'fs\' flag', function(done){
+      var fs1 = util.fs();
+      var fs2 = new Filer.FileSystem({provider: new Filer.FileSystem.providers.Memory()});
+      var shell = fs1.Shell();
+      
+      fs1.mkdir('/test', function(err) {
+        expect(err).to.not.exist;
+        fs1.writeFile('/1.txt','This is my file. It does not exist in the destination folder.', 'utf8', function(err) { 
+          expect(err).to.not.exist;
+          shell.rsync('/1.txt', '/test', { fs: fs2 }, function(err) {
+            expect(err).to.not.exist;
+            fs2.readFile('/test/1.txt', 'utf8', function(err, data){
+              expect(err).to.not.exist;
+              expect(data).to.exist;
+              expect(data).to.equal('This is my file. It does not exist in the destination folder.');
+              done();
+            });
+          }); 
+        });   
       });
     });
 
