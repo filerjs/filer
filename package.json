@@ -51,5 +51,5 @@
     "mocha": "~1.18.2",
     "requirejs": "~2.1.11"
   },
-  "main": "dist/filer_node.js"
+  "main": "./src/index.js"
 }
