@@ -1,15 +1,14 @@
-define(["Filer"], function(Filer) {
+(function(global) {
+  var Filer = require("../..");
 
-  var indexedDB = (function(window) {
-    return window.indexedDB       ||
-           window.mozIndexedDB    ||
-           window.webkitIndexedDB ||
-           window.msIndexedDB;
-  }(this));
+  var indexedDB = global.indexedDB       ||
+                  global.mozIndexedDB    ||
+                  global.webkitIndexedDB ||
+                  global.msIndexedDB;
 
   var needsCleanup = [];
-  if(typeof window !== 'undefined') {
-    window.addEventListener('beforeunload', function() {
+  if(global.addEventListener) {
+    global.addEventListener('beforeunload', function() {
       needsCleanup.forEach(function(f) { f(); });
     });
   }
@@ -52,6 +51,6 @@ define(["Filer"], function(Filer) {
     this.cleanup = cleanup;
   }
 
-  return IndexedDBTestProvider;
+  module.exports = IndexedDBTestProvider;
 
-});
+}(this));

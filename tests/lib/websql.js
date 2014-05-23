@@ -1,7 +1,9 @@
-define(["Filer"], function(Filer) {
+(function(global) {
+
+  var Filer = require('../..');
 
   var needsCleanup = [];
-  if(typeof window !== 'undefined') {
+  if(global.addEventListener) {
     window.addEventListener('beforeunload', function() {
       needsCleanup.forEach(function(f) { f(); });
     });
@@ -40,6 +42,6 @@ define(["Filer"], function(Filer) {
     this.cleanup = cleanup;
   }
 
-  return WebSQLTestProvider;
+  module.exports = WebSQLTestProvider;
 
-});
+}(this));

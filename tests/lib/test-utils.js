@@ -1,5 +1,9 @@
-define(["Filer", "tests/lib/indexeddb", "tests/lib/websql", "tests/lib/memory"],
-function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
+(function(global) {
+
+  var Filer = require('../..');
+  var IndexedDBTestProvider = require('./indexeddb.js');
+  var WebSQLTestProvider = require('./websql.js');
+  var MemoryTestProvider = require('./memory.js');
 
   var _provider;
   var _fs;
@@ -12,17 +16,6 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
   }
 
   function findBestProvider() {
-    if(typeof module !== 'undefined' && module.exports) {
-      return MemoryTestProvider;
-    }
-
-    // When running tests, and when no explicit provider is defined,
-    // prefer providers in this order: IndexedDB, WebSQL, Memory.
-    // However, if we're running in PhantomJS, use Memory first.
-    if(typeof navigator !== 'undefined' && navigator.userAgent.indexOf('PhantomJS') > -1) {
-      return MemoryTestProvider;
-    }
-
     var providers = Filer.FileSystem.providers;
     if(providers.IndexedDB.isSupported()) {
       return IndexedDBTestProvider;
@@ -34,13 +27,12 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
   }
 
   function setup(callback) {
-    // We support specifying the provider via the query string
+    // In browser we support specifying the provider via the query string
     // (e.g., ?filer-provider=IndexedDB). If not specified, we use
     // the Memory provider by default.  See test/require-config.js
     // for definition of window.filerArgs.
-    var providerType = (typeof window !== 'undefined' &&
-      window.filerArgs && window.filerArgs.provider) ?
-      window.filerArgs.provider : 'Memory';
+    var providerType = global.filerArgs && global.filerArgs.provider ?
+      global.filerArgs.provider : 'Memory';
 
     var name = uniqueName();
 
@@ -60,9 +52,8 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     }
 
     // Allow passing FS flags on query string
-    var flags = (typeof window !== 'undefined' &&
-      window && window.filerArgs && window.filerArgs.flags) ?
-      window.filerArgs.flags : 'FORMAT';
+    var flags = global.filerArgs && global.filerArgs.flags) ?
+      global.filerArgs.flags : 'FORMAT';
 
     // Create a file system and wait for it to get setup
     _provider.init();
@@ -125,7 +116,7 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     return true;
   }
 
-  return {
+  module.exports = {
     uniqueName: uniqueName,
     setup: setup,
     fs: fs,
@@ -140,4 +131,4 @@ function(Filer, IndexedDBTestProvider, WebSQLTestProvider, MemoryTestProvider) {
     typedArrayEqual: typedArrayEqual
   };
 
-});
+}(this));
