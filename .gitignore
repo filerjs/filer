@@ -2,3 +2,5 @@ node_modules
 bower_components
 .env
 *~
+dist/filer-test.js
+/dist/filer_node-test.js

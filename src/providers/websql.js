@@ -98,7 +98,7 @@ define(function(require) {
     this.db = null;
   }
   WebSQL.isSupported = function() {
-    return !!window.openDatabase;
+    return typeof window === 'undefined' ? false : !!window.openDatabase;
   };
 
   WebSQL.prototype.open = function(callback) {

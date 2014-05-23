@@ -1,14 +1,5 @@
 define(["Filer", "util"], function(Filer, util) {
 
-  // PhantomJS doesn't like how the zlib stuff works, see:
-  // https://github.com/imaya/zlib.js/issues/33
-  function itShouldWorkInPhantomJSButDoesNot(test, callback) {
-    if(navigator.userAgent.indexOf('PhantomJS') > -1) {
-      return it.skip(test, callback);
-    }
-    it(test, callback);
-  }
-
   describe('FileSystemShell.zip() and unzip()', function() {
     beforeEach(util.setup);
     afterEach(util.cleanup);
@@ -29,16 +20,17 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    itShouldWorkInPhantomJSButDoesNot('should download and unzip the contents of a zip file', function(done) {
+    it('should download and unzip the contents of a zip file', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
-      var url = "test-file.txt.zip";
+      var url = typeof XMLHttpRequest === "undefined" ? "http://localhost:1234/tests/test-file.txt.zip" : "/tests/test-file.txt.zip";
+      var filename = "test-file.txt.zip";
       var contents = "This is a test file used in some of the tests.\n";
 
       fs.writeFile('/original', contents, function(err) {
         if(err) throw err;
 
-        shell.wget(url, {filename: url}, function(err, path) {
+        shell.wget(url, {filename: filename}, function(err, path) {
           if(err) throw err;
 
           shell.unzip(path, function(err) {
@@ -59,17 +51,18 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    itShouldWorkInPhantomJSButDoesNot('should download and unzip the contents of a zip file with a specified destination', function(done) {
+    it('should download and unzip the contents of a zip file with a specified destination', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
       var Path = Filer.Path;
-      var url = "test-file.txt.zip";
+      var url = typeof XMLHttpRequest === "undefined" ? "http://localhost:1234/tests/test-file.txt.zip" : "/tests/test-file.txt.zip";
+      var filename = "test-file.txt.zip";
       var contents = "This is a test file used in some of the tests.\n";
 
       fs.writeFile('/original', contents, function(err) {
         if(err) throw err;
 
-        shell.wget(url, {filename: url}, function(err, path) {
+        shell.wget(url, {filename: filename}, function(err, path) {
           if(err) throw err;
 
           shell.tempDir(function(err, tmp) {
@@ -93,7 +86,7 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    itShouldWorkInPhantomJSButDoesNot('should be able to zip and unzip a file', function(done) {
+    it('should be able to zip and unzip a file', function(done) {
       var fs = util.fs();
       var file = '/test-file.txt';
       var zipfile = file + '.zip';
@@ -134,7 +127,7 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    itShouldWorkInPhantomJSButDoesNot('should be able to handle a deep tree structure in a zip', function(done) {
+    it('should be able to handle a deep tree structure in a zip', function(done) {
       // test-dir.zip has the following structure:
       //
       // test-dir/
@@ -145,7 +138,8 @@ define(["Filer", "util"], function(Filer, util) {
 
       var fs = util.fs();
       var shell = fs.Shell();
-      var url = "test-dir.zip";
+      var url = typeof XMLHttpRequest === "undefined" ? "http://localhost:1234/tests/test-dir.zip" : "/tests/test-dir.zip";
+      var filename = "test-dir.zip";
       var Path = Filer.Path;
       var contents = "This is a test file used in some of the tests.\n";
 
@@ -175,7 +169,7 @@ define(["Filer", "util"], function(Filer, util) {
         });
       }
 
-      shell.wget(url, {filename: url}, function(err, path) {
+      shell.wget(url, {filename: filename}, function(err, path) {
         if(err) throw err;
 
         shell.unzip(path, function(err) {
@@ -194,7 +188,7 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    itShouldWorkInPhantomJSButDoesNot('should be able to re-create (unzip/zip) a deep tree structure in a zip', function(done) {
+    it('should be able to re-create (unzip/zip) a deep tree structure in a zip', function(done) {
       // test-dir.zip has the following structure:
       //
       // test-dir/
@@ -205,7 +199,8 @@ define(["Filer", "util"], function(Filer, util) {
 
       var fs = util.fs();
       var shell = fs.Shell();
-      var url = "test-dir.zip";
+      var url = typeof XMLHttpRequest === "undefined" ? "http://localhost:1234/tests/test-dir.zip" : "/tests/test-dir.zip";
+      var filename = "test-dir.zip";
       var Path = Filer.Path;
       var contents = "This is a test file used in some of the tests.\n";
 
@@ -235,7 +230,7 @@ define(["Filer", "util"], function(Filer, util) {
         });
       }
 
-      shell.wget(url, {filename: url}, function(err, path) {
+      shell.wget(url, {filename: filename}, function(err, path) {
         if(err) throw err;
 
         shell.unzip(path, function(err) {
@@ -266,7 +261,7 @@ define(["Filer", "util"], function(Filer, util) {
       });
     });
 
-    itShouldWorkInPhantomJSButDoesNot('should fail if the zipfile already exists', function(done) {
+    it('should fail if the zipfile already exists', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
       var file = "/file";

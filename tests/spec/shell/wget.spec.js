@@ -34,7 +34,7 @@ define(["Filer", "util"], function(Filer, util) {
     it('should download the contents of a file from a url to default filename', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
-      var url = "test-file.txt";
+      var url = typeof XMLHttpRequest === "undefined" ? "http://localhost:1234/tests/test-file.txt" : "/tests/test-file.txt";
       var contents = "This is a test file used in some of the tests.\n";
 
       shell.wget(url, function(err, path) {
@@ -54,7 +54,7 @@ define(["Filer", "util"], function(Filer, util) {
     it('should download the contents of a file from a url to specified filename', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
-      var url = "test-file.txt";
+      var url = typeof XMLHttpRequest === "undefined" ? "http://localhost:1234/tests/test-file.txt" : "/tests/test-file.txt";
       var contents = "This is a test file used in some of the tests.\n";
 
       shell.wget(url, { filename: 'test-file.txt' }, function(err, path) {
@@ -74,33 +74,13 @@ define(["Filer", "util"], function(Filer, util) {
     it('should download the contents of a file from a url with query string', function(done) {
       var fs = util.fs();
       var shell = fs.Shell();
-      var url = "test-file.txt?foo";
+      var url = typeof XMLHttpRequest === "undefined" ? "http://localhost:1234/tests/test-file.txt?foo" : "/tests/test-file.txt?foo";
       var contents = "This is a test file used in some of the tests.\n";
 
       shell.wget(url, function(err, path) {
         if(err) throw err;
 
         expect(path).to.equal('/test-file.txt?foo');
-
-        fs.readFile(path, 'utf8', function(err, data) {
-          if(err) throw err;
-
-          expect(data).to.equal(contents);
-          done();
-        });
-      });
-    });
-
-    it('should download the contents of a file from a url to specified filename, stripping : and /', function(done) {
-      var fs = util.fs();
-      var shell = fs.Shell();
-      var url = "test-file.txt?foo=:/";
-      var contents = "This is a test file used in some of the tests.\n";
-
-      shell.wget(url, function(err, path) {
-        if(err) throw err;
-
-        expect(path).to.equal('/test-file.txt?foo=');
 
         fs.readFile(path, 'utf8', function(err, data) {
           if(err) throw err;

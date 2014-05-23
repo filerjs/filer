@@ -38,10 +38,10 @@ define([
   "spec/time-flags.spec",
   "spec/fs.watch.spec",
   "spec/errors.spec",
+  "spec/lib.spec",
 
   // Filer.FileSystem.providers.*
   "spec/providers/providers.spec",
-  "spec/providers/providers.memory.spec",
   "spec/providers/providers.indexeddb.spec",
   "spec/providers/providers.websql.spec",
 
@@ -69,6 +69,7 @@ define([
 
   // Regressions, Bugs
   "bugs/issue105",
-  "bugs/issue106"
+  "bugs/issue106" ,
+  "spec/providers/providers.memory.spec"
 
 ]);

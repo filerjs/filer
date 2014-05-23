@@ -1,14 +1,18 @@
 define(["Filer"], function(Filer) {
 
-  var indexedDB = window.indexedDB       ||
-                  window.mozIndexedDB    ||
-                  window.webkitIndexedDB ||
-                  window.msIndexedDB;
+  var indexedDB = (function(window) {
+    return window.indexedDB       ||
+           window.mozIndexedDB    ||
+           window.webkitIndexedDB ||
+           window.msIndexedDB;
+  }(this));
 
   var needsCleanup = [];
-  window.addEventListener('beforeunload', function() {
-    needsCleanup.forEach(function(f) { f(); });
-  });
+  if(typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', function() {
+      needsCleanup.forEach(function(f) { f(); });
+    });
+  }
 
   function IndexedDBTestProvider(name) {
     var _done = false;
