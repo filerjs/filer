@@ -45,10 +45,6 @@ define([
   "spec/providers/providers.indexeddb.spec",
   "spec/providers/providers.websql.spec",
 
-  // Filer.FileSystem.adapters.*
-  "spec/adapters/adapters.spec",
-  "spec/adapters/adapters.general.spec",
-
   // Filer.FileSystemShell.*
   "spec/shell/cd.spec",
   "spec/shell/touch.spec",

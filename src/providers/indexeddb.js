@@ -1,17 +1,14 @@
-define(function(require) {
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
-  var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
+(function(global) {
+  var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
+  var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
+  var IDB_RW = require('../constants.js').IDB_RW;
+  var IDB_RO = require('../constants.js').IDB_RO;
+  var Errors = require('../errors.js');
 
-  var indexedDB = (function(window) {
-    return window.indexedDB       ||
-           window.mozIndexedDB    ||
-           window.webkitIndexedDB ||
-           window.msIndexedDB;
-  }(this));
-
-  var IDB_RW = require('src/constants').IDB_RW;
-  var IDB_RO = require('src/constants').IDB_RO;
-  var Errors = require('src/errors');
+  var indexedDB = global.indexedDB       ||
+                  global.mozIndexedDB    ||
+                  global.webkitIndexedDB ||
+                  global.msIndexedDB;
 
   function IndexedDBContext(db, mode) {
     var transaction = db.transaction(FILE_STORE_NAME, mode);
@@ -128,5 +125,6 @@ define(function(require) {
     return new IndexedDBContext(this.db, IDB_RW);
   };
 
-  return IndexedDB;
-});
+  module.exports = IndexedDB;
+
+}(this));

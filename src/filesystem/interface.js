@@ -10,11 +10,7 @@ var FS_READY = Constants.FS_READY;
 var FS_PENDING = Constants.FS_PENDING;
 var FS_ERROR = Constants.FS_ERROR;
 
-// TODO: fix adapters + providers for node.js...
-//var providers = require('../providers/providers.js');
-var providers = {};
-//var adapters = require('../adapters/adapters.js');
-var adapters = {};
+var providers = require('../providers/index.js');
 
 var Shell = require('../shell/shell.js');
 var Intercom = require('../../lib/intercom.js');
@@ -217,9 +213,6 @@ function FileSystem(options, callback) {
 
 // Expose storage providers on FileSystem constructor
 FileSystem.providers = providers;
-
-// Expose adatpers on FileSystem constructor
-FileSystem.adapters = adapters;
 
 /**
  * Public API for FileSystem

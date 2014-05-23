@@ -1,11 +1,11 @@
-define(function(require) {
-  var FILE_SYSTEM_NAME = require('src/constants').FILE_SYSTEM_NAME;
-  var FILE_STORE_NAME = require('src/constants').FILE_STORE_NAME;
-  var WSQL_VERSION = require('src/constants').WSQL_VERSION;
-  var WSQL_SIZE = require('src/constants').WSQL_SIZE;
-  var WSQL_DESC = require('src/constants').WSQL_DESC;
-  var u8toArray = require('src/shared').u8toArray;
-  var Errors = require('src/errors');
+(function(global) {
+  var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
+  var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
+  var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
+  var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
+  var WSQL_DESC = require('../constants.js').WSQL_DESC;
+  var u8toArray = require('../shared.js').u8toArray;
+  var Errors = require('../errors.js');
 
   function WebSQLContext(db, isReadOnly) {
     var that = this;
@@ -98,7 +98,7 @@ define(function(require) {
     this.db = null;
   }
   WebSQL.isSupported = function() {
-    return typeof window === 'undefined' ? false : !!window.openDatabase;
+    return !!global.openDatabase;
   };
 
   WebSQL.prototype.open = function(callback) {
@@ -110,7 +110,7 @@ define(function(require) {
       return;
     }
 
-    var db = window.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
+    var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
     if(!db) {
       callback("[WebSQL] Unable to open database.");
       return;
@@ -156,5 +156,6 @@ define(function(require) {
     return new WebSQLContext(this.db, false);
   };
 
-  return WebSQL;
-});
+  module.exports = WebSQL;
+
+}(this));
