@@ -52,7 +52,7 @@ module.exports = function(grunt) {
     },
 
     browserify: {
-      standalone: {
+      filerDist: {
         src: "./src/index.js",
         dest: "./dist/filer.js",
         options: {
@@ -63,29 +63,18 @@ module.exports = function(grunt) {
           }
         }
       },
-      testVersion: {
-        src: "./src/index.js",
+      filerTest: {
+        src: "./tests/index.js",
         dest: "./dist/filer-test.js",
         options: {
-          standalone: 'Filer',
-          browserifyOptions: {
-            builtins: false,
-            commondir: false
-          }
-        }
-      },
-      testApp: {
-        src: "./tests/index.js",
-        dest: "./tests/test-bundle.js",
-        options: {
-          standalone: 'Filer test suite'
+          standalone: 'FilerTest'
         }
       }
     },
 
     shell: {
       mocha: {
-        command: './node_modules/.bin/mocha --reporter list --no-exit tests/index.js'
+        command: './node_modules/.bin/mocha --reporter list tests/index.js'
       }
     },
 
@@ -160,13 +149,13 @@ module.exports = function(grunt) {
       }
     },
     connect: {
-      server_for_node: {
+      serverForNode: {
         options: {
           port: 1234,
           base: '.'
         }
       },
-      server_for_browser: {
+      serverForBrowser: {
         options: {
           port: 1234,
           base: '.',
@@ -189,10 +178,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-browserify');
 
-  grunt.registerTask('develop', ['clean', 'browserify:standalone']);
-  grunt.registerTask('filer-test', ['clean', 'browserify:testVersion', 'browserify:testApp']);
+  grunt.registerTask('develop', ['clean', 'browserify:filerDist']);
+  grunt.registerTask('build-tests', ['clean', 'browserify:filerTest']);
   grunt.registerTask('release', ['develop', 'uglify']);
-  grunt.registerTask('check', ['jshint']);
 
   grunt.registerTask('publish', 'Publish filer as a new version to NPM, bower and github.', function(patchLevel) {
     var allLevels = ['patch', 'minor', 'major'];
@@ -223,8 +211,8 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
-  grunt.registerTask('test-node', ['check', 'clean', 'connect:server_for_node', 'shell:mocha']);
-  grunt.registerTask('test-browser', ['check', 'filer-test', 'connect:server_for_browser']);
+  grunt.registerTask('test-node', ['jshint', 'clean', 'connect:serverForNode', 'shell:mocha']);
+  grunt.registerTask('test-browser', ['jshint', 'build-tests', 'connect:serverForBrowser']);
   grunt.registerTask('test', ['test-node']);
 
   grunt.registerTask('default', ['test']);

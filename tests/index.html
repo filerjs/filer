@@ -8,16 +8,12 @@
   <script>
     mocha.setup('bdd').timeout(5000).slow(250);;
 
-    // Intentional globals
-    expect = chai.expect;
-    assert = chai.assert;
-
     window.onload = function() {
       mocha.checkLeaks();
       mocha.run();
     };
   </script>
-  <script src="test-bundle.js"></script>
+  <script src="../dist/filer-test.js"></script>
  </head>
 <body>
   <div id="mocha"></div>

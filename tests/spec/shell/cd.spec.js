@@ -1,5 +1,6 @@
 var Filer = require('../../..');
 var util = require('../../lib/test-utils.js');
+var expect = require('chai').expect;
 
 describe('FileSystemShell.cd', function() {
   beforeEach(util.setup);
