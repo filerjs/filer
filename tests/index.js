@@ -36,12 +36,12 @@ require("./spec/times.spec");
 require("./spec/time-flags.spec");
 require("./spec/fs.watch.spec");
 require("./spec/errors.spec");
-require("./spec/lib.spec");
 
 // Filer.FileSystem.providers.*
 require("./spec/providers/providers.spec");
 require("./spec/providers/providers.indexeddb.spec");
 require("./spec/providers/providers.websql.spec");
+require("./spec/providers/providers.memory.spec");
 
 // Filer.FileSystemShell.*
 require("./spec/shell/cd.spec");
@@ -55,6 +55,9 @@ require("./spec/shell/mkdirp.spec");
 require("./spec/shell/wget.spec");
 require("./spec/shell/zip-unzip.spec");
 
+// Custom Filer library modules
+require("./spec/libs/network.spec");
+
 // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
 require("./spec/node-js/simple/test-fs-mkdir");
 require("./spec/node-js/simple/test-fs-null-bytes");
@@ -64,4 +67,3 @@ require("./spec/node-js/simple/test-fs-watch-recursive");
 // Regressions; Bugs
 require("./bugs/issue105");
 require("./bugs/issue106");
-require("./spec/providers/providers.memory.spec");

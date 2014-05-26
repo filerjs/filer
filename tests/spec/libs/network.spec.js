@@ -1,7 +1,7 @@
-var network = require('../../src/network.js');
+var network = require('../../../src/network.js');
 var expect = require('chai').expect;
 
-describe('Network download tool', function() {
+describe('Network module', function() {
   var uri;
 
   if (typeof XMLHttpRequest === 'undefined') {
@@ -19,13 +19,6 @@ describe('Network download tool', function() {
       notFound: 'this-isnt-real'
     };
   }
-
-  it('should throw an exception when a URI is not passed', function(done) {
-    expect(function() {
-      network.download(undefined, function(error, data) {});
-    }).to.throwError;
-    done();
-  });
 
   it('should get an error when a non-existent path is specified', function(done) {
     network.download(uri.notFound, function(error, data) {

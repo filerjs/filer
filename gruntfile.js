@@ -51,110 +51,30 @@ module.exports = function(grunt) {
       ]
     },
 
-    shell: {
-      mocha: {
-        command: './node_modules/.bin/mocha --reporter list --no-exit tests/node-runner.js'
+    browserify: {
+      filerDist: {
+        src: "./src/index.js",
+        dest: "./dist/filer.js",
+        options: {
+          standalone: 'Filer',
+          browserifyOptions: {
+            builtins: false,
+            commondir: false
+          }
+        }
+      },
+      filerTest: {
+        src: "./tests/index.js",
+        dest: "./dist/filer-test.js",
+        options: {
+          standalone: 'FilerTest'
+        }
       }
     },
 
-    requirejs: {
-      browser_develop: {
-        options: {
-          paths: {
-            "src": "../src",
-            "build": "../build"
-          },
-          baseUrl: "lib",
-          name: "build/almond",
-          include: ["src/index"],
-          out: "dist/filer.js",
-          optimize: "none",
-          wrap: {
-            startFile: 'build/browser_wrap.start',
-            endFile: 'build/browser_wrap.end'
-          },
-          shim: {
-            // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
-            // and we use a fake one for reduced size, since we only care about utf8.
-            "encoding": {
-              deps: ["encoding-indexes-shim"]
-            }
-          }
-        }
-      },
-      node_develop: {
-        options: {
-          paths: {
-            "src": "../src",
-            "build": "../build"
-          },
-          baseUrl: "lib",
-          name: "require",
-          include: ["src/index"],
-          out: "dist/filer_node.js",
-          optimize: "none",
-          wrap: {
-            startFile: 'build/node_wrap.start',
-            endFile: 'build/node_wrap.end'
-          },
-          shim: {
-            // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
-            // and we use a fake one for reduced size, since we only care about utf8.
-            "encoding": {
-              deps: ["encoding-indexes-shim"]
-            }
-          },
-          nodeRequire: require
-        }
-      },
-      browser_test: {
-        options: {
-          paths: {
-            "src": "../src",
-            "build": "../build"
-          },
-          baseUrl: "lib",
-          name: "build/almond",
-          include: ["src/index"],
-          out: "dist/filer-test.js",
-          optimize: "none",
-          wrap: {
-            startFile: 'build/browser_wrap.start',
-            endFile: 'build/browser_wrap.end'
-          },
-          shim: {
-            // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
-            // and we use a fake one for reduced size, since we only care about utf8.
-            "encoding": {
-              deps: ["encoding-indexes-shim"]
-            }
-          }
-        }
-    },
-      node_test: {
-        options: {
-          paths: {
-            "src": "../src",
-            "build": "../build"
-          },
-          baseUrl: "lib",
-          name: "require",
-          include: ["src/index"],
-          out: "dist/filer_node-test.js",
-          optimize: "none",
-          wrap: {
-            startFile: 'build/node_wrap.start',
-            endFile: 'build/node_wrap.end'
-          },
-          shim: {
-            // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
-            // and we use a fake one for reduced size, since we only care about utf8.
-            "encoding": {
-              deps: ["encoding-indexes-shim"]
-            }
-          },
-          nodeRequire: require
-        }
+    shell: {
+      mocha: {
+        command: './node_modules/.bin/mocha --reporter list tests/index.js'
       }
     },
 
@@ -229,13 +149,13 @@ module.exports = function(grunt) {
       }
     },
     connect: {
-      server_for_node: {
+      serverForNode: {
         options: {
           port: 1234,
           base: '.'
         }
       },
-      server_for_browser: {
+      serverForBrowser: {
         options: {
           port: 1234,
           base: '.',
@@ -247,7 +167,6 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-mocha');
   grunt.loadNpmTasks('grunt-contrib-connect');
@@ -257,11 +176,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-prompt');
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-browserify');
 
-  grunt.registerTask('develop', ['clean', 'requirejs:browser_develop', 'requirejs:node_develop']);
-  grunt.registerTask('filer-test', ['clean', 'requirejs:node_test', 'requirejs:browser_test']);
+  grunt.registerTask('develop', ['clean', 'browserify:filerDist']);
+  grunt.registerTask('build-tests', ['clean', 'browserify:filerTest']);
   grunt.registerTask('release', ['develop', 'uglify']);
-  grunt.registerTask('check', ['jshint']);
 
   grunt.registerTask('publish', 'Publish filer as a new version to NPM, bower and github.', function(patchLevel) {
     var allLevels = ['patch', 'minor', 'major'];
@@ -283,6 +202,7 @@ module.exports = function(grunt) {
     grunt.task.run([
       'prompt:confirm',
       'checkBranch',
+      'test-node',
       'release',
       'bump:' + patchLevel,
       'gitcheckout:publish',
@@ -291,8 +211,8 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
-  grunt.registerTask('test-node', ['check', 'filer-test', 'connect:server_for_node', 'shell:mocha']);
-  grunt.registerTask('test-browser', ['check', 'filer-test', 'connect:server_for_browser']);
+  grunt.registerTask('test-node', ['jshint', 'clean', 'connect:serverForNode', 'shell:mocha']);
+  grunt.registerTask('test-browser', ['jshint', 'build-tests', 'connect:serverForBrowser']);
   grunt.registerTask('test', ['test-node']);
 
   grunt.registerTask('default', ['test']);

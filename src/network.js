@@ -32,6 +32,10 @@ function nodeDownload(uri, callback) {
 
     error = statusCode != 200 ? { message: err || 'Not found!', code: statusCode } : null;
 
+    if (error) {
+      return callback(error, null);
+    }
+
     arrayBuffer = arrayLength && new ArrayBuffer(arrayLength);
 
     // Convert buffer to Uint8Array
@@ -42,7 +46,7 @@ function nodeDownload(uri, callback) {
       }
     }
 
-    callback(error, data);
+    callback(null, data);
   });
 }
 
