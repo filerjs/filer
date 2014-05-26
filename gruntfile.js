@@ -259,7 +259,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-connect');
 
   grunt.registerTask('develop', ['clean', 'requirejs:browser_develop', 'requirejs:node_develop']);
-  grunt.registerTask('filer-test', ['clean', 'requirejs:node_test', 'requirejs:browser_test']);
+  grunt.registerTask('filer-test', ['clean']);
   grunt.registerTask('release', ['develop', 'uglify']);
   grunt.registerTask('check', ['jshint']);
 
