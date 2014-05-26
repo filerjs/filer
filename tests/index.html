@@ -6,26 +6,18 @@
   <script src="../bower_components/chai/chai.js"></script>
   <script src="../bower_components/mocha/mocha.js"></script>
   <script>
-    // Polyfill for function.bind, which PhantomJS seems to need, see
-    // https://gist.github.com/Daniel-Hug/5682738/raw/147ec7d72123fbef4d7471dcc88c2bc3d52de8d9/function-bind.js
-    Function.prototype.bind = (function () {}).bind || function (b) {
-      if (typeof this !== "function") {
-      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
-      }
+    mocha.setup('bdd').timeout(5000).slow(250);;
 
-      function c() {}
-      var a = [].slice,
-          f = a.call(arguments, 1),
-          e = this,
-          d = function () {
-              return e.apply(this instanceof c ? this : b || window, f.concat(a.call(arguments)));
-          };
-      c.prototype = this.prototype;
-      d.prototype = new c();
-      return d;
+    // Intentional globals
+    expect = chai.expect;
+    assert = chai.assert;
+
+    window.onload = function() {
+      mocha.checkLeaks();
+      mocha.run();
     };
   </script>
-  <script src="../lib/require.js" data-main="require-config"></script>
+  <script src="test-bundle.js"></script>
  </head>
 <body>
   <div id="mocha"></div>

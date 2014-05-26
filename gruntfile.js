@@ -57,7 +57,10 @@ module.exports = function(grunt) {
         dest: "./dist/filer.js",
         options: {
           standalone: 'Filer',
-          builtins: false
+          browserifyOptions: {
+            builtins: false,
+            commondir: false
+          }
         }
       },
       testVersion: {
@@ -65,14 +68,24 @@ module.exports = function(grunt) {
         dest: "./dist/filer-test.js",
         options: {
           standalone: 'Filer',
-          builtins: false
+          browserifyOptions: {
+            builtins: false,
+            commondir: false
+          }
+        }
+      },
+      testApp: {
+        src: "./tests/index.js",
+        dest: "./tests/test-bundle.js",
+        options: {
+          standalone: 'Filer test suite'
         }
       }
     },
 
     shell: {
       mocha: {
-        command: './node_modules/.bin/mocha --reporter list --no-exit tests/node-runner.js'
+        command: './node_modules/.bin/mocha --reporter list --no-exit tests/index.js'
       }
     },
 
@@ -177,7 +190,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-browserify');
 
   grunt.registerTask('develop', ['clean', 'browserify:standalone']);
-  grunt.registerTask('filer-test', ['clean', 'browserify:testVersion']);
+  grunt.registerTask('filer-test', ['clean', 'browserify:testVersion', 'browserify:testApp']);
   grunt.registerTask('release', ['develop', 'uglify']);
   grunt.registerTask('check', ['jshint']);
 
@@ -210,7 +223,7 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
-  grunt.registerTask('test-node', ['check', 'filer-test', 'connect:server_for_node', 'shell:mocha']);
+  grunt.registerTask('test-node', ['check', 'clean', 'connect:server_for_node', 'shell:mocha']);
   grunt.registerTask('test-browser', ['check', 'filer-test', 'connect:server_for_browser']);
   grunt.registerTask('test', ['test-node']);
 
