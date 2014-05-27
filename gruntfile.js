@@ -202,7 +202,6 @@ module.exports = function(grunt) {
     grunt.task.run([
       'prompt:confirm',
       'checkBranch',
-      'test-node',
       'release',
       'bump:' + patchLevel,
       'gitcheckout:publish',
