@@ -180,7 +180,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('develop', ['clean', 'browserify:filerDist']);
   grunt.registerTask('build-tests', ['clean', 'browserify:filerTest']);
-  grunt.registerTask('release', ['develop', 'uglify']);
+  grunt.registerTask('release', ['test', 'develop', 'uglify']);
 
   grunt.registerTask('publish', 'Publish filer as a new version to NPM, bower and github.', function(patchLevel) {
     var allLevels = ['patch', 'minor', 'major'];
@@ -211,7 +211,7 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
-  grunt.registerTask('test-node', ['jshint', 'clean', 'connect:serverForNode', 'shell:mocha']);
+  grunt.registerTask('test-node', ['jshint', 'connect:serverForNode', 'shell:mocha']);
   grunt.registerTask('test-browser', ['jshint', 'build-tests', 'connect:serverForBrowser']);
   grunt.registerTask('test', ['test-node']);
 
