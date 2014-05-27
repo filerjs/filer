@@ -60,7 +60,8 @@ module.exports = function(grunt) {
           browserifyOptions: {
             builtins: false,
             commondir: false
-          }
+          },
+          exclude: ["./node_modules/request/index.js"]
         }
       },
       filerTest: {
