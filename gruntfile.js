@@ -101,7 +101,7 @@ module.exports = function(grunt) {
 
     'npm-publish': {
       options: {
-        abortIfDirty: true
+        abortIfDirty: false
       }
     },
 
