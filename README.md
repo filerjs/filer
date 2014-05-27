@@ -161,33 +161,6 @@ if( Filer.FileSystem.providers.WebSQL.isSupported() ) {
 
 You can also write your own provider if you need a different backend. See the code in `src/providers` for details.
 
-####Filer.FileSystem.adapters - Adapters for Storage Providers
-
-Filer based file systems can acquire new functionality by using adapters. These wrapper objects extend the abilities
-of storage providers without altering them in anway. An adapter can be used with any provider, and multiple
-adapters can be used together in order to compose complex functionality on top of a provider.
-
-There are currently 2 adapters available:
-
-* `FileSystem.adapters.Compression(provider)` - a compression adapter that uses [Zlib](https://github.com/imaya/zlib.js)
-* `FileSystem.adapters.Encryption(passphrase, provider)` - an encryption adapter that uses [AES encryption](http://code.google.com/p/crypto-js/#AES)
-
-```javascript
-var FileSystem = Filer.FileSystem;
-var providers = FileSystem.providers;
-var adapters = FileSystem.adapters;
-
-// Create a WebSQL-based, Encrypted, Compressed File System by
-// composing a provider and adatpers.
-var webSQLProvider = new providers.WebSQL();
-var encryptionAdatper = new adapters.Encryption('super-secret-passphrase', webSQLProvider);
-var compressionAdatper = new adatpers.Compression(encryptionAdapter);
-var fs = new FileSystem({ provider: compressionAdapter });
-```
-
-You can also write your own adapter if you need to add new capabilities to the providers. Adapters share the same
-interface as providers.  See the code in `src/providers` and `src/adapters` for many examples.
-
 ####Filer.Path<a name="FilerPath"></a>
 
 The node.js [path module](http://nodejs.org/api/path.html) is available via the `Filer.Path` object. It is

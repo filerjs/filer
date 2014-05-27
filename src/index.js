@@ -1,7 +1,5 @@
-define(function(require) {
-  return {
-    FileSystem: require('src/filesystem/interface'),
-    Path: require('src/path'),
-    Errors: require('src/errors')
-  };
-});
+module.exports = {
+  FileSystem: require('./filesystem/interface.js'),
+  Path: require('./path.js'),
+  Errors: require('./errors.js')
+};

@@ -15,7 +15,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
-    clean: ['dist/'],
+    clean: ['dist/filer-test.js', 'dist/filer_node-test.js'],
 
     uglify: {
       options: {
@@ -51,49 +51,31 @@ module.exports = function(grunt) {
       ]
     },
 
-    connect: {
-      server: {
+    browserify: {
+      filerDist: {
+        src: "./src/index.js",
+        dest: "./dist/filer.js",
         options: {
-          port: 9001,
-          hostname: '127.0.0.1',
-          base: '.'
+          standalone: 'Filer',
+          browserifyOptions: {
+            builtins: false,
+            commondir: false
+          },
+          exclude: ["./node_modules/request/index.js"]
+        }
+      },
+      filerTest: {
+        src: "./tests/index.js",
+        dest: "./dist/filer-test.js",
+        options: {
+          standalone: 'FilerTest'
         }
       }
     },
 
-    mocha: {
-      test: {
-        options: {
-          log: true,
-          urls: [ 'http://127.0.0.1:9001/tests/index.html' ]
-        }
-      }
-    },
-
-    requirejs: {
-      develop: {
-        options: {
-          paths: {
-            "src": "../src",
-            "build": "../build"
-          },
-          baseUrl: "lib",
-          name: "build/almond",
-          include: ["src/index"],
-          out: "dist/filer.js",
-          optimize: "none",
-          wrap: {
-            startFile: 'build/wrap.start',
-            endFile: 'build/wrap.end'
-          },
-          shim: {
-            // TextEncoder and TextDecoder shims. encoding-indexes must get loaded first,
-            // and we use a fake one for reduced size, since we only care about utf8.
-            "encoding": {
-              deps: ["encoding-indexes-shim"]
-            }
-          }
-        }
+    shell: {
+      mocha: {
+        command: './node_modules/.bin/mocha --reporter list tests/index.js'
       }
     },
 
@@ -164,6 +146,21 @@ module.exports = function(grunt) {
           remote: GIT_REMOTE,
           branch: 'gh-pages',
           force: true
+        },
+      }
+    },
+    connect: {
+      serverForNode: {
+        options: {
+          port: 1234,
+          base: '.'
+        }
+      },
+      serverForBrowser: {
+        options: {
+          port: 1234,
+          base: '.',
+          keepalive: true
         }
       }
     }
@@ -171,19 +168,19 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-mocha');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-bump');
   grunt.loadNpmTasks('grunt-npm');
   grunt.loadNpmTasks('grunt-git');
   grunt.loadNpmTasks('grunt-prompt');
+  grunt.loadNpmTasks('grunt-shell');
+  grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-browserify');
 
-  grunt.registerTask('develop', ['clean', 'requirejs']);
+  grunt.registerTask('develop', ['clean', 'browserify:filerDist']);
+  grunt.registerTask('build-tests', ['clean', 'browserify:filerTest']);
   grunt.registerTask('release', ['develop', 'uglify']);
-  grunt.registerTask('check', ['jshint']);
-  grunt.registerTask('test', ['check', 'connect', 'mocha']);
 
   grunt.registerTask('publish', 'Publish filer as a new version to NPM, bower and github.', function(patchLevel) {
     var allLevels = ['patch', 'minor', 'major'];
@@ -202,10 +199,10 @@ module.exports = function(grunt) {
       ' to ' + semver.inc(currentVersion, patchLevel).yellow + '?';
     grunt.config('prompt.confirm.options', promptOpts);
 
-    // TODO: ADD NPM RELEASE
     grunt.task.run([
       'prompt:confirm',
       'checkBranch',
+      'test-node',
       'release',
       'bump:' + patchLevel,
       'gitcheckout:publish',
@@ -214,6 +211,9 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
+  grunt.registerTask('test-node', ['jshint', 'clean', 'connect:serverForNode', 'shell:mocha']);
+  grunt.registerTask('test-browser', ['jshint', 'build-tests', 'connect:serverForBrowser']);
+  grunt.registerTask('test', ['test-node']);
 
-  grunt.registerTask('default', ['develop']);
+  grunt.registerTask('default', ['test']);
 };

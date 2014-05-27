@@ -1,15 +1,10 @@
-define(["Filer", "util"], function(Filer, util) {
+var Filer = require('../../..');
+var util = require('../../lib/test-utils.js');
+var expect = require('chai').expect;
 
-  if(!Filer.FileSystem.providers.IndexedDB.isSupported()) {
-    console.log("Skipping Filer.FileSystem.providers.IndexedDB tests, since IndexedDB isn't supported.");
-    return;
-  }
-
-  if(navigator.userAgent.indexOf('PhantomJS') > -1) {
-    console.log("Skipping Filer.FileSystem.providers.IndexedDB tests, since PhantomJS doesn't support it.");
-    return;
-  }
-
+if(!Filer.FileSystem.providers.IndexedDB.isSupported()) {
+  console.log("Skipping Filer.FileSystem.providers.IndexedDB tests, since IndexedDB isn't supported.");
+} else {
   describe("Filer.FileSystem.providers.IndexedDB", function() {
     it("is supported -- if it isn't, none of these tests can run.", function() {
       expect(Filer.FileSystem.providers.IndexedDB.isSupported()).to.be.true;
@@ -150,4 +145,4 @@ define(["Filer", "util"], function(Filer, util) {
 
   });
 
-});
+}

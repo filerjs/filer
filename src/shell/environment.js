@@ -1,20 +1,15 @@
-define(function(require) {
+var defaults = require('../constants.js').ENVIRONMENT;
 
-  var defaults = require('src/constants').ENVIRONMENT;
+module.exports = function Environment(env) {
+  env = env || {};
+  env.TMP = env.TMP || defaults.TMP;
+  env.PATH = env.PATH || defaults.PATH;
 
-  function Environment(env) {
-    env = env || {};
-    env.TMP = env.TMP || defaults.TMP;
-    env.PATH = env.PATH || defaults.PATH;
+  this.get = function(name) {
+    return env[name];
+  };
 
-    this.get = function(name) {
-      return env[name];
-    };
-
-    this.set = function(name, value) {
-      env[name] = value;
-    };
-  }
-
-  return Environment;
-});
+  this.set = function(name, value) {
+    env[name] = value;
+  };
+};
