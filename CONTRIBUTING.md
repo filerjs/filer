@@ -32,13 +32,11 @@ to the `AUTHORS` file.
 =======
 ### Releasing a new version
 =======
-### Releasing a new version
-**NOTE:** This step should only ever be attempted by the owner of the repo (@modeswitch).
 
 `grunt publish` will:
 
 * Run the `grunt release` task
-* Bump `bower.json` & `package.json` version numbers according to a [Semver](http://semver.org/) compatible scheme (see "How to Publish" below)
+* Bump `bower.json` & `package.json` version numbers according to a [Semver](http://semver.org/) compatible scheme (see ["How to Publish"](#how-to-publish) below)
 * Create a git tag at the new version number
 * Create a release commit including `dist/filer.js`, `dist/filer.min.js`, `bower.json` and `package.json`
 * Push tag & commit to `origin/develop`
@@ -64,7 +62,7 @@ The user *must* be on their local `develop` branch before running any form of `g
 ## Tests
 
 Tests are writting using [Mocha](http://visionmedia.github.io/mocha/) and [Chai](http://chaijs.com/api/bdd/).
-You can run the tests in your browser by running `grunt test-browser` and opening the `tests` directory @ `http://localhost:1234/tests`.
+You can run the tests in your browser by running `grunt test-browser` and opening the `tests` directory @ `http://localhost:1234/tests`, or in a nodejs context by running `grunt test` or `grunt test-node`.
 
 There are a number of configurable options for the test suite, which are set via query string params.
 First, you can choose which filer source to use (i.e., src/, dist/filer-test.js, dist/filer.js or dist/filer.min.js).
