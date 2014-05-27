@@ -62,7 +62,7 @@ The user *must* be on their local `develop` branch before running any form of `g
 ## Tests
 
 Tests are writting using [Mocha](http://visionmedia.github.io/mocha/) and [Chai](http://chaijs.com/api/bdd/).
-You can run the tests in your browser by running `grunt test-browser` and opening the `tests` directory @ `http://localhost:1234/tests`, or in a nodejs context by running `grunt test` or `grunt test-node`.
+You can run the tests in your browser by running `grunt test-browser` and opening the `tests` directory @ `http://localhost:1234/tests`, or in a nodejs context by running `grunt test`.
 
 There are a number of configurable options for the test suite, which are set via query string params.
 First, you can choose which filer source to use (i.e., src/, dist/filer-test.js, dist/filer.js or dist/filer.min.js).
