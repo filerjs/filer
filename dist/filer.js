@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Filer=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 (function (process){
 /*global setImmediate: false, setTimeout: false, console: false */
 
@@ -965,8 +965,8 @@
 
 }());
 
-}).call(this,require("FWaASH"))
-},{"FWaASH":7}],2:[function(require,module,exports){
+}).call(this,_dereq_("FWaASH"))
+},{"FWaASH":7}],2:[function(_dereq_,module,exports){
 /*!
  * Shim implementation of the TextEncoder, TextDecoder spec:
  * http://encoding.spec.whatwg.org/#interface-textencoder
@@ -1561,7 +1561,7 @@
   };
 }(this));
 
-},{}],3:[function(require,module,exports){
+},{}],3:[function(_dereq_,module,exports){
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -1634,13 +1634,13 @@ EventEmitter.prototype.removeAllListeners = pub.removeAllListeners;
 
 module.exports = EventEmitter;
 
-},{}],4:[function(require,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 // Based on https://github.com/diy/intercom.js/blob/master/lib/intercom.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
-var EventEmitter = require('./eventemitter.js');
-var guid = require('../src/shared.js').guid;
+var EventEmitter = _dereq_('./eventemitter.js');
+var guid = _dereq_('../src/shared.js').guid;
 
 function throttle(delay, fn) {
   var last = 0;
@@ -1954,7 +1954,7 @@ Intercom.getInstance = (function() {
 
 module.exports = Intercom;
 
-},{"../src/shared.js":23,"./eventemitter.js":3}],5:[function(require,module,exports){
+},{"../src/shared.js":23,"./eventemitter.js":3}],5:[function(_dereq_,module,exports){
 // Cherry-picked bits of underscore.js, lodash.js
 
 /**
@@ -2053,7 +2053,7 @@ function nodash(value) {
 
 module.exports = nodash;
 
-},{}],6:[function(require,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 var ZlibNamespace = {};
 
 /** @license zlib.js 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */(function() {'use strict';var n=void 0,y=!0,aa=this;function G(e,b){var a=e.split("."),d=aa;!(a[0]in d)&&d.execScript&&d.execScript("var "+a[0]);for(var c;a.length&&(c=a.shift());)!a.length&&b!==n?d[c]=b:d=d[c]?d[c]:d[c]={}};var H="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array&&"undefined"!==typeof DataView;function ba(e,b){this.index="number"===typeof b?b:0;this.f=0;this.buffer=e instanceof(H?Uint8Array:Array)?e:new (H?Uint8Array:Array)(32768);if(2*this.buffer.length<=this.index)throw Error("invalid index");this.buffer.length<=this.index&&ca(this)}function ca(e){var b=e.buffer,a,d=b.length,c=new (H?Uint8Array:Array)(d<<1);if(H)c.set(b);else for(a=0;a<d;++a)c[a]=b[a];return e.buffer=c}
@@ -2128,7 +2128,7 @@ k.p.toString(16)+", data=0x"+p.toString(16)))}return l};u.M=function(a){this.j=a
 
 module.exports = ZlibNamespace.Zlib;
 
-},{}],7:[function(require,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -2193,7 +2193,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],8:[function(require,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 var O_READ = 'READ';
 var O_WRITE = 'WRITE';
 var O_CREATE = 'CREATE';
@@ -2274,15 +2274,15 @@ module.exports = {
   }
 };
 
-},{}],9:[function(require,module,exports){
-var MODE_FILE = require('./constants.js').MODE_FILE;
+},{}],9:[function(_dereq_,module,exports){
+var MODE_FILE = _dereq_('./constants.js').MODE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
   this.id = id;
   this.type = type || MODE_FILE;
 };
 
-},{"./constants.js":8}],10:[function(require,module,exports){
+},{"./constants.js":8}],10:[function(_dereq_,module,exports){
 var errors = {};
 [
   /**
@@ -2376,20 +2376,20 @@ var errors = {};
 
 module.exports = errors;
 
-},{}],11:[function(require,module,exports){
-var _ = require('../../lib/nodash.js');
+},{}],11:[function(_dereq_,module,exports){
+var _ = _dereq_('../../lib/nodash.js');
 
-var TextDecoder = require('../../lib/encoding.js').TextDecoder;
-var TextEncoder = require('../../lib/encoding.js').TextEncoder;
+var TextDecoder = _dereq_('../../lib/encoding.js').TextDecoder;
+var TextEncoder = _dereq_('../../lib/encoding.js').TextEncoder;
 
-var Path = require('../path.js');
+var Path = _dereq_('../path.js');
 var normalize = Path.normalize;
 var dirname = Path.dirname;
 var basename = Path.basename;
 var isAbsolutePath = Path.isAbsolute;
 var isNullPath = Path.isNull;
 
-var Constants = require('../constants.js');
+var Constants = _dereq_('../constants.js');
 var MODE_FILE = Constants.MODE_FILE;
 var MODE_DIRECTORY = Constants.MODE_DIRECTORY;
 var MODE_SYMBOLIC_LINK = Constants.MODE_SYMBOLIC_LINK;
@@ -2412,12 +2412,12 @@ var XATTR_REPLACE = Constants.XATTR_REPLACE;
 var FS_NOMTIME = Constants.FS_NOMTIME;
 var FS_NOCTIME = Constants.FS_NOCTIME;
 
-var Errors = require('../errors.js');
-var DirectoryEntry = require('../directory-entry.js');
-var OpenFileDescription = require('../open-file-description.js');
-var SuperNode = require('../super-node.js');
-var Node = require('../node.js');
-var Stats = require('../stats.js');
+var Errors = _dereq_('../errors.js');
+var DirectoryEntry = _dereq_('../directory-entry.js');
+var OpenFileDescription = _dereq_('../open-file-description.js');
+var SuperNode = _dereq_('../super-node.js');
+var Node = _dereq_('../node.js');
+var Stats = _dereq_('../stats.js');
 
 /**
  * Many functions below use this callback pattern. If it's not
@@ -4379,25 +4379,25 @@ module.exports = {
   ftruncate: ftruncate
 };
 
-},{"../../lib/encoding.js":2,"../../lib/nodash.js":5,"../constants.js":8,"../directory-entry.js":9,"../errors.js":10,"../node.js":16,"../open-file-description.js":17,"../path.js":18,"../stats.js":26,"../super-node.js":27}],12:[function(require,module,exports){
-var _ = require('../../lib/nodash.js');
+},{"../../lib/encoding.js":2,"../../lib/nodash.js":5,"../constants.js":8,"../directory-entry.js":9,"../errors.js":10,"../node.js":16,"../open-file-description.js":17,"../path.js":18,"../stats.js":26,"../super-node.js":27}],12:[function(_dereq_,module,exports){
+var _ = _dereq_('../../lib/nodash.js');
 
-var isNullPath = require('../path.js').isNull;
-var nop = require('../shared.js').nop;
+var isNullPath = _dereq_('../path.js').isNull;
+var nop = _dereq_('../shared.js').nop;
 
-var Constants = require('../constants.js');
+var Constants = _dereq_('../constants.js');
 var FILE_SYSTEM_NAME = Constants.FILE_SYSTEM_NAME;
 var FS_FORMAT = Constants.FS_FORMAT;
 var FS_READY = Constants.FS_READY;
 var FS_PENDING = Constants.FS_PENDING;
 var FS_ERROR = Constants.FS_ERROR;
 
-var providers = require('../providers/index.js');
+var providers = _dereq_('../providers/index.js');
 
-var Shell = require('../shell/shell.js');
-var Intercom = require('../../lib/intercom.js');
-var FSWatcher = require('../fs-watcher.js');
-var Errors = require('../errors.js');
+var Shell = _dereq_('../shell/shell.js');
+var Intercom = _dereq_('../../lib/intercom.js');
+var FSWatcher = _dereq_('../fs-watcher.js');
+var Errors = _dereq_('../errors.js');
 
 var STDIN = Constants.STDIN;
 var STDOUT = Constants.STDOUT;
@@ -4405,7 +4405,7 @@ var STDERR = Constants.STDERR;
 var FIRST_DESCRIPTOR = Constants.FIRST_DESCRIPTOR;
 
   // The core fs operations live on impl
-var impl = require('./implementation.js');
+var impl = _dereq_('./implementation.js');
 
 // node.js supports a calling pattern that leaves off a callback.
 function maybeCallback(callback) {
@@ -4676,10 +4676,10 @@ FileSystem.prototype.Shell = function(options) {
 
 module.exports = FileSystem;
 
-},{"../../lib/intercom.js":4,"../../lib/nodash.js":5,"../constants.js":8,"../errors.js":10,"../fs-watcher.js":13,"../path.js":18,"../providers/index.js":19,"../shared.js":23,"../shell/shell.js":25,"./implementation.js":11}],13:[function(require,module,exports){
-var EventEmitter = require('../lib/eventemitter.js');
-var isNullPath = require('./path.js').isNull;
-var Intercom = require('../lib/intercom.js');
+},{"../../lib/intercom.js":4,"../../lib/nodash.js":5,"../constants.js":8,"../errors.js":10,"../fs-watcher.js":13,"../path.js":18,"../providers/index.js":19,"../shared.js":23,"../shell/shell.js":25,"./implementation.js":11}],13:[function(_dereq_,module,exports){
+var EventEmitter = _dereq_('../lib/eventemitter.js');
+var isNullPath = _dereq_('./path.js').isNull;
+var Intercom = _dereq_('../lib/intercom.js');
 
 /**
  * FSWatcher based on node.js' FSWatcher
@@ -4729,14 +4729,14 @@ FSWatcher.prototype.constructor = FSWatcher;
 
 module.exports = FSWatcher;
 
-},{"../lib/eventemitter.js":3,"../lib/intercom.js":4,"./path.js":18}],14:[function(require,module,exports){
+},{"../lib/eventemitter.js":3,"../lib/intercom.js":4,"./path.js":18}],14:[function(_dereq_,module,exports){
 module.exports = {
-  FileSystem: require('./filesystem/interface.js'),
-  Path: require('./path.js'),
-  Errors: require('./errors.js')
+  FileSystem: _dereq_('./filesystem/interface.js'),
+  Path: _dereq_('./path.js'),
+  Errors: _dereq_('./errors.js')
 };
 
-},{"./errors.js":10,"./filesystem/interface.js":12,"./path.js":18}],15:[function(require,module,exports){
+},{"./errors.js":10,"./filesystem/interface.js":12,"./path.js":18}],15:[function(_dereq_,module,exports){
 function browserDownload(uri, callback) {
   var query = new XMLHttpRequest();
   query.onload = function() {
@@ -4755,7 +4755,7 @@ function browserDownload(uri, callback) {
 }
 
 function nodeDownload(uri, callback) {
-  require('request')({
+  _dereq_('request')({
     url: uri,
     method: "GET",
     encoding: null
@@ -4797,9 +4797,9 @@ module.exports.download = (function() {
   }
 }());
 
-},{}],16:[function(require,module,exports){
-var MODE_FILE = require('./constants.js').MODE_FILE;
-var guid = require('./shared.js').guid;
+},{}],16:[function(_dereq_,module,exports){
+var MODE_FILE = _dereq_('./constants.js').MODE_FILE;
+var guid = _dereq_('./shared.js').guid;
 
 module.exports = function Node(id, mode, size, atime, ctime, mtime, flags, xattrs, nlinks, version) {
   var now = Date.now();
@@ -4819,7 +4819,7 @@ module.exports = function Node(id, mode, size, atime, ctime, mtime, flags, xattr
   this.data = guid(); // id for data object
 };
 
-},{"./constants.js":8,"./shared.js":23}],17:[function(require,module,exports){
+},{"./constants.js":8,"./shared.js":23}],17:[function(_dereq_,module,exports){
 module.exports = function OpenFileDescription(path, id, flags, position) {
   this.path = path;
   this.id = id;
@@ -4827,7 +4827,7 @@ module.exports = function OpenFileDescription(path, id, flags, position) {
   this.position = position;
 };
 
-},{}],18:[function(require,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5053,10 +5053,10 @@ module.exports = {
   isNull: isNull
 };
 
-},{}],19:[function(require,module,exports){
-var IndexedDB = require('./indexeddb.js');
-var WebSQL = require('./websql.js');
-var Memory = require('./memory.js');
+},{}],19:[function(_dereq_,module,exports){
+var IndexedDB = _dereq_('./indexeddb.js');
+var WebSQL = _dereq_('./websql.js');
+var Memory = _dereq_('./memory.js');
 
 module.exports = {
   IndexedDB: IndexedDB,
@@ -5090,13 +5090,13 @@ module.exports = {
   }())
 };
 
-},{"./indexeddb.js":20,"./memory.js":21,"./websql.js":22}],20:[function(require,module,exports){
+},{"./indexeddb.js":20,"./memory.js":21,"./websql.js":22}],20:[function(_dereq_,module,exports){
 (function(global) {
-  var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-  var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
-  var IDB_RW = require('../constants.js').IDB_RW;
-  var IDB_RO = require('../constants.js').IDB_RO;
-  var Errors = require('../errors.js');
+  var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
+  var FILE_STORE_NAME = _dereq_('../constants.js').FILE_STORE_NAME;
+  var IDB_RW = _dereq_('../constants.js').IDB_RW;
+  var IDB_RO = _dereq_('../constants.js').IDB_RO;
+  var Errors = _dereq_('../errors.js');
 
   var indexedDB = global.indexedDB       ||
                   global.mozIndexedDB    ||
@@ -5222,9 +5222,9 @@ module.exports = {
 
 }(this));
 
-},{"../constants.js":8,"../errors.js":10}],21:[function(require,module,exports){
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-var asyncCallback = require('../../lib/async.js').nextTick;
+},{"../constants.js":8,"../errors.js":10}],21:[function(_dereq_,module,exports){
+var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
+var asyncCallback = _dereq_('../../lib/async.js').nextTick;
 
 /**
  * Make shared in-memory DBs possible when using the same name.
@@ -5311,15 +5311,15 @@ Memory.prototype.getReadWriteContext = function() {
 
 module.exports = Memory;
 
-},{"../../lib/async.js":1,"../constants.js":8}],22:[function(require,module,exports){
+},{"../../lib/async.js":1,"../constants.js":8}],22:[function(_dereq_,module,exports){
 (function(global) {
-  var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-  var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
-  var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
-  var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
-  var WSQL_DESC = require('../constants.js').WSQL_DESC;
-  var u8toArray = require('../shared.js').u8toArray;
-  var Errors = require('../errors.js');
+  var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
+  var FILE_STORE_NAME = _dereq_('../constants.js').FILE_STORE_NAME;
+  var WSQL_VERSION = _dereq_('../constants.js').WSQL_VERSION;
+  var WSQL_SIZE = _dereq_('../constants.js').WSQL_SIZE;
+  var WSQL_DESC = _dereq_('../constants.js').WSQL_DESC;
+  var u8toArray = _dereq_('../shared.js').u8toArray;
+  var Errors = _dereq_('../errors.js');
 
   function WebSQLContext(db, isReadOnly) {
     var that = this;
@@ -5474,7 +5474,7 @@ module.exports = Memory;
 
 }(this));
 
-},{"../constants.js":8,"../errors.js":10,"../shared.js":23}],23:[function(require,module,exports){
+},{"../constants.js":8,"../errors.js":10,"../shared.js":23}],23:[function(_dereq_,module,exports){
 function guid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
@@ -5502,8 +5502,8 @@ module.exports = {
   nop: nop
 };
 
-},{}],24:[function(require,module,exports){
-var defaults = require('../constants.js').ENVIRONMENT;
+},{}],24:[function(_dereq_,module,exports){
+var defaults = _dereq_('../constants.js').ENVIRONMENT;
 
 module.exports = function Environment(env) {
   env = env || {};
@@ -5519,14 +5519,14 @@ module.exports = function Environment(env) {
   };
 };
 
-},{"../constants.js":8}],25:[function(require,module,exports){
-var Path = require('../path.js');
-var Errors = require('../errors.js');
-var Environment = require('./environment.js');
-var async = require('../../lib/async.js');
-var Network = require('../network.js');
-var Zlib = require('../../lib/zip-utils.js');
-var TextEncoder = require('../../lib/encoding.js').TextEncoder;
+},{"../constants.js":8}],25:[function(_dereq_,module,exports){
+var Path = _dereq_('../path.js');
+var Errors = _dereq_('../errors.js');
+var Environment = _dereq_('./environment.js');
+var async = _dereq_('../../lib/async.js');
+var Network = _dereq_('../network.js');
+var Zlib = _dereq_('../../lib/zip-utils.js');
+var TextEncoder = _dereq_('../../lib/encoding.js').TextEncoder;
 
 function Shell(fs, options) {
   options = options || {};
@@ -6125,8 +6125,8 @@ Shell.prototype.zip = function(zipfile, paths, options, callback) {
 
 module.exports = Shell;
 
-},{"../../lib/async.js":1,"../../lib/encoding.js":2,"../../lib/zip-utils.js":6,"../errors.js":10,"../network.js":15,"../path.js":18,"./environment.js":24}],26:[function(require,module,exports){
-var Constants = require('./constants.js');
+},{"../../lib/async.js":1,"../../lib/encoding.js":2,"../../lib/zip-utils.js":6,"../errors.js":10,"../network.js":15,"../path.js":18,"./environment.js":24}],26:[function(_dereq_,module,exports){
+var Constants = _dereq_('./constants.js');
 
 function Stats(fileNode, devName) {
   this.node = fileNode.id;
@@ -6162,9 +6162,9 @@ function() {
 
 module.exports = Stats;
 
-},{"./constants.js":8}],27:[function(require,module,exports){
-var Constants = require('./constants.js');
-var guid = require('./shared.js').guid;
+},{"./constants.js":8}],27:[function(_dereq_,module,exports){
+var Constants = _dereq_('./constants.js');
+var guid = _dereq_('./shared.js').guid;
 
 module.exports = function SuperNode(atime, ctime, mtime) {
   var now = Date.now();
@@ -6178,3 +6178,5 @@ module.exports = function SuperNode(atime, ctime, mtime) {
 };
 
 },{"./constants.js":8,"./shared.js":23}]},{},[14])
+(14)
+});
