@@ -56,20 +56,19 @@ module.exports = function(grunt) {
         src: "./src/index.js",
         dest: "./dist/filer.js",
         options: {
-          standalone: 'Filer',
           browserifyOptions: {
             builtins: false,
             commondir: false
+          },
+          bundleOptions: {
+            standalone: 'Filer'
           },
           exclude: ["./node_modules/request/index.js"]
         }
       },
       filerTest: {
         src: "./tests/index.js",
-        dest: "./dist/filer-test.js",
-        options: {
-          standalone: 'FilerTest'
-        }
+        dest: "./dist/filer-test.js"
       }
     },
 
