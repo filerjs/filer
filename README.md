@@ -25,12 +25,33 @@ See the section on [Storage Providers](#providers).
 
 Want to join the fun? We'd love to have you! See [CONTRIBUTING](https://github.com/js-platform/filer/blob/develop/CONTRIBUTING.md).
 
-###Downloading
+###Downloading & Installation
 
-Pre-built versions of the library are available in the repo:
-
+Pre-built versions of the library are available at/with:
 * [filer.js](https://raw.github.com/js-platform/filer/develop/dist/filer.js)
 * [filer.min.js](https://raw.github.com/js-platform/filer/develop/dist/filer.min.js)
+* [NPM](https://www.npmjs.org/)
+* [Bower](http://bower.io/)
+
+#### Node.js
+
+Install the latest stable version of Filer for use in Node.js projects by running:
+* `npm install filer` or `npm install filer --save` to automatically save the dependency to your `package.json` file.
+
+##### Usage
+`var Filer = require('filer');`
+
+#### The Browser
+
+Install the latest stable version of Filer for use in the browser with Bower:
+* `bower install filer`
+
+##### Usage
+
+Filer can be loaded from `bower_modules/filer/dist/filer.js` or `.../filer.min.js`:
+
+1. As a regular script, which then attaches `Filer` to the global `window` object
+2. As a UMD module, for use with a system like RequireJS
 
 ### Getting Started
 
@@ -461,8 +482,8 @@ fs.link("/data/logs/august", "/data/logs/current", function(err) {
 
 #### fs.exists(path, callback)<a name="exists"></a>
 
-Test whether or not the given path exists by checking with the file system. 
-Then call the callback argument with either true or false. 
+Test whether or not the given path exists by checking with the file system.
+Then call the callback argument with either true or false.
 
 Example:
 
@@ -559,7 +580,7 @@ Example:
 fs.mknod('/dir', 'DIRECTORY', function(err) {
   if(err) throw err;
   // /dir is now created
-  
+
   // Create a file inside /dir
   fs.mknod('/dir/myfile', 'FILE', function(err) {
     if(err) throw err;
@@ -844,7 +865,7 @@ Examples:
 ```javascript
 // Append UTF8 text file
 fs.writeFile('/myfile.txt', "More...", function (err) {
-	if (err) throw err;
+  if (err) throw err;
 });
 fs.appendFile('/myfile.txt', "Data...", function (err) {
   if (err) throw err;
@@ -855,7 +876,7 @@ fs.appendFile('/myfile.txt', "Data...", function (err) {
 var more = new Uint8Array([1, 2, 3, 4]);
 var data = new Uint8Array([5, 6, 7, 8]);
 fs.writeFile('/myfile', more, function (err) {
-	if (err) throw err;
+  if (err) throw err;
 });
 fs.appendFile('/myfile', buffer, function (err) {
   if (err) throw err;
@@ -1323,9 +1344,9 @@ sh.tempDir(function(err, tmp) {
 
 #### sh.mkdirp(path, callback)<a name="mkdirp"></a>
 
-Recursively creates the directory at the provided path. If the 
+Recursively creates the directory at the provided path. If the
 directory already exists, no error is returned. All parents must
-be valid directories (not files). 
+be valid directories (not files).
 
 Example:
 
