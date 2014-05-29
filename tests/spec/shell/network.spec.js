@@ -1,4 +1,4 @@
-var network = require('../../../src/network.js');
+var network = require('../../../src/shell/network.js');
 var expect = require('chai').expect;
 
 describe('Network module', function() {

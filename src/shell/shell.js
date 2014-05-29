@@ -2,7 +2,7 @@ var Path = require('../path.js');
 var Errors = require('../errors.js');
 var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
-var Network = require('../network.js');
+var Network = require('./network.js');
 var Zlib = require('../../lib/zip-utils.js');
 var TextEncoder = require('../../lib/encoding.js').TextEncoder;
 
