@@ -27,20 +27,23 @@ Want to join the fun? We'd love to have you! See [CONTRIBUTING](https://github.c
 
 ###Downloading & Installation
 
-Though pre-built versions of the library are available [in the repo](https://github.com/js-platform/filer/tree/develop/dist), Filer is available for download through the most popular Node.js and browser package managers: [Bower](http://bower.io/) & [NPM](https://www.npmjs.org/).
+Pre-built versions of the library are available at/with:
+* [filer.js](https://raw.github.com/js-platform/filer/develop/dist/filer.js)
+* [filer.min.js](https://raw.github.com/js-platform/filer/develop/dist/filer.min.js)
+* [NPM](https://www.npmjs.org/)
+* [Bower](http://bower.io/)
 
 #### Node.js
 
 Install the latest stable version of Filer for use in Node.js projects by running:
 * `npm install filer` or `npm install filer --save` to automatically save the dependency to your `package.json` file.
 
-
 ##### Usage
-Instantiation is as easy as `var filer = require('filer');`
+`var Filer = require('filer');`
 
 #### The Browser
 
-Install the latest stable version of Filer for use in the browser with Bower like so:
+Install the latest stable version of Filer for use in the browser with Bower:
 * `bower install filer`
 
 ##### Usage
