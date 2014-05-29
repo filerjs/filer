@@ -54,9 +54,7 @@ require("./spec/shell/env.spec");
 require("./spec/shell/mkdirp.spec");
 require("./spec/shell/wget.spec");
 require("./spec/shell/zip-unzip.spec");
-
-// Custom Filer library modules
-require("./spec/libs/network.spec");
+require("./spec/shell/network.spec");
 
 // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
 require("./spec/node-js/simple/test-fs-mkdir");
