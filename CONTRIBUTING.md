@@ -21,8 +21,8 @@ You can now run the following grunt tasks:
 * `grunt check` will run [JSHint](http://www.jshint.com/) on your code (do this before submitting a pull request) to catch errors
 * `grunt develop` will create a single file version of the library for testing in `dist/idbfs.js`
 * `grunt release` like `develop` but will also create a minified version of the library in `dist/idbfs.min.js`
-* `grunt test` or `grunt test-node` will run [JSHint](http://www.jshint.com/) on your code and the test suite in the context of `nodejs`
-* `grunt test-browser` will run [JSHint](http://www.jshint.com/) and start a localhost server on port `1234`. Navigating to `localhost:1234/tests/index.html` will run the test suite in the context of the browser. **NOTE:** When finished, you will have to manually shut off the server by pressing `cmd/ctrl`+`c` in the same terminal session you ran `grunt test-browser`.
+* `grunt test` or `grunt test:node` will run [JSHint](http://www.jshint.com/) on your code and the test suite in the context of `nodejs`
+* `grunt test:browser` will run [JSHint](http://www.jshint.com/) and start a localhost server on port `1234`. Navigating to `localhost:1234/tests/index.html` will run the test suite in the context of the browser. **NOTE:** When finished, you will have to manually shut off the server by pressing `cmd/ctrl`+`c` in the same terminal session you ran `grunt test:browser`.
 
 Once you've done some hacking and you'd like to have your work merged, you'll need to
 make a pull request. If you're patch includes code, make sure to check that all the
