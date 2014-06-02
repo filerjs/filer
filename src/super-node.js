@@ -1,13 +1,26 @@
 var Constants = require('./constants.js');
-var guid = require('./shared.js').guid;
 
-module.exports = function SuperNode(atime, ctime, mtime) {
+function SuperNode(options) {
   var now = Date.now();
 
   this.id = Constants.SUPER_NODE_ID;
   this.mode = Constants.MODE_META;
-  this.atime = atime || now;
-  this.ctime = ctime || now;
-  this.mtime = mtime || now;
-  this.rnode = guid(); // root node id (randomly generated)
+  this.atime = options.atime || now;
+  this.ctime = options.ctime || now;
+  this.mtime = options.mtime || now;
+  // root node id (randomly generated)
+  this.rnode = options.rnode;
+}
+
+SuperNode.create = function(options, callback) {
+  options.guid(function(err, rnode) {
+    if(err) {
+      callback(err);
+      return;
+    }
+    options.rnode = options.rnode || rnode;
+    callback(null, new SuperNode(options));
+  });
 };
+
+module.exports = SuperNode;

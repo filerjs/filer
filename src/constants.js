@@ -35,6 +35,7 @@ module.exports = {
   FS_FORMAT: 'FORMAT',
   FS_NOCTIME: 'NOCTIME',
   FS_NOMTIME: 'NOMTIME',
+  FS_NODUPEIDCHECK: 'FS_NODUPEIDCHECK',
 
   // FS File Open Flags
   O_READ: O_READ,
