@@ -70,7 +70,7 @@ describe('fs.writeFile, fs.readFile', function() {
     var fs = util.fs();
     // String and utf8 binary encoded versions of the same thing:
     var contents = "This is a file.";
-    var binary = new Uint8Array([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
+    var binary = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
     fs.writeFile('/myfile', binary, function(error) {
       if(error) throw error;

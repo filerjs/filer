@@ -38,8 +38,8 @@ describe('fs.truncate', function() {
 
   it('should truncate a file', function(done) {
     var fs = util.fs();
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-    var truncated = new Uint8Array([1]);
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var truncated = new Buffer([1]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
@@ -68,8 +68,8 @@ describe('fs.truncate', function() {
 
   it('should pad a file with zeros when the length is greater than the file size', function(done) {
     var fs = util.fs();
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-    var truncated = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 0]);
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var truncated = new Buffer([1, 2, 3, 4, 5, 6, 7, 8, 0]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
@@ -98,7 +98,7 @@ describe('fs.truncate', function() {
 
   it('should update the file size', function(done) {
     var fs = util.fs();
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
@@ -127,7 +127,7 @@ describe('fs.truncate', function() {
 
   it('should truncate a valid descriptor', function(done) {
     var fs = util.fs();
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
@@ -152,7 +152,7 @@ describe('fs.truncate', function() {
 
   it('should follow symbolic links', function(done) {
     var fs = util.fs();
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
