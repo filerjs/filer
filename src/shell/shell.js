@@ -543,7 +543,7 @@ Shell.prototype.zip = function(zipfile, paths, options, callback) {
 
       // Make path relative within the zip
       var relpath = path.replace(/^\//, '');
-      zip.addFile(data, { filename: encode(relpath) });
+      zip.addFile(data, { filename: Encoding.encode(relpath) });
       callback();
     });
   }

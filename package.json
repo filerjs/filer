@@ -24,9 +24,13 @@
     "type": "git",
     "url": "https://github.com/js-platform/filer.git"
   },
+  "browser": {
+    "request": "browser-request"
+  },
   "dependencies": {
     "bower": "~1.0.0",
-    "request": "^2.36.0"
+    "request": "^2.36.0",
+    "browser-request": "^0.3.1"
   },
   "devDependencies": {
     "chai": "~1.9.1",
