@@ -31,7 +31,6 @@ var FS_NOMTIME = Constants.FS_NOMTIME;
 var FS_NOCTIME = Constants.FS_NOCTIME;
 
 var Encoding = require('../encoding.js');
-var BufferUtils = require('../buffer-utils.js');
 var Errors = require('../errors.js');
 var DirectoryEntry = require('../directory-entry.js');
 var OpenFileDescription = require('../open-file-description.js');
@@ -641,6 +640,7 @@ function open_file(context, path, flags, callback) {
       callback(error);
     } else {
       fileData = new Buffer(0);
+      fileData.fill(0);
       context.put(fileNode.data, fileData, update_directory_data);
     }
   }
@@ -675,8 +675,6 @@ function open_file(context, path, flags, callback) {
 function replace_data(context, ofd, buffer, offset, length, callback) {
   var fileNode;
 
-  buffer = BufferUtils.ensureBuffer(buffer);
-
   function return_nbytes(error) {
     if(error) {
       callback(error);
@@ -708,8 +706,8 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
     } else {
       fileNode = result;
       var newData = new Buffer(length);
-      var bufferWindow = buffer.slice(offset, offset + length);
-      bufferWindow.copy(newData);
+      newData.fill(0);
+      buffer.copy(newData, 0, offset, offset + length);
       ofd.position = length;
 
       fileNode.size = length;
@@ -725,8 +723,6 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
 function write_data(context, ofd, buffer, offset, length, position, callback) {
   var fileNode;
   var fileData;
-
-  buffer = BufferUtils.ensureBuffer(buffer);
 
   function return_nbytes(error) {
     if(error) {
@@ -761,11 +757,11 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       var _position = (!(undefined === position || null === position)) ? position : ofd.position;
       var newSize = Math.max(fileData.length, _position + length);
       var newData = new Buffer(newSize);
+      newData.fill(0);
       if(fileData) {
-        newData.copy(fileData);
+        fileData.copy(newData);
       }
-      var bufferWindow = buffer.slice(offset, offset + length);
-      bufferWindow.copy(newData, _position);
+      buffer.copy(newData, _position, offset, offset + length);
       if(undefined === position) {
         ofd.position += length;
       }
@@ -793,8 +789,6 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
   var fileNode;
   var fileData;
 
-  buffer = BufferUtils.ensureBuffer(buffer);
-
   function handle_file_data(error, result) {
     if(error) {
       callback(error);
@@ -802,8 +796,7 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
       fileData = result;
       var _position = (!(undefined === position || null === position)) ? position : ofd.position;
       length = (_position + length > buffer.length) ? length - _position : length;
-      var dataView = fileData.slice(_position, _position + length);
-      dataView.copy(buffer, offset);
+      fileData.copy(buffer, offset, _position, _position + length);
       if(undefined === position) {
         ofd.position += length;
       }
@@ -1188,6 +1181,7 @@ function truncate_file(context, path, length, callback) {
       callback(error);
     } else {
       var data = new Buffer(length);
+      data.fill(0);
       if(fileData) {
         fileData.copy(data);
       }
@@ -1244,6 +1238,7 @@ function ftruncate_file(context, ofd, length, callback) {
         data = fileData.slice(0, length);
       } else {
         data = new Buffer(length);
+        data.fill(0);
       }
       context.put(fileNode.data, data, update_file_node);
     }
@@ -1659,6 +1654,7 @@ function readFile(fs, context, path, options, callback) {
       var stats = new Stats(fstatResult, fs.name);
       var size = stats.size;
       var buffer = new Buffer(size);
+      buffer.fill(0);
 
       read_data(context, ofd, buffer, 0, size, 0, function(err3, nbytes) {
         if(err3) {

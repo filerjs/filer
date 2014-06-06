@@ -12,7 +12,7 @@ describe('fs.close', function() {
   });
 
   it('should release the file descriptor', function(done) {
-    var buffer = new Uint8Array(0);
+    var buffer = new Filer.Buffer(0);
     var fs = util.fs();
 
     fs.open('/myfile', 'w+', function(error, result) {

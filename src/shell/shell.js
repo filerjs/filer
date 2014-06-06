@@ -4,7 +4,7 @@ var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
 var Network = require('./network.js');
 var Zlib = require('../../lib/zip-utils.js');
-var TextEncoder = require('../../lib/encoding.js').TextEncoder;
+var Encoding = require('../encoding.js');
 
 function Shell(fs, options) {
   options = options || {};
@@ -537,10 +537,6 @@ Shell.prototype.zip = function(zipfile, paths, options, callback) {
   }
   zipfile = Path.resolve(this.cwd, zipfile);
 
-  function encode(s) {
-    return new TextEncoder('utf8').encode(s);
-  }
-
   function addFile(path, callback) {
     fs.readFile(path, function(err, data) {
       if(err) return callback(err);
@@ -556,7 +552,7 @@ Shell.prototype.zip = function(zipfile, paths, options, callback) {
     fs.readdir(path, function(err, list) {
       // Add the directory itself (with no data) and a trailing /
       zip.addFile([], {
-        filename: encode(path + '/'),
+        filename: Encoding.encode(path + '/'),
         compressionMethod: Zlib.Zip.CompressionMethod.STORE
       });
 
