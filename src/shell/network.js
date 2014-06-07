@@ -3,7 +3,7 @@ var request = require('request');
 module.exports.download = function(uri, callback) {
   request({
     url: uri,
-    method: "GET",
+    method: 'GET',
     encoding: null
   }, function(err, msg, body) {
     var statusCode;
