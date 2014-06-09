@@ -355,7 +355,7 @@ describe('node times (atime, mtime, ctime)', function() {
 
   it('should update atime, ctime, mtime when calling fs.write()', function(done) {
     var fs = util.fs();
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
     createTree(function() {
       fs.open('/myfile', 'w', function(err, fd) {
@@ -383,7 +383,7 @@ describe('node times (atime, mtime, ctime)', function() {
 
   it('should make no change when calling fs.read()', function(done) {
     var fs = util.fs();
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
     createTree(function() {
       fs.open('/myfile', 'w', function(err, fd) {
@@ -399,7 +399,8 @@ describe('node times (atime, mtime, ctime)', function() {
               if(error) throw error;
 
               stat('/myfile', function(stats1) {
-                var buffer2 = new Uint8Array(buffer.length);
+                var buffer2 = new Filer.Buffer(buffer.length);
+                buffer2.fill(0);
                 fs.read(fd, buffer2, 0, buffer2.length, 0, function(err, nbytes) {
 
                   fs.close(fd, function(error) {

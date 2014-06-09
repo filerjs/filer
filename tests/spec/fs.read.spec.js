@@ -13,8 +13,9 @@ describe('fs.read', function() {
 
   it('should read data from a file', function(done) {
     var fs = util.fs();
-    var wbuffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-    var rbuffer = new Uint8Array(wbuffer.length);
+    var wbuffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var rbuffer = new Filer.Buffer(wbuffer.length);
+    rbuffer.fill(0);
 
     fs.open('/myfile', 'w+', function(error, fd) {
       if(error) throw error;
@@ -33,8 +34,9 @@ describe('fs.read', function() {
 
   it('should update the current file position', function(done) {
     var fs = util.fs();
-    var wbuffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-    var rbuffer = new Uint8Array(wbuffer.length);
+    var wbuffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var rbuffer = new Filer.Buffer(wbuffer.length);
+    rbuffer.fill(0);
     var _result = 0;
 
     fs.open('/myfile', 'w+', function(error, fd) {

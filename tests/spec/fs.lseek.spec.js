@@ -48,8 +48,9 @@ describe('fs.lseek', function() {
   it('should set the current position if whence is SET', function(done) {
     var fs = util.fs();
     var offset = 3;
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-    var result_buffer = new Uint8Array(buffer.length + offset);
+    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var result_buffer = new Filer.Buffer(buffer.length + offset);
+    result_buffer.fill(0);
 
     fs.open('/myfile', 'w+', function(error, fd) {
       if(error) throw error;
@@ -71,7 +72,7 @@ describe('fs.lseek', function() {
                 if(error) throw error;
 
                 expect(result.size).to.equal(offset + buffer.length);
-                var expected = new Uint8Array([1, 2, 3, 1, 2, 3, 4, 5, 6, 7, 8]);
+                var expected = new Filer.Buffer([1, 2, 3, 1, 2, 3, 4, 5, 6, 7, 8]);
                 expect(result_buffer).to.deep.equal(expected);
                 done();
               });
@@ -85,8 +86,9 @@ describe('fs.lseek', function() {
   it('should update the current position if whence is CUR', function(done) {
     var fs = util.fs();
     var offset = -2;
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-    var result_buffer = new Uint8Array(2 * buffer.length + offset);
+    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var result_buffer = new Filer.Buffer(2 * buffer.length + offset);
+    result_buffer.fill(0);
 
     fs.open('/myfile', 'w+', function(error, fd) {
       if(error) throw error;
@@ -108,7 +110,7 @@ describe('fs.lseek', function() {
                 if(error) throw error;
 
                 expect(result.size).to.equal(offset + 2 * buffer.length);
-                var expected = new Uint8Array([1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 7, 8]);
+                var expected = new Filer.Buffer([1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 7, 8]);
                 expect(result_buffer).to.deep.equal(expected);
                 done();
               });
@@ -122,7 +124,7 @@ describe('fs.lseek', function() {
   it('should update the current position if whence is END', function(done) {
     var fs = util.fs();
     var offset = 5;
-    var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
     var result_buffer;
 
     fs.open('/myfile', 'w+', function(error, result) {
@@ -147,10 +149,11 @@ describe('fs.lseek', function() {
                 if(error) throw error;
 
                 expect(result.size).to.equal(offset + 2 * buffer.length);
-                result_buffer = new Uint8Array(result.size);
+                result_buffer = new Filer.Buffer(result.size);
+                result_buffer.fill(0);
                 fs.read(fd2, result_buffer, 0, result_buffer.length, 0, function(error, result) {
                   if(error) throw error;
-                  var expected = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+                  var expected = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
                   expect(result_buffer).to.deep.equal(expected);
                   done();
                 });
