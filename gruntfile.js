@@ -57,7 +57,6 @@ module.exports = function(grunt) {
         dest: "./dist/filer.js",
         options: {
           browserifyOptions: {
-            builtins: false,
             commondir: false
           },
           bundleOptions: {
