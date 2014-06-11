@@ -51,7 +51,8 @@
     "grunt-shell": "~0.7.0",
     "habitat": "^1.1.0",
     "mocha": "~1.18.2",
-    "semver": "^2.3.0"
+    "semver": "^2.3.0",
+    "requirejs": "^2.1.14"
   },
   "main": "./src/index.js"
 }
