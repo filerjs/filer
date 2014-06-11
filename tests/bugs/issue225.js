@@ -7,6 +7,7 @@
 var requirejs = require('requirejs');
 var expect = require('chai').expect;
 
+// browser-request assumes access to XHR
 GLOBAL.XMLHttpRequest = {};
 
 describe('require.js should be able to use built Filer, issue 225', function() {

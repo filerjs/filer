@@ -88,7 +88,7 @@ module.exports = function(grunt) {
       mocha: {
         // Run all tests (e.g., tests require()'ed in tests/index.js) and also tests/bugs/issue225.js
         // separately, since it can't be included in a browserify build.
-        command: './node_modules/.bin/mocha --reporter list tests/index.js tests/bugs/issue225.js'
+        command: './node_modules/.bin/mocha --reporter list tests/index.js && ./node_modules/.bin/mocha --reporter list tests/bugs/issue225.js'
       }
     },
 
