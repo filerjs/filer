@@ -1,4 +1,6 @@
 /**
+ * https://github.com/js-platform/filer/pull/225
+ *
  * NOTE: this test has to be run outside the browserify step,
  * since combinining require for node.js/browserify builds with
  * r.js doesn't work.
