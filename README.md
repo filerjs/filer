@@ -4,12 +4,13 @@
 
 ###Filer
 
-Filer is a POSIX-like file system interface for browser-based JavaScript.
+Filer is a POSIX-like file system interface for node.js and browser-based JavaScript.
 
 ###Compatibility
 
 Filer is known to work in the following browsers/versions, with the specified [Storage Providers](#providers):
 
+* node.js: v0.10.*+
 * IE: 10+ (IndexedDB)
 * Firefox: 26+ (IndexedDB)
 * Chrome: 31+ (IndexedDB, WebSQL)
@@ -25,12 +26,34 @@ See the section on [Storage Providers](#providers).
 
 Want to join the fun? We'd love to have you! See [CONTRIBUTING](https://github.com/js-platform/filer/blob/develop/CONTRIBUTING.md).
 
-###Downloading
+### How to Get It
 
-Pre-built versions of the library are available in the repo:
+Filer can be obtained in a number of ways:
 
-* [filer.js](https://raw.github.com/js-platform/filer/develop/dist/filer.js)
-* [filer.min.js](https://raw.github.com/js-platform/filer/develop/dist/filer.min.js)
+1. npm - `npm install filer`
+2. bower - `bower install filer`
+3. download pre-built versions: [filer.js](https://raw.github.com/js-platform/filer/develop/dist/filer.js), [filer.min.js](https://raw.github.com/js-platform/filer/develop/dist/filer.min.js)
+
+### Loading and Usage
+
+Filer is built as a UMD module and can therefore be loaded as a CommonJS or AMD module, or used via the global.
+
+```javascript
+// Option 1: Filer loaded via require() in node/browserify
+var Filer = require('filer');
+
+// Option 2: Filer loaded via RequireJS
+requirejs.config({
+  baseUrl: '/',
+  paths: {
+    'filer': "filer/dist/filer'
+  }
+});
+requirejs(["filer"], function(Filer) {...}
+
+// Option 3: Filer on global
+var Filer = window.Filer;
+```
 
 ### Getting Started
 
@@ -42,7 +65,7 @@ with the following differences:
 * No support for stream-based operations (e.g., `fs.ReadStream`, `fs.WriteStream`).
 
 Filer has other features lacking in node.js (e.g., swappable backend
-storage providers, support for encryption and compression, extended attributes, etc).
+storage providers, extended attributes, etc).
 
 Like node.js, the API is asynchronous and most methods expect the caller to provide
 a callback function (note: like node.js, Filer will supply one if it's missing).
@@ -95,9 +118,9 @@ object can specify a number of optional arguments, including:
 
 * `name`: the name of the file system, defaults to `'"local'`
 * `flags`: an Array of one or more flags to use when creating/opening the file system:
-  *`'FORMAT'` to force Filer to format (i.e., erase) the file system
-  *`'NOCTIME'` to force Filer to not update `ctime` on nodes when metadata changes (i.e., for better performance)
-  *`'NOMTIME'` to force Filer to not update `mtime` on nodes when data changes (i.e., for better performance)
+  * `'FORMAT'` to force Filer to format (i.e., erase) the file system
+  * `'NOCTIME'` to force Filer to not update `ctime` on nodes when metadata changes (i.e., for better performance)
+  * `'NOMTIME'` to force Filer to not update `mtime` on nodes when data changes (i.e., for better performance)
 * `provider`: an explicit storage provider to use for the file system's database context provider. See the section on [Storage Providers](#providers).
 
 The `callback` function indicates when the file system is ready for use. Depending on the storage provider used, this might
@@ -160,6 +183,20 @@ if( Filer.FileSystem.providers.WebSQL.isSupported() ) {
 ```
 
 You can also write your own provider if you need a different backend. See the code in `src/providers` for details.
+
+A number of other providers have been written, including:
+
+* node.js fs provider: https://github.com/humphd/filer-fs
+* node.js Amazon S3 provider: https://github.com/alicoding/filer-s3
+
+####Filer.Buffer<a name="FilerBuffer"></a>
+
+When reading and writing data, Filer follows node.js and uses [`Buffer`](http://nodejs.org/api/buffer.html).
+When in a node.js environment, native `Buffer`s can be used, or Filer.Buffer, which is a shortcut
+to node's `Buffer`.  In a browser, you can use also use `Filer.Buffer`.
+
+NOTE: a `Filer.Buffer` in a browser is really an augmented `Uint8Array` (i.e., the node `Buffer` api
+methods are added to the instance). See https://github.com/feross/buffer for more details.
 
 ####Filer.Path<a name="FilerPath"></a>
 
@@ -298,7 +335,7 @@ Example:
 
 ```javascript
 // Create a file, shrink it, expand it.
-var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
 fs.open('/myfile', 'w', function(err, fd) {
   if(err) throw error;
@@ -329,7 +366,7 @@ Example:
 
 ```javascript
 // Create a file, shrink it, expand it.
-var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
 fs.open('/myfile', 'w', function(err, fd) {
   if(err) throw error;
@@ -726,7 +763,7 @@ Example:
 
 ```javascript
 // Create a file with the following bytes.
-var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
 fs.open('/myfile', 'w', function(err, fd) {
   if(err) throw error;
@@ -755,7 +792,7 @@ fs.open('/myfile', 'w', function(err, fd) {
 
 #### fs.read(fd, buffer, offset, length, position, callback)<a name="read"></a>
 
-Read bytes from the file specified by `fd` into ArrayBufferView `buffer`. Asynchronous [read(2), pread(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html). The `offset` and `length` arguments describe the part of the buffer to be used. The `position` refers to the offset from the beginning of the file where this data should be read. If `position` is `null`, the data will be written at the current position. The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes read.
+Read bytes from the file specified by `fd` into `buffer`. Asynchronous [read(2), pread(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html). The `offset` and `length` arguments describe the part of the buffer to be used. The `position` refers to the offset from the beginning of the file where this data should be read. If `position` is `null`, the data will be written at the current position. The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes read.
 
 NOTE: Filer currently reads into the buffer in a single operation. However, future versions may do it in chunks.
 
@@ -771,7 +808,7 @@ fs.open('/myfile', 'r', function(err, fd) {
 
     // Create a buffer large enough to hold the file's contents
     var nbytes = expected = stats.size;
-    var buffer = new Uint8Array(nbytes);
+    var buffer = new Filer.Buffer(nbytes);
     var read = 0;
 
     function readBytes(offset, position, length) {
@@ -812,13 +849,13 @@ fs.readFile('/myfile.txt', 'utf8', function (err, data) {
 // Read binary file
 fs.readFile('/myfile.txt', function (err, data) {
   if (err) throw err;
-  // data is now the contents of /myfile.txt (i.e., an Uint8Array of bytes)
+  // data is now the contents of /myfile.txt (i.e., a Buffer with the bytes)
 });
 ```
 
 #### fs.writeFile(filename, data, [options], callback)<a name="writeFile"></a>
 
-Writes data to a file. `data` can be a string or an ArrayBufferView, in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
+Writes data to a file. `data` can be a string or `Buffer`, in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
 
 Examples:
 
@@ -829,7 +866,7 @@ fs.writeFile('/myfile.txt', "...data...", function (err) {
 });
 
 // Write binary file
-var buffer = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 fs.writeFile('/myfile', buffer, function (err) {
   if (err) throw err;
 });
@@ -837,7 +874,7 @@ fs.writeFile('/myfile', buffer, function (err) {
 
 #### fs.appendFile(filename, data, [options], callback)<a name="appendFile"></a>
 
-Writes data to the end of a file. `data` can be a string or an ArrayBufferView, in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
+Writes data to the end of a file. `data` can be a string or a `Buffer`, in which case any encoding option is ignored. The `options` argument is optional, and can take the form `"utf8"` (i.e., an encoding) or be an object literal: `{ encoding: "utf8", flag: "w" }`. If no encoding is specified, and `data` is a string, the encoding defaults to `'utf8'`.  The callback gets `(error)`.
 
 Examples:
 
@@ -852,15 +889,18 @@ fs.appendFile('/myfile.txt', "Data...", function (err) {
 // '/myfile.txt' would now read out 'More...Data...'
 
 // Append binary file
-var more = new Uint8Array([1, 2, 3, 4]);
-var data = new Uint8Array([5, 6, 7, 8]);
-fs.writeFile('/myfile', more, function (err) {
-	if (err) throw err;
-});
-fs.appendFile('/myfile', buffer, function (err) {
+var data = new Filer.Buffer([1, 2, 3, 4]);
+var more = new Filer.Buffer([5, 6, 7, 8]);
+
+fs.writeFile('/myfile', data, function (err) {
   if (err) throw err;
+
+  fs.appendFile('/myfile', more, function (err) {
+    if (err) throw err;
+    
+    // '/myfile' would now contain [1, 2, 3, 4, 5, 6, 7, 8]
+  });
 });
-// '/myfile' would now contain [1, 2, 3, 4, 5, 6, 7, 8]
 ```
 
 #### fs.setxattr(path, name, value, [flag], callback)<a name="setxattr"></a>
