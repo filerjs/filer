@@ -46,10 +46,10 @@ var Filer = require('filer');
 requirejs.config({
   baseUrl: '/',
   paths: {
-    'filer': "filer/dist/filer'
+    'filer': 'filer/dist/filer'
   }
 });
-requirejs(["filer"], function(Filer) {...}
+requirejs(['filer'], function(Filer) {...}
 
 // Option 3: Filer on global
 var Filer = window.Filer;
@@ -755,7 +755,7 @@ NOTE: Not yet implemented, see https://github.com/js-platform/filer/issues/87
 
 #### fs.write(fd, buffer, offset, length, position, callback)<a name="write"></a>
 
-Writes bytes from ArrayBufferView `buffer` to the file specified by `fd`. Asynchronous [write(2), pwrite(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/write.html). The `offset` and `length` arguments describe the part of the buffer to be written. The `position` refers to the offset from the beginning of the file where this data should be written. If `position` is `null`, the data will be written at the current position. The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes written.
+Writes bytes from `buffer` to the file specified by `fd`. Asynchronous [write(2), pwrite(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/write.html). The `offset` and `length` arguments describe the part of the buffer to be written. The `position` refers to the offset from the beginning of the file where this data should be written. If `position` is `null`, the data will be written at the current position. The callback gets `(error, nbytes)`, where `nbytes` is the number of bytes written.
 
 NOTE: Filer currently writes the entire buffer in a single operation. However, future versions may do it in chunks.
 
