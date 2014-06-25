@@ -60,6 +60,12 @@ function standard_check_result_cb(callback) {
  * Coerce array-like data to Buffer so we can .copy(), etc.
  * Allow null, a Buffer, or an object that can be dealt with
  * by the Buffer constructor (e.g., Typed Array, Array, ...)
+ *
+ * WARNING: be very careful not to call this on parameters of
+ * API methods that pass storage (like read). You don't want to
+ * overwrite a buffer that a caller is holding a reference to,
+ * and expects to be filled via the read. If the caller passes
+ * in a non-Buffer, we should throw instead of coerce.
  */
 function ensureBuffer(maybeBuffer) {
   if(!maybeBuffer) {
