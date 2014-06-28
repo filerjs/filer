@@ -210,7 +210,11 @@ module.exports = function(grunt) {
   });
   grunt.registerTask('test-node', ['jshint', 'connect:serverForNode', 'shell:mocha']);
   grunt.registerTask('test-browser', ['jshint', 'build-tests', 'connect:serverForBrowser']);
-  grunt.registerTask('test', ['test-node']);
+  grunt.registerTask('test', function(context) {
+    context = (context || 'node').toLowerCase();
+
+    grunt.task.run([context == 'node' ? 'test-node' : 'test-browser']);
+  });
 
   grunt.registerTask('default', ['test']);
 };
