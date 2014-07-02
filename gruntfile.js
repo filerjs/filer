@@ -15,7 +15,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
-    clean: ['dist/filer-test.js', 'dist/filer_node-test.js'],
+    clean: ['dist/filer-test.js', 'dist/filer-issue225.js'],
 
     uglify: {
       options: {
@@ -68,12 +68,27 @@ module.exports = function(grunt) {
       filerTest: {
         src: "./tests/index.js",
         dest: "./dist/filer-test.js"
+      },
+      // See tests/bugs/issue225.js
+      filerIssue225: {
+        src: "./src/index.js",
+        dest: "./dist/filer-issue225.js",
+        options: {
+          browserifyOptions: {
+            commondir: false
+          },
+          bundleOptions: {
+            standalone: 'Filer'
+          }
+        }
       }
     },
 
     shell: {
       mocha: {
-        command: './node_modules/.bin/mocha --reporter list tests/index.js'
+        // Run all tests (e.g., tests require()'ed in tests/index.js) and also tests/bugs/issue225.js
+        // separately, since it can't be included in a browserify build.
+        command: './node_modules/.bin/mocha --reporter list tests/index.js && ./node_modules/.bin/mocha --reporter list tests/bugs/issue225.js'
       }
     },
 
@@ -208,9 +223,9 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
-  grunt.registerTask('test-node', ['jshint', 'connect:serverForNode', 'shell:mocha']);
+  grunt.registerTask('test-node', ['jshint', 'browserify:filerIssue225', 'connect:serverForNode', 'shell:mocha']);
   grunt.registerTask('test-browser', ['jshint', 'build-tests', 'connect:serverForBrowser']);
-  grunt.registerTask('test', ['test-node']);
+  grunt.registerTask('test', ['clean', 'test-node']);
 
   grunt.registerTask('default', ['test']);
 };
