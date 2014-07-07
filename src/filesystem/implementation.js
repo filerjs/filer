@@ -350,17 +350,21 @@ function set_extended_attribute (context, path_or_fd, name, value, flag, callbac
 }
 
 /**
- * make_root_directory
+ * ensure_root_directory. Creates a root node if necessary.
+ *
+ * Note: this should only be invoked when formatting a new file system.
+ * Multiple invocations of this by separate instances will still result
+ * in only a single super node.
  */
-// Note: this should only be invoked when formatting a new file system
-function make_root_directory(context, callback) {
+function ensure_root_directory(context, callback) {
   var superNode;
   var directoryNode;
   var directoryData;
 
-  function write_super_node(error, existingNode) {
+  function ensure_super_node(error, existingNode) {
     if(!error && existingNode) {
-      callback(new Errors.EEXIST());
+      // Another instance has beat us and already created the super node.
+      callback();
     } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
@@ -388,7 +392,7 @@ function make_root_directory(context, callback) {
     }
   }
 
-  context.get(SUPER_NODE_ID, write_super_node);
+  context.get(SUPER_NODE_ID, ensure_super_node);
 }
 
 /**
@@ -2010,7 +2014,7 @@ function ftruncate(fs, context, fd, length, callback) {
 }
 
 module.exports = {
-  makeRootDirectory: make_root_directory,
+  ensureRootDirectory: ensure_root_directory,
   open: open,
   close: close,
   mknod: mknod,

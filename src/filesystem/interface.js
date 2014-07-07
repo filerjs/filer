@@ -206,7 +206,7 @@ function FileSystem(options, callback) {
         complete(err);
         return;
       }
-      impl.makeRootDirectory(context, complete);
+      impl.ensureRootDirectory(context, complete);
     });
   });
 }
