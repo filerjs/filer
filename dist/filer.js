@@ -11994,6 +11994,7 @@ module.exports = {
   FS_FORMAT: 'FORMAT',
   FS_NOCTIME: 'NOCTIME',
   FS_NOMTIME: 'NOMTIME',
+  FS_NODUPEIDCHECK: 'FS_NODUPEIDCHECK',
 
   // FS File Open Flags
   O_READ: O_READ,
@@ -12337,9 +12338,15 @@ function make_node(context, path, mode, callback) {
       callback(error);
     } else {
       parentNodeData = result;
-      node = new Node(undefined, mode);
-      node.nlinks += 1;
-      context.put(node.id, node, update_parent_node_data);
+      Node.create({guid: context.guid, mode: mode}, function(error, result) {
+        if(error) {
+          callback(error);
+          return;
+        }
+        node = result;
+        node.nlinks += 1;
+        context.put(node.id, node, update_parent_node_data);
+      });
     }
   }
 
@@ -12524,8 +12531,14 @@ function make_root_directory(context, callback) {
     } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
-      superNode = new SuperNode();
-      context.put(superNode.id, superNode, write_directory_node);
+      SuperNode.create({guid: context.guid}, function(error, result) {
+        if(error) {
+          callback(error);
+          return;
+        }
+        superNode = result;
+        context.put(superNode.id, superNode, write_directory_node);
+      });
     }
   }
 
@@ -12533,9 +12546,15 @@ function make_root_directory(context, callback) {
     if(error) {
       callback(error);
     } else {
-      directoryNode = new Node(superNode.rnode, MODE_DIRECTORY);
-      directoryNode.nlinks += 1;
-      context.put(directoryNode.id, directoryNode, write_directory_data);
+      Node.create({guid: context.guid, id: superNode.rnode, mode: MODE_DIRECTORY}, function(error, result) {
+        if(error) {
+          callback(error);
+          return;
+        }
+        directoryNode = result;
+        directoryNode.nlinks += 1;
+        context.put(directoryNode.id, directoryNode, write_directory_data);
+      });
     }
   }
 
@@ -12588,9 +12607,15 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryData = result;
-      directoryNode = new Node(undefined, MODE_DIRECTORY);
-      directoryNode.nlinks += 1;
-      context.put(directoryNode.id, directoryNode, write_directory_data);
+      Node.create({guid: context.guid, mode: MODE_DIRECTORY}, function(error, result) {
+        if(error) {
+          callback(error);
+          return;
+        }
+        directoryNode = result;
+        directoryNode.nlinks += 1;
+        context.put(directoryNode.id, directoryNode, write_directory_data);
+      });
     }
   }
 
@@ -12817,9 +12842,15 @@ function open_file(context, path, flags, callback) {
   }
 
   function write_file_node() {
-    fileNode = new Node(undefined, MODE_FILE);
-    fileNode.nlinks += 1;
-    context.put(fileNode.id, fileNode, write_file_data);
+    Node.create({guid: context.guid, mode: MODE_FILE}, function(error, result) {
+      if(error) {
+        callback(error);
+        return;
+      }
+      fileNode = result;
+      fileNode.nlinks += 1;
+      context.put(fileNode.id, fileNode, write_file_data);
+    });
   }
 
   function write_file_data(error) {
@@ -13282,11 +13313,17 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   }
 
   function write_file_node() {
-    fileNode = new Node(undefined, MODE_SYMBOLIC_LINK);
-    fileNode.nlinks += 1;
-    fileNode.size = srcpath.length;
-    fileNode.data = srcpath;
-    context.put(fileNode.id, fileNode, update_directory_data);
+    Node.create({guid: context.guid, mode: MODE_SYMBOLIC_LINK}, function(error, result) {
+      if(error) {
+        callback(error);
+        return;
+      }
+      fileNode = result;
+      fileNode.nlinks += 1;
+      fileNode.size = srcpath.length;
+      fileNode.data = srcpath;
+      context.put(fileNode.id, fileNode, update_directory_data);
+    });
   }
 
   function update_time(error) {
@@ -14217,6 +14254,7 @@ var FS_FORMAT = Constants.FS_FORMAT;
 var FS_READY = Constants.FS_READY;
 var FS_PENDING = Constants.FS_PENDING;
 var FS_ERROR = Constants.FS_ERROR;
+var FS_NODUPEIDCHECK = Constants.FS_NODUPEIDCHECK;
 
 var providers = _dereq_('../providers/index.js');
 
@@ -14224,13 +14262,14 @@ var Shell = _dereq_('../shell/shell.js');
 var Intercom = _dereq_('../../lib/intercom.js');
 var FSWatcher = _dereq_('../fs-watcher.js');
 var Errors = _dereq_('../errors.js');
+var defaultGuidFn = _dereq_('../shared.js').guid;
 
 var STDIN = Constants.STDIN;
 var STDOUT = Constants.STDOUT;
 var STDERR = Constants.STDERR;
 var FIRST_DESCRIPTOR = Constants.FIRST_DESCRIPTOR;
 
-  // The core fs operations live on impl
+// The core fs operations live on impl
 var impl = _dereq_('./implementation.js');
 
 // node.js supports a calling pattern that leaves off a callback.
@@ -14263,6 +14302,9 @@ function maybeCallback(callback) {
  *           can write one of their own and pass it in to be used.
  *           By default an IndexedDB provider is used.
  *
+ * guid: a function for generating unique IDs for nodes in the filesystem.
+ *       Use this to override the built-in UUID generation. (Used mainly for tests).
+ *
  * callback: a callback function to be executed when the file system becomes
  *           ready for use. Depending on the context provider used, this might
  *           be right away, or could take some time. The callback should expect
@@ -14272,9 +14314,10 @@ function maybeCallback(callback) {
  */
 function FileSystem(options, callback) {
   options = options || {};
-    callback = callback || nop;
+  callback = callback || nop;
 
   var flags = options.flags;
+  var guid = options.guid ? options.guid : defaultGuidFn;
   var provider = options.provider || new providers.Default(options.name || FILE_SYSTEM_NAME);
   // If we're given a provider, match its name unless we get an explicit name
   var name = options.name || provider.name;
@@ -14346,6 +14389,36 @@ function FileSystem(options, callback) {
     return watcher;
   };
 
+  // Deal with various approaches to node ID creation
+  function wrappedGuidFn(context) {
+    return function(callback) {
+      // Skip the duplicate ID check if asked to
+      if(_(flags).contains(FS_NODUPEIDCHECK)) {
+        callback(null, guid());
+        return;
+      }
+
+      // Otherwise (default) make sure this id is unused first
+      function guidWithCheck(callback) {
+        var id = guid();
+        context.get(id, function(err, value) {
+          if(err) {
+            callback(err);
+            return;
+          }
+
+          // If this id is unused, use it, otherwise find another
+          if(!value) {
+            callback(null, id);
+          } else {
+            guidWithCheck(callback);
+          }
+        });
+      }
+      guidWithCheck(callback);
+    };
+  }
+
   // Let other instances (in this or other windows) know about
   // any changes to this fs instance.
   function broadcastChanges(changes) {
@@ -14366,6 +14439,7 @@ function FileSystem(options, callback) {
         var context = provider[methodName]();
         context.flags = flags;
         context.changes = [];
+        context.guid = wrappedGuidFn(context);
 
         // When the context is finished, let the fs deal with any change events
         context.close = function() {
@@ -14409,6 +14483,7 @@ function FileSystem(options, callback) {
     }
     // otherwise format the fs first
     var context = provider.getReadWriteContext();
+    context.guid = wrappedGuidFn(context);
     context.clear(function(err) {
       if(err) {
         complete(err);
@@ -14504,7 +14579,7 @@ module.exports = FileSystem;
 
 },{"../../lib/intercom.js":3,"../../lib/nodash.js":4,"../constants.js":44,"../errors.js":47,"../fs-watcher.js":50,"../path.js":54,"../providers/index.js":55,"../shared.js":59,"../shell/shell.js":62,"./implementation.js":48}],50:[function(_dereq_,module,exports){
 var EventEmitter = _dereq_('../lib/eventemitter.js');
-var isNullPath = _dereq_('./path.js').isNull;
+var Path = _dereq_('./path.js');
 var Intercom = _dereq_('../lib/intercom.js');
 
 /**
@@ -14531,11 +14606,15 @@ function FSWatcher() {
       return;
     }
 
-    if(isNullPath(filename_)) {
+    if(Path.isNull(filename_)) {
       throw new Error('Path must be a string without null bytes.');
     }
+
     // TODO: get realpath for symlinks on filename...
-    filename = filename_;
+
+    // Filer's Path.normalize strips trailing slashes, which we use here.
+    // See https://github.com/js-platform/filer/issues/105
+    filename = Path.normalize(filename_);
 
     // Whether to watch beneath this path or not
     recursive = recursive_ === true;
@@ -14567,27 +14646,60 @@ module.exports = {
 }).call(this,_dereq_("buffer").Buffer)
 },{"./errors.js":47,"./filesystem/interface.js":49,"./path.js":54,"buffer":6}],52:[function(_dereq_,module,exports){
 var MODE_FILE = _dereq_('./constants.js').MODE_FILE;
-var guid = _dereq_('./shared.js').guid;
 
-module.exports = function Node(id, mode, size, atime, ctime, mtime, flags, xattrs, nlinks, version) {
+function Node(options) {
   var now = Date.now();
 
-  this.id = id || guid();
-  this.mode = mode || MODE_FILE;  // node type (file, directory, etc)
-  this.size = size || 0; // size (bytes for files, entries for directories)
-  this.atime = atime || now; // access time (will mirror ctime after creation)
-  this.ctime = ctime || now; // creation/change time
-  this.mtime = mtime || now; // modified time
-  this.flags = flags || []; // file flags
-  this.xattrs = xattrs || {}; // extended attributes
-  this.nlinks = nlinks || 0; // links count
-  this.version = version || 0; // node version
+  this.id = options.id;
+  this.mode = options.mode || MODE_FILE;  // node type (file, directory, etc)
+  this.size = options.size || 0; // size (bytes for files, entries for directories)
+  this.atime = options.atime || now; // access time (will mirror ctime after creation)
+  this.ctime = options.ctime || now; // creation/change time
+  this.mtime = options.mtime || now; // modified time
+  this.flags = options.flags || []; // file flags
+  this.xattrs = options.xattrs || {}; // extended attributes
+  this.nlinks = options.nlinks || 0; // links count
+  this.version = options.version || 0; // node version
   this.blksize = undefined; // block size
   this.nblocks = 1; // blocks count
-  this.data = guid(); // id for data object
+  this.data = options.data; // id for data object
+}
+
+// Make sure the options object has an id on property,
+// either from caller or one we generate using supplied guid fn.
+function ensureID(options, prop, callback) {
+  if(options[prop]) {
+    callback(null);
+  } else {
+    options.guid(function(err, id) {
+      options[prop] = id;
+      callback(err);
+    });
+  }
+}
+
+Node.create = function(options, callback) {
+  // We expect both options.id and options.data to be provided/generated.
+  ensureID(options, 'id', function(err) {
+    if(err) {
+      callback(err);
+      return;
+    }
+
+    ensureID(options, 'data', function(err) {
+      if(err) {
+        callback(err);
+        return;
+      }
+
+      callback(null, new Node(options));
+    });
+  });
 };
 
-},{"./constants.js":44,"./shared.js":59}],53:[function(_dereq_,module,exports){
+module.exports = Node;
+
+},{"./constants.js":44}],53:[function(_dereq_,module,exports){
 module.exports = function OpenFileDescription(path, id, flags, position) {
   this.path = path;
   this.id = id;
@@ -15952,19 +16064,32 @@ module.exports = Stats;
 
 },{"./constants.js":44}],64:[function(_dereq_,module,exports){
 var Constants = _dereq_('./constants.js');
-var guid = _dereq_('./shared.js').guid;
 
-module.exports = function SuperNode(atime, ctime, mtime) {
+function SuperNode(options) {
   var now = Date.now();
 
   this.id = Constants.SUPER_NODE_ID;
   this.mode = Constants.MODE_META;
-  this.atime = atime || now;
-  this.ctime = ctime || now;
-  this.mtime = mtime || now;
-  this.rnode = guid(); // root node id (randomly generated)
+  this.atime = options.atime || now;
+  this.ctime = options.ctime || now;
+  this.mtime = options.mtime || now;
+  // root node id (randomly generated)
+  this.rnode = options.rnode;
+}
+
+SuperNode.create = function(options, callback) {
+  options.guid(function(err, rnode) {
+    if(err) {
+      callback(err);
+      return;
+    }
+    options.rnode = options.rnode || rnode;
+    callback(null, new SuperNode(options));
+  });
 };
 
-},{"./constants.js":44,"./shared.js":59}]},{},[51])
+module.exports = SuperNode;
+
+},{"./constants.js":44}]},{},[51])
 (51)
 });
