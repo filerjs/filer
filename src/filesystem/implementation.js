@@ -177,9 +177,15 @@ function make_node(context, path, mode, callback) {
       callback(error);
     } else {
       parentNodeData = result;
-      node = new Node(undefined, mode);
-      node.nlinks += 1;
-      context.put(node.id, node, update_parent_node_data);
+      Node.create({guid: context.guid, mode: mode}, function(error, result) {
+        if(error) {
+          callback(error);
+          return;
+        }
+        node = result;
+        node.nlinks += 1;
+        context.put(node.id, node, update_parent_node_data);
+      });
     }
   }
 
@@ -364,8 +370,14 @@ function make_root_directory(context, callback) {
     } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
-      superNode = new SuperNode();
-      context.put(superNode.id, superNode, write_directory_node);
+      SuperNode.create({guid: context.guid}, function(error, result) {
+        if(error) {
+          callback(error);
+          return;
+        }
+        superNode = result;
+        context.put(superNode.id, superNode, write_directory_node);
+      });
     }
   }
 
@@ -373,9 +385,15 @@ function make_root_directory(context, callback) {
     if(error) {
       callback(error);
     } else {
-      directoryNode = new Node(superNode.rnode, MODE_DIRECTORY);
-      directoryNode.nlinks += 1;
-      context.put(directoryNode.id, directoryNode, write_directory_data);
+      Node.create({guid: context.guid, id: superNode.rnode, mode: MODE_DIRECTORY}, function(error, result) {
+        if(error) {
+          callback(error);
+          return;
+        }
+        directoryNode = result;
+        directoryNode.nlinks += 1;
+        context.put(directoryNode.id, directoryNode, write_directory_data);
+      });
     }
   }
 
@@ -428,9 +446,15 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryData = result;
-      directoryNode = new Node(undefined, MODE_DIRECTORY);
-      directoryNode.nlinks += 1;
-      context.put(directoryNode.id, directoryNode, write_directory_data);
+      Node.create({guid: context.guid, mode: MODE_DIRECTORY}, function(error, result) {
+        if(error) {
+          callback(error);
+          return;
+        }
+        directoryNode = result;
+        directoryNode.nlinks += 1;
+        context.put(directoryNode.id, directoryNode, write_directory_data);
+      });
     }
   }
 
@@ -657,9 +681,15 @@ function open_file(context, path, flags, callback) {
   }
 
   function write_file_node() {
-    fileNode = new Node(undefined, MODE_FILE);
-    fileNode.nlinks += 1;
-    context.put(fileNode.id, fileNode, write_file_data);
+    Node.create({guid: context.guid, mode: MODE_FILE}, function(error, result) {
+      if(error) {
+        callback(error);
+        return;
+      }
+      fileNode = result;
+      fileNode.nlinks += 1;
+      context.put(fileNode.id, fileNode, write_file_data);
+    });
   }
 
   function write_file_data(error) {
@@ -1122,11 +1152,17 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   }
 
   function write_file_node() {
-    fileNode = new Node(undefined, MODE_SYMBOLIC_LINK);
-    fileNode.nlinks += 1;
-    fileNode.size = srcpath.length;
-    fileNode.data = srcpath;
-    context.put(fileNode.id, fileNode, update_directory_data);
+    Node.create({guid: context.guid, mode: MODE_SYMBOLIC_LINK}, function(error, result) {
+      if(error) {
+        callback(error);
+        return;
+      }
+      fileNode = result;
+      fileNode.nlinks += 1;
+      fileNode.size = srcpath.length;
+      fileNode.data = srcpath;
+      context.put(fileNode.id, fileNode, update_directory_data);
+    });
   }
 
   function update_time(error) {

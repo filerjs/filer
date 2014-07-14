@@ -9,6 +9,7 @@ var FS_FORMAT = Constants.FS_FORMAT;
 var FS_READY = Constants.FS_READY;
 var FS_PENDING = Constants.FS_PENDING;
 var FS_ERROR = Constants.FS_ERROR;
+var FS_NODUPEIDCHECK = Constants.FS_NODUPEIDCHECK;
 
 var providers = require('../providers/index.js');
 
@@ -16,13 +17,14 @@ var Shell = require('../shell/shell.js');
 var Intercom = require('../../lib/intercom.js');
 var FSWatcher = require('../fs-watcher.js');
 var Errors = require('../errors.js');
+var defaultGuidFn = require('../shared.js').guid;
 
 var STDIN = Constants.STDIN;
 var STDOUT = Constants.STDOUT;
 var STDERR = Constants.STDERR;
 var FIRST_DESCRIPTOR = Constants.FIRST_DESCRIPTOR;
 
-  // The core fs operations live on impl
+// The core fs operations live on impl
 var impl = require('./implementation.js');
 
 // node.js supports a calling pattern that leaves off a callback.
@@ -55,6 +57,9 @@ function maybeCallback(callback) {
  *           can write one of their own and pass it in to be used.
  *           By default an IndexedDB provider is used.
  *
+ * guid: a function for generating unique IDs for nodes in the filesystem.
+ *       Use this to override the built-in UUID generation. (Used mainly for tests).
+ *
  * callback: a callback function to be executed when the file system becomes
  *           ready for use. Depending on the context provider used, this might
  *           be right away, or could take some time. The callback should expect
@@ -64,9 +69,10 @@ function maybeCallback(callback) {
  */
 function FileSystem(options, callback) {
   options = options || {};
-    callback = callback || nop;
+  callback = callback || nop;
 
   var flags = options.flags;
+  var guid = options.guid ? options.guid : defaultGuidFn;
   var provider = options.provider || new providers.Default(options.name || FILE_SYSTEM_NAME);
   // If we're given a provider, match its name unless we get an explicit name
   var name = options.name || provider.name;
@@ -138,6 +144,36 @@ function FileSystem(options, callback) {
     return watcher;
   };
 
+  // Deal with various approaches to node ID creation
+  function wrappedGuidFn(context) {
+    return function(callback) {
+      // Skip the duplicate ID check if asked to
+      if(_(flags).contains(FS_NODUPEIDCHECK)) {
+        callback(null, guid());
+        return;
+      }
+
+      // Otherwise (default) make sure this id is unused first
+      function guidWithCheck(callback) {
+        var id = guid();
+        context.get(id, function(err, value) {
+          if(err) {
+            callback(err);
+            return;
+          }
+
+          // If this id is unused, use it, otherwise find another
+          if(!value) {
+            callback(null, id);
+          } else {
+            guidWithCheck(callback);
+          }
+        });
+      }
+      guidWithCheck(callback);
+    };
+  }
+
   // Let other instances (in this or other windows) know about
   // any changes to this fs instance.
   function broadcastChanges(changes) {
@@ -158,6 +194,7 @@ function FileSystem(options, callback) {
         var context = provider[methodName]();
         context.flags = flags;
         context.changes = [];
+        context.guid = wrappedGuidFn(context);
 
         // When the context is finished, let the fs deal with any change events
         context.close = function() {
@@ -201,6 +238,7 @@ function FileSystem(options, callback) {
     }
     // otherwise format the fs first
     var context = provider.getReadWriteContext();
+    context.guid = wrappedGuidFn(context);
     context.clear(function(err) {
       if(err) {
         complete(err);
