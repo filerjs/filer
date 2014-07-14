@@ -1,5 +1,5 @@
 var EventEmitter = require('../lib/eventemitter.js');
-var isNullPath = require('./path.js').isNull;
+var Path = require('./path.js');
 var Intercom = require('../lib/intercom.js');
 
 /**
@@ -26,11 +26,15 @@ function FSWatcher() {
       return;
     }
 
-    if(isNullPath(filename_)) {
+    if(Path.isNull(filename_)) {
       throw new Error('Path must be a string without null bytes.');
     }
+
     // TODO: get realpath for symlinks on filename...
-    filename = filename_;
+
+    // Filer's Path.normalize strips trailing slashes, which we use here.
+    // See https://github.com/js-platform/filer/issues/105
+    filename = Path.normalize(filename_);
 
     // Whether to watch beneath this path or not
     recursive = recursive_ === true;
