@@ -2,7 +2,7 @@ var Filer = require('../..');
 
 var needsCleanup = [];
 if(global.addEventListener) {
-  window.addEventListener('beforeunload', function() {
+  global.addEventListener('beforeunload', function() {
     needsCleanup.forEach(function(f) { f(); });
   });
 }
