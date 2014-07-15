@@ -1040,6 +1040,7 @@ EventEmitter.prototype.removeAllListeners = pub.removeAllListeners;
 module.exports = EventEmitter;
 
 },{}],3:[function(_dereq_,module,exports){
+(function (global){
 // Based on https://github.com/diy/intercom.js/blob/master/lib/intercom.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -1080,7 +1081,7 @@ var localStorage = (function(window) {
     };
   }
   return window.localStorage;
-}(this));
+}(global));
 
 function Intercom() {
   var self = this;
@@ -1096,14 +1097,14 @@ function Intercom() {
   };
 
   // If we're in node.js, skip event registration
-  if (typeof window === 'undefined' || typeof document === 'undefined') {
+  if (typeof document === 'undefined') {
     return;
   }
 
   if (document.attachEvent) {
     document.attachEvent('onstorage', storageHandler);
   } else {
-    window.addEventListener('storage', storageHandler, false);
+    global.addEventListener('storage', storageHandler, false);
   }
 }
 
@@ -1234,7 +1235,7 @@ Intercom.prototype._localStorageChanged = function(event, field) {
 };
 
 Intercom.prototype._onStorageEvent = function(event) {
-  event = event || window.event;
+  event = event || global.event;
   var self = this;
 
   if (this._localStorageChanged(event, INDEX_EMIT)) {
@@ -1359,6 +1360,7 @@ Intercom.getInstance = (function() {
 
 module.exports = Intercom;
 
+}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../src/shared.js":59,"./eventemitter.js":2}],4:[function(_dereq_,module,exports){
 // Cherry-picked bits of underscore.js, lodash.js
 
