@@ -14590,11 +14590,12 @@ function FSWatcher() {
   EventEmitter.call(this);
   var self = this;
   var recursive = false;
+  var recursivePathPrefix;
   var filename;
 
   function onchange(path) {
-    // Watch for exact filename, or parent path when recursive is true
-    if(filename === path || (recursive && path.indexOf(filename + '/') === 0)) {
+    // Watch for exact filename, or parent path when recursive is true.
+    if(filename === path || (recursive && path.indexOf(recursivePathPrefix) === 0)) {
       self.trigger('change', 'change', path);
     }
   }
@@ -14618,6 +14619,12 @@ function FSWatcher() {
 
     // Whether to watch beneath this path or not
     recursive = recursive_ === true;
+    // If recursive, construct a path prefix portion for comparisons later
+    // (i.e., '/path' becomes '/path/' so we can search within a filename for the
+    // prefix). We also take care to allow for '/' on its own.
+    if(recursive) {
+      recursivePathPrefix = filename === '/' ? '/' : filename + '/';
+    }
 
     var intercom = Intercom.getInstance();
     intercom.on('change', onchange);
