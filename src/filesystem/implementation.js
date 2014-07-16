@@ -607,7 +607,7 @@ function open_file(context, path, flags, callback) {
   function read_directory_data(error, result) {
     if(error) {
       callback(error);
-    } else if(result.type !== MODE_DIRECTORY) {
+    } else if(result.mode !== MODE_DIRECTORY) {
       callback(new Errors.ENOENT());
     } else {
       directoryNode = result;
