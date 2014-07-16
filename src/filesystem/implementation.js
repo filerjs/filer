@@ -607,6 +607,8 @@ function open_file(context, path, flags, callback) {
   function read_directory_data(error, result) {
     if(error) {
       callback(error);
+    } else if(result.type !== MODE_DIRECTORY) {
+      callback(new Errors.ENOENT());
     } else {
       directoryNode = result;
       context.get(directoryNode.data, check_if_file_exists);
