@@ -12519,17 +12519,21 @@ function set_extended_attribute (context, path_or_fd, name, value, flag, callbac
 }
 
 /**
- * make_root_directory
+ * ensure_root_directory. Creates a root node if necessary.
+ *
+ * Note: this should only be invoked when formatting a new file system.
+ * Multiple invocations of this by separate instances will still result
+ * in only a single super node.
  */
-// Note: this should only be invoked when formatting a new file system
-function make_root_directory(context, callback) {
+function ensure_root_directory(context, callback) {
   var superNode;
   var directoryNode;
   var directoryData;
 
-  function write_super_node(error, existingNode) {
+  function ensure_super_node(error, existingNode) {
     if(!error && existingNode) {
-      callback(new Errors.EEXIST());
+      // Another instance has beat us and already created the super node.
+      callback();
     } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
@@ -12569,7 +12573,7 @@ function make_root_directory(context, callback) {
     }
   }
 
-  context.get(SUPER_NODE_ID, write_super_node);
+  context.get(SUPER_NODE_ID, ensure_super_node);
 }
 
 /**
@@ -14211,7 +14215,7 @@ function ftruncate(fs, context, fd, length, callback) {
 }
 
 module.exports = {
-  makeRootDirectory: make_root_directory,
+  ensureRootDirectory: ensure_root_directory,
   open: open,
   close: close,
   mknod: mknod,
@@ -14493,7 +14497,7 @@ function FileSystem(options, callback) {
         complete(err);
         return;
       }
-      impl.makeRootDirectory(context, complete);
+      impl.ensureRootDirectory(context, complete);
     });
   });
 }
@@ -15114,7 +15118,9 @@ module.exports = IndexedDB;
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../constants.js":44,"../errors.js":47}],57:[function(_dereq_,module,exports){
 var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
-var asyncCallback = _dereq_('../../lib/async.js').nextTick;
+// NOTE: prefer setImmediate to nextTick for proper recursion yielding.
+// see https://github.com/js-platform/filer/pull/24
+var asyncCallback = _dereq_('../../lib/async.js').setImmediate;
 
 /**
  * Make shared in-memory DBs possible when using the same name.
@@ -15690,7 +15696,7 @@ Shell.prototype.ls = function(dir, options, callback) {
         });
       }
 
-      async.each(entries, getDirEntry, function(error) {
+      async.eachSeries(entries, getDirEntry, function(error) {
         callback(error, result);
       });
     });
@@ -15758,7 +15764,7 @@ Shell.prototype.rm = function(path, options, callback) {
           // Root dir entries absolutely
           return Path.join(pathname, filename);
         });
-        async.each(entries, remove, function(error) {
+        async.eachSeries(entries, remove, function(error) {
           if(error) {
             callback(error);
             return;
