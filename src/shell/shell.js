@@ -255,7 +255,7 @@ Shell.prototype.ls = function(dir, options, callback) {
         });
       }
 
-      async.each(entries, getDirEntry, function(error) {
+      async.eachSeries(entries, getDirEntry, function(error) {
         callback(error, result);
       });
     });
@@ -323,7 +323,7 @@ Shell.prototype.rm = function(path, options, callback) {
           // Root dir entries absolutely
           return Path.join(pathname, filename);
         });
-        async.each(entries, remove, function(error) {
+        async.eachSeries(entries, remove, function(error) {
           if(error) {
             callback(error);
             return;

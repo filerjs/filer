@@ -1,6 +1,7 @@
 var Filer = require('../..');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
+var async = require('../../lib/async.js');
 
 describe('sh.ls and deep directory trees', function() {
   beforeEach(util.setup);
@@ -10,10 +11,10 @@ describe('sh.ls and deep directory trees', function() {
     var fs = util.fs();
     var sh = fs.Shell();
 
-    // The specific depth at which this will fail is based on the depth
-    // of the call stack, since sh.ls() is recursive, so it can be less
-    // than this in some cases, but this should trigger it in *this* case.
-    var path = '/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20';
+    var path = '';
+    for(var i=0; i<50; i++) {
+      path += '/' + i;
+    }
 
     sh.mkdirp(path, function(err) {
       if(err) throw err;
@@ -22,6 +23,36 @@ describe('sh.ls and deep directory trees', function() {
         expect(err).not.to.exist;
         expect(listing).to.exist;
         done();
+      });
+    });
+  });
+
+  it('should not crash when calling sh.ls() on wide directory layouts', function(done) {
+    var fs = util.fs();
+    var sh = fs.Shell();
+
+    var dirName = '/dir';
+
+    fs.mkdir(dirName, function(err) {
+      if(err) throw err;
+
+      var paths = [];
+      for(var i=0; i<100; i++) {
+        paths.push(Filer.Path.join(dirName, ''+i));
+      }
+
+      function writeFile(path, callback) {
+        fs.writeFile(path, 'data', callback);
+      }
+
+      async.eachSeries(paths, writeFile, function(err) {
+        if(err) { console.log('error', err);  throw err; }
+
+        sh.ls('/', {recursive: true}, function(err, listing) {
+          expect(err).not.to.exist;
+          expect(listing).to.exist;
+          done();
+        });
       });
     });
   });
