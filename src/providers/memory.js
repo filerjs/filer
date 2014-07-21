@@ -1,5 +1,7 @@
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-var asyncCallback = require('../../lib/async.js').nextTick;
+// NOTE: prefer setImmediate to nextTick for proper recursion yielding.
+// see https://github.com/js-platform/filer/pull/24
+var asyncCallback = require('../../lib/async.js').setImmediate;
 
 /**
  * Make shared in-memory DBs possible when using the same name.
