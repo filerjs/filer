@@ -446,8 +446,7 @@ Shell.prototype.wget = function(url, options, callback) {
   // properly encoded URL.
   // i.e. instead of "/foo?bar/" we would expect "/foo?bar%2F"
   var path = options.filename || url.split('/').pop();
-
-  path = Path.resolve(fs.cwd, path);
+  path = Path.resolve(this.cwd, path);
 
   function onerror() {
     callback(new Error('unable to get resource'));
