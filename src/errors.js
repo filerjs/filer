@@ -77,16 +77,17 @@ var errors = {};
       err = e[1],
       message = e[2];
 
-  function ctor(m) {
+  function FilerError(m) {
+    this.name = err;
+    this.code = err;
+    this.errno = errno;
     this.message = m || message;
   }
-  var proto = ctor.prototype = new Error();
-  proto.errno = errno;
-  proto.code = err;
-  proto.constructor = ctor;
+  FilerError.prototype = Object.create(Error.prototype);
+  FilerError.prototype.constructor = FilerError;
 
   // We expose the error as both Errors.EINVAL and Errors[18]
-  errors[err] = errors[errno] = ctor;
+  errors[err] = errors[errno] = FilerError;
 });
 
 module.exports = errors;
