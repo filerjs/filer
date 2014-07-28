@@ -36,7 +36,7 @@ function Shell(fs, options) {
    * we can access cwd without exposing it externally.
    */
   this.cd = function(path, callback) {
-    path = Path.resolve(this.cwd, path);
+    path = Path.resolve(cwd, path);
     // Make sure the path actually exists, and is a dir
     fs.stat(path, function(err, stats) {
       if(err) {
