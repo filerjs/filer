@@ -12145,16 +12145,17 @@ var errors = {};
       err = e[1],
       message = e[2];
 
-  function ctor(m) {
+  function FilerError(m) {
+    this.name = err;
+    this.code = err;
+    this.errno = errno;
     this.message = m || message;
   }
-  var proto = ctor.prototype = new Error();
-  proto.errno = errno;
-  proto.code = err;
-  proto.constructor = ctor;
+  FilerError.prototype = Object.create(Error.prototype);
+  FilerError.prototype.constructor = FilerError;
 
   // We expose the error as both Errors.EINVAL and Errors[18]
-  errors[err] = errors[errno] = ctor;
+  errors[err] = errors[errno] = FilerError;
 });
 
 module.exports = errors;
@@ -15477,7 +15478,7 @@ function Shell(fs, options) {
    * we can access cwd without exposing it externally.
    */
   this.cd = function(path, callback) {
-    path = Path.resolve(this.cwd, path);
+    path = Path.resolve(cwd, path);
     // Make sure the path actually exists, and is a dir
     fs.stat(path, function(err, stats) {
       if(err) {
@@ -15519,14 +15520,15 @@ function Shell(fs, options) {
  */
 Shell.prototype.exec = function(path, args, callback) {
   /* jshint evil:true */
-  var fs = this.fs;
+  var sh = this;
+  var fs = sh.fs;
   if(typeof args === 'function') {
     callback = args;
     args = [];
   }
   args = args || [];
   callback = callback || function(){};
-  path = Path.resolve(this.cwd, path);
+  path = Path.resolve(sh.pwd(), path);
 
   fs.readFile(path, "utf8", function(error, data) {
     if(error) {
@@ -15550,14 +15552,15 @@ Shell.prototype.exec = function(path, args, callback) {
  *  * date - use the provided Date value instead of current date/time
  */
 Shell.prototype.touch = function(path, options, callback) {
-  var fs = this.fs;
+  var sh = this;
+  var fs = sh.fs;
   if(typeof options === 'function') {
     callback = options;
     options = {};
   }
   options = options || {};
   callback = callback || function(){};
-  path = Path.resolve(this.cwd, path);
+  path = Path.resolve(sh.pwd(), path);
 
   function createFile(path) {
     fs.writeFile(path, '', callback);
@@ -15591,7 +15594,8 @@ Shell.prototype.touch = function(path, options, callback) {
  * (multiple file paths).
  */
 Shell.prototype.cat = function(files, callback) {
-  var fs = this.fs;
+  var sh = this;
+  var fs = sh.fs;
   var all = '';
   callback = callback || function(){};
 
@@ -15603,7 +15607,7 @@ Shell.prototype.cat = function(files, callback) {
   files = typeof files === 'string' ? [ files ] : files;
 
   function append(item, callback) {
-    var filename = Path.resolve(this.cwd, item);
+    var filename = Path.resolve(sh.pwd(), item);
     fs.readFile(filename, 'utf8', function(error, data) {
       if(error) {
         callback(error);
@@ -15641,7 +15645,8 @@ Shell.prototype.cat = function(files, callback) {
  * the `recursive=true` option.
  */
 Shell.prototype.ls = function(dir, options, callback) {
-  var fs = this.fs;
+  var sh = this;
+  var fs = sh.fs;
   if(typeof options === 'function') {
     callback = options;
     options = {};
@@ -15655,7 +15660,7 @@ Shell.prototype.ls = function(dir, options, callback) {
   }
 
   function list(path, callback) {
-    var pathname = Path.resolve(this.cwd, path);
+    var pathname = Path.resolve(sh.pwd(), path);
     var result = [];
 
     fs.readdir(pathname, function(error, entries) {
@@ -15713,7 +15718,8 @@ Shell.prototype.ls = function(dir, options, callback) {
  * `recursive=true` option.
  */
 Shell.prototype.rm = function(path, options, callback) {
-  var fs = this.fs;
+  var sh = this;
+  var fs = sh.fs;
   if(typeof options === 'function') {
     callback = options;
     options = {};
@@ -15727,7 +15733,7 @@ Shell.prototype.rm = function(path, options, callback) {
   }
 
   function remove(pathname, callback) {
-    pathname = Path.resolve(this.cwd, pathname);
+    pathname = Path.resolve(sh.pwd(), pathname);
     fs.stat(pathname, function(error, stats) {
       if(error) {
         callback(error);
@@ -15784,8 +15790,9 @@ Shell.prototype.rm = function(path, options, callback) {
  * env.TMP. The callback receives (error, tempDirName).
  */
 Shell.prototype.tempDir = function(callback) {
-  var fs = this.fs;
-  var tmp = this.env.get('TMP');
+  var sh = this;
+  var fs = sh.fs;
+  var tmp = sh.env.get('TMP');
   callback = callback || function(){};
 
   // Try and create it, and it will either work or fail
@@ -15803,7 +15810,8 @@ Shell.prototype.tempDir = function(callback) {
  * MIT License
  */
 Shell.prototype.mkdirp = function(path, callback) {
-  var fs = this.fs;
+  var sh = this;
+  var fs = sh.fs;
   callback = callback || function(){};
 
   if(!path) {
@@ -15869,7 +15877,8 @@ Shell.prototype.mkdirp = function(path, callback) {
  * filename is used instead. The callback receives (error, path).
  */
 Shell.prototype.wget = function(url, options, callback) {
-  var fs = this.fs;
+  var sh = this;
+  var fs = sh.fs;
   if(typeof options === 'function') {
     callback = options;
     options = {};
@@ -15888,7 +15897,7 @@ Shell.prototype.wget = function(url, options, callback) {
   // i.e. instead of "/foo?bar/" we would expect "/foo?bar%2F"
   var path = options.filename || url.split('/').pop();
 
-  path = Path.resolve(fs.cwd, path);
+  path = Path.resolve(sh.pwd(), path);
 
   function onerror() {
     callback(new Error('unable to get resource'));
@@ -15910,8 +15919,8 @@ Shell.prototype.wget = function(url, options, callback) {
 };
 
 Shell.prototype.unzip = function(zipfile, options, callback) {
-  var fs = this.fs;
   var sh = this;
+  var fs = sh.fs;
   if(typeof options === 'function') {
     callback = options;
     options = {};
@@ -15924,8 +15933,8 @@ Shell.prototype.unzip = function(zipfile, options, callback) {
     return;
   }
 
-  var path = Path.resolve(this.cwd, zipfile);
-  var destination = Path.resolve(options.destination || this.cwd);
+  var path = Path.resolve(sh.pwd(), zipfile);
+  var destination = Path.resolve(options.destination || sh.pwd());
 
   fs.readFile(path, function(err, data) {
     if(err) return callback(err);
@@ -15956,8 +15965,8 @@ Shell.prototype.unzip = function(zipfile, options, callback) {
 };
 
 Shell.prototype.zip = function(zipfile, paths, options, callback) {
-  var fs = this.fs;
   var sh = this;
+  var fs = sh.fs;
   if(typeof options === 'function') {
     callback = options;
     options = {};
@@ -15976,7 +15985,7 @@ Shell.prototype.zip = function(zipfile, paths, options, callback) {
   if(typeof paths === 'string') {
     paths = [ paths ];
   }
-  zipfile = Path.resolve(this.cwd, zipfile);
+  zipfile = Path.resolve(sh.pwd(), zipfile);
 
   function toRelPath(path) {
     // Make path relative within the zip
@@ -16009,7 +16018,7 @@ Shell.prototype.zip = function(zipfile, paths, options, callback) {
   }
 
   function add(path, callback) {
-    path = Path.resolve(sh.cwd, path);
+    path = Path.resolve(sh.pwd(), path);
     fs.stat(path, function(err, stats) {
       if(err) return callback(err);
 
