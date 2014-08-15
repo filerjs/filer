@@ -1,6 +1,6 @@
 module.exports = {
   FileSystem: require('./filesystem/interface.js'),
-  Buffer: Buffer,
+  Buffer: require('./buffer.js'),
   Path: require('./path.js'),
   Errors: require('./errors.js')
 };

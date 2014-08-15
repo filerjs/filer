@@ -196,7 +196,7 @@ When in a node.js environment, native `Buffer`s can be used, or Filer.Buffer, wh
 to node's `Buffer`.  In a browser, you can use also use `Filer.Buffer`.
 
 NOTE: a `Filer.Buffer` in a browser is really an augmented `Uint8Array` (i.e., the node `Buffer` api
-methods are added to the instance). See https://github.com/feross/buffer for more details.
+methods are added to the instance). See https://github.com/feross/buffer for more details. Additionally, unlike native `Buffer`, `Filer.Buffer`'s constructor can accept `ArrayBuffer` objects, which will be interpreted as `Uint8Array`s.
 
 ####Filer.Path<a name="FilerPath"></a>
 
