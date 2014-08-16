@@ -91,6 +91,26 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
       });
     });
 
+    it("should allow zero-length Buffers with putBuffer() and getBuffer()", function(done) {
+      provider.open(function(error, firstAccess) {
+        if(error) throw error;
+
+        var context = provider.getReadWriteContext();
+        // Zero-length Filer Buffer
+        var buf = new Buffer(new ArrayBuffer(0));
+        context.putBuffer("key", buf, function(error) {
+          if(error) throw error;
+
+          context.getBuffer("key", function(error, result) {
+            expect(error).not.to.exist;
+            expect(Buffer.isBuffer(result)).to.be.true;
+            expect(result).to.deep.equal(buf);
+            done();
+          });
+        });
+      });
+    });
+
     it("should allow delete()", function(done) {
       var provider = _provider.provider;
       provider.open(function(error, firstAccess) {
