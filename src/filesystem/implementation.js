@@ -58,33 +58,6 @@ function standard_check_result_cb(callback) {
 }
 
 /**
- * Coerce array-like data to Buffer so we can .copy(), etc.
- * Allow null, a Buffer, or an object that can be dealt with
- * by the Buffer constructor (e.g., Typed Array, Array, ...)
- *
- * WARNING: be very careful not to call this on parameters of
- * API methods that pass storage (like read). You don't want to
- * overwrite a buffer that a caller is holding a reference to,
- * and expects to be filled via the read. If the caller passes
- * in a non-Buffer, we should throw instead of coerce.
- */
-function ensureBuffer(maybeBuffer) {
-  if(!maybeBuffer) {
-    return null;
-  }
-
-  if(Buffer.isBuffer(maybeBuffer)) {
-    return maybeBuffer;
-  }
-
-  try {
-    return new Buffer(maybeBuffer);
-  } catch(e) {
-    return null;
-  }
-}
-
-/**
  * Update node times. Only passed times are modified (undefined times are ignored)
  * and filesystem flags are examined in order to override update logic.
  */
@@ -817,7 +790,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
     if(error) {
       callback(error);
     } else {
-      fileData = ensureBuffer(result);
+      fileData = result;
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -860,7 +833,7 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
     if(error) {
       callback(error);
     } else {
-      fileData = ensureBuffer(result);
+      fileData = result;
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -1248,7 +1221,7 @@ function truncate_file(context, path, length, callback) {
       callback(new Errors.EISDIR());
     } else{
       fileNode = node;
-      context.getObject(fileNode.data, truncate_file_data);
+      context.getBuffer(fileNode.data, truncate_file_data);
     }
   }
 
@@ -1256,7 +1229,6 @@ function truncate_file(context, path, length, callback) {
     if (error) {
       callback(error);
     } else {
-      fileData = ensureBuffer(fileData);
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -1305,7 +1277,7 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(new Errors.EISDIR());
     } else{
       fileNode = node;
-      context.getObject(fileNode.data, truncate_file_data);
+      context.getBuffer(fileNode.data, truncate_file_data);
     }
   }
 
@@ -1314,7 +1286,6 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(error);
     } else {
       var data;
-      fileData = ensureBuffer(fileData);
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
