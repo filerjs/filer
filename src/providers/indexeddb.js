@@ -3,6 +3,7 @@ var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var IDB_RW = require('../constants.js').IDB_RW;
 var IDB_RO = require('../constants.js').IDB_RO;
 var Errors = require('../errors.js');
+var FilerBuffer = require('../buffer.js');
 
 var indexedDB = global.indexedDB       ||
                 global.mozIndexedDB    ||
@@ -13,6 +14,7 @@ function IndexedDBContext(db, mode) {
   var transaction = db.transaction(FILE_STORE_NAME, mode);
   this.objectStore = transaction.objectStore(FILE_STORE_NAME);
 }
+
 IndexedDBContext.prototype.clear = function(callback) {
   try {
     var request = this.objectStore.clear();
@@ -26,9 +28,10 @@ IndexedDBContext.prototype.clear = function(callback) {
     callback(e);
   }
 };
-IndexedDBContext.prototype.get = function(key, callback) {
+
+function _get(objectStore, key, callback) {
   try {
-    var request = this.objectStore.get(key);
+    var request = objectStore.get(key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
@@ -39,10 +42,22 @@ IndexedDBContext.prototype.get = function(key, callback) {
   } catch(e) {
     callback(e);
   }
+}
+IndexedDBContext.prototype.getObject = function(key, callback) {
+  _get(this.objectStore, key, callback);
 };
-IndexedDBContext.prototype.put = function(key, value, callback) {
+IndexedDBContext.prototype.getBuffer = function(key, callback) {
+  _get(this.objectStore, key, function(err, arrayBuffer) {
+    if(err) {
+      return callback(err);
+    }
+    callback(null, new FilerBuffer(arrayBuffer));
+  });
+};
+
+function _put(objectStore, key, value, callback) {
   try {
-    var request = this.objectStore.put(value, key);
+    var request = objectStore.put(value, key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
@@ -53,7 +68,14 @@ IndexedDBContext.prototype.put = function(key, value, callback) {
   } catch(e) {
     callback(e);
   }
+}
+IndexedDBContext.prototype.putObject = function(key, value, callback) {
+  _put(this.objectStore, key, value, callback);
 };
+IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
+  _put(this.objectStore, key, uint8BackedBuffer.buffer, callback);
+};
+
 IndexedDBContext.prototype.delete = function(key, callback) {
   try {
     var request = this.objectStore.delete(key);

@@ -3,8 +3,9 @@ var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
 var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
 var WSQL_DESC = require('../constants.js').WSQL_DESC;
-var u8toArray = require('../shared.js').u8toArray;
 var Errors = require('../errors.js');
+var FilerBuffer = require('../buffer.js');
+var base64ArrayBuffer = require('base64-arraybuffer');
 
 function WebSQLContext(db, isReadOnly) {
   var that = this;
@@ -20,6 +21,7 @@ function WebSQLContext(db, isReadOnly) {
     });
   };
 }
+
 WebSQLContext.prototype.clear = function(callback) {
   function onError(transaction, error) {
     callback(error);
@@ -32,52 +34,74 @@ WebSQLContext.prototype.clear = function(callback) {
                            [], onSuccess, onError);
   });
 };
-WebSQLContext.prototype.get = function(key, callback) {
+
+function _get(getTransaction, key, callback) {
   function onSuccess(transaction, result) {
     // If the key isn't found, return null
     var value = result.rows.length === 0 ? null : result.rows.item(0).data;
-    try {
-      if(value) {
-        value = JSON.parse(value);
-        // Deal with special-cased flattened typed arrays in WebSQL (see put() below)
-        if(value.__isUint8Array) {
-          value = new Uint8Array(value.__array);
-        }
-      }
-      callback(null, value);
-    } catch(e) {
-      callback(e);
-    }
+    callback(null, value);
   }
   function onError(transaction, error) {
     callback(error);
   }
-  this.getTransaction(function(transaction) {
-    transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ?;",
+  getTransaction(function(transaction) {
+    transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ? LIMIT 1;",
                            [key], onSuccess, onError);
   });
+}
+WebSQLContext.prototype.getObject = function(key, callback) {
+  _get(this.getTransaction, key, function(err, result) {
+    if(err) {
+      return callback(err);
+    }
+
+    try {
+      if(result) {
+        result = JSON.parse(result);
+      }
+    } catch(e) {
+      return callback(e);
+    }
+
+    callback(null, result);
+  });
 };
-WebSQLContext.prototype.put = function(key, value, callback) {
-  // We do extra work to make sure typed arrays survive
-  // being stored in the db and still get the right prototype later.
-  if(Object.prototype.toString.call(value) === "[object Uint8Array]") {
-    value = {
-      __isUint8Array: true,
-      __array: u8toArray(value)
-    };
-  }
-  value = JSON.stringify(value);
+WebSQLContext.prototype.getBuffer = function(key, callback) {
+  _get(this.getTransaction, key, function(err, result) {
+    if(err) {
+      return callback(err);
+    }
+
+    if(result) {
+      var arrayBuffer = base64ArrayBuffer.decode(result);
+      result = new FilerBuffer(arrayBuffer);
+    }
+
+    callback(null, result);
+  });
+};
+
+function _put(getTransaction, key, value, callback) {
   function onSuccess(transaction, result) {
     callback(null);
   }
   function onError(transaction, error) {
     callback(error);
   }
-  this.getTransaction(function(transaction) {
+  getTransaction(function(transaction) {
     transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data) VALUES (?, ?);",
                            [key, value], onSuccess, onError);
   });
+}
+WebSQLContext.prototype.putObject = function(key, value, callback) {
+  var json = JSON.stringify(value);
+  _put(this.getTransaction, key, json, callback);
 };
+WebSQLContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
+  var base64 = base64ArrayBuffer.encode(uint8BackedBuffer.buffer);
+  _put(this.getTransaction, key, base64, callback);
+};
+
 WebSQLContext.prototype.delete = function(key, callback) {
   function onSuccess(transaction, result) {
     callback(null);

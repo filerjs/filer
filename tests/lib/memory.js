@@ -18,5 +18,8 @@ function MemoryTestProvider(name) {
   this.init = init;
   this.cleanup = cleanup;
 }
+MemoryTestProvider.isSupported = function() {
+  return Filer.FileSystem.providers.Memory.isSupported();
+};
 
 module.exports = MemoryTestProvider;

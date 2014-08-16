@@ -358,12 +358,12 @@ describe('node times (atime, mtime, ctime)', function() {
     var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
     createTree(function() {
-      fs.open('/myfile', 'w', function(err, fd) {
-        if(err) throw error;
+      fs.open('/myfile', 'w', function(error, fd) {
+        if(error) throw error;
 
         stat('/myfile', function(stats1) {
-          fs.write(fd, buffer, 0, buffer.length, 0, function(err, nbytes) {
-            if(err) throw error;
+          fs.write(fd, buffer, 0, buffer.length, 0, function(error, nbytes) {
+            if(error) throw error;
 
             fs.close(fd, function(error) {
               if(error) throw error;
