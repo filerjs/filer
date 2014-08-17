@@ -573,11 +573,7 @@ function open_file(context, path, flags, callback) {
   var followedCount = 0;
 
   if(ROOT_DIRECTORY_NAME == name) {
-    if(_(flags).contains(O_WRITE)) {
-      callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
-    } else {
-      find_node(context, path, set_file_node);
-    }
+    callback(new Errors.EISDIR('the named file is the root directory'));
   } else {
     find_node(context, parentPath, read_directory_data);
   }
@@ -603,8 +599,8 @@ function open_file(context, path, flags, callback) {
           callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
         } else {
           directoryEntry = directoryData[name];
-          if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
-            callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+          if(directoryEntry.type == MODE_DIRECTORY) {
+            callback(new Errors.EISDIR('the named file is a directory'));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
