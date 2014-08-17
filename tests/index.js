@@ -71,3 +71,4 @@ require("./bugs/issue239");
 require("./bugs/issue249");
 require("./bugs/ls-depth-bug");
 require("./bugs/issue247.js");
+require("./bugs/readFile-dir");
