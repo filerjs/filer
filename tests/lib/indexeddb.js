@@ -18,7 +18,7 @@ function IndexedDBTestProvider(name) {
 
   function cleanup(callback) {
     if(!that.provider || _done) {
-      return;
+      return callback();
     }
 
     // We have to force any other connections to close
@@ -49,5 +49,8 @@ function IndexedDBTestProvider(name) {
   this.init = init;
   this.cleanup = cleanup;
 }
+IndexedDBTestProvider.isSupported = function() {
+  return Filer.FileSystem.providers.IndexedDB.isSupported();
+};
 
 module.exports = IndexedDBTestProvider;

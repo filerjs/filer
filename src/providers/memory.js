@@ -24,6 +24,7 @@ function MemoryContext(db, readOnly) {
   this.readOnly = readOnly;
   this.objectStore = db;
 }
+
 MemoryContext.prototype.clear = function(callback) {
   if(this.readOnly) {
     asyncCallback(function() {
@@ -37,13 +38,19 @@ MemoryContext.prototype.clear = function(callback) {
   });
   asyncCallback(callback);
 };
-MemoryContext.prototype.get = function(key, callback) {
+
+// Memory context doesn't care about differences between Object and Buffer
+MemoryContext.prototype.getObject =
+MemoryContext.prototype.getBuffer =
+function(key, callback) {
   var that = this;
   asyncCallback(function() {
     callback(null, that.objectStore[key]);
   });
 };
-MemoryContext.prototype.put = function(key, value, callback) {
+MemoryContext.prototype.putObject =
+MemoryContext.prototype.putBuffer =
+function(key, value, callback) {
   if(this.readOnly) {
     asyncCallback(function() {
       callback("[MemoryContext] Error: write operation on read only context");
@@ -53,6 +60,7 @@ MemoryContext.prototype.put = function(key, value, callback) {
   this.objectStore[key] = value;
   asyncCallback(callback);
 };
+
 MemoryContext.prototype.delete = function(key, callback) {
   if(this.readOnly) {
     asyncCallback(function() {

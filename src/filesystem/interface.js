@@ -156,7 +156,7 @@ function FileSystem(options, callback) {
       // Otherwise (default) make sure this id is unused first
       function guidWithCheck(callback) {
         var id = guid();
-        context.get(id, function(err, value) {
+        context.getObject(id, function(err, value) {
           if(err) {
             callback(err);
             return;

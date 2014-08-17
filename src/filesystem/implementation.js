@@ -37,6 +37,7 @@ var OpenFileDescription = require('../open-file-description.js');
 var SuperNode = require('../super-node.js');
 var Node = require('../node.js');
 var Stats = require('../stats.js');
+var Buffer = require('../buffer.js');
 
 /**
  * Many functions below use this callback pattern. If it's not
@@ -54,33 +55,6 @@ function standard_check_result_cb(callback) {
       callback(null, result);
     }
   };
-}
-
-/**
- * Coerce array-like data to Buffer so we can .copy(), etc.
- * Allow null, a Buffer, or an object that can be dealt with
- * by the Buffer constructor (e.g., Typed Array, Array, ...)
- *
- * WARNING: be very careful not to call this on parameters of
- * API methods that pass storage (like read). You don't want to
- * overwrite a buffer that a caller is holding a reference to,
- * and expects to be filled via the read. If the caller passes
- * in a non-Buffer, we should throw instead of coerce.
- */
-function ensureBuffer(maybeBuffer) {
-  if(!maybeBuffer) {
-    return null;
-  }
-
-  if(Buffer.isBuffer(maybeBuffer)) {
-    return maybeBuffer;
-  }
-
-  try {
-    return new Buffer(maybeBuffer);
-  } catch(e) {
-    return null;
-  }
 }
 
 /**
@@ -124,7 +98,7 @@ function update_node_times(context, path, node, times, callback) {
   }
 
   if(update) {
-    context.put(node.id, node, complete);
+    context.putObject(node.id, node, complete);
   } else {
     complete();
   }
@@ -167,7 +141,7 @@ function make_node(context, path, mode, callback) {
     } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
-      context.get(parentNode.data, create_node);
+      context.getObject(parentNode.data, create_node);
     }
   }
 
@@ -184,7 +158,7 @@ function make_node(context, path, mode, callback) {
         }
         node = result;
         node.nlinks += 1;
-        context.put(node.id, node, update_parent_node_data);
+        context.putObject(node.id, node, update_parent_node_data);
       });
     }
   }
@@ -205,7 +179,7 @@ function make_node(context, path, mode, callback) {
       callback(error);
     } else {
       parentNodeData[name] = new DirectoryEntry(node.id, mode);
-      context.put(parentNode.data, parentNodeData, update_time);
+      context.putObject(parentNode.data, parentNodeData, update_time);
     }
   }
 
@@ -233,7 +207,7 @@ function find_node(context, path, callback) {
     } else if(!superNode || superNode.mode !== MODE_META || !superNode.rnode) {
       callback(new Errors.EFILESYSTEMERROR());
     } else {
-      context.get(superNode.rnode, check_root_directory_node);
+      context.getObject(superNode.rnode, check_root_directory_node);
     }
   }
 
@@ -255,7 +229,7 @@ function find_node(context, path, callback) {
     } else if(parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory'));
     } else {
-      context.get(parentDirectoryNode.data, get_node_from_parent_directory_data);
+      context.getObject(parentDirectoryNode.data, get_node_from_parent_directory_data);
     }
   }
 
@@ -269,7 +243,7 @@ function find_node(context, path, callback) {
         callback(new Errors.ENOENT());
       } else {
         var nodeId = parentDirectoryData[name].id;
-        context.get(nodeId, is_symbolic_link);
+        context.getObject(nodeId, is_symbolic_link);
       }
     }
   }
@@ -296,14 +270,14 @@ function find_node(context, path, callback) {
     parentPath = dirname(data);
     name = basename(data);
     if(ROOT_DIRECTORY_NAME == name) {
-      context.get(SUPER_NODE_ID, read_root_directory_node);
+      context.getObject(SUPER_NODE_ID, read_root_directory_node);
     } else {
       find_node(context, parentPath, read_parent_directory_data);
     }
   }
 
   if(ROOT_DIRECTORY_NAME == name) {
-    context.get(SUPER_NODE_ID, read_root_directory_node);
+    context.getObject(SUPER_NODE_ID, read_root_directory_node);
   } else {
     find_node(context, parentPath, read_parent_directory_data);
   }
@@ -338,7 +312,7 @@ function set_extended_attribute (context, path_or_fd, name, value, flag, callbac
     }
     else {
       node.xattrs[name] = value;
-      context.put(node.id, node, update_time);
+      context.putObject(node.id, node, update_time);
     }
   }
 
@@ -348,7 +322,7 @@ function set_extended_attribute (context, path_or_fd, name, value, flag, callbac
   }
   else if (typeof path_or_fd == 'object' && typeof path_or_fd.id == 'string') {
     path = path_or_fd.path;
-    context.get(path_or_fd.id, set_xattr);
+    context.getObject(path_or_fd.id, set_xattr);
   }
   else {
     callback(new Errors.EINVAL('path or file descriptor of wrong type'));
@@ -380,7 +354,7 @@ function ensure_root_directory(context, callback) {
           return;
         }
         superNode = result;
-        context.put(superNode.id, superNode, write_directory_node);
+        context.putObject(superNode.id, superNode, write_directory_node);
       });
     }
   }
@@ -396,7 +370,7 @@ function ensure_root_directory(context, callback) {
         }
         directoryNode = result;
         directoryNode.nlinks += 1;
-        context.put(directoryNode.id, directoryNode, write_directory_data);
+        context.putObject(directoryNode.id, directoryNode, write_directory_data);
       });
     }
   }
@@ -406,11 +380,11 @@ function ensure_root_directory(context, callback) {
       callback(error);
     } else {
       directoryData = {};
-      context.put(directoryNode.data, directoryData, callback);
+      context.putObject(directoryNode.data, directoryData, callback);
     }
   }
 
-  context.get(SUPER_NODE_ID, ensure_super_node);
+  context.getObject(SUPER_NODE_ID, ensure_super_node);
 }
 
 /**
@@ -441,7 +415,7 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryNode = result;
-      context.get(parentDirectoryNode.data, write_directory_node);
+      context.getObject(parentDirectoryNode.data, write_directory_node);
     }
   }
 
@@ -457,7 +431,7 @@ function make_directory(context, path, callback) {
         }
         directoryNode = result;
         directoryNode.nlinks += 1;
-        context.put(directoryNode.id, directoryNode, write_directory_data);
+        context.putObject(directoryNode.id, directoryNode, write_directory_data);
       });
     }
   }
@@ -467,7 +441,7 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       directoryData = {};
-      context.put(directoryNode.data, directoryData, update_parent_directory_data);
+      context.putObject(directoryNode.data, directoryData, update_parent_directory_data);
     }
   }
 
@@ -485,7 +459,7 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, MODE_DIRECTORY);
-      context.put(parentDirectoryNode.data, parentDirectoryData, update_time);
+      context.putObject(parentDirectoryNode.data, parentDirectoryData, update_time);
     }
   }
 
@@ -510,7 +484,7 @@ function remove_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryNode = result;
-      context.get(parentDirectoryNode.data, check_if_node_exists);
+      context.getObject(parentDirectoryNode.data, check_if_node_exists);
     }
   }
 
@@ -524,7 +498,7 @@ function remove_directory(context, path, callback) {
     } else {
       parentDirectoryData = result;
       directoryNode = parentDirectoryData[name].id;
-      context.get(directoryNode, check_if_node_is_directory);
+      context.getObject(directoryNode, check_if_node_is_directory);
     }
   }
 
@@ -535,7 +509,7 @@ function remove_directory(context, path, callback) {
       callback(new Errors.ENOTDIR());
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_directory_is_empty);
+      context.getObject(directoryNode.data, check_if_directory_is_empty);
     }
   }
 
@@ -563,7 +537,7 @@ function remove_directory(context, path, callback) {
 
   function remove_directory_entry_from_parent_directory_node() {
     delete parentDirectoryData[name];
-    context.put(parentDirectoryNode.data, parentDirectoryData, update_time);
+    context.putObject(parentDirectoryNode.data, parentDirectoryData, update_time);
   }
 
   function remove_directory_node(error) {
@@ -615,7 +589,7 @@ function open_file(context, path, flags, callback) {
       callback(new Errors.ENOENT());
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -632,7 +606,7 @@ function open_file(context, path, flags, callback) {
           if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
           } else {
-            context.get(directoryEntry.id, check_if_symbolic_link);
+            context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
         }
       } else {
@@ -694,7 +668,7 @@ function open_file(context, path, flags, callback) {
       }
       fileNode = result;
       fileNode.nlinks += 1;
-      context.put(fileNode.id, fileNode, write_file_data);
+      context.putObject(fileNode.id, fileNode, write_file_data);
     });
   }
 
@@ -704,7 +678,7 @@ function open_file(context, path, flags, callback) {
     } else {
       fileData = new Buffer(0);
       fileData.fill(0);
-      context.put(fileNode.data, fileData, update_directory_data);
+      context.putBuffer(fileNode.data, fileData, update_directory_data);
     }
   }
 
@@ -722,7 +696,7 @@ function open_file(context, path, flags, callback) {
       callback(error);
     } else {
       directoryData[name] = new DirectoryEntry(fileNode.id, MODE_FILE);
-      context.put(directoryNode.data, directoryData, update_time);
+      context.putObject(directoryNode.data, directoryData, update_time);
     }
   }
 
@@ -759,7 +733,7 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
     if(error) {
       callback(error);
     } else {
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
@@ -776,11 +750,11 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
       fileNode.size = length;
       fileNode.version += 1;
 
-      context.put(fileNode.data, newData, update_file_node);
+      context.putBuffer(fileNode.data, newData, update_file_node);
     }
   }
 
-  context.get(ofd.id, write_file_data);
+  context.getObject(ofd.id, write_file_data);
 }
 
 function write_data(context, ofd, buffer, offset, length, position, callback) {
@@ -808,7 +782,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
     if(error) {
       callback(error);
     } else {
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
@@ -816,7 +790,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
     if(error) {
       callback(error);
     } else {
-      fileData = ensureBuffer(result);
+      fileData = result;
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -835,7 +809,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       fileNode.size = newSize;
       fileNode.version += 1;
 
-      context.put(fileNode.data, newData, update_file_node);
+      context.putBuffer(fileNode.data, newData, update_file_node);
     }
   }
 
@@ -844,11 +818,11 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       callback(error);
     } else {
       fileNode = result;
-      context.get(fileNode.data, update_file_data);
+      context.getBuffer(fileNode.data, update_file_data);
     }
   }
 
-  context.get(ofd.id, read_file_data);
+  context.getObject(ofd.id, read_file_data);
 }
 
 function read_data(context, ofd, buffer, offset, length, position, callback) {
@@ -859,7 +833,7 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
     if(error) {
       callback(error);
     } else {
-      fileData = ensureBuffer(result);
+      fileData = result;
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -878,11 +852,11 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
       callback(error);
     } else {
       fileNode = result;
-      context.get(fileNode.data, handle_file_data);
+      context.getBuffer(fileNode.data, handle_file_data);
     }
   }
 
-  context.get(ofd.id, read_file_data);
+  context.getObject(ofd.id, read_file_data);
 }
 
 function stat_file(context, path, callback) {
@@ -892,7 +866,7 @@ function stat_file(context, path, callback) {
 }
 
 function fstat_file(context, ofd, callback) {
-  context.get(ofd.id, standard_check_result_cb(callback));
+  context.getObject(ofd.id, standard_check_result_cb(callback));
 }
 
 function lstat_file(context, path, callback) {
@@ -914,7 +888,7 @@ function lstat_file(context, path, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -926,7 +900,7 @@ function lstat_file(context, path, callback) {
       if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file'));
       } else {
-        context.get(directoryData[name].id, standard_check_result_cb(callback));
+        context.getObject(directoryData[name].id, standard_check_result_cb(callback));
       }
     }
   }
@@ -961,7 +935,7 @@ function link_node(context, oldpath, newpath, callback) {
     } else {
       fileNode = result;
       fileNode.nlinks += 1;
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
@@ -969,7 +943,7 @@ function link_node(context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
-      context.get(newDirectoryData[newname].id, update_file_node);
+      context.getObject(newDirectoryData[newname].id, update_file_node);
     }
   }
 
@@ -982,7 +956,7 @@ function link_node(context, oldpath, newpath, callback) {
         callback(new Errors.EEXIST('newpath resolves to an existing file'));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
-        context.put(newDirectoryNode.data, newDirectoryData, read_directory_entry);
+        context.putObject(newDirectoryNode.data, newDirectoryData, read_directory_entry);
       }
     }
   }
@@ -992,7 +966,7 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       newDirectoryNode = result;
-      context.get(newDirectoryNode.data, check_if_new_file_exists);
+      context.getObject(newDirectoryNode.data, check_if_new_file_exists);
     }
   }
 
@@ -1014,7 +988,7 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       oldDirectoryNode = result;
-      context.get(oldDirectoryNode.data, check_if_old_file_exists);
+      context.getObject(oldDirectoryNode.data, check_if_old_file_exists);
     }
   }
 
@@ -1035,7 +1009,7 @@ function unlink_node(context, path, callback) {
       callback(error);
     } else {
       delete directoryData[name];
-      context.put(directoryNode.data, directoryData, function(error) {
+      context.putObject(directoryNode.data, directoryData, function(error) {
         var now = Date.now();
         update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
       });
@@ -1059,7 +1033,7 @@ function unlink_node(context, path, callback) {
       if(fileNode.nlinks < 1) {
         context.delete(fileNode.id, delete_file_data);
       } else {
-        context.put(fileNode.id, fileNode, function(error) {
+        context.putObject(fileNode.id, fileNode, function(error) {
           update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
         });
       }
@@ -1074,7 +1048,7 @@ function unlink_node(context, path, callback) {
       if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file'));
       } else {
-        context.get(directoryData[name].id, update_file_node);
+        context.getObject(directoryData[name].id, update_file_node);
       }
     }
   }
@@ -1084,7 +1058,7 @@ function unlink_node(context, path, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -1113,7 +1087,7 @@ function read_directory(context, path, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, handle_directory_data);
+      context.getObject(directoryNode.data, handle_directory_data);
     }
   }
 
@@ -1140,7 +1114,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -1167,7 +1141,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       fileNode.nlinks += 1;
       fileNode.size = srcpath.length;
       fileNode.data = srcpath;
-      context.put(fileNode.id, fileNode, update_directory_data);
+      context.putObject(fileNode.id, fileNode, update_directory_data);
     });
   }
 
@@ -1185,7 +1159,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       callback(error);
     } else {
       directoryData[name] = new DirectoryEntry(fileNode.id, MODE_SYMBOLIC_LINK);
-      context.put(directoryNode.data, directoryData, update_time);
+      context.putObject(directoryNode.data, directoryData, update_time);
     }
   }
 }
@@ -1205,7 +1179,7 @@ function read_link(context, path, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -1217,7 +1191,7 @@ function read_link(context, path, callback) {
       if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file'));
       } else {
-        context.get(directoryData[name].id, check_if_symbolic);
+        context.getObject(directoryData[name].id, check_if_symbolic);
       }
     }
   }
@@ -1247,7 +1221,7 @@ function truncate_file(context, path, length, callback) {
       callback(new Errors.EISDIR());
     } else{
       fileNode = node;
-      context.get(fileNode.data, truncate_file_data);
+      context.getBuffer(fileNode.data, truncate_file_data);
     }
   }
 
@@ -1255,7 +1229,6 @@ function truncate_file(context, path, length, callback) {
     if (error) {
       callback(error);
     } else {
-      fileData = ensureBuffer(fileData);
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -1264,7 +1237,7 @@ function truncate_file(context, path, length, callback) {
       if(fileData) {
         fileData.copy(data);
       }
-      context.put(fileNode.data, data, update_file_node);
+      context.putBuffer(fileNode.data, data, update_file_node);
     }
   }
 
@@ -1283,7 +1256,7 @@ function truncate_file(context, path, length, callback) {
     } else {
       fileNode.size = length;
       fileNode.version += 1;
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
@@ -1304,7 +1277,7 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(new Errors.EISDIR());
     } else{
       fileNode = node;
-      context.get(fileNode.data, truncate_file_data);
+      context.getBuffer(fileNode.data, truncate_file_data);
     }
   }
 
@@ -1313,7 +1286,6 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(error);
     } else {
       var data;
-      fileData = ensureBuffer(fileData);
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -1323,7 +1295,7 @@ function ftruncate_file(context, ofd, length, callback) {
         data = new Buffer(length);
         data.fill(0);
       }
-      context.put(fileNode.data, data, update_file_node);
+      context.putBuffer(fileNode.data, data, update_file_node);
     }
   }
 
@@ -1342,14 +1314,14 @@ function ftruncate_file(context, ofd, length, callback) {
     } else {
       fileNode.size = length;
       fileNode.version += 1;
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
   if(length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
   } else {
-    context.get(ofd.id, read_file_data);
+    context.getObject(ofd.id, read_file_data);
   }
 }
 
@@ -1392,7 +1364,7 @@ function futimes_file(context, ofd, atime, mtime, callback) {
     callback(new Errors.EINVAL('atime and mtime must be positive integers'));
   }
   else {
-    context.get(ofd.id, update_times);
+    context.getObject(ofd.id, update_times);
   }
 }
 
@@ -1481,7 +1453,7 @@ function fgetxattr_file (context, ofd, name, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   }
   else {
-    context.get(ofd.id, get_xattr);
+    context.getObject(ofd.id, get_xattr);
   }
 }
 
@@ -1507,7 +1479,7 @@ function removexattr_file (context, path, name, callback) {
     }
     else {
       delete node.xattrs[name];
-      context.put(node.id, node, update_time);
+      context.putObject(node.id, node, update_time);
     }
   }
 
@@ -1541,7 +1513,7 @@ function fremovexattr_file (context, ofd, name, callback) {
     }
     else {
       delete node.xattrs[name];
-      context.put(node.id, node, update_time);
+      context.putObject(node.id, node, update_time);
     }
   }
 
@@ -1552,7 +1524,7 @@ function fremovexattr_file (context, ofd, name, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   }
   else {
-    context.get(ofd.id, remove_xattr);
+    context.getObject(ofd.id, remove_xattr);
   }
 }
 

@@ -13,11 +13,11 @@ function WebSQLTestProvider(name) {
 
   function cleanup(callback) {
     if(!that.provider || _done) {
-      return;
+      return callback();
     }
     // Provider is there, but db was never touched
     if(!that.provider.db) {
-      return;
+      return callback();
     }
 
     var context = that.provider.getReadWriteContext();
@@ -39,5 +39,8 @@ function WebSQLTestProvider(name) {
   this.init = init;
   this.cleanup = cleanup;
 }
+WebSQLTestProvider.isSupported = function() {
+  return Filer.FileSystem.providers.WebSQL.isSupported();
+};
 
 module.exports = WebSQLTestProvider;
