@@ -966,7 +966,7 @@
 }());
 
 }).call(this,_dereq_("JkpR2F"))
-},{"JkpR2F":9}],2:[function(_dereq_,module,exports){
+},{"JkpR2F":10}],2:[function(_dereq_,module,exports){
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -1361,7 +1361,7 @@ Intercom.getInstance = (function() {
 module.exports = Intercom;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../src/shared.js":59,"./eventemitter.js":2}],4:[function(_dereq_,module,exports){
+},{"../src/shared.js":61,"./eventemitter.js":2}],4:[function(_dereq_,module,exports){
 // Cherry-picked bits of underscore.js, lodash.js
 
 /**
@@ -1461,6 +1461,67 @@ function nodash(value) {
 module.exports = nodash;
 
 },{}],5:[function(_dereq_,module,exports){
+/*
+ * base64-arraybuffer
+ * https://github.com/niklasvh/base64-arraybuffer
+ *
+ * Copyright (c) 2012 Niklas von Hertzen
+ * Licensed under the MIT license.
+ */
+(function(chars){
+  "use strict";
+
+  exports.encode = function(arraybuffer) {
+    var bytes = new Uint8Array(arraybuffer),
+    i, len = bytes.length, base64 = "";
+
+    for (i = 0; i < len; i+=3) {
+      base64 += chars[bytes[i] >> 2];
+      base64 += chars[((bytes[i] & 3) << 4) | (bytes[i + 1] >> 4)];
+      base64 += chars[((bytes[i + 1] & 15) << 2) | (bytes[i + 2] >> 6)];
+      base64 += chars[bytes[i + 2] & 63];
+    }
+
+    if ((len % 3) === 2) {
+      base64 = base64.substring(0, base64.length - 1) + "=";
+    } else if (len % 3 === 1) {
+      base64 = base64.substring(0, base64.length - 2) + "==";
+    }
+
+    return base64;
+  };
+
+  exports.decode =  function(base64) {
+    var bufferLength = base64.length * 0.75,
+    len = base64.length, i, p = 0,
+    encoded1, encoded2, encoded3, encoded4;
+
+    if (base64[base64.length - 1] === "=") {
+      bufferLength--;
+      if (base64[base64.length - 2] === "=") {
+        bufferLength--;
+      }
+    }
+
+    var arraybuffer = new ArrayBuffer(bufferLength),
+    bytes = new Uint8Array(arraybuffer);
+
+    for (i = 0; i < len; i+=4) {
+      encoded1 = chars.indexOf(base64[i]);
+      encoded2 = chars.indexOf(base64[i+1]);
+      encoded3 = chars.indexOf(base64[i+2]);
+      encoded4 = chars.indexOf(base64[i+3]);
+
+      bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
+      bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
+      bytes[p++] = ((encoded3 & 3) << 6) | (encoded4 & 63);
+    }
+
+    return arraybuffer;
+  };
+})("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+
+},{}],6:[function(_dereq_,module,exports){
 (function (Buffer){
 // Browser Request
 //
@@ -1946,7 +2007,7 @@ function b64_enc (data) {
 module.exports = request;
 
 }).call(this,_dereq_("buffer").Buffer)
-},{"buffer":6}],6:[function(_dereq_,module,exports){
+},{"buffer":7}],7:[function(_dereq_,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -3104,7 +3165,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":7,"ieee754":8}],7:[function(_dereq_,module,exports){
+},{"base64-js":8,"ieee754":9}],8:[function(_dereq_,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -3226,7 +3287,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -3312,7 +3373,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -3377,7 +3438,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 'use strict';
 // private property
 var _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -3449,7 +3510,7 @@ exports.decode = function(input, utf8) {
 
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 'use strict';
 function CompressedObject() {
     this.compressedSize = 0;
@@ -3479,7 +3540,7 @@ CompressedObject.prototype = {
 };
 module.exports = CompressedObject;
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 'use strict';
 exports.STORE = {
     magic: "\x00\x00",
@@ -3494,7 +3555,7 @@ exports.STORE = {
 };
 exports.DEFLATE = _dereq_('./flate');
 
-},{"./flate":15}],13:[function(_dereq_,module,exports){
+},{"./flate":16}],14:[function(_dereq_,module,exports){
 'use strict';
 var utils = _dereq_('./utils');
 
@@ -3603,7 +3664,7 @@ DataReader.prototype = {
 };
 module.exports = DataReader;
 
-},{"./utils":25}],14:[function(_dereq_,module,exports){
+},{"./utils":26}],15:[function(_dereq_,module,exports){
 'use strict';
 exports.base64 = false;
 exports.binary = false;
@@ -3611,7 +3672,7 @@ exports.dir = false;
 exports.date = null;
 exports.compression = null;
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 'use strict';
 var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined') && (typeof Uint16Array !== 'undefined') && (typeof Uint32Array !== 'undefined');
 
@@ -3627,7 +3688,7 @@ exports.uncompress =  function(input) {
     return pako.inflateRaw(input);
 };
 
-},{"pako":28}],16:[function(_dereq_,module,exports){
+},{"pako":29}],17:[function(_dereq_,module,exports){
 'use strict';
 /**
 Usage:
@@ -3682,7 +3743,7 @@ JSZip.base64 = _dereq_('./base64');
 JSZip.compressions = _dereq_('./compressions');
 module.exports = JSZip;
 
-},{"./base64":10,"./compressions":12,"./defaults":14,"./load":17,"./object":20,"./support":23,"./utils":25}],17:[function(_dereq_,module,exports){
+},{"./base64":11,"./compressions":13,"./defaults":15,"./load":18,"./object":21,"./support":24,"./utils":26}],18:[function(_dereq_,module,exports){
 'use strict';
 var base64 = _dereq_('./base64');
 var ZipEntries = _dereq_('./zipEntries');
@@ -3708,7 +3769,7 @@ module.exports = function(data, options) {
     return this;
 };
 
-},{"./base64":10,"./zipEntries":26}],18:[function(_dereq_,module,exports){
+},{"./base64":11,"./zipEntries":27}],19:[function(_dereq_,module,exports){
 (function (Buffer){
 'use strict';
 module.exports = function(data, encoding){
@@ -3718,7 +3779,7 @@ module.exports.test = function(b){
     return Buffer.isBuffer(b);
 };
 }).call(this,_dereq_("buffer").Buffer)
-},{"buffer":6}],19:[function(_dereq_,module,exports){
+},{"buffer":7}],20:[function(_dereq_,module,exports){
 'use strict';
 var Uint8ArrayReader = _dereq_('./uint8ArrayReader');
 
@@ -3740,7 +3801,7 @@ NodeBufferReader.prototype.readData = function(size) {
 };
 module.exports = NodeBufferReader;
 
-},{"./uint8ArrayReader":24}],20:[function(_dereq_,module,exports){
+},{"./uint8ArrayReader":25}],21:[function(_dereq_,module,exports){
 'use strict';
 var support = _dereq_('./support');
 var utils = _dereq_('./utils');
@@ -4659,7 +4720,7 @@ var out = {
 };
 module.exports = out;
 
-},{"./base64":10,"./compressedObject":11,"./compressions":12,"./defaults":14,"./nodeBuffer":18,"./signature":21,"./support":23,"./utils":25}],21:[function(_dereq_,module,exports){
+},{"./base64":11,"./compressedObject":12,"./compressions":13,"./defaults":15,"./nodeBuffer":19,"./signature":22,"./support":24,"./utils":26}],22:[function(_dereq_,module,exports){
 'use strict';
 exports.LOCAL_FILE_HEADER = "PK\x03\x04";
 exports.CENTRAL_FILE_HEADER = "PK\x01\x02";
@@ -4668,7 +4729,7 @@ exports.ZIP64_CENTRAL_DIRECTORY_LOCATOR = "PK\x06\x07";
 exports.ZIP64_CENTRAL_DIRECTORY_END = "PK\x06\x06";
 exports.DATA_DESCRIPTOR = "PK\x07\x08";
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 'use strict';
 var DataReader = _dereq_('./dataReader');
 var utils = _dereq_('./utils');
@@ -4706,7 +4767,7 @@ StringReader.prototype.readData = function(size) {
 };
 module.exports = StringReader;
 
-},{"./dataReader":13,"./utils":25}],23:[function(_dereq_,module,exports){
+},{"./dataReader":14,"./utils":26}],24:[function(_dereq_,module,exports){
 (function (Buffer){
 'use strict';
 exports.base64 = true;
@@ -4744,7 +4805,7 @@ else {
 }
 
 }).call(this,_dereq_("buffer").Buffer)
-},{"buffer":6}],24:[function(_dereq_,module,exports){
+},{"buffer":7}],25:[function(_dereq_,module,exports){
 'use strict';
 var DataReader = _dereq_('./dataReader');
 
@@ -4789,7 +4850,7 @@ Uint8ArrayReader.prototype.readData = function(size) {
 };
 module.exports = Uint8ArrayReader;
 
-},{"./dataReader":13}],25:[function(_dereq_,module,exports){
+},{"./dataReader":14}],26:[function(_dereq_,module,exports){
 'use strict';
 var support = _dereq_('./support');
 var compressions = _dereq_('./compressions');
@@ -5142,7 +5203,7 @@ exports.isRegExp = function (object) {
 };
 
 
-},{"./compressions":12,"./nodeBuffer":18,"./support":23}],26:[function(_dereq_,module,exports){
+},{"./compressions":13,"./nodeBuffer":19,"./support":24}],27:[function(_dereq_,module,exports){
 'use strict';
 var StringReader = _dereq_('./stringReader');
 var NodeBufferReader = _dereq_('./nodeBufferReader');
@@ -5340,7 +5401,7 @@ ZipEntries.prototype = {
 // }}} end of ZipEntries
 module.exports = ZipEntries;
 
-},{"./nodeBufferReader":19,"./signature":21,"./stringReader":22,"./support":23,"./uint8ArrayReader":24,"./utils":25,"./zipEntry":27}],27:[function(_dereq_,module,exports){
+},{"./nodeBufferReader":20,"./signature":22,"./stringReader":23,"./support":24,"./uint8ArrayReader":25,"./utils":26,"./zipEntry":28}],28:[function(_dereq_,module,exports){
 'use strict';
 var StringReader = _dereq_('./stringReader');
 var utils = _dereq_('./utils');
@@ -5593,7 +5654,7 @@ ZipEntry.prototype = {
 };
 module.exports = ZipEntry;
 
-},{"./compressedObject":11,"./object":20,"./stringReader":22,"./utils":25}],28:[function(_dereq_,module,exports){
+},{"./compressedObject":12,"./object":21,"./stringReader":23,"./utils":26}],29:[function(_dereq_,module,exports){
 // Top level file is just a mixin of submodules & constants
 'use strict';
 
@@ -5608,7 +5669,7 @@ var pako = {};
 assign(pako, deflate, inflate, constants);
 
 module.exports = pako;
-},{"./lib/deflate":29,"./lib/inflate":30,"./lib/utils/common":31,"./lib/zlib/constants":34}],29:[function(_dereq_,module,exports){
+},{"./lib/deflate":30,"./lib/inflate":31,"./lib/utils/common":32,"./lib/zlib/constants":35}],30:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -5970,7 +6031,7 @@ exports.Deflate = Deflate;
 exports.deflate = deflate;
 exports.deflateRaw = deflateRaw;
 exports.gzip = gzip;
-},{"./utils/common":31,"./utils/strings":32,"./zlib/deflate.js":36,"./zlib/messages":41,"./zlib/zstream":43}],30:[function(_dereq_,module,exports){
+},{"./utils/common":32,"./utils/strings":33,"./zlib/deflate.js":37,"./zlib/messages":42,"./zlib/zstream":44}],31:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -6336,7 +6397,7 @@ exports.inflate = inflate;
 exports.inflateRaw = inflateRaw;
 exports.ungzip  = inflate;
 
-},{"./utils/common":31,"./utils/strings":32,"./zlib/constants":34,"./zlib/gzheader":37,"./zlib/inflate.js":39,"./zlib/messages":41,"./zlib/zstream":43}],31:[function(_dereq_,module,exports){
+},{"./utils/common":32,"./utils/strings":33,"./zlib/constants":35,"./zlib/gzheader":38,"./zlib/inflate.js":40,"./zlib/messages":42,"./zlib/zstream":44}],32:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -6439,7 +6500,7 @@ exports.setTyped = function (on) {
 };
 
 exports.setTyped(TYPED_OK);
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 // String encode/decode helpers
 'use strict';
 
@@ -6626,7 +6687,7 @@ exports.utf8border = function(buf, max) {
   return (pos + _utf8len[buf[pos]] > max) ? pos : max;
 };
 
-},{"./common":31}],33:[function(_dereq_,module,exports){
+},{"./common":32}],34:[function(_dereq_,module,exports){
 'use strict';
 
 // Note: adler32 takes 12% for level 0 and 2% for level 6.
@@ -6659,7 +6720,7 @@ function adler32(adler, buf, len, pos) {
 
 
 module.exports = adler32;
-},{}],34:[function(_dereq_,module,exports){
+},{}],35:[function(_dereq_,module,exports){
 module.exports = {
 
   /* Allowed flush values; see deflate() and inflate() below for details */
@@ -6707,7 +6768,7 @@ module.exports = {
   Z_DEFLATED:               8
   //Z_NULL:                 null // Use -1 or null inline, depending on var type
 };
-},{}],35:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 'use strict';
 
 // Note: we can't get significant speed boost here.
@@ -6749,7 +6810,7 @@ function crc32(crc, buf, len, pos) {
 
 
 module.exports = crc32;
-},{}],36:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 'use strict';
 
 var utils   = _dereq_('../utils/common');
@@ -8515,7 +8576,7 @@ exports.deflatePending = deflatePending;
 exports.deflatePrime = deflatePrime;
 exports.deflateTune = deflateTune;
 */
-},{"../utils/common":31,"./adler32":33,"./crc32":35,"./messages":41,"./trees":42}],37:[function(_dereq_,module,exports){
+},{"../utils/common":32,"./adler32":34,"./crc32":36,"./messages":42,"./trees":43}],38:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -8556,7 +8617,7 @@ function GZheader() {
 }
 
 module.exports = GZheader;
-},{}],38:[function(_dereq_,module,exports){
+},{}],39:[function(_dereq_,module,exports){
 'use strict';
 
 // See state defs from inflate.js
@@ -8883,7 +8944,7 @@ module.exports = function inflate_fast(strm, start) {
   return;
 };
 
-},{}],39:[function(_dereq_,module,exports){
+},{}],40:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -10387,7 +10448,7 @@ exports.inflateSync = inflateSync;
 exports.inflateSyncPoint = inflateSyncPoint;
 exports.inflateUndermine = inflateUndermine;
 */
-},{"../utils/common":31,"./adler32":33,"./crc32":35,"./inffast":38,"./inftrees":40}],40:[function(_dereq_,module,exports){
+},{"../utils/common":32,"./adler32":34,"./crc32":36,"./inffast":39,"./inftrees":41}],41:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -10714,7 +10775,7 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
   opts.bits = root;
   return 0;
 };
-},{"../utils/common":31}],41:[function(_dereq_,module,exports){
+},{"../utils/common":32}],42:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = {
@@ -10728,7 +10789,7 @@ module.exports = {
   '-5':   'buffer error',        /* Z_BUF_ERROR     (-5) */
   '-6':   'incompatible version' /* Z_VERSION_ERROR (-6) */
 };
-},{}],42:[function(_dereq_,module,exports){
+},{}],43:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -11928,7 +11989,7 @@ exports._tr_stored_block = _tr_stored_block;
 exports._tr_flush_block  = _tr_flush_block;
 exports._tr_tally = _tr_tally;
 exports._tr_align = _tr_align;
-},{"../utils/common":31}],43:[function(_dereq_,module,exports){
+},{"../utils/common":32}],44:[function(_dereq_,module,exports){
 'use strict';
 
 
@@ -11958,7 +12019,34 @@ function ZStream() {
 }
 
 module.exports = ZStream;
-},{}],44:[function(_dereq_,module,exports){
+},{}],45:[function(_dereq_,module,exports){
+(function (Buffer){
+function FilerBuffer (subject, encoding, nonZero) {
+
+  // Automatically turn ArrayBuffer into Uint8Array so that underlying
+  // Buffer code doesn't just throw away and ignore ArrayBuffer data.
+  if (subject instanceof ArrayBuffer) {
+    subject = new Uint8Array(subject);
+  }
+
+  return new Buffer(subject, encoding, nonZero);
+};
+
+// Inherit prototype from Buffer
+FilerBuffer.prototype = Object.create(Buffer.prototype);
+FilerBuffer.prototype.constructor = FilerBuffer;
+
+// Also copy static methods onto FilerBuffer ctor
+Object.keys(Buffer).forEach(function (p) {
+  if (Buffer.hasOwnProperty(p)) {
+    FilerBuffer[p] = Buffer[p];
+  }
+});
+
+module.exports = FilerBuffer;
+
+}).call(this,_dereq_("buffer").Buffer)
+},{"buffer":7}],46:[function(_dereq_,module,exports){
 var O_READ = 'READ';
 var O_WRITE = 'WRITE';
 var O_CREATE = 'CREATE';
@@ -12040,7 +12128,7 @@ module.exports = {
   }
 };
 
-},{}],45:[function(_dereq_,module,exports){
+},{}],47:[function(_dereq_,module,exports){
 var MODE_FILE = _dereq_('./constants.js').MODE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
@@ -12048,7 +12136,7 @@ module.exports = function DirectoryEntry(id, type) {
   this.type = type || MODE_FILE;
 };
 
-},{"./constants.js":44}],46:[function(_dereq_,module,exports){
+},{"./constants.js":46}],48:[function(_dereq_,module,exports){
 (function (Buffer){
 // Adapt encodings to work with Buffer or Uint8Array, they expect the latter
 function decode(buf) {
@@ -12065,7 +12153,7 @@ module.exports = {
 };
 
 }).call(this,_dereq_("buffer").Buffer)
-},{"buffer":6}],47:[function(_dereq_,module,exports){
+},{"buffer":7}],49:[function(_dereq_,module,exports){
 var errors = {};
 [
   /**
@@ -12160,8 +12248,7 @@ var errors = {};
 
 module.exports = errors;
 
-},{}],48:[function(_dereq_,module,exports){
-(function (Buffer){
+},{}],50:[function(_dereq_,module,exports){
 var _ = _dereq_('../../lib/nodash.js');
 
 var Path = _dereq_('../path.js');
@@ -12201,6 +12288,7 @@ var OpenFileDescription = _dereq_('../open-file-description.js');
 var SuperNode = _dereq_('../super-node.js');
 var Node = _dereq_('../node.js');
 var Stats = _dereq_('../stats.js');
+var Buffer = _dereq_('../buffer.js');
 
 /**
  * Many functions below use this callback pattern. If it's not
@@ -12218,33 +12306,6 @@ function standard_check_result_cb(callback) {
       callback(null, result);
     }
   };
-}
-
-/**
- * Coerce array-like data to Buffer so we can .copy(), etc.
- * Allow null, a Buffer, or an object that can be dealt with
- * by the Buffer constructor (e.g., Typed Array, Array, ...)
- *
- * WARNING: be very careful not to call this on parameters of
- * API methods that pass storage (like read). You don't want to
- * overwrite a buffer that a caller is holding a reference to,
- * and expects to be filled via the read. If the caller passes
- * in a non-Buffer, we should throw instead of coerce.
- */
-function ensureBuffer(maybeBuffer) {
-  if(!maybeBuffer) {
-    return null;
-  }
-
-  if(Buffer.isBuffer(maybeBuffer)) {
-    return maybeBuffer;
-  }
-
-  try {
-    return new Buffer(maybeBuffer);
-  } catch(e) {
-    return null;
-  }
 }
 
 /**
@@ -12288,7 +12349,7 @@ function update_node_times(context, path, node, times, callback) {
   }
 
   if(update) {
-    context.put(node.id, node, complete);
+    context.putObject(node.id, node, complete);
   } else {
     complete();
   }
@@ -12331,7 +12392,7 @@ function make_node(context, path, mode, callback) {
     } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
-      context.get(parentNode.data, create_node);
+      context.getObject(parentNode.data, create_node);
     }
   }
 
@@ -12348,7 +12409,7 @@ function make_node(context, path, mode, callback) {
         }
         node = result;
         node.nlinks += 1;
-        context.put(node.id, node, update_parent_node_data);
+        context.putObject(node.id, node, update_parent_node_data);
       });
     }
   }
@@ -12369,7 +12430,7 @@ function make_node(context, path, mode, callback) {
       callback(error);
     } else {
       parentNodeData[name] = new DirectoryEntry(node.id, mode);
-      context.put(parentNode.data, parentNodeData, update_time);
+      context.putObject(parentNode.data, parentNodeData, update_time);
     }
   }
 
@@ -12397,7 +12458,7 @@ function find_node(context, path, callback) {
     } else if(!superNode || superNode.mode !== MODE_META || !superNode.rnode) {
       callback(new Errors.EFILESYSTEMERROR());
     } else {
-      context.get(superNode.rnode, check_root_directory_node);
+      context.getObject(superNode.rnode, check_root_directory_node);
     }
   }
 
@@ -12419,7 +12480,7 @@ function find_node(context, path, callback) {
     } else if(parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory'));
     } else {
-      context.get(parentDirectoryNode.data, get_node_from_parent_directory_data);
+      context.getObject(parentDirectoryNode.data, get_node_from_parent_directory_data);
     }
   }
 
@@ -12433,7 +12494,7 @@ function find_node(context, path, callback) {
         callback(new Errors.ENOENT());
       } else {
         var nodeId = parentDirectoryData[name].id;
-        context.get(nodeId, is_symbolic_link);
+        context.getObject(nodeId, is_symbolic_link);
       }
     }
   }
@@ -12460,14 +12521,14 @@ function find_node(context, path, callback) {
     parentPath = dirname(data);
     name = basename(data);
     if(ROOT_DIRECTORY_NAME == name) {
-      context.get(SUPER_NODE_ID, read_root_directory_node);
+      context.getObject(SUPER_NODE_ID, read_root_directory_node);
     } else {
       find_node(context, parentPath, read_parent_directory_data);
     }
   }
 
   if(ROOT_DIRECTORY_NAME == name) {
-    context.get(SUPER_NODE_ID, read_root_directory_node);
+    context.getObject(SUPER_NODE_ID, read_root_directory_node);
   } else {
     find_node(context, parentPath, read_parent_directory_data);
   }
@@ -12502,7 +12563,7 @@ function set_extended_attribute (context, path_or_fd, name, value, flag, callbac
     }
     else {
       node.xattrs[name] = value;
-      context.put(node.id, node, update_time);
+      context.putObject(node.id, node, update_time);
     }
   }
 
@@ -12512,7 +12573,7 @@ function set_extended_attribute (context, path_or_fd, name, value, flag, callbac
   }
   else if (typeof path_or_fd == 'object' && typeof path_or_fd.id == 'string') {
     path = path_or_fd.path;
-    context.get(path_or_fd.id, set_xattr);
+    context.getObject(path_or_fd.id, set_xattr);
   }
   else {
     callback(new Errors.EINVAL('path or file descriptor of wrong type'));
@@ -12544,7 +12605,7 @@ function ensure_root_directory(context, callback) {
           return;
         }
         superNode = result;
-        context.put(superNode.id, superNode, write_directory_node);
+        context.putObject(superNode.id, superNode, write_directory_node);
       });
     }
   }
@@ -12560,7 +12621,7 @@ function ensure_root_directory(context, callback) {
         }
         directoryNode = result;
         directoryNode.nlinks += 1;
-        context.put(directoryNode.id, directoryNode, write_directory_data);
+        context.putObject(directoryNode.id, directoryNode, write_directory_data);
       });
     }
   }
@@ -12570,11 +12631,11 @@ function ensure_root_directory(context, callback) {
       callback(error);
     } else {
       directoryData = {};
-      context.put(directoryNode.data, directoryData, callback);
+      context.putObject(directoryNode.data, directoryData, callback);
     }
   }
 
-  context.get(SUPER_NODE_ID, ensure_super_node);
+  context.getObject(SUPER_NODE_ID, ensure_super_node);
 }
 
 /**
@@ -12605,7 +12666,7 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryNode = result;
-      context.get(parentDirectoryNode.data, write_directory_node);
+      context.getObject(parentDirectoryNode.data, write_directory_node);
     }
   }
 
@@ -12621,7 +12682,7 @@ function make_directory(context, path, callback) {
         }
         directoryNode = result;
         directoryNode.nlinks += 1;
-        context.put(directoryNode.id, directoryNode, write_directory_data);
+        context.putObject(directoryNode.id, directoryNode, write_directory_data);
       });
     }
   }
@@ -12631,7 +12692,7 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       directoryData = {};
-      context.put(directoryNode.data, directoryData, update_parent_directory_data);
+      context.putObject(directoryNode.data, directoryData, update_parent_directory_data);
     }
   }
 
@@ -12649,7 +12710,7 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, MODE_DIRECTORY);
-      context.put(parentDirectoryNode.data, parentDirectoryData, update_time);
+      context.putObject(parentDirectoryNode.data, parentDirectoryData, update_time);
     }
   }
 
@@ -12674,7 +12735,7 @@ function remove_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryNode = result;
-      context.get(parentDirectoryNode.data, check_if_node_exists);
+      context.getObject(parentDirectoryNode.data, check_if_node_exists);
     }
   }
 
@@ -12688,7 +12749,7 @@ function remove_directory(context, path, callback) {
     } else {
       parentDirectoryData = result;
       directoryNode = parentDirectoryData[name].id;
-      context.get(directoryNode, check_if_node_is_directory);
+      context.getObject(directoryNode, check_if_node_is_directory);
     }
   }
 
@@ -12699,7 +12760,7 @@ function remove_directory(context, path, callback) {
       callback(new Errors.ENOTDIR());
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_directory_is_empty);
+      context.getObject(directoryNode.data, check_if_directory_is_empty);
     }
   }
 
@@ -12727,7 +12788,7 @@ function remove_directory(context, path, callback) {
 
   function remove_directory_entry_from_parent_directory_node() {
     delete parentDirectoryData[name];
-    context.put(parentDirectoryNode.data, parentDirectoryData, update_time);
+    context.putObject(parentDirectoryNode.data, parentDirectoryData, update_time);
   }
 
   function remove_directory_node(error) {
@@ -12779,7 +12840,7 @@ function open_file(context, path, flags, callback) {
       callback(new Errors.ENOENT());
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -12796,7 +12857,7 @@ function open_file(context, path, flags, callback) {
           if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
           } else {
-            context.get(directoryEntry.id, check_if_symbolic_link);
+            context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
         }
       } else {
@@ -12858,7 +12919,7 @@ function open_file(context, path, flags, callback) {
       }
       fileNode = result;
       fileNode.nlinks += 1;
-      context.put(fileNode.id, fileNode, write_file_data);
+      context.putObject(fileNode.id, fileNode, write_file_data);
     });
   }
 
@@ -12868,7 +12929,7 @@ function open_file(context, path, flags, callback) {
     } else {
       fileData = new Buffer(0);
       fileData.fill(0);
-      context.put(fileNode.data, fileData, update_directory_data);
+      context.putBuffer(fileNode.data, fileData, update_directory_data);
     }
   }
 
@@ -12886,7 +12947,7 @@ function open_file(context, path, flags, callback) {
       callback(error);
     } else {
       directoryData[name] = new DirectoryEntry(fileNode.id, MODE_FILE);
-      context.put(directoryNode.data, directoryData, update_time);
+      context.putObject(directoryNode.data, directoryData, update_time);
     }
   }
 
@@ -12923,7 +12984,7 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
     if(error) {
       callback(error);
     } else {
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
@@ -12940,11 +13001,11 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
       fileNode.size = length;
       fileNode.version += 1;
 
-      context.put(fileNode.data, newData, update_file_node);
+      context.putBuffer(fileNode.data, newData, update_file_node);
     }
   }
 
-  context.get(ofd.id, write_file_data);
+  context.getObject(ofd.id, write_file_data);
 }
 
 function write_data(context, ofd, buffer, offset, length, position, callback) {
@@ -12972,7 +13033,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
     if(error) {
       callback(error);
     } else {
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
@@ -12980,7 +13041,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
     if(error) {
       callback(error);
     } else {
-      fileData = ensureBuffer(result);
+      fileData = result;
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -12999,7 +13060,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       fileNode.size = newSize;
       fileNode.version += 1;
 
-      context.put(fileNode.data, newData, update_file_node);
+      context.putBuffer(fileNode.data, newData, update_file_node);
     }
   }
 
@@ -13008,11 +13069,11 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       callback(error);
     } else {
       fileNode = result;
-      context.get(fileNode.data, update_file_data);
+      context.getBuffer(fileNode.data, update_file_data);
     }
   }
 
-  context.get(ofd.id, read_file_data);
+  context.getObject(ofd.id, read_file_data);
 }
 
 function read_data(context, ofd, buffer, offset, length, position, callback) {
@@ -13023,7 +13084,7 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
     if(error) {
       callback(error);
     } else {
-      fileData = ensureBuffer(result);
+      fileData = result;
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -13042,11 +13103,11 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
       callback(error);
     } else {
       fileNode = result;
-      context.get(fileNode.data, handle_file_data);
+      context.getBuffer(fileNode.data, handle_file_data);
     }
   }
 
-  context.get(ofd.id, read_file_data);
+  context.getObject(ofd.id, read_file_data);
 }
 
 function stat_file(context, path, callback) {
@@ -13056,7 +13117,7 @@ function stat_file(context, path, callback) {
 }
 
 function fstat_file(context, ofd, callback) {
-  context.get(ofd.id, standard_check_result_cb(callback));
+  context.getObject(ofd.id, standard_check_result_cb(callback));
 }
 
 function lstat_file(context, path, callback) {
@@ -13078,7 +13139,7 @@ function lstat_file(context, path, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -13090,7 +13151,7 @@ function lstat_file(context, path, callback) {
       if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file'));
       } else {
-        context.get(directoryData[name].id, standard_check_result_cb(callback));
+        context.getObject(directoryData[name].id, standard_check_result_cb(callback));
       }
     }
   }
@@ -13125,7 +13186,7 @@ function link_node(context, oldpath, newpath, callback) {
     } else {
       fileNode = result;
       fileNode.nlinks += 1;
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
@@ -13133,7 +13194,7 @@ function link_node(context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
-      context.get(newDirectoryData[newname].id, update_file_node);
+      context.getObject(newDirectoryData[newname].id, update_file_node);
     }
   }
 
@@ -13146,7 +13207,7 @@ function link_node(context, oldpath, newpath, callback) {
         callback(new Errors.EEXIST('newpath resolves to an existing file'));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
-        context.put(newDirectoryNode.data, newDirectoryData, read_directory_entry);
+        context.putObject(newDirectoryNode.data, newDirectoryData, read_directory_entry);
       }
     }
   }
@@ -13156,7 +13217,7 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       newDirectoryNode = result;
-      context.get(newDirectoryNode.data, check_if_new_file_exists);
+      context.getObject(newDirectoryNode.data, check_if_new_file_exists);
     }
   }
 
@@ -13178,7 +13239,7 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       oldDirectoryNode = result;
-      context.get(oldDirectoryNode.data, check_if_old_file_exists);
+      context.getObject(oldDirectoryNode.data, check_if_old_file_exists);
     }
   }
 
@@ -13199,7 +13260,7 @@ function unlink_node(context, path, callback) {
       callback(error);
     } else {
       delete directoryData[name];
-      context.put(directoryNode.data, directoryData, function(error) {
+      context.putObject(directoryNode.data, directoryData, function(error) {
         var now = Date.now();
         update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
       });
@@ -13223,7 +13284,7 @@ function unlink_node(context, path, callback) {
       if(fileNode.nlinks < 1) {
         context.delete(fileNode.id, delete_file_data);
       } else {
-        context.put(fileNode.id, fileNode, function(error) {
+        context.putObject(fileNode.id, fileNode, function(error) {
           update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
         });
       }
@@ -13238,7 +13299,7 @@ function unlink_node(context, path, callback) {
       if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file'));
       } else {
-        context.get(directoryData[name].id, update_file_node);
+        context.getObject(directoryData[name].id, update_file_node);
       }
     }
   }
@@ -13248,7 +13309,7 @@ function unlink_node(context, path, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -13277,7 +13338,7 @@ function read_directory(context, path, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, handle_directory_data);
+      context.getObject(directoryNode.data, handle_directory_data);
     }
   }
 
@@ -13304,7 +13365,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -13331,7 +13392,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       fileNode.nlinks += 1;
       fileNode.size = srcpath.length;
       fileNode.data = srcpath;
-      context.put(fileNode.id, fileNode, update_directory_data);
+      context.putObject(fileNode.id, fileNode, update_directory_data);
     });
   }
 
@@ -13349,7 +13410,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       callback(error);
     } else {
       directoryData[name] = new DirectoryEntry(fileNode.id, MODE_SYMBOLIC_LINK);
-      context.put(directoryNode.data, directoryData, update_time);
+      context.putObject(directoryNode.data, directoryData, update_time);
     }
   }
 }
@@ -13369,7 +13430,7 @@ function read_link(context, path, callback) {
       callback(error);
     } else {
       directoryNode = result;
-      context.get(directoryNode.data, check_if_file_exists);
+      context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
 
@@ -13381,7 +13442,7 @@ function read_link(context, path, callback) {
       if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file'));
       } else {
-        context.get(directoryData[name].id, check_if_symbolic);
+        context.getObject(directoryData[name].id, check_if_symbolic);
       }
     }
   }
@@ -13411,7 +13472,7 @@ function truncate_file(context, path, length, callback) {
       callback(new Errors.EISDIR());
     } else{
       fileNode = node;
-      context.get(fileNode.data, truncate_file_data);
+      context.getBuffer(fileNode.data, truncate_file_data);
     }
   }
 
@@ -13419,7 +13480,6 @@ function truncate_file(context, path, length, callback) {
     if (error) {
       callback(error);
     } else {
-      fileData = ensureBuffer(fileData);
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -13428,7 +13488,7 @@ function truncate_file(context, path, length, callback) {
       if(fileData) {
         fileData.copy(data);
       }
-      context.put(fileNode.data, data, update_file_node);
+      context.putBuffer(fileNode.data, data, update_file_node);
     }
   }
 
@@ -13447,7 +13507,7 @@ function truncate_file(context, path, length, callback) {
     } else {
       fileNode.size = length;
       fileNode.version += 1;
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
@@ -13468,7 +13528,7 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(new Errors.EISDIR());
     } else{
       fileNode = node;
-      context.get(fileNode.data, truncate_file_data);
+      context.getBuffer(fileNode.data, truncate_file_data);
     }
   }
 
@@ -13477,7 +13537,6 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(error);
     } else {
       var data;
-      fileData = ensureBuffer(fileData);
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
@@ -13487,7 +13546,7 @@ function ftruncate_file(context, ofd, length, callback) {
         data = new Buffer(length);
         data.fill(0);
       }
-      context.put(fileNode.data, data, update_file_node);
+      context.putBuffer(fileNode.data, data, update_file_node);
     }
   }
 
@@ -13506,14 +13565,14 @@ function ftruncate_file(context, ofd, length, callback) {
     } else {
       fileNode.size = length;
       fileNode.version += 1;
-      context.put(fileNode.id, fileNode, update_time);
+      context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
   if(length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
   } else {
-    context.get(ofd.id, read_file_data);
+    context.getObject(ofd.id, read_file_data);
   }
 }
 
@@ -13556,7 +13615,7 @@ function futimes_file(context, ofd, atime, mtime, callback) {
     callback(new Errors.EINVAL('atime and mtime must be positive integers'));
   }
   else {
-    context.get(ofd.id, update_times);
+    context.getObject(ofd.id, update_times);
   }
 }
 
@@ -13645,7 +13704,7 @@ function fgetxattr_file (context, ofd, name, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   }
   else {
-    context.get(ofd.id, get_xattr);
+    context.getObject(ofd.id, get_xattr);
   }
 }
 
@@ -13671,7 +13730,7 @@ function removexattr_file (context, path, name, callback) {
     }
     else {
       delete node.xattrs[name];
-      context.put(node.id, node, update_time);
+      context.putObject(node.id, node, update_time);
     }
   }
 
@@ -13705,7 +13764,7 @@ function fremovexattr_file (context, ofd, name, callback) {
     }
     else {
       delete node.xattrs[name];
-      context.put(node.id, node, update_time);
+      context.putObject(node.id, node, update_time);
     }
   }
 
@@ -13716,7 +13775,7 @@ function fremovexattr_file (context, ofd, name, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   }
   else {
-    context.get(ofd.id, remove_xattr);
+    context.getObject(ofd.id, remove_xattr);
   }
 }
 
@@ -14250,8 +14309,7 @@ module.exports = {
   ftruncate: ftruncate
 };
 
-}).call(this,_dereq_("buffer").Buffer)
-},{"../../lib/nodash.js":4,"../constants.js":44,"../directory-entry.js":45,"../encoding.js":46,"../errors.js":47,"../node.js":52,"../open-file-description.js":53,"../path.js":54,"../stats.js":63,"../super-node.js":64,"buffer":6}],49:[function(_dereq_,module,exports){
+},{"../../lib/nodash.js":4,"../buffer.js":45,"../constants.js":46,"../directory-entry.js":47,"../encoding.js":48,"../errors.js":49,"../node.js":54,"../open-file-description.js":55,"../path.js":56,"../stats.js":65,"../super-node.js":66}],51:[function(_dereq_,module,exports){
 var _ = _dereq_('../../lib/nodash.js');
 
 var isNullPath = _dereq_('../path.js').isNull;
@@ -14410,7 +14468,7 @@ function FileSystem(options, callback) {
       // Otherwise (default) make sure this id is unused first
       function guidWithCheck(callback) {
         var id = guid();
-        context.get(id, function(err, value) {
+        context.getObject(id, function(err, value) {
           if(err) {
             callback(err);
             return;
@@ -14586,7 +14644,7 @@ FileSystem.prototype.Shell = function(options) {
 
 module.exports = FileSystem;
 
-},{"../../lib/intercom.js":3,"../../lib/nodash.js":4,"../constants.js":44,"../errors.js":47,"../fs-watcher.js":50,"../path.js":54,"../providers/index.js":55,"../shared.js":59,"../shell/shell.js":62,"./implementation.js":48}],50:[function(_dereq_,module,exports){
+},{"../../lib/intercom.js":3,"../../lib/nodash.js":4,"../constants.js":46,"../errors.js":49,"../fs-watcher.js":52,"../path.js":56,"../providers/index.js":57,"../shared.js":61,"../shell/shell.js":64,"./implementation.js":50}],52:[function(_dereq_,module,exports){
 var EventEmitter = _dereq_('../lib/eventemitter.js');
 var Path = _dereq_('./path.js');
 var Intercom = _dereq_('../lib/intercom.js');
@@ -14650,17 +14708,15 @@ FSWatcher.prototype.constructor = FSWatcher;
 
 module.exports = FSWatcher;
 
-},{"../lib/eventemitter.js":2,"../lib/intercom.js":3,"./path.js":54}],51:[function(_dereq_,module,exports){
-(function (Buffer){
+},{"../lib/eventemitter.js":2,"../lib/intercom.js":3,"./path.js":56}],53:[function(_dereq_,module,exports){
 module.exports = {
   FileSystem: _dereq_('./filesystem/interface.js'),
-  Buffer: Buffer,
+  Buffer: _dereq_('./buffer.js'),
   Path: _dereq_('./path.js'),
   Errors: _dereq_('./errors.js')
 };
 
-}).call(this,_dereq_("buffer").Buffer)
-},{"./errors.js":47,"./filesystem/interface.js":49,"./path.js":54,"buffer":6}],52:[function(_dereq_,module,exports){
+},{"./buffer.js":45,"./errors.js":49,"./filesystem/interface.js":51,"./path.js":56}],54:[function(_dereq_,module,exports){
 var MODE_FILE = _dereq_('./constants.js').MODE_FILE;
 
 function Node(options) {
@@ -14715,7 +14771,7 @@ Node.create = function(options, callback) {
 
 module.exports = Node;
 
-},{"./constants.js":44}],53:[function(_dereq_,module,exports){
+},{"./constants.js":46}],55:[function(_dereq_,module,exports){
 module.exports = function OpenFileDescription(path, id, flags, position) {
   this.path = path;
   this.id = id;
@@ -14723,7 +14779,7 @@ module.exports = function OpenFileDescription(path, id, flags, position) {
   this.position = position;
 };
 
-},{}],54:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -14949,7 +15005,7 @@ module.exports = {
   isNull: isNull
 };
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],57:[function(_dereq_,module,exports){
 var IndexedDB = _dereq_('./indexeddb.js');
 var WebSQL = _dereq_('./websql.js');
 var Memory = _dereq_('./memory.js');
@@ -14986,13 +15042,14 @@ module.exports = {
   }())
 };
 
-},{"./indexeddb.js":56,"./memory.js":57,"./websql.js":58}],56:[function(_dereq_,module,exports){
+},{"./indexeddb.js":58,"./memory.js":59,"./websql.js":60}],58:[function(_dereq_,module,exports){
 (function (global){
 var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = _dereq_('../constants.js').FILE_STORE_NAME;
 var IDB_RW = _dereq_('../constants.js').IDB_RW;
 var IDB_RO = _dereq_('../constants.js').IDB_RO;
 var Errors = _dereq_('../errors.js');
+var FilerBuffer = _dereq_('../buffer.js');
 
 var indexedDB = global.indexedDB       ||
                 global.mozIndexedDB    ||
@@ -15003,6 +15060,7 @@ function IndexedDBContext(db, mode) {
   var transaction = db.transaction(FILE_STORE_NAME, mode);
   this.objectStore = transaction.objectStore(FILE_STORE_NAME);
 }
+
 IndexedDBContext.prototype.clear = function(callback) {
   try {
     var request = this.objectStore.clear();
@@ -15016,9 +15074,10 @@ IndexedDBContext.prototype.clear = function(callback) {
     callback(e);
   }
 };
-IndexedDBContext.prototype.get = function(key, callback) {
+
+function _get(objectStore, key, callback) {
   try {
-    var request = this.objectStore.get(key);
+    var request = objectStore.get(key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
@@ -15029,10 +15088,22 @@ IndexedDBContext.prototype.get = function(key, callback) {
   } catch(e) {
     callback(e);
   }
+}
+IndexedDBContext.prototype.getObject = function(key, callback) {
+  _get(this.objectStore, key, callback);
 };
-IndexedDBContext.prototype.put = function(key, value, callback) {
+IndexedDBContext.prototype.getBuffer = function(key, callback) {
+  _get(this.objectStore, key, function(err, arrayBuffer) {
+    if(err) {
+      return callback(err);
+    }
+    callback(null, new FilerBuffer(arrayBuffer));
+  });
+};
+
+function _put(objectStore, key, value, callback) {
   try {
-    var request = this.objectStore.put(value, key);
+    var request = objectStore.put(value, key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
@@ -15043,7 +15114,14 @@ IndexedDBContext.prototype.put = function(key, value, callback) {
   } catch(e) {
     callback(e);
   }
+}
+IndexedDBContext.prototype.putObject = function(key, value, callback) {
+  _put(this.objectStore, key, value, callback);
 };
+IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
+  _put(this.objectStore, key, uint8BackedBuffer.buffer, callback);
+};
+
 IndexedDBContext.prototype.delete = function(key, callback) {
   try {
     var request = this.objectStore.delete(key);
@@ -15117,7 +15195,7 @@ IndexedDB.prototype.getReadWriteContext = function() {
 module.exports = IndexedDB;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../constants.js":44,"../errors.js":47}],57:[function(_dereq_,module,exports){
+},{"../buffer.js":45,"../constants.js":46,"../errors.js":49}],59:[function(_dereq_,module,exports){
 var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
 // NOTE: prefer setImmediate to nextTick for proper recursion yielding.
 // see https://github.com/js-platform/filer/pull/24
@@ -15144,6 +15222,7 @@ function MemoryContext(db, readOnly) {
   this.readOnly = readOnly;
   this.objectStore = db;
 }
+
 MemoryContext.prototype.clear = function(callback) {
   if(this.readOnly) {
     asyncCallback(function() {
@@ -15157,13 +15236,19 @@ MemoryContext.prototype.clear = function(callback) {
   });
   asyncCallback(callback);
 };
-MemoryContext.prototype.get = function(key, callback) {
+
+// Memory context doesn't care about differences between Object and Buffer
+MemoryContext.prototype.getObject =
+MemoryContext.prototype.getBuffer =
+function(key, callback) {
   var that = this;
   asyncCallback(function() {
     callback(null, that.objectStore[key]);
   });
 };
-MemoryContext.prototype.put = function(key, value, callback) {
+MemoryContext.prototype.putObject =
+MemoryContext.prototype.putBuffer =
+function(key, value, callback) {
   if(this.readOnly) {
     asyncCallback(function() {
       callback("[MemoryContext] Error: write operation on read only context");
@@ -15173,6 +15258,7 @@ MemoryContext.prototype.put = function(key, value, callback) {
   this.objectStore[key] = value;
   asyncCallback(callback);
 };
+
 MemoryContext.prototype.delete = function(key, callback) {
   if(this.readOnly) {
     asyncCallback(function() {
@@ -15208,15 +15294,16 @@ Memory.prototype.getReadWriteContext = function() {
 
 module.exports = Memory;
 
-},{"../../lib/async.js":1,"../constants.js":44}],58:[function(_dereq_,module,exports){
+},{"../../lib/async.js":1,"../constants.js":46}],60:[function(_dereq_,module,exports){
 (function (global){
 var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = _dereq_('../constants.js').FILE_STORE_NAME;
 var WSQL_VERSION = _dereq_('../constants.js').WSQL_VERSION;
 var WSQL_SIZE = _dereq_('../constants.js').WSQL_SIZE;
 var WSQL_DESC = _dereq_('../constants.js').WSQL_DESC;
-var u8toArray = _dereq_('../shared.js').u8toArray;
 var Errors = _dereq_('../errors.js');
+var FilerBuffer = _dereq_('../buffer.js');
+var base64ArrayBuffer = _dereq_('base64-arraybuffer');
 
 function WebSQLContext(db, isReadOnly) {
   var that = this;
@@ -15232,6 +15319,7 @@ function WebSQLContext(db, isReadOnly) {
     });
   };
 }
+
 WebSQLContext.prototype.clear = function(callback) {
   function onError(transaction, error) {
     callback(error);
@@ -15244,52 +15332,75 @@ WebSQLContext.prototype.clear = function(callback) {
                            [], onSuccess, onError);
   });
 };
-WebSQLContext.prototype.get = function(key, callback) {
+
+function _get(getTransaction, key, callback) {
   function onSuccess(transaction, result) {
     // If the key isn't found, return null
     var value = result.rows.length === 0 ? null : result.rows.item(0).data;
-    try {
-      if(value) {
-        value = JSON.parse(value);
-        // Deal with special-cased flattened typed arrays in WebSQL (see put() below)
-        if(value.__isUint8Array) {
-          value = new Uint8Array(value.__array);
-        }
-      }
-      callback(null, value);
-    } catch(e) {
-      callback(e);
-    }
+    callback(null, value);
   }
   function onError(transaction, error) {
     callback(error);
   }
-  this.getTransaction(function(transaction) {
-    transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ?;",
+  getTransaction(function(transaction) {
+    transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ? LIMIT 1;",
                            [key], onSuccess, onError);
   });
+}
+WebSQLContext.prototype.getObject = function(key, callback) {
+  _get(this.getTransaction, key, function(err, result) {
+    if(err) {
+      return callback(err);
+    }
+
+    try {
+      if(result) {
+        result = JSON.parse(result);
+      }
+    } catch(e) {
+      return callback(e);
+    }
+
+    callback(null, result);
+  });
 };
-WebSQLContext.prototype.put = function(key, value, callback) {
-  // We do extra work to make sure typed arrays survive
-  // being stored in the db and still get the right prototype later.
-  if(Object.prototype.toString.call(value) === "[object Uint8Array]") {
-    value = {
-      __isUint8Array: true,
-      __array: u8toArray(value)
-    };
-  }
-  value = JSON.stringify(value);
+WebSQLContext.prototype.getBuffer = function(key, callback) {
+  _get(this.getTransaction, key, function(err, result) {
+    if(err) {
+      return callback(err);
+    }
+
+    // Deal with zero-length ArrayBuffers, which will be encoded as ''
+    if(result || result === '') {
+      var arrayBuffer = base64ArrayBuffer.decode(result);
+      result = new FilerBuffer(arrayBuffer);
+    }
+
+    callback(null, result);
+  });
+};
+
+function _put(getTransaction, key, value, callback) {
   function onSuccess(transaction, result) {
     callback(null);
   }
   function onError(transaction, error) {
     callback(error);
   }
-  this.getTransaction(function(transaction) {
+  getTransaction(function(transaction) {
     transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data) VALUES (?, ?);",
                            [key, value], onSuccess, onError);
   });
+}
+WebSQLContext.prototype.putObject = function(key, value, callback) {
+  var json = JSON.stringify(value);
+  _put(this.getTransaction, key, json, callback);
 };
+WebSQLContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
+  var base64 = base64ArrayBuffer.encode(uint8BackedBuffer.buffer);
+  _put(this.getTransaction, key, base64, callback);
+};
+
 WebSQLContext.prototype.delete = function(key, callback) {
   function onSuccess(transaction, result) {
     callback(null);
@@ -15370,7 +15481,7 @@ WebSQL.prototype.getReadWriteContext = function() {
 module.exports = WebSQL;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../constants.js":44,"../errors.js":47,"../shared.js":59}],59:[function(_dereq_,module,exports){
+},{"../buffer.js":45,"../constants.js":46,"../errors.js":49,"base64-arraybuffer":5}],61:[function(_dereq_,module,exports){
 function guid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
@@ -15398,7 +15509,7 @@ module.exports = {
   nop: nop
 };
 
-},{}],60:[function(_dereq_,module,exports){
+},{}],62:[function(_dereq_,module,exports){
 var defaults = _dereq_('../constants.js').ENVIRONMENT;
 
 module.exports = function Environment(env) {
@@ -15415,7 +15526,7 @@ module.exports = function Environment(env) {
   };
 };
 
-},{"../constants.js":44}],61:[function(_dereq_,module,exports){
+},{"../constants.js":46}],63:[function(_dereq_,module,exports){
 var request = _dereq_('request');
 
 module.exports.download = function(uri, callback) {
@@ -15439,7 +15550,7 @@ module.exports.download = function(uri, callback) {
   });
 };
 
-},{"request":5}],62:[function(_dereq_,module,exports){
+},{"request":6}],64:[function(_dereq_,module,exports){
 var Path = _dereq_('../path.js');
 var Errors = _dereq_('../errors.js');
 var Environment = _dereq_('./environment.js');
@@ -16051,7 +16162,7 @@ Shell.prototype.zip = function(zipfile, paths, options, callback) {
 
 module.exports = Shell;
 
-},{"../../lib/async.js":1,"../encoding.js":46,"../errors.js":47,"../path.js":54,"./environment.js":60,"./network.js":61,"jszip":16}],63:[function(_dereq_,module,exports){
+},{"../../lib/async.js":1,"../encoding.js":48,"../errors.js":49,"../path.js":56,"./environment.js":62,"./network.js":63,"jszip":17}],65:[function(_dereq_,module,exports){
 var Constants = _dereq_('./constants.js');
 
 function Stats(fileNode, devName) {
@@ -16088,7 +16199,7 @@ function() {
 
 module.exports = Stats;
 
-},{"./constants.js":44}],64:[function(_dereq_,module,exports){
+},{"./constants.js":46}],66:[function(_dereq_,module,exports){
 var Constants = _dereq_('./constants.js');
 
 function SuperNode(options) {
@@ -16116,6 +16227,6 @@ SuperNode.create = function(options, callback) {
 
 module.exports = SuperNode;
 
-},{"./constants.js":44}]},{},[51])
-(51)
+},{"./constants.js":46}]},{},[53])
+(53)
 });
