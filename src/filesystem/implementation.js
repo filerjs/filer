@@ -573,7 +573,11 @@ function open_file(context, path, flags, callback) {
   var followedCount = 0;
 
   if(ROOT_DIRECTORY_NAME == name) {
-    callback(new Errors.EISDIR('the named file is the root directory'));
+    if(_(flags).contains(O_WRITE)) {
+      callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+    } else {
+      find_node(context, path, set_file_node);
+    }
   } else {
     find_node(context, parentPath, read_directory_data);
   }
@@ -599,8 +603,8 @@ function open_file(context, path, flags, callback) {
           callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
         } else {
           directoryEntry = directoryData[name];
-          if(directoryEntry.type == MODE_DIRECTORY) {
-            callback(new Errors.EISDIR('the named file is a directory'));
+          if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
+            callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
@@ -1687,7 +1691,7 @@ function readFile(fs, context, path, options, callback) {
 
   var flags = validate_flags(options.flag || 'r');
   if(!flags) {
-    callback(new Errors.EINVAL('flags is not valid'));
+    return callback(new Errors.EINVAL('flags is not valid'));
   }
 
   open_file(context, path, flags, function(err, fileNode) {
@@ -1697,21 +1701,34 @@ function readFile(fs, context, path, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
 
-    fstat_file(context, ofd, function(err2, fstatResult) {
-      if(err2) {
-        return callback(err2);
+    function cleanup() {
+      fs.releaseDescriptor(fd);
+      ofd = null;
+    }
+
+    fstat_file(context, ofd, function(err, fstatResult) {
+      if(err) {
+        cleanup();
+        return callback(err);
       }
 
       var stats = new Stats(fstatResult, fs.name);
+
+      if(stats.isDirectory()) {
+        cleanup();
+        return callback(new Errors.EISDIR('illegal operation on directory'));
+      }
+
       var size = stats.size;
       var buffer = new Buffer(size);
       buffer.fill(0);
 
-      read_data(context, ofd, buffer, 0, size, 0, function(err3, nbytes) {
-        if(err3) {
-          return callback(err3);
+      read_data(context, ofd, buffer, 0, size, 0, function(err, nbytes) {
+        cleanup();
+
+        if(err) {
+          return callback(err);
         }
-        fs.releaseDescriptor(fd);
 
         var data;
         if(options.encoding === 'utf8') {
