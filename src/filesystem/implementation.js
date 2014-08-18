@@ -1691,7 +1691,7 @@ function readFile(fs, context, path, options, callback) {
 
   var flags = validate_flags(options.flag || 'r');
   if(!flags) {
-    callback(new Errors.EINVAL('flags is not valid'));
+    return callback(new Errors.EINVAL('flags is not valid'));
   }
 
   open_file(context, path, flags, function(err, fileNode) {
@@ -1701,21 +1701,34 @@ function readFile(fs, context, path, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
 
-    fstat_file(context, ofd, function(err2, fstatResult) {
-      if(err2) {
-        return callback(err2);
+    function cleanup() {
+      fs.releaseDescriptor(fd);
+      ofd = null;
+    }
+
+    fstat_file(context, ofd, function(err, fstatResult) {
+      if(err) {
+        cleanup();
+        return callback(err);
       }
 
       var stats = new Stats(fstatResult, fs.name);
+
+      if(stats.isDirectory()) {
+        cleanup();
+        return callback(new Errors.EISDIR('illegal operation on directory'));
+      }
+
       var size = stats.size;
       var buffer = new Buffer(size);
       buffer.fill(0);
 
-      read_data(context, ofd, buffer, 0, size, 0, function(err3, nbytes) {
-        if(err3) {
-          return callback(err3);
+      read_data(context, ofd, buffer, 0, size, 0, function(err, nbytes) {
+        cleanup();
+
+        if(err) {
+          return callback(err);
         }
-        fs.releaseDescriptor(fd);
 
         var data;
         if(options.encoding === 'utf8') {
