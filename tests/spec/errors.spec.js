@@ -165,11 +165,11 @@ describe("Filer.Errors", function() {
 
   it('should not include path in toString() when not provided', function() {
     var err = new Filer.Errors.ENOENT('This is the message');
-    expect(err.toString()).to.equal("ENOENT: no such file or directory");
+    expect(err.toString()).to.equal("ENOENT: This is the message");
   });
 
   it('should include path in toString() when provided', function() {
-    var err = new Filer.Errors.ENOENT('This is the message', '/this/is/the/path');
+    var err = new Filer.Errors.ENOENT(null, '/this/is/the/path');
     expect(err.toString()).to.equal("ENOENT: no such file or directory, '/this/is/the/path'");
   });
 

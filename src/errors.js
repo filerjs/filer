@@ -73,15 +73,15 @@ var errors = {};
   '1002:ENOATTR:attribute does not exist'
 ].forEach(function(e) {
   e = e.split(':');
-  var errno = e[0]|0,
-      err = e[1],
-      message = e[2];
+  var errno = +e[0];
+  var errName = e[1];
+  var defaultMessage = e[2];
 
   function FilerError(msg, path) {
-    this.name = err;
-    this.code = err;
+    this.name = errName;
+    this.code = errName;
     this.errno = errno;
-    this.message = msg || message;
+    this.message = msg || defaultMessage;
     if(path) {
       this.path = path;
     }
@@ -90,11 +90,11 @@ var errors = {};
   FilerError.prototype.constructor = FilerError;
   FilerError.prototype.toString = function() {
     var pathInfo = this.path ? (', \'' + this.path + '\'') : '';
-    return this.name + ': ' + message + pathInfo;
+    return this.name + ': ' + this.message + pathInfo;
   };
 
   // We expose the error as both Errors.EINVAL and Errors[18]
-  errors[err] = errors[errno] = FilerError;
+  errors[errName] = errors[errno] = FilerError;
 });
 
 module.exports = errors;
