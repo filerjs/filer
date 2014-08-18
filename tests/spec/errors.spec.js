@@ -133,4 +133,49 @@ describe("Filer.Errors", function() {
     expect(Filer.Errors[1001]).to.equal(Filer.Errors.EFILESYSTEMERROR);
     expect(Filer.Errors[1002]).to.equal(Filer.Errors.ENOATTR);
   });
+
+  it('should include all expected properties by default', function() {
+    var err = new Filer.Errors.ENOENT();
+    expect(err.name).to.equal('ENOENT');
+    expect(err.code).to.equal('ENOENT');
+    expect(err.errno).to.equal(34);
+    expect(err.message).to.equal('no such file or directory');
+  });
+
+  it('should include extra properties when provided', function() {
+    var err = new Filer.Errors.ENOENT('This is the message', '/this/is/the/path');
+    expect(err.name).to.equal('ENOENT');
+    expect(err.code).to.equal('ENOENT');
+    expect(err.errno).to.equal(34);
+    expect(err.message).to.equal('This is the message');
+    expect(err.path).to.equal('/this/is/the/path');
+  });
+
+  it('should include default message and path info when provided', function() {
+    var err = new Filer.Errors.ENOENT(null, '/this/is/the/path');
+    expect(err.message).to.equal('no such file or directory');
+    expect(err.path).to.equal('/this/is/the/path');
+  });
+
+  it('should include just the message when no path provided', function() {
+    var err = new Filer.Errors.ENOENT();
+    expect(err.message).to.equal('no such file or directory');
+    expect(err.path).not.to.exist;
+  });
+
+  it('should not include path in toString() when not provided', function() {
+    var err = new Filer.Errors.ENOENT('This is the message');
+    expect(err.toString()).to.equal("ENOENT: no such file or directory");
+  });
+
+  it('should include path in toString() when provided', function() {
+    var err = new Filer.Errors.ENOENT('This is the message', '/this/is/the/path');
+    expect(err.toString()).to.equal("ENOENT: no such file or directory, '/this/is/the/path'");
+  });
+
+  it('should include message and path info when provided', function() {
+    var err = new Filer.Errors.ENOENT('This is the message', '/this/is/the/path');
+    expect(err.message).to.equal('This is the message');
+    expect(err.path).to.equal('/this/is/the/path');
+  });
 });

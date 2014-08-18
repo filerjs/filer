@@ -40,14 +40,14 @@ function Shell(fs, options) {
     // Make sure the path actually exists, and is a dir
     fs.stat(path, function(err, stats) {
       if(err) {
-        callback(new Errors.ENOTDIR());
+        callback(new Errors.ENOTDIR(null, path));
         return;
       }
       if(stats.type === 'DIRECTORY') {
         cwd = path;
         callback();
       } else {
-        callback(new Errors.ENOTDIR());
+        callback(new Errors.ENOTDIR(null, path));
       }
     });
   };
@@ -158,7 +158,7 @@ Shell.prototype.cat = function(files, callback) {
   callback = callback || function(){};
 
   if(!files) {
-    callback(new Errors.EINVAL("Missing files argument"));
+    callback(new Errors.EINVAL('Missing files argument'));
     return;
   }
 
@@ -213,7 +213,7 @@ Shell.prototype.ls = function(dir, options, callback) {
   callback = callback || function(){};
 
   if(!dir) {
-    callback(new Errors.EINVAL("Missing dir argument"));
+    callback(new Errors.EINVAL('Missing dir argument'));
     return;
   }
 
@@ -286,7 +286,7 @@ Shell.prototype.rm = function(path, options, callback) {
   callback = callback || function(){};
 
   if(!path) {
-    callback(new Errors.EINVAL("Missing path argument"));
+    callback(new Errors.EINVAL('Missing path argument'));
     return;
   }
 
@@ -319,7 +319,7 @@ Shell.prototype.rm = function(path, options, callback) {
 
         // If not, see if we're allowed to delete recursively
         if(!options.recursive) {
-          callback(new Errors.ENOTEMPTY());
+          callback(new Errors.ENOTEMPTY(null, pathname));
           return;
         }
 
@@ -373,7 +373,7 @@ Shell.prototype.mkdirp = function(path, callback) {
   callback = callback || function(){};
 
   if(!path) {
-    callback(new Errors.EINVAL("Missing path argument"));
+    callback(new Errors.EINVAL('Missing path argument'));
     return;
   }
   else if (path === '/') {
@@ -388,7 +388,7 @@ Shell.prototype.mkdirp = function(path, callback) {
           return;
         }
         else if (stat.isFile()) {
-          callback(new Errors.ENOTDIR());
+          callback(new Errors.ENOTDIR(null, path));
           return;
         }
       }
@@ -445,7 +445,7 @@ Shell.prototype.wget = function(url, options, callback) {
   callback = callback || function(){};
 
   if(!url) {
-    callback(new Errors.EINVAL('missing url argument'));
+    callback(new Errors.EINVAL('Missing url argument'));
     return;
   }
 
@@ -487,7 +487,7 @@ Shell.prototype.unzip = function(zipfile, options, callback) {
   callback = callback || function(){};
 
   if(!zipfile) {
-    callback(new Errors.EINVAL('missing zipfile argument'));
+    callback(new Errors.EINVAL('Missing zipfile argument'));
     return;
   }
 
@@ -533,11 +533,11 @@ Shell.prototype.zip = function(zipfile, paths, options, callback) {
   callback = callback || function(){};
 
   if(!zipfile) {
-    callback(new Errors.EINVAL('missing zipfile argument'));
+    callback(new Errors.EINVAL('Missing zipfile argument'));
     return;
   }
   if(!paths) {
-    callback(new Errors.EINVAL('missing paths argument'));
+    callback(new Errors.EINVAL('Missing paths argument'));
     return;
   }
   if(typeof paths === 'string') {
@@ -591,9 +591,9 @@ Shell.prototype.zip = function(zipfile, paths, options, callback) {
   var zip = new JSZip();
 
   // Make sure the zipfile doesn't already exist.
-  fs.stat(zipfile, function(err, stats) {
-    if(stats) {
-      return callback(new Errors.EEXIST('zipfile already exists'));
+  fs.exists(zipfile, function(exists) {
+    if(exists) {
+      return callback(new Errors.EEXIST('zipfile already exists', zipfile));
     }
 
     async.eachSeries(paths, add, function(err) {
