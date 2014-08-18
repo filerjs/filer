@@ -72,4 +72,4 @@ require("./bugs/issue249");
 require("./bugs/ls-depth-bug");
 require("./bugs/issue247.js");
 require("./bugs/issue254.js");
-
+require("./bugs/issue258.js");
