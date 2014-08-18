@@ -1785,11 +1785,13 @@ function writeFile(fs, context, path, data, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
 
-    replace_data(context, ofd, data, 0, data.length, function(err2, nbytes) {
-      if(err2) {
-        return callback(err2);
-      }
+    replace_data(context, ofd, data, 0, data.length, function(err, nbytes) {
       fs.releaseDescriptor(fd);
+      ofd = null;
+
+      if(err) {
+        return callback(err);
+      }
       callback(null);
     });
   });
@@ -1821,11 +1823,13 @@ function appendFile(fs, context, path, data, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
     var fd = fs.allocDescriptor(ofd);
 
-    write_data(context, ofd, data, 0, data.length, ofd.position, function(err2, nbytes) {
-      if(err2) {
-        return callback(err2);
-      }
+    write_data(context, ofd, data, 0, data.length, ofd.position, function(err, nbytes) {
       fs.releaseDescriptor(fd);
+      ofd = null;
+
+      if(err) {
+        return callback(err);
+      }
       callback(null);
     });
   });
