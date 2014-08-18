@@ -13942,7 +13942,7 @@ function readFile(fs, context, path, options, callback) {
 
   var flags = validate_flags(options.flag || 'r');
   if(!flags) {
-    callback(new Errors.EINVAL('flags is not valid'));
+    return callback(new Errors.EINVAL('flags is not valid'));
   }
 
   open_file(context, path, flags, function(err, fileNode) {
@@ -13952,21 +13952,33 @@ function readFile(fs, context, path, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
 
-    fstat_file(context, ofd, function(err2, fstatResult) {
-      if(err2) {
-        return callback(err2);
+    function cleanup() {
+      fs.releaseDescriptor(fd);
+    }
+
+    fstat_file(context, ofd, function(err, fstatResult) {
+      if(err) {
+        cleanup();
+        return callback(err);
       }
 
       var stats = new Stats(fstatResult, fs.name);
+
+      if(stats.isDirectory()) {
+        cleanup();
+        return callback(new Errors.EISDIR('illegal operation on directory'));
+      }
+
       var size = stats.size;
       var buffer = new Buffer(size);
       buffer.fill(0);
 
-      read_data(context, ofd, buffer, 0, size, 0, function(err3, nbytes) {
-        if(err3) {
-          return callback(err3);
+      read_data(context, ofd, buffer, 0, size, 0, function(err, nbytes) {
+        cleanup();
+
+        if(err) {
+          return callback(err);
         }
-        fs.releaseDescriptor(fd);
 
         var data;
         if(options.encoding === 'utf8') {
@@ -14023,11 +14035,12 @@ function writeFile(fs, context, path, data, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
 
-    replace_data(context, ofd, data, 0, data.length, function(err2, nbytes) {
-      if(err2) {
-        return callback(err2);
-      }
+    replace_data(context, ofd, data, 0, data.length, function(err, nbytes) {
       fs.releaseDescriptor(fd);
+
+      if(err) {
+        return callback(err);
+      }
       callback(null);
     });
   });
@@ -14059,11 +14072,12 @@ function appendFile(fs, context, path, data, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
     var fd = fs.allocDescriptor(ofd);
 
-    write_data(context, ofd, data, 0, data.length, ofd.position, function(err2, nbytes) {
-      if(err2) {
-        return callback(err2);
-      }
+    write_data(context, ofd, data, 0, data.length, ofd.position, function(err, nbytes) {
       fs.releaseDescriptor(fd);
+
+      if(err) {
+        return callback(err);
+      }
       callback(null);
     });
   });
