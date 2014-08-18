@@ -1703,7 +1703,6 @@ function readFile(fs, context, path, options, callback) {
 
     function cleanup() {
       fs.releaseDescriptor(fd);
-      ofd = null;
     }
 
     fstat_file(context, ofd, function(err, fstatResult) {
@@ -1787,7 +1786,6 @@ function writeFile(fs, context, path, data, options, callback) {
 
     replace_data(context, ofd, data, 0, data.length, function(err, nbytes) {
       fs.releaseDescriptor(fd);
-      ofd = null;
 
       if(err) {
         return callback(err);
@@ -1825,7 +1823,6 @@ function appendFile(fs, context, path, data, options, callback) {
 
     write_data(context, ofd, data, 0, data.length, ofd.position, function(err, nbytes) {
       fs.releaseDescriptor(fd);
-      ofd = null;
 
       if(err) {
         return callback(err);
