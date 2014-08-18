@@ -14549,8 +14549,8 @@ function FileSystem(options, callback) {
         fs.readyState = FS_ERROR;
       } else {
         fs.readyState = FS_READY;
-        runQueued();
       }
+      runQueued();
       callback(error, fs);
     }
 
@@ -14626,6 +14626,13 @@ FileSystem.providers = providers;
 
     var error = fs.queueOrRun(function() {
       var context = fs.provider.openReadWriteContext();
+
+      // Fail early if the filesystem is in an error state (e.g.,
+      // provider failed to open.
+      if(FS_ERROR === fs.readyState) {
+        var err = new Errors.EFILESYSTEMERROR('filesystem unavailable, operation canceled');
+        return callback.call(fs, err);
+      }
 
       // Wrap the callback so we can explicitly close the context
       function complete() {
