@@ -111,7 +111,7 @@ function update_node_times(context, path, node, times, callback) {
 // out: new node representing file/directory
 function make_node(context, path, mode, callback) {
   if(mode !== MODE_DIRECTORY && mode !== MODE_FILE) {
-    return callback(new Errors.EINVAL('mode must be a directory or file'));
+    return callback(new Errors.EINVAL('mode must be a directory or file', path));
   }
 
   path = normalize(path);
@@ -127,7 +127,7 @@ function make_node(context, path, mode, callback) {
     if(error) {
       callback(error);
     } else if(parentDirectoryNode.mode !== MODE_DIRECTORY) {
-      callback(new Errors.ENOTDIR('a component of the path prefix is not a directory'));
+      callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       parentNode = parentDirectoryNode;
       find_node(context, path, check_if_node_exists);
@@ -137,7 +137,7 @@ function make_node(context, path, mode, callback) {
   // Check if the node to be created already exists
   function check_if_node_exists(error, result) {
     if(!error && result) {
-      callback(new Errors.EEXIST('path name already exists'));
+      callback(new Errors.EEXIST('path name already exists', path));
     } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
@@ -227,7 +227,7 @@ function find_node(context, path, callback) {
     if(error) {
       callback(error);
     } else if(parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
-      callback(new Errors.ENOTDIR('a component of the path prefix is not a directory'));
+      callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       context.getObject(parentDirectoryNode.data, get_node_from_parent_directory_data);
     }
@@ -240,7 +240,7 @@ function find_node(context, path, callback) {
       callback(error);
     } else {
       if(!_(parentDirectoryData).has(name)) {
-        callback(new Errors.ENOENT());
+        callback(new Errors.ENOENT(null, path));
       } else {
         var nodeId = parentDirectoryData[name].id;
         context.getObject(nodeId, is_symbolic_link);
@@ -255,7 +255,7 @@ function find_node(context, path, callback) {
       if(node.mode == MODE_SYMBOLIC_LINK) {
         followedCount++;
         if(followedCount > SYMLOOP_MAX){
-          callback(new Errors.ELOOP());
+          callback(new Errors.ELOOP(null, path));
         } else {
           follow_symbolic_link(node.data);
         }
@@ -305,10 +305,10 @@ function set_extended_attribute (context, path_or_fd, name, value, flag, callbac
       callback(error);
     }
     else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
-      callback(new Errors.EEXIST('attribute already exists'));
+      callback(new Errors.EEXIST('attribute already exists', path_or_fd));
     }
     else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR());
+      callback(new Errors.ENOATTR(null, path_or_fd));
     }
     else {
       node.xattrs[name] = value;
@@ -325,7 +325,7 @@ function set_extended_attribute (context, path_or_fd, name, value, flag, callbac
     context.getObject(path_or_fd.id, set_xattr);
   }
   else {
-    callback(new Errors.EINVAL('path or file descriptor of wrong type'));
+    callback(new Errors.EINVAL('path or file descriptor of wrong type', path_or_fd));
   }
 }
 
@@ -402,7 +402,7 @@ function make_directory(context, path, callback) {
 
   function check_if_directory_exists(error, result) {
     if(!error && result) {
-      callback(new Errors.EEXIST());
+      callback(new Errors.EEXIST(null, path));
     } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
@@ -492,9 +492,9 @@ function remove_directory(context, path, callback) {
     if(error) {
       callback(error);
     } else if(ROOT_DIRECTORY_NAME == name) {
-      callback(new Errors.EBUSY());
+      callback(new Errors.EBUSY(null, path));
     } else if(!_(result).has(name)) {
-      callback(new Errors.ENOENT());
+      callback(new Errors.ENOENT(null, path));
     } else {
       parentDirectoryData = result;
       directoryNode = parentDirectoryData[name].id;
@@ -506,7 +506,7 @@ function remove_directory(context, path, callback) {
     if(error) {
       callback(error);
     } else if(result.mode != MODE_DIRECTORY) {
-      callback(new Errors.ENOTDIR());
+      callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
       context.getObject(directoryNode.data, check_if_directory_is_empty);
@@ -519,7 +519,7 @@ function remove_directory(context, path, callback) {
     } else {
       directoryData = result;
       if(_(directoryData).size() > 0) {
-        callback(new Errors.ENOTEMPTY());
+        callback(new Errors.ENOTEMPTY(null, path));
       } else {
         remove_directory_entry_from_parent_directory_node();
       }
@@ -574,7 +574,7 @@ function open_file(context, path, flags, callback) {
 
   if(ROOT_DIRECTORY_NAME == name) {
     if(_(flags).contains(O_WRITE)) {
-      callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+      callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
     } else {
       find_node(context, path, set_file_node);
     }
@@ -586,7 +586,7 @@ function open_file(context, path, flags, callback) {
     if(error) {
       callback(error);
     } else if(result.mode !== MODE_DIRECTORY) {
-      callback(new Errors.ENOENT());
+      callback(new Errors.ENOENT(null, path));
     } else {
       directoryNode = result;
       context.getObject(directoryNode.data, check_if_file_exists);
@@ -600,18 +600,18 @@ function open_file(context, path, flags, callback) {
       directoryData = result;
       if(_(directoryData).has(name)) {
         if(_(flags).contains(O_EXCLUSIVE)) {
-          callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists'));
+          callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
           if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
-            callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+            callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
         }
       } else {
         if(!_(flags).contains(O_CREATE)) {
-          callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist'));
+          callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist', path));
         } else {
           write_file_node();
         }
@@ -627,7 +627,7 @@ function open_file(context, path, flags, callback) {
       if(node.mode == MODE_SYMBOLIC_LINK) {
         followedCount++;
         if(followedCount > SYMLOOP_MAX){
-          callback(new Errors.ELOOP());
+          callback(new Errors.ELOOP(null, path));
         } else {
           follow_symbolic_link(node.data);
         }
@@ -643,7 +643,7 @@ function open_file(context, path, flags, callback) {
     name = basename(data);
     if(ROOT_DIRECTORY_NAME == name) {
       if(_(flags).contains(O_WRITE)) {
-        callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set'));
+        callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
       } else {
         find_node(context, path, set_file_node);
       }
@@ -898,7 +898,7 @@ function lstat_file(context, path, callback) {
     } else {
       directoryData = result;
       if(!_(directoryData).has(name)) {
-        callback(new Errors.ENOENT('a component of the path does not name an existing file'));
+        callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
       } else {
         context.getObject(directoryData[name].id, standard_check_result_cb(callback));
       }
@@ -953,7 +953,7 @@ function link_node(context, oldpath, newpath, callback) {
     } else {
       newDirectoryData = result;
       if(_(newDirectoryData).has(newname)) {
-        callback(new Errors.EEXIST('newpath resolves to an existing file'));
+        callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
         context.putObject(newDirectoryNode.data, newDirectoryData, read_directory_entry);
@@ -976,7 +976,7 @@ function link_node(context, oldpath, newpath, callback) {
     } else {
       oldDirectoryData = result;
       if(!_(oldDirectoryData).has(oldname)) {
-        callback(new Errors.ENOENT('a component of either path prefix does not exist'));
+        callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
       } else {
         find_node(context, newParentPath, read_new_directory_data);
       }
@@ -1046,7 +1046,7 @@ function unlink_node(context, path, callback) {
     } else {
       directoryData = result;
       if(!_(directoryData).has(name)) {
-        callback(new Errors.ENOENT('a component of the path does not name an existing file'));
+        callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, update_file_node);
       }
@@ -1104,7 +1104,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   var fileNode;
 
   if(ROOT_DIRECTORY_NAME == name) {
-    callback(new Errors.EEXIST());
+    callback(new Errors.EEXIST(null, name));
   } else {
     find_node(context, parentPath, read_directory_data);
   }
@@ -1124,7 +1124,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
     } else {
       directoryData = result;
       if(_(directoryData).has(name)) {
-        callback(new Errors.EEXIST());
+        callback(new Errors.EEXIST(null, name));
       } else {
         write_file_node();
       }
@@ -1189,7 +1189,7 @@ function read_link(context, path, callback) {
     } else {
       directoryData = result;
       if(!_(directoryData).has(name)) {
-        callback(new Errors.ENOENT('a component of the path does not name an existing file'));
+        callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_symbolic);
       }
@@ -1201,7 +1201,7 @@ function read_link(context, path, callback) {
       callback(error);
     } else {
       if(result.mode != MODE_SYMBOLIC_LINK) {
-        callback(new Errors.EINVAL("path not a symbolic link"));
+        callback(new Errors.EINVAL('path not a symbolic link', path));
       } else {
         callback(null, result.data);
       }
@@ -1218,7 +1218,7 @@ function truncate_file(context, path, length, callback) {
     if (error) {
       callback(error);
     } else if(node.mode == MODE_DIRECTORY ) {
-      callback(new Errors.EISDIR());
+      callback(new Errors.EISDIR(null, path));
     } else{
       fileNode = node;
       context.getBuffer(fileNode.data, truncate_file_data);
@@ -1337,10 +1337,10 @@ function utimes_file(context, path, atime, mtime, callback) {
   }
 
   if (typeof atime != 'number' || typeof mtime != 'number') {
-    callback(new Errors.EINVAL('atime and mtime must be number'));
+    callback(new Errors.EINVAL('atime and mtime must be number', path));
   }
   else if (atime < 0 || mtime < 0) {
-    callback(new Errors.EINVAL('atime and mtime must be positive integers'));
+    callback(new Errors.EINVAL('atime and mtime must be positive integers', path));
   }
   else {
     find_node(context, path, update_times);
@@ -1372,14 +1372,14 @@ function setxattr_file(context, path, name, value, flag, callback) {
   path = normalize(path);
 
   if (typeof name != 'string') {
-    callback(new Errors.EINVAL('attribute name must be a string'));
+    callback(new Errors.EINVAL('attribute name must be a string', path));
   }
   else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+    callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
   }
   else if (flag !== null &&
            flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
-    callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
+    callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE', path));
   }
   else {
     set_extended_attribute(context, path, name, value, flag, callback);
@@ -1412,7 +1412,7 @@ function getxattr_file (context, path, name, callback) {
       callback (error);
     }
     else if (!node.xattrs.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR());
+      callback(new Errors.ENOATTR(null, path));
     }
     else {
       callback(null, node.xattrs[name]);
@@ -1420,10 +1420,10 @@ function getxattr_file (context, path, name, callback) {
   }
 
   if (typeof name != 'string') {
-    callback(new Errors.EINVAL('attribute name must be a string'));
+    callback(new Errors.EINVAL('attribute name must be a string', path));
   }
   else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+    callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
   }
   else {
     find_node(context, path, get_xattr);
@@ -1475,7 +1475,7 @@ function removexattr_file (context, path, name, callback) {
       callback(error);
     }
     else if (!xattr.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR());
+      callback(new Errors.ENOATTR(null, path));
     }
     else {
       delete node.xattrs[name];
@@ -1484,10 +1484,10 @@ function removexattr_file (context, path, name, callback) {
   }
 
   if (typeof name != 'string') {
-    callback(new Errors.EINVAL('attribute name must be a string'));
+    callback(new Errors.EINVAL('attribute name must be a string', path));
   }
   else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string'));
+    callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
   }
   else {
     find_node(context, path, remove_xattr);
@@ -1549,9 +1549,9 @@ function validate_file_options(options, enc, fileMode){
 function pathCheck(path, callback) {
   var err;
   if(isNullPath(path)) {
-    err = new Error('Path must be a string without null bytes.');
+    err = new Errors.EINVAL('Path must be a string without null bytes.', path);
   } else if(!isAbsolutePath(path)) {
-    err = new Error('Path must be absolute.');
+    err = new Errors.EINAVL('Path must be absolute.', path);
   }
 
   if(err) {
@@ -1586,7 +1586,7 @@ function open(fs, context, path, flags, mode, callback) {
 
   flags = validate_flags(flags);
   if(!flags) {
-    callback(new Errors.EINVAL('flags is not valid'));
+    callback(new Errors.EINVAL('flags is not valid'), path);
   }
 
   open_file(context, path, flags, check_result);
@@ -1691,7 +1691,7 @@ function readFile(fs, context, path, options, callback) {
 
   var flags = validate_flags(options.flag || 'r');
   if(!flags) {
-    return callback(new Errors.EINVAL('flags is not valid'));
+    return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
   open_file(context, path, flags, function(err, fileNode) {
@@ -1715,7 +1715,7 @@ function readFile(fs, context, path, options, callback) {
 
       if(stats.isDirectory()) {
         cleanup();
-        return callback(new Errors.EISDIR('illegal operation on directory'));
+        return callback(new Errors.EISDIR('illegal operation on directory', path));
       }
 
       var size = stats.size;
@@ -1766,7 +1766,7 @@ function writeFile(fs, context, path, data, options, callback) {
 
   var flags = validate_flags(options.flag || 'w');
   if(!flags) {
-    callback(new Errors.EINVAL('flags is not valid'));
+    return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
   data = data || '';
@@ -1803,7 +1803,7 @@ function appendFile(fs, context, path, data, options, callback) {
 
   var flags = validate_flags(options.flag || 'a');
   if(!flags) {
-    callback(new Errors.EINVAL('flags is not valid'));
+    return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
   data = data || '';
