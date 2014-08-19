@@ -78,6 +78,8 @@ var errors = {};
   var defaultMessage = e[2];
 
   function FilerError(msg, path) {
+    Error.call(this);
+
     this.name = errName;
     this.code = errName;
     this.errno = errno;
@@ -85,6 +87,7 @@ var errors = {};
     if(path) {
       this.path = path;
     }
+    this.stack = (new Error(this.message)).stack;
   }
   FilerError.prototype = Object.create(Error.prototype);
   FilerError.prototype.constructor = FilerError;
