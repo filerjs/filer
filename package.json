@@ -11,7 +11,7 @@
     "idb",
     "websql"
   ],
-  "version": "0.0.24",
+  "version": "0.0.25",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/filer",
   "bugs": "https://github.com/js-platform/filer/issues",
