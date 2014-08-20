@@ -1085,6 +1085,8 @@ function read_directory(context, path, callback) {
   function read_directory_data(error, result) {
     if(error) {
       callback(error);
+    } else if(result.mode !== MODE_DIRECTORY) {
+      callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
       context.getObject(directoryNode.data, handle_directory_data);
