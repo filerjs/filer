@@ -35,10 +35,9 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
       expect(provider.getReadWriteContext).to.be.a('function');
     });
 
-    it("should open a new IndexedDB database", function(done) {
-      provider.open(function(error, firstAccess) {
+    it("should open a new provider database", function(done) {
+      provider.open(function(error) {
         expect(error).not.to.exist;
-        expect(firstAccess).to.be.true;
         done();
       });
     });

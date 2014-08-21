@@ -130,8 +130,7 @@ WebSQL.prototype.open = function(callback) {
 
   // Bail if we already have a db open
   if(that.db) {
-    callback(null, false);
-    return;
+    return callback();
   }
 
   var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
@@ -148,18 +147,7 @@ WebSQL.prototype.open = function(callback) {
   }
   function onSuccess(transaction, result) {
     that.db = db;
-
-    function gotCount(transaction, result) {
-      var firstAccess = result.rows.item(0).count === 0;
-      callback(null, firstAccess);
-    }
-    function onError(transaction, error) {
-      callback(error);
-    }
-    // Keep track of whether we're accessing this db for the first time
-    // and therefore needs to get formatted.
-    transaction.executeSql("SELECT COUNT(id) AS count FROM " + FILE_STORE_NAME + ";",
-                           [], gotCount, onError);
+    callback();
   }
 
   // Create the table and index we'll need to store the fs data.

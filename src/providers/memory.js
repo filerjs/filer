@@ -9,14 +9,10 @@ var asyncCallback = require('../../lib/async.js').setImmediate;
 var createDB = (function() {
   var pool = {};
   return function getOrCreate(name) {
-    var firstAccess = !pool.hasOwnProperty(name);
-    if(firstAccess) {
+    if(!pool.hasOwnProperty(name)) {
       pool[name] = {};
     }
-    return {
-      firstAccess: firstAccess,
-      db: pool[name]
-    };
+    return pool[name];
   };
 }());
 
@@ -81,11 +77,8 @@ Memory.isSupported = function() {
 };
 
 Memory.prototype.open = function(callback) {
-  var result = createDB(this.name);
-  this.db = result.db;
-  asyncCallback(function() {
-    callback(null, result.firstAccess);
-  });
+  this.db = createDB(this.name);
+  asyncCallback(callback);
 };
 Memory.prototype.getReadOnlyContext = function() {
   return new MemoryContext(this.db, true);

@@ -104,14 +104,9 @@ IndexedDB.prototype.open = function(callback) {
   var that = this;
 
   // Bail if we already have a db open
-  if( that.db ) {
-    callback(null, false);
-    return;
+  if(that.db) {
+    return callback();
   }
-
-  // Keep track of whether we're accessing this db for the first time
-  // and therefore needs to get formatted.
-  var firstAccess = false;
 
   // NOTE: we're not using versioned databases.
   var openRequest = indexedDB.open(that.name);
@@ -124,13 +119,11 @@ IndexedDB.prototype.open = function(callback) {
       db.deleteObjectStore(FILE_STORE_NAME);
     }
     db.createObjectStore(FILE_STORE_NAME);
-
-    firstAccess = true;
   };
 
   openRequest.onsuccess = function onsuccess(event) {
     that.db = event.target.result;
-    callback(null, firstAccess);
+    callback();
   };
   openRequest.onerror = function onerror(error) {
     callback(new Errors.EINVAL('IndexedDB cannot be accessed. If private browsing is enabled, disable it.'));
