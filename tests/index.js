@@ -75,3 +75,4 @@ require("./bugs/issue247.js");
 require("./bugs/issue254.js");
 require("./bugs/issue258.js");
 require("./bugs/issue267.js");
+require("./bugs/issue270.js");
