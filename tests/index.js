@@ -7,6 +7,7 @@
 require("./spec/filer.spec");
 
 // Filer.FileSystem.*
+require("./spec/filer.filesystem.spec");
 require("./spec/fs.spec");
 require("./spec/fs.stat.spec");
 require("./spec/fs.lstat.spec");

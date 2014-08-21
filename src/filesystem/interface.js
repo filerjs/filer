@@ -187,9 +187,8 @@ function FileSystem(options, callback) {
   }
 
   // Open file system storage provider
-  provider.open(function(err, needsFormatting) {
+  provider.open(function(err) {
     function complete(error) {
-
       function wrappedContext(methodName) {
         var context = provider[methodName]();
         context.flags = flags;
@@ -232,20 +231,22 @@ function FileSystem(options, callback) {
       return complete(err);
     }
 
-    // If we don't need or want formatting, we're done
-    if(!(forceFormatting || needsFormatting)) {
-      return complete(null);
-    }
-    // otherwise format the fs first
     var context = provider.getReadWriteContext();
     context.guid = wrappedGuidFn(context);
-    context.clear(function(err) {
-      if(err) {
-        complete(err);
-        return;
-      }
+
+    // Mount the filesystem, formatting if necessary
+    if(forceFormatting) {
+      // Wipe the storage provider, then write root block
+      context.clear(function(err) {
+        if(err) {
+          return complete(err);
+        }
+        impl.ensureRootDirectory(context, complete);
+      });
+    } else {
+      // Use existing (or create new) root and mount
       impl.ensureRootDirectory(context, complete);
-    });
+    }
   });
 }
 
