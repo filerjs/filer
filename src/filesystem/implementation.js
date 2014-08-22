@@ -1550,10 +1550,13 @@ function validate_file_options(options, enc, fileMode){
 
 function pathCheck(path, callback) {
   var err;
-  if(isNullPath(path)) {
+
+  if(!path) {
+    err = new Errors.EINVAL('Path must be a string', path);
+  } else if(isNullPath(path)) {
     err = new Errors.EINVAL('Path must be a string without null bytes.', path);
   } else if(!isAbsolutePath(path)) {
-    err = new Errors.EINAVL('Path must be absolute.', path);
+    err = new Errors.EINVAL('Path must be absolute.', path);
   }
 
   if(err) {
