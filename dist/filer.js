@@ -13812,10 +13812,13 @@ function validate_file_options(options, enc, fileMode){
 
 function pathCheck(path, callback) {
   var err;
-  if(isNullPath(path)) {
+
+  if(!path) {
+    err = new Errors.EINVAL('Path must be a string', path);
+  } else if(isNullPath(path)) {
     err = new Errors.EINVAL('Path must be a string without null bytes.', path);
   } else if(!isAbsolutePath(path)) {
-    err = new Errors.EINAVL('Path must be absolute.', path);
+    err = new Errors.EINVAL('Path must be absolute.', path);
   }
 
   if(err) {
@@ -14526,9 +14529,8 @@ function FileSystem(options, callback) {
   }
 
   // Open file system storage provider
-  provider.open(function(err, needsFormatting) {
+  provider.open(function(err) {
     function complete(error) {
-
       function wrappedContext(methodName) {
         var context = provider[methodName]();
         context.flags = flags;
@@ -14571,20 +14573,22 @@ function FileSystem(options, callback) {
       return complete(err);
     }
 
-    // If we don't need or want formatting, we're done
-    if(!(forceFormatting || needsFormatting)) {
-      return complete(null);
-    }
-    // otherwise format the fs first
     var context = provider.getReadWriteContext();
     context.guid = wrappedGuidFn(context);
-    context.clear(function(err) {
-      if(err) {
-        complete(err);
-        return;
-      }
+
+    // Mount the filesystem, formatting if necessary
+    if(forceFormatting) {
+      // Wipe the storage provider, then write root block
+      context.clear(function(err) {
+        if(err) {
+          return complete(err);
+        }
+        impl.ensureRootDirectory(context, complete);
+      });
+    } else {
+      // Use existing (or create new) root and mount
       impl.ensureRootDirectory(context, complete);
-    });
+    }
   });
 }
 
@@ -15184,14 +15188,9 @@ IndexedDB.prototype.open = function(callback) {
   var that = this;
 
   // Bail if we already have a db open
-  if( that.db ) {
-    callback(null, false);
-    return;
+  if(that.db) {
+    return callback();
   }
-
-  // Keep track of whether we're accessing this db for the first time
-  // and therefore needs to get formatted.
-  var firstAccess = false;
 
   // NOTE: we're not using versioned databases.
   var openRequest = indexedDB.open(that.name);
@@ -15204,13 +15203,11 @@ IndexedDB.prototype.open = function(callback) {
       db.deleteObjectStore(FILE_STORE_NAME);
     }
     db.createObjectStore(FILE_STORE_NAME);
-
-    firstAccess = true;
   };
 
   openRequest.onsuccess = function onsuccess(event) {
     that.db = event.target.result;
-    callback(null, firstAccess);
+    callback();
   };
   openRequest.onerror = function onerror(error) {
     callback(new Errors.EINVAL('IndexedDB cannot be accessed. If private browsing is enabled, disable it.'));
@@ -15241,14 +15238,10 @@ var asyncCallback = _dereq_('../../lib/async.js').setImmediate;
 var createDB = (function() {
   var pool = {};
   return function getOrCreate(name) {
-    var firstAccess = !pool.hasOwnProperty(name);
-    if(firstAccess) {
+    if(!pool.hasOwnProperty(name)) {
       pool[name] = {};
     }
-    return {
-      firstAccess: firstAccess,
-      db: pool[name]
-    };
+    return pool[name];
   };
 }());
 
@@ -15313,11 +15306,8 @@ Memory.isSupported = function() {
 };
 
 Memory.prototype.open = function(callback) {
-  var result = createDB(this.name);
-  this.db = result.db;
-  asyncCallback(function() {
-    callback(null, result.firstAccess);
-  });
+  this.db = createDB(this.name);
+  asyncCallback(callback);
 };
 Memory.prototype.getReadOnlyContext = function() {
   return new MemoryContext(this.db, true);
@@ -15462,8 +15452,7 @@ WebSQL.prototype.open = function(callback) {
 
   // Bail if we already have a db open
   if(that.db) {
-    callback(null, false);
-    return;
+    return callback();
   }
 
   var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
@@ -15480,18 +15469,7 @@ WebSQL.prototype.open = function(callback) {
   }
   function onSuccess(transaction, result) {
     that.db = db;
-
-    function gotCount(transaction, result) {
-      var firstAccess = result.rows.item(0).count === 0;
-      callback(null, firstAccess);
-    }
-    function onError(transaction, error) {
-      callback(error);
-    }
-    // Keep track of whether we're accessing this db for the first time
-    // and therefore needs to get formatted.
-    transaction.executeSql("SELECT COUNT(id) AS count FROM " + FILE_STORE_NAME + ";",
-                           [], gotCount, onError);
+    callback();
   }
 
   // Create the table and index we'll need to store the fs data.
