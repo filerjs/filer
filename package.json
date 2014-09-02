@@ -31,7 +31,6 @@
     "bower": "~1.3.8",
     "request": "^2.36.0",
     "browser-request": "git://github.com/humphd/browser-request.git#959ea95bf200d64939ed76897d3b06bb684f3a0d",
-    "jszip": "git://github.com/humphd/jszip.git#ad3f356bb165aba1cafeabe1bb3e49293803f975",
     "base64-arraybuffer": "^0.1.2"
   },
   "devDependencies": {
