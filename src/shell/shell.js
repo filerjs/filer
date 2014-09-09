@@ -2,7 +2,6 @@ var Path = require('../path.js');
 var Errors = require('../errors.js');
 var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
-var Network = require('./network.js');
 var Encoding = require('../encoding.js');
 
 function Shell(fs, options) {
@@ -425,54 +424,6 @@ Shell.prototype.mkdirp = function(path, callback) {
   }
 
   _mkdirp(path, callback);
-};
-
-/**
- * Downloads the file at `url` and saves it to the filesystem.
- * The file is saved to a file named with the current date/time
- * unless the `options.filename` is present, in which case that
- * filename is used instead. The callback receives (error, path).
- */
-Shell.prototype.wget = function(url, options, callback) {
-  var sh = this;
-  var fs = sh.fs;
-  if(typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-  options = options || {};
-  callback = callback || function(){};
-
-  if(!url) {
-    callback(new Errors.EINVAL('Missing url argument'));
-    return;
-  }
-
-  // Grab whatever is after the last / (assuming there is one). Like the real
-  // wget, we leave query string or hash portions in tact. This assumes a
-  // properly encoded URL.
-  // i.e. instead of "/foo?bar/" we would expect "/foo?bar%2F"
-  var path = options.filename || url.split('/').pop();
-
-  path = Path.resolve(sh.pwd(), path);
-
-  function onerror() {
-    callback(new Error('unable to get resource'));
-  }
-
-  Network.download(url, function(err, data) {
-    if (err || !data) {
-      return onerror();
-    }
-
-    fs.writeFile(path, data, function(err) {
-      if(err) {
-        callback(err);
-      } else {
-        callback(null, path);
-      }
-    });
-  });
 };
 
 module.exports = Shell;

@@ -1167,9 +1167,6 @@ var sh = fs.Shell();
 * [sh.rm(path, [options], callback)](#rm)
 * [sh.tempDir(callback)](#tempDir)
 * [sh.mkdirp(path, callback)](#mkdirp)
-* [sh.wget(path, [options], callback)](#wget)
-* [sh.zip(zipfile, paths, [options], callback)](#zip)
-* [sh.unzip(zipfile, [options], callback)](#unzip)
 
 
 #### sh.cd(path, callback)<a name="cd"></a>
@@ -1374,87 +1371,5 @@ Example:
 sh.mkdirp('/test/mkdirp', function(err) {
   if(err) throw err;
   // the root '/' now contains a directory 'test' containing the directory 'mkdirp'
-});
-```
-
-#### sh.wget(url, [options], callback)<a name="wget"></a>
-
-Downloads the file at `url` and saves it to the filesystem.
-
-The file is saved to a file named with the filename portion of the url
-unless the `options.filename` is present, in which case that
-filename is used instead. The callback receives `(error, path)`,
-where `path` is the full path to the downloaded file.
-
-Example:
-
-```javascript
-// Download the file at /files/file.json
-sh.wget('/files/file.json', function(err, path) {
-  if(err) throw err;
-  // /file.json is now saved to the fs
-});
-
-// Download the file at /files/file.json, specifying a filename
-sh.wget('/data?id=17', {filename: 'file.json'}, function(err, path) {
-  if(err) throw err;
-  // /file.json is now saved to the fs
-});
-```
-
-#### sh.zip(zipfile, paths, [options], callback)]<a name="zip"></a>
-
-Creates a zip archive named `zipfile` using the paths (files, dirs) listed in `paths`.
-Valid options include `recursive=true`, which when set, causes directories to be followed
-deeply. The `paths` argument must either be a single path (String) or a list of paths
-(Array of String). The zip archive file, named in `zipfile`, must not exist or an error
-will be returned on the callback. The callback receives `(error)`.
-
-Examples:
-
-```javascript
-// Compress a single file
-sh.zip('/data.zip', '/data.txt', function(err) {
-  if(err) throw err;
-  // /data.zip is now the compressed archive of /data.txt
-});
-
-// Compress multiple files
-sh.zip('/data.zip', ['/data.txt', '/data2.txt'], function(err) {
-  if(err) throw err;
-  // /data.zip is now the compressed archive of /data.txt and /data2.txt
-});
-
-// Compress the entire filesystem, starting at the root /
-sh.zip('/fs-backup.zip', '/', { recursive: true }, function(err) {
-  if(err) throw err;
-  // /fs-backup.zip now contains the entire filesystem
-});
-```
-
-#### sh.unzip(zipfile, [options], callback)]<a name="zip"></a>
-
-Extracts files and directories from a zip archive named `zipfile`. If `zipfile` does not
-exist, an error is returned on the callback. Valid options include `destination`, which
-is the path to use when extracting the files (defaults to the shell's current working directory).
-If an optional `destination` path is specified, it must first exist. The callback receives `(error)`.
-
-Examples:
-
-```javascript
-// Extract files in /backup.zip to the current directory
-sh.unzip('/backup.zip', function(err) {
-  if(err) throw err;
-  // The current working directory now contains all files archived in backup.zip
-});
-
-// Extract files in /backup.zip to the /backup directory
-sh.mkdirp('/backup', function(err) {
-  if(err) throw err;
-
-  sh.unzip('/backup.zip', { destination: '/backup' }, function(err) {
-    if(err) throw err;
-    // The current working directory now contains all files archived in backup.zip
-  });
 });
 ```
