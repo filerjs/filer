@@ -17,7 +17,6 @@
   "bugs": "https://github.com/js-platform/filer/issues",
   "license": "BSD",
   "scripts": {
-    "postinstall": "./node_modules/.bin/bower install",
     "test": "grunt test"
   },
   "repository": {
