@@ -18,7 +18,7 @@ npm install -g grunt-cli
 ```
 
 You can now run the following grunt tasks:
-* `grunt check` will run [JSHint](http://www.jshint.com/) on your code (do this before submitting a pull request) to catch errors
+* `grunt jshint` will run [JSHint](http://www.jshint.com/) on your code (do this before submitting a pull request) to catch errors
 * `grunt develop` will create a single file version of the library for testing in `dist/idbfs.js`
 * `grunt release` like `develop` but will also create a minified version of the library in `dist/idbfs.min.js`
 * `grunt test` or `grunt test-node` will run [JSHint](http://www.jshint.com/) on your code and the test suite in the context of `nodejs`
