@@ -13,15 +13,15 @@
   ],
   "version": "0.0.28",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
-  "homepage": "http://js-platform.github.io/filer",
-  "bugs": "https://github.com/js-platform/filer/issues",
+  "homepage": "http://filerjs.github.io/filer",
+  "bugs": "https://github.com/filerjs/filer/issues",
   "license": "BSD",
   "scripts": {
     "test": "grunt test"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/js-platform/filer.git"
+    "url": "https://github.com/filerjs/filer.git"
   },
   "dependencies": {
     "bower": "~1.3.8",
