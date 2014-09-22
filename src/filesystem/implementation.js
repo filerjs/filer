@@ -1040,6 +1040,16 @@ function unlink_node(context, path, callback) {
     }
   }
 
+  function check_if_node_is_directory(error, result) {
+    if(error) {
+      callback(error);
+    } else if(result.mode === 'DIRECTORY') {
+      callback(new Errors.EISDIR('unlink not permitted on directories', name));
+    } else {
+      update_file_node(null, result);
+    }
+  }
+
   function check_if_file_exists(error, result) {
     if(error) {
       callback(error);
@@ -1048,7 +1058,7 @@ function unlink_node(context, path, callback) {
       if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
-        context.getObject(directoryData[name].id, update_file_node);
+        context.getObject(directoryData[name].id, check_if_node_is_directory);
       }
     }
   }
