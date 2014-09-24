@@ -91,7 +91,7 @@ describe('fs.unlink', function() {
 
       fs.unlink('/mydir', function (error) {
         expect(error).to.exist;
-        expect(error.code).to.equal('EISDIR');
+        expect(error.code).to.equal('EPERM');
 
         fs.stat('/mydir', function (error, stats) {
           expect(error).not.to.exist;

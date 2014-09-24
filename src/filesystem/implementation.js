@@ -1044,7 +1044,7 @@ function unlink_node(context, path, callback) {
     if(error) {
       callback(error);
     } else if(result.mode === 'DIRECTORY') {
-      callback(new Errors.EISDIR('unlink not permitted on directories', name));
+      callback(new Errors.EPERM('unlink not permitted on directories', name));
     } else {
       update_file_node(null, result);
     }

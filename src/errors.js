@@ -54,7 +54,7 @@ var errors = {};
   '47:EEXIST:file already exists',
   //'48:ESRCH:no such process',
   //'49:ENAMETOOLONG:name too long',
-  //'50:EPERM:operation not permitted',
+  '50:EPERM:operation not permitted',
   '51:ELOOP:too many symbolic links encountered',
   //'52:EXDEV:cross-device link not permitted',
   '53:ENOTEMPTY:directory not empty',
