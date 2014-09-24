@@ -223,9 +223,16 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
-  grunt.registerTask('test-node', ['jshint', 'browserify:filerIssue225', 'connect:serverForNode', 'shell:mocha']);
-  grunt.registerTask('test-browser', ['jshint', 'build-tests', 'connect:serverForBrowser']);
-  grunt.registerTask('test', ['clean', 'test-node']);
+
+  grunt.registerTask('test', function(environment) {
+    var tasks = ['clean', 'jshint', 'browserify:filerIssue225', 'connect:serverForNode', 'shell:mocha'];
+
+    if(typeof environment === 'string' && environment.toLowerCase() === 'browser') {
+      tasks = ['jshint', 'build-tests', 'connect:serverForBrowser'];
+    }
+
+    grunt.task.run(tasks);
+  });
 
   grunt.registerTask('default', ['test']);
 };
