@@ -54,6 +54,7 @@ require("./spec/shell/ls.spec");
 require("./spec/shell/rm.spec");
 require("./spec/shell/env.spec");
 require("./spec/shell/mkdirp.spec");
+require("./spec/shell/du.spec");
 
 // Ported node.js tests (filenames match names in https://github.com/joyent/node/tree/master/test)
 require("./spec/node-js/simple/test-fs-mkdir");
@@ -73,3 +74,4 @@ require("./bugs/issue254.js");
 require("./bugs/issue258.js");
 require("./bugs/issue267.js");
 require("./bugs/issue270.js");
+
