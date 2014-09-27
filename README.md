@@ -1373,3 +1373,46 @@ sh.mkdirp('/test/mkdirp', function(err) {
   // the root '/' now contains a directory 'test' containing the directory 'mkdirp'
 });
 ```
+
+#### sh.du(dir, [options], callback)<a name="du"></a>
+
+Get the listing of files and deep files and size, returning an array of directory entries
+in the following form:
+```
+{
+  path: <String> the basename of the directory entry
+  size: <Number> the size in bytes of the entry
+}
+```
+
+By default `sh.du()` gives a shallow listing. If you want to follow
+directories as they are encountered, use the `recursive=true` option. NOTE:
+you should not count on the order of the returned entries always being the same.
+
+Example:
+
+```javascript
+/**
+ * Given a dir structure of:
+ *
+ * /dir
+ *  file1
+ *  file2
+ *  dir2/
+ *   file3
+ */
+
+// Shallow listing
+sh.du('/dir', function(err, entries) {
+  if(err) throw err;
+  // entries is now an array of 3 file/dir entries under /dir
+});
+
+// Deep listing
+sh.du('/dir', { recursive: true }, function(err, entries) {
+  if(err) throw err;
+  // entries is now an array of 3 file/dir entries under /dir.
+  // The entry object for '/dir2' also includes a `contents` property,
+  // which is an array of 1 entry element for `file3`.
+});
+```

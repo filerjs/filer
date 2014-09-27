@@ -267,6 +267,84 @@ Shell.prototype.ls = function(dir, options, callback) {
 };
 
 /**
+ * Get the list of a directory, returning an array of
+ * file entries in the following form:
+ *
+ * {
+ *   path: <String> the basename of the directory entry
+ *   links: <Number> the number of links to the entry
+ *   size: <Number> the size in bytes of the entry
+ *   modified: <Number> the last modified date/time
+ *   type: <String> the type of the entry
+ *   contents: <Array> an optional array of child entries
+ * }
+ *
+ * By default du() will display all deep directory and files.
+ */
+Shell.prototype.du = function(dir, options, callback) {
+  var sh = this;
+  var fs = sh.fs;
+  if(typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  options = options || {};
+  callback = callback || function(){};
+
+  if(!dir) {
+    callback(new Errors.EINVAL('Missing dir argument'));
+    return;
+  }
+
+  function list(path, callback) {
+    var pathname = Path.resolve(sh.pwd(), path);
+    var result = [];
+
+    fs.readdir(pathname, function(error, entries) {
+      if(error) {
+        callback(error);
+        return;
+      }
+
+      function getDirEntry(name, callback) {
+        name = Path.join(pathname, name);
+        fs.stat(name, function(error, stats) {
+          if(error) {
+            callback(error);
+            return;
+          }
+          var entry = {
+            path: Path.basename(name),
+            size: stats.size
+          };
+
+          if(stats.type === 'DIRECTORY') {
+            list(Path.join(pathname, entry.path), function(error, items) {
+              if(error) {
+                callback(error);
+                return;
+              }
+              entry.contents = items;
+              result.push(entry);
+              callback();
+            });
+          } else {
+            result.push(entry);
+            callback();
+          }
+        });
+      }
+
+      async.eachSeries(entries, getDirEntry, function(error) {
+        callback(error, result);
+      });
+    });
+  }
+
+  list(dir, callback);
+};
+
+/**
  * Removes the file or directory at `path`. If `path` is a file
  * it will be removed. If `path` is a directory, it will be
  * removed if it is empty, otherwise the callback will receive
