@@ -191,7 +191,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-browserify');
 
-  grunt.registerTask('develop', ['clean', 'browserify:filerDist']);
+  grunt.registerTask('develop', ['clean', 'browserify']);
   grunt.registerTask('build-tests', ['clean', 'browserify:filerTest']);
   grunt.registerTask('release', ['test', 'develop', 'uglify']);
 
