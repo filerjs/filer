@@ -47,4 +47,108 @@ describe('fs.rename', function() {
       });
     });
   });
+
+  it('should rename an existing directory', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.rename('/mydir', '/myotherdir', function(error) {
+        expect(error).not.to.exist;
+        fs.stat('/mydir', function(error) {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOENT');
+
+          fs.stat('/myotherdir', function(error, result) {
+            expect(error).not.to.exist;
+            expect(result.nlinks).to.equal(1);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should rename an existing directory if the new path points to an existing directory', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.mkdir('/myotherdir', function(error) {
+        if(error) throw error;
+
+        fs.rename('/mydir', '/myotherdir', function(error) {
+          expect(error).not.to.exist;
+          fs.stat('/mydir', function(error) {
+            expect(error).to.exist;
+            expect(error.code).to.equal('ENOENT');
+
+            fs.stat('/myotherdir', function(error, result) {
+              expect(error).not.to.exist;
+              expect(result.nlinks).to.equal(1);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should fail to rename an existing directory if the new path points to an existing directory that is not empty', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.mkdir('/myotherdir', function(error) {
+        if(error) throw error;
+
+        fs.writeFile('/myotherdir/myfile', 'This is a file', function(error) {
+          if(error) throw error;
+
+          fs.rename('/mydir', '/myotherdir', function(error) {
+            expect(error).to.exist;
+            expect(error.code).to.equal('ENOTEMPTY');
+
+            fs.stat('/mydir', function(error) {
+              expect(error).not.to.exist;
+
+              fs.stat('/myotherdir', function(error) {
+                expect(error).not.to.exist;
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should fail to rename an existing directory if the new path points to an existing file', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.writeFile('/myfile', 'This is a file', function(error) {
+        if(error) throw error;
+
+        fs.rename('/mydir', '/myfile', function(error) {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOTDIR');
+
+          fs.stat('/mydir', function(error) {
+            expect(error).not.to.exist;
+
+            fs.stat('/myfile', function(error) {
+              expect(error).not.to.exist;
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
 });
