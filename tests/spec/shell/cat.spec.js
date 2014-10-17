@@ -13,7 +13,7 @@ describe('FileSystemShell.cat', function() {
 
   it('should fail when files argument is absent', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
 
     shell.cat(null, function(error, data) {
       expect(error).to.exist;
@@ -25,7 +25,7 @@ describe('FileSystemShell.cat', function() {
 
   it('should return the contents of a single file', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
     var contents = "file contents";
 
     fs.writeFile('/file', contents, function(err) {
@@ -41,7 +41,7 @@ describe('FileSystemShell.cat', function() {
 
   it('should return the contents of multiple files', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
     var contents = "file contents";
     var contents2 = contents + '\n' + contents;
 
@@ -62,7 +62,7 @@ describe('FileSystemShell.cat', function() {
 
   it('should fail if any of multiple file paths is invalid', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
     var contents = "file contents";
     var contents2 = contents + '\n' + contents;
 

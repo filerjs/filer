@@ -13,7 +13,7 @@ describe('FileSystemShell.ls', function() {
 
   it('should fail when dirs argument is absent', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
 
     shell.cat(null, function(error, list) {
       expect(error).to.exist;
@@ -25,7 +25,7 @@ describe('FileSystemShell.ls', function() {
 
   it('should return the contents of a simple dir', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
     var contents = "a";
     var contents2 = "bb";
 
@@ -63,7 +63,7 @@ describe('FileSystemShell.ls', function() {
 
   it('should return the shallow contents of a dir tree', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
     var contents = "a";
 
     fs.mkdir('/dir', function(err) {
@@ -119,7 +119,7 @@ describe('FileSystemShell.ls', function() {
 
   it('should return the deep contents of a dir tree', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
     var contents = "a";
 
     fs.mkdir('/dir', function(err) {

@@ -85,7 +85,7 @@
   }
 
   function shell(options) {
-    return fs().Shell(options);
+    return fs().shell(options);
   }
 
   function cleanup(callback) {

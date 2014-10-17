@@ -498,8 +498,8 @@ fs.link("/data/logs/august", "/data/logs/current", function(err) {
 
 #### fs.exists(path, callback)<a name="exists"></a>
 
-Test whether or not the given path exists by checking with the file system. 
-Then call the callback argument with either true or false. 
+Test whether or not the given path exists by checking with the file system.
+Then call the callback argument with either true or false.
 
 Example:
 
@@ -596,7 +596,7 @@ Example:
 fs.mknod('/dir', 'DIRECTORY', function(err) {
   if(err) throw err;
   // /dir is now created
-  
+
   // Create a file inside /dir
   fs.mknod('/dir/myfile', 'FILE', function(err) {
     if(err) throw err;
@@ -897,7 +897,7 @@ fs.writeFile('/myfile', data, function (err) {
 
   fs.appendFile('/myfile', more, function (err) {
     if (err) throw err;
-    
+
     // '/myfile' would now contain [1, 2, 3, 4, 5, 6, 7, 8]
   });
 });
@@ -1088,18 +1088,29 @@ fs.writeFile('/data/subdir/file', 'data');
 ### FileSystemShell<a name="FileSystemShell"></a>
 
 Many common file system shell operations are available by using a `FileSystemShell` object.
-The `FileSystemShell` is obtained from, and used in conjuction with a `FileSystem`,
+The `FileSystemShell` is used in conjuction with a `FileSystem`,
 and provides augmented features. Many separate `FileSystemShell` objects can exist per
 `FileSystem`, but each `FileSystemShell` is bound to a single instance of a `FileSystem`
 for its lifetime.
 
-A `FileSystemShell` is created using the `FileSystem.Shell()` function:
+A `FileSystemShell` is created by calling `Filer.FileSystem().shell()`:
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = fs.Shell(options);
-var sh2 = fs.Shell(options);
+var sh = fs.shell(options);
+var sh2 = fs.shell(options);
 // sh and sh2 are two separate shells, each bound to fs
+```
+
+Or, the original object can be accessed through `Filer`:
+
+```javascript
+var fs = new Filer.FileSystem();
+var sh = fs.shell();
+
+Filer.Shell.prototype.newFunction = ...;
+
+sh.newFunction();
 ```
 
 The `FileSystemShell` can take an optional `options` object. The `options` object
@@ -1109,7 +1120,7 @@ others may be added in the future. You can also add your own, or update existing
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = fs.Shell({
+var sh = fs.shell({
   env: {
     TMP: '/tempdir',
     PATH: '/one:/two'
@@ -1135,7 +1146,7 @@ Example:
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = fs.Shell();
+var sh = fs.shell();
 var p = sh.env.get('PATH');
 
 // Store the current location
@@ -1155,7 +1166,7 @@ examples below assume a `FileSystemShell` instance named `sh` has been created l
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = fs.Shell();
+var sh = fs.shell();
 ```
 
 * [sh.cd(path, callback)](#cd)
@@ -1360,9 +1371,9 @@ sh.tempDir(function(err, tmp) {
 
 #### sh.mkdirp(path, callback)<a name="mkdirp"></a>
 
-Recursively creates the directory at the provided path. If the 
+Recursively creates the directory at the provided path. If the
 directory already exists, no error is returned. All parents must
-be valid directories (not files). 
+be valid directories (not files).
 
 Example:
 

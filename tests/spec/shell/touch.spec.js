@@ -20,7 +20,7 @@ describe('FileSystemShell.touch', function() {
 
   it('should create a new file if path does not exist', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
 
     shell.touch('/newfile', function(error) {
       if(error) throw error;
@@ -35,7 +35,7 @@ describe('FileSystemShell.touch', function() {
 
   it('should skip creating a new file if options.updateOnly is true', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
 
     shell.touch('/newfile', { updateOnly: true }, function(error) {
       if(error) throw error;
@@ -49,7 +49,7 @@ describe('FileSystemShell.touch', function() {
 
   it('should update times if path does exist', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
     var atime = Date.parse('1 Oct 2000 15:33:22');
     var mtime = Date.parse('30 Sep 2000 06:43:54');
 
@@ -80,7 +80,7 @@ describe('FileSystemShell.touch', function() {
 
   it('should update times to specified date if path does exist', function(done) {
     var fs = util.fs();
-    var shell = fs.Shell();
+    var shell = fs.shell();
     var date = Date.parse('1 Oct 2001 15:33:22');
 
     fs.open('/newfile', 'w', function (error, fd) {

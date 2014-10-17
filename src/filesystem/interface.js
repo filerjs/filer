@@ -334,7 +334,7 @@ FileSystem.providers = providers;
   };
 });
 
-FileSystem.prototype.Shell = function(options) {
+FileSystem.prototype.shell = function(options) {
   return new Shell(this, options);
 };
 

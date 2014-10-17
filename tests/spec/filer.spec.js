@@ -9,4 +9,8 @@ describe("Filer", function() {
   it("has FileSystem constructor", function() {
     expect(typeof Filer.FileSystem).to.equal('function');
   });
+
+  it("has Shell constructor", function() {
+    expect(typeof Filer.Shell).to.equal('function');
+  });
 });
