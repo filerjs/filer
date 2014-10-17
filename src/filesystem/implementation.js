@@ -269,45 +269,26 @@ function find_node(context, path, callback) {
 /**
  * set extended attribute (refactor)
  */
-function set_extended_attribute (context, path_or_fd, name, value, flag, callback) {
-  var path;
-
-  function set_xattr (error, node) {
-    var xattr = (node ? node.xattrs[name] : null);
-
-    function update_time(error) {
-      if(error) {
-        callback(error);
-      } else {
-        update_node_times(context, path, node, { ctime: Date.now() }, callback);
-      }
-    }
-
-    if (error) {
+function set_extended_attribute (context, path, node, name, value, flag, callback) {
+  function update_time(error) {
+    if(error) {
       callback(error);
-    }
-    else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
-      callback(new Errors.EEXIST('attribute already exists', path_or_fd));
-    }
-    else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR(null, path_or_fd));
-    }
-    else {
-      node.xattrs[name] = value;
-      context.putObject(node.id, node, update_time);
+    } else {
+      update_node_times(context, path, node, { ctime: Date.now() }, callback);
     }
   }
 
-  if (typeof path_or_fd == 'string') {
-    path = path_or_fd;
-    find_node(context, path_or_fd, set_xattr);
+  var xattrs = node.xattrs;
+
+  if (flag === XATTR_CREATE && xattrs.hasOwnProperty(name)) {
+    callback(new Errors.EEXIST('attribute already exists', path));
   }
-  else if (typeof path_or_fd == 'object' && typeof path_or_fd.id == 'string') {
-    path = path_or_fd.path;
-    context.getObject(path_or_fd.id, set_xattr);
+  else if (flag === XATTR_REPLACE && !xattrs.hasOwnProperty(name)) {
+    callback(new Errors.ENOATTR(null, path));
   }
   else {
-    callback(new Errors.EINVAL('path or file descriptor of wrong type', path_or_fd));
+    xattrs[name] = value;
+    context.putObject(node.id, node, update_time);
   }
 }
 
@@ -848,7 +829,7 @@ function stat_file(context, path, callback) {
 }
 
 function fstat_file(context, ofd, callback) {
-  context.getObject(ofd.id, callback);
+  ofd.getNode(context, callback);
 }
 
 function lstat_file(context, path, callback) {
@@ -1315,7 +1296,7 @@ function ftruncate_file(context, ofd, length, callback) {
   if(length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
   } else {
-    context.getObject(ofd.id, read_file_data);
+    ofd.getNode(context, read_file_data);
   }
 }
 
@@ -1358,12 +1339,19 @@ function futimes_file(context, ofd, atime, mtime, callback) {
     callback(new Errors.EINVAL('atime and mtime must be positive integers'));
   }
   else {
-    context.getObject(ofd.id, update_times);
+    ofd.getNode(context, update_times);
   }
 }
 
 function setxattr_file(context, path, name, value, flag, callback) {
   path = normalize(path);
+
+  function setxattr(error, node) {
+    if(error) {
+      return callback(error);
+    }
+    set_extended_attribute(context, path, node, name, value, flag, callback);
+  }
 
   if (typeof name != 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
@@ -1376,12 +1364,19 @@ function setxattr_file(context, path, name, value, flag, callback) {
     callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE', path));
   }
   else {
-    set_extended_attribute(context, path, name, value, flag, callback);
+    find_node(context, path, setxattr);
   }
 }
 
 function fsetxattr_file (context, ofd, name, value, flag, callback) {
-  if (typeof name != 'string') {
+  function setxattr(error, node) {
+    if(error) {
+      return callback(error);
+    }
+    set_extended_attribute(context, ofd.path, node, name, value, flag, callback);
+  }
+
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string'));
   }
   else if (!name) {
@@ -1392,7 +1387,7 @@ function fsetxattr_file (context, ofd, name, value, flag, callback) {
     callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
   }
   else {
-    set_extended_attribute(context, ofd, name, value, flag, callback);
+    ofd.getNode(context, setxattr);
   }
 }
 
@@ -1400,16 +1395,17 @@ function getxattr_file (context, path, name, callback) {
   path = normalize(path);
 
   function get_xattr(error, node) {
-    var xattr = (node ? node.xattrs[name] : null);
-
-    if (error) {
-      callback (error);
+    if(error) {
+      return callback(error);
     }
-    else if (!node.xattrs.hasOwnProperty(name)) {
+
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR(null, path));
     }
     else {
-      callback(null, node.xattrs[name]);
+      callback(null, xattrs[name]);
     }
   }
 
@@ -1427,16 +1423,17 @@ function getxattr_file (context, path, name, callback) {
 function fgetxattr_file (context, ofd, name, callback) {
 
   function get_xattr (error, node) {
-    var xattr = (node ? node.xattrs[name] : null);
-
     if (error) {
-      callback(error);
+      return callback(error);
     }
-    else if (!node.xattrs.hasOwnProperty(name)) {
+
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR());
     }
     else {
-      callback(null, node.xattrs[name]);
+      callback(null, xattrs[name]);
     }
   }
 
@@ -1447,7 +1444,7 @@ function fgetxattr_file (context, ofd, name, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   }
   else {
-    context.getObject(ofd.id, get_xattr);
+    ofd.getNode(context, get_xattr);
   }
 }
 
@@ -1455,7 +1452,9 @@ function removexattr_file (context, path, name, callback) {
   path = normalize(path);
 
   function remove_xattr (error, node) {
-    var xattr = (node ? node.xattrs : null);
+    if (error) {
+      return callback(error);
+    }
 
     function update_time(error) {
       if(error) {
@@ -1465,19 +1464,18 @@ function removexattr_file (context, path, name, callback) {
       }
     }
 
-    if (error) {
-      callback(error);
-    }
-    else if (!xattr.hasOwnProperty(name)) {
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR(null, path));
     }
     else {
-      delete node.xattrs[name];
+      delete xattrs[name];
       context.putObject(node.id, node, update_time);
     }
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
   }
   else if (!name) {
@@ -1491,6 +1489,10 @@ function removexattr_file (context, path, name, callback) {
 function fremovexattr_file (context, ofd, name, callback) {
 
   function remove_xattr (error, node) {
+    if (error) {
+      return callback(error);
+    }
+
     function update_time(error) {
       if(error) {
         callback(error);
@@ -1499,14 +1501,13 @@ function fremovexattr_file (context, ofd, name, callback) {
       }
     }
 
-    if (error) {
-      callback(error);
-    }
-    else if (!node.xattrs.hasOwnProperty(name)) {
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR());
     }
     else {
-      delete node.xattrs[name];
+      delete xattrs[name];
       context.putObject(node.id, node, update_time);
     }
   }
@@ -1518,7 +1519,7 @@ function fremovexattr_file (context, ofd, name, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   }
   else {
-    context.getObject(ofd.id, remove_xattr);
+    ofd.getNode(context, remove_xattr);
   }
 }
 

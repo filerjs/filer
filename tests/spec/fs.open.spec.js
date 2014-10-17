@@ -106,4 +106,35 @@ describe('fs.open', function() {
       });
     });
   });
+
+  /**
+   * This test is currently correct per our code, but incorrect according to the spec.
+   * When we fix https://github.com/filerjs/filer/issues/314 we'll have to update this.
+   */
+  it('should error if an ofd\'s node goes away while open', function(done) {
+    var fs = util.fs();
+
+    fs.writeFile('/myfile', 'data', function(error) {
+      if(error) throw error;
+
+      fs.open('/myfile', 'r', function(error, fd) {
+        if(error) throw error;
+
+        // Delete the file while it's still open
+        fs.unlink('/myfile', function(error) {
+          if(error) throw error;
+
+          // This should fail now, since fd points to a bad node
+          fs.fstat(fd, function(error, result) {
+            expect(error).to.exist;
+            expect(error.code).to.equal('EBADF');
+            expect(result).not.to.exist;
+
+            fs.close(fd);
+            done();
+          });
+        });
+      });
+    });
+  });
 });
