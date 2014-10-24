@@ -2356,24 +2356,6 @@ var Stats = _dereq_('../stats.js');
 var Buffer = _dereq_('../buffer.js');
 
 /**
- * Many functions below use this callback pattern. If it's not
- * re-defined, we use this to generate a callback. NOTE: this
- * can be use for callbacks of both forms without problem (i.e.,
- * since result will be undefined if not returned):
- *  - callback(error)
- *  - callback(error, result)
- */
-function standard_check_result_cb(callback) {
-  return function(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      callback(null, result);
-    }
-  };
-}
-
-/**
  * Update node times. Only passed times are modified (undefined times are ignored)
  * and filesystem flags are examined in order to override update logic.
  */
@@ -2603,45 +2585,26 @@ function find_node(context, path, callback) {
 /**
  * set extended attribute (refactor)
  */
-function set_extended_attribute (context, path_or_fd, name, value, flag, callback) {
-  var path;
-
-  function set_xattr (error, node) {
-    var xattr = (node ? node.xattrs[name] : null);
-
-    function update_time(error) {
-      if(error) {
-        callback(error);
-      } else {
-        update_node_times(context, path, node, { ctime: Date.now() }, callback);
-      }
-    }
-
-    if (error) {
+function set_extended_attribute (context, path, node, name, value, flag, callback) {
+  function update_time(error) {
+    if(error) {
       callback(error);
-    }
-    else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
-      callback(new Errors.EEXIST('attribute already exists', path_or_fd));
-    }
-    else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR(null, path_or_fd));
-    }
-    else {
-      node.xattrs[name] = value;
-      context.putObject(node.id, node, update_time);
+    } else {
+      update_node_times(context, path, node, { ctime: Date.now() }, callback);
     }
   }
 
-  if (typeof path_or_fd == 'string') {
-    path = path_or_fd;
-    find_node(context, path_or_fd, set_xattr);
+  var xattrs = node.xattrs;
+
+  if (flag === XATTR_CREATE && xattrs.hasOwnProperty(name)) {
+    callback(new Errors.EEXIST('attribute already exists', path));
   }
-  else if (typeof path_or_fd == 'object' && typeof path_or_fd.id == 'string') {
-    path = path_or_fd.path;
-    context.getObject(path_or_fd.id, set_xattr);
+  else if (flag === XATTR_REPLACE && !xattrs.hasOwnProperty(name)) {
+    callback(new Errors.ENOATTR(null, path));
   }
   else {
-    callback(new Errors.EINVAL('path or file descriptor of wrong type', path_or_fd));
+    xattrs[name] = value;
+    context.putObject(node.id, node, update_time);
   }
 }
 
@@ -3178,11 +3141,11 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
 function stat_file(context, path, callback) {
   path = normalize(path);
   var name = basename(path);
-  find_node(context, path, standard_check_result_cb(callback));
+  find_node(context, path, callback);
 }
 
 function fstat_file(context, ofd, callback) {
-  context.getObject(ofd.id, standard_check_result_cb(callback));
+  ofd.getNode(context, callback);
 }
 
 function lstat_file(context, path, callback) {
@@ -3194,7 +3157,7 @@ function lstat_file(context, path, callback) {
   var directoryData;
 
   if(ROOT_DIRECTORY_NAME == name) {
-    find_node(context, path, standard_check_result_cb(callback));
+    find_node(context, path, callback);
   } else {
     find_node(context, parentPath, read_directory_data);
   }
@@ -3216,7 +3179,7 @@ function lstat_file(context, path, callback) {
       if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
       } else {
-        context.getObject(directoryData[name].id, standard_check_result_cb(callback));
+        context.getObject(directoryData[name].id, callback);
       }
     }
   }
@@ -3649,7 +3612,7 @@ function ftruncate_file(context, ofd, length, callback) {
   if(length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
   } else {
-    context.getObject(ofd.id, read_file_data);
+    ofd.getNode(context, read_file_data);
   }
 }
 
@@ -3692,12 +3655,19 @@ function futimes_file(context, ofd, atime, mtime, callback) {
     callback(new Errors.EINVAL('atime and mtime must be positive integers'));
   }
   else {
-    context.getObject(ofd.id, update_times);
+    ofd.getNode(context, update_times);
   }
 }
 
 function setxattr_file(context, path, name, value, flag, callback) {
   path = normalize(path);
+
+  function setxattr(error, node) {
+    if(error) {
+      return callback(error);
+    }
+    set_extended_attribute(context, path, node, name, value, flag, callback);
+  }
 
   if (typeof name != 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
@@ -3710,12 +3680,19 @@ function setxattr_file(context, path, name, value, flag, callback) {
     callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE', path));
   }
   else {
-    set_extended_attribute(context, path, name, value, flag, callback);
+    find_node(context, path, setxattr);
   }
 }
 
 function fsetxattr_file (context, ofd, name, value, flag, callback) {
-  if (typeof name != 'string') {
+  function setxattr(error, node) {
+    if(error) {
+      return callback(error);
+    }
+    set_extended_attribute(context, ofd.path, node, name, value, flag, callback);
+  }
+
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string'));
   }
   else if (!name) {
@@ -3726,7 +3703,7 @@ function fsetxattr_file (context, ofd, name, value, flag, callback) {
     callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
   }
   else {
-    set_extended_attribute(context, ofd, name, value, flag, callback);
+    ofd.getNode(context, setxattr);
   }
 }
 
@@ -3734,16 +3711,17 @@ function getxattr_file (context, path, name, callback) {
   path = normalize(path);
 
   function get_xattr(error, node) {
-    var xattr = (node ? node.xattrs[name] : null);
-
-    if (error) {
-      callback (error);
+    if(error) {
+      return callback(error);
     }
-    else if (!node.xattrs.hasOwnProperty(name)) {
+
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR(null, path));
     }
     else {
-      callback(null, node.xattrs[name]);
+      callback(null, xattrs[name]);
     }
   }
 
@@ -3761,16 +3739,17 @@ function getxattr_file (context, path, name, callback) {
 function fgetxattr_file (context, ofd, name, callback) {
 
   function get_xattr (error, node) {
-    var xattr = (node ? node.xattrs[name] : null);
-
     if (error) {
-      callback(error);
+      return callback(error);
     }
-    else if (!node.xattrs.hasOwnProperty(name)) {
+
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR());
     }
     else {
-      callback(null, node.xattrs[name]);
+      callback(null, xattrs[name]);
     }
   }
 
@@ -3781,7 +3760,7 @@ function fgetxattr_file (context, ofd, name, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   }
   else {
-    context.getObject(ofd.id, get_xattr);
+    ofd.getNode(context, get_xattr);
   }
 }
 
@@ -3789,7 +3768,9 @@ function removexattr_file (context, path, name, callback) {
   path = normalize(path);
 
   function remove_xattr (error, node) {
-    var xattr = (node ? node.xattrs : null);
+    if (error) {
+      return callback(error);
+    }
 
     function update_time(error) {
       if(error) {
@@ -3799,19 +3780,18 @@ function removexattr_file (context, path, name, callback) {
       }
     }
 
-    if (error) {
-      callback(error);
-    }
-    else if (!xattr.hasOwnProperty(name)) {
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR(null, path));
     }
     else {
-      delete node.xattrs[name];
+      delete xattrs[name];
       context.putObject(node.id, node, update_time);
     }
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
   }
   else if (!name) {
@@ -3825,6 +3805,10 @@ function removexattr_file (context, path, name, callback) {
 function fremovexattr_file (context, ofd, name, callback) {
 
   function remove_xattr (error, node) {
+    if (error) {
+      return callback(error);
+    }
+
     function update_time(error) {
       if(error) {
         callback(error);
@@ -3833,14 +3817,13 @@ function fremovexattr_file (context, ofd, name, callback) {
       }
     }
 
-    if (error) {
-      callback(error);
-    }
-    else if (!node.xattrs.hasOwnProperty(name)) {
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR());
     }
     else {
-      delete node.xattrs[name];
+      delete xattrs[name];
       context.putObject(node.id, node, update_time);
     }
   }
@@ -3852,7 +3835,7 @@ function fremovexattr_file (context, ofd, name, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   }
   else {
-    context.getObject(ofd.id, remove_xattr);
+    ofd.getNode(context, remove_xattr);
   }
 }
 
@@ -3941,12 +3924,12 @@ function mkdir(fs, context, path, mode, callback) {
   // NOTE: we support passing a mode arg, but we ignore it internally for now.
   callback = arguments[arguments.length - 1];
   if(!pathCheck(path, callback)) return;
-  make_directory(context, path, standard_check_result_cb(callback));
+  make_directory(context, path, callback);
 }
 
 function rmdir(fs, context, path, callback) {
   if(!pathCheck(path, callback)) return;
-  remove_directory(context, path, standard_check_result_cb(callback));
+  remove_directory(context, path, callback);
 }
 
 function stat(fs, context, path, callback) {
@@ -3985,12 +3968,12 @@ function fstat(fs, context, fd, callback) {
 function link(fs, context, oldpath, newpath, callback) {
   if(!pathCheck(oldpath, callback)) return;
   if(!pathCheck(newpath, callback)) return;
-  link_node(context, oldpath, newpath, standard_check_result_cb(callback));
+  link_node(context, oldpath, newpath, callback);
 }
 
 function unlink(fs, context, path, callback) {
   if(!pathCheck(path, callback)) return;
-  unlink_node(context, path, standard_check_result_cb(callback));
+  unlink_node(context, path, callback);
 }
 
 function read(fs, context, fd, buffer, offset, length, position, callback) {
@@ -4010,7 +3993,7 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   } else if(!_(ofd.flags).contains(O_READ)) {
     callback(new Errors.EBADF('descriptor does not permit reading'));
   } else {
-    read_data(context, ofd, buffer, offset, length, position, standard_check_result_cb(wrapped_cb));
+    read_data(context, ofd, buffer, offset, length, position, wrapped_cb);
   }
 }
 
@@ -4085,7 +4068,7 @@ function write(fs, context, fd, buffer, offset, length, position, callback) {
   } else if(buffer.length - offset < length) {
     callback(new Errors.EIO('intput buffer is too small'));
   } else {
-    write_data(context, ofd, buffer, offset, length, position, standard_check_result_cb(callback));
+    write_data(context, ofd, buffer, offset, length, position, callback);
   }
 }
 
@@ -4172,7 +4155,7 @@ function exists(fs, context, path, callback) {
 
 function getxattr(fs, context, path, name, callback) {
   if (!pathCheck(path, callback)) return;
-  getxattr_file(context, path, name, standard_check_result_cb(callback));
+  getxattr_file(context, path, name, callback);
 }
 
 function fgetxattr(fs, context, fd, name, callback) {
@@ -4181,7 +4164,7 @@ function fgetxattr(fs, context, fd, name, callback) {
     callback(new Errors.EBADF());
   }
   else {
-    fgetxattr_file(context, ofd, name, standard_check_result_cb(callback));
+    fgetxattr_file(context, ofd, name, callback);
   }
 }
 
@@ -4192,7 +4175,7 @@ function setxattr(fs, context, path, name, value, flag, callback) {
   }
 
   if (!pathCheck(path, callback)) return;
-  setxattr_file(context, path, name, value, flag, standard_check_result_cb(callback));
+  setxattr_file(context, path, name, value, flag, callback);
 }
 
 function fsetxattr(fs, context, fd, name, value, flag, callback) {
@@ -4209,13 +4192,13 @@ function fsetxattr(fs, context, fd, name, value, flag, callback) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   }
   else {
-    fsetxattr_file(context, ofd, name, value, flag, standard_check_result_cb(callback));
+    fsetxattr_file(context, ofd, name, value, flag, callback);
   }
 }
 
 function removexattr(fs, context, path, name, callback) {
   if (!pathCheck(path, callback)) return;
-  removexattr_file(context, path, name, standard_check_result_cb(callback));
+  removexattr_file(context, path, name, callback);
 }
 
 function fremovexattr(fs, context, fd, name, callback) {
@@ -4227,7 +4210,7 @@ function fremovexattr(fs, context, fd, name, callback) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   }
   else {
-    fremovexattr_file(context, ofd, name, standard_check_result_cb(callback));
+    fremovexattr_file(context, ofd, name, callback);
   }
 }
 
@@ -4273,7 +4256,7 @@ function lseek(fs, context, fd, offset, whence, callback) {
 
 function readdir(fs, context, path, callback) {
   if(!pathCheck(path, callback)) return;
-  read_directory(context, path, standard_check_result_cb(callback));
+  read_directory(context, path, callback);
 }
 
 function utimes(fs, context, path, atime, mtime, callback) {
@@ -4283,7 +4266,7 @@ function utimes(fs, context, path, atime, mtime, callback) {
   atime = (atime) ? atime : currentTime;
   mtime = (mtime) ? mtime : currentTime;
 
-  utimes_file(context, path, atime, mtime, standard_check_result_cb(callback));
+  utimes_file(context, path, atime, mtime, callback);
 }
 
 function futimes(fs, context, fd, atime, mtime, callback) {
@@ -4297,7 +4280,7 @@ function futimes(fs, context, fd, atime, mtime, callback) {
   } else if(!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
-    futimes_file(context, ofd, atime, mtime, standard_check_result_cb(callback));
+    futimes_file(context, ofd, atime, mtime, callback);
   }
 }
 
@@ -4309,7 +4292,7 @@ function rename(fs, context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
-      unlink_node(context, oldpath, standard_check_result_cb(callback));
+      unlink_node(context, oldpath, callback);
     }
   }
 
@@ -4321,12 +4304,12 @@ function symlink(fs, context, srcpath, dstpath, type, callback) {
   callback = arguments[arguments.length - 1];
   if(!pathCheck(srcpath, callback)) return;
   if(!pathCheck(dstpath, callback)) return;
-  make_symbolic_link(context, srcpath, dstpath, standard_check_result_cb(callback));
+  make_symbolic_link(context, srcpath, dstpath, callback);
 }
 
 function readlink(fs, context, path, callback) {
   if(!pathCheck(path, callback)) return;
-  read_link(context, path, standard_check_result_cb(callback));
+  read_link(context, path, callback);
 }
 
 function lstat(fs, context, path, callback) {
@@ -4350,7 +4333,7 @@ function truncate(fs, context, path, length, callback) {
   length = length || 0;
 
   if(!pathCheck(path, callback)) return;
-  truncate_file(context, path, length, standard_check_result_cb(callback));
+  truncate_file(context, path, length, callback);
 }
 
 function ftruncate(fs, context, fd, length, callback) {
@@ -4364,7 +4347,7 @@ function ftruncate(fs, context, fd, length, callback) {
   } else if(!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
-    ftruncate_file(context, ofd, length, standard_check_result_cb(callback));
+    ftruncate_file(context, ofd, length, callback);
   }
 }
 
@@ -4874,14 +4857,39 @@ Node.create = function(options, callback) {
 module.exports = Node;
 
 },{"./constants.js":11}],20:[function(_dereq_,module,exports){
-module.exports = function OpenFileDescription(path, id, flags, position) {
+var Errors = _dereq_('./errors.js');
+
+function OpenFileDescription(path, id, flags, position) {
   this.path = path;
   this.id = id;
   this.flags = flags;
   this.position = position;
+}
+
+// Tries to find the node associated with an ofd's `id`.
+// If not found, an error is returned on the callback.
+OpenFileDescription.prototype.getNode = function(context, callback) {
+  var id = this.id;
+  var path = this.path;
+
+  function check_if_node_exists(error, node) {
+    if(error) {
+      return callback(error);
+    }
+
+    if(!node) {
+      return callback(new Errors.EBADF('file descriptor refers to unknown node', path));
+    }
+
+    callback(null, node);
+  }
+
+  context.getObject(id, check_if_node_exists);
 };
 
-},{}],21:[function(_dereq_,module,exports){
+module.exports = OpenFileDescription;
+
+},{"./errors.js":14}],21:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
