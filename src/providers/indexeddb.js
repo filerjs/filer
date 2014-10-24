@@ -73,7 +73,13 @@ IndexedDBContext.prototype.putObject = function(key, value, callback) {
   _put(this.objectStore, key, value, callback);
 };
 IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
-  _put(this.objectStore, key, uint8BackedBuffer.buffer, callback);
+  var buf;
+  if(!Buffer._useTypedArrays) { // workaround for fxos 1.3
+    buf = uint8BackedBuffer.toArrayBuffer();
+  } else {
+    buf = uint8BackedBuffer.buffer;
+  }
+  _put(this.objectStore, key, buf, callback);
 };
 
 IndexedDBContext.prototype.delete = function(key, callback) {
