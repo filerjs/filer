@@ -8,14 +8,14 @@ describe("fs.shell", function() {
 
   it("is a function", function(done) {
     var fs = util.fs();
-    expect(typeof fs.shell).to.equal('function');
+    expect(typeof fs.Shell).to.equal('function');
 
     done();
   });
 
   it('should return a FileSystemShell instance', function(done) {
     var fs = util.fs();
-    var sh = fs.shell();
+    var sh = new fs.Shell();
 
     expect(sh.prototype).to.deep.equal((new Filer.Shell(fs)).prototype);
     done();
@@ -23,7 +23,7 @@ describe("fs.shell", function() {
 
   it('should reflect changes to the prototype', function(done){
     var fs = util.fs();
-    var sh = fs.shell();
+    var sh = new fs.Shell();
 
     Filer.Shell.prototype.test = "foo";
 

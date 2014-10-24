@@ -87,6 +87,9 @@ function FileSystem(options, callback) {
   fs.stdout = STDOUT;
   fs.stderr = STDERR;
 
+  // Expose Shell constructor
+  this.Shell = Shell.bind(undefined, this);
+
   // Safely expose the list of open files and file
   // descriptor management functions
   var openFiles = {};
@@ -333,9 +336,5 @@ FileSystem.providers = providers;
     }
   };
 });
-
-FileSystem.prototype.shell = function(options) {
-  return new Shell(this, options);
-};
 
 module.exports = FileSystem;

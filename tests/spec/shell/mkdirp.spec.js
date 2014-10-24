@@ -13,7 +13,7 @@ describe('FileSystemShell.mkdirp', function() {
 
   it('should fail without a path provided', function(done) {
     var fs = util.fs();
-    var shell = fs.shell();
+    var shell = new fs.Shell();
 
     shell.mkdirp(null, function(err) {
       expect(err).to.exist;
@@ -24,7 +24,7 @@ describe('FileSystemShell.mkdirp', function() {
 
   it('should succeed if provided path is root', function(done) {
     var fs = util.fs();
-    var shell = fs.shell();
+    var shell = new fs.Shell();
     shell.mkdirp('/', function(err) {
       expect(err).to.not.exist;
       done();
@@ -33,7 +33,7 @@ describe('FileSystemShell.mkdirp', function() {
 
   it('should succeed if the directory exists', function(done) {
     var fs = util.fs();
-    var shell = fs.shell();
+    var shell = new fs.Shell();
     fs.mkdir('/test', function(err){
       expect(err).to.not.exist;
       shell.mkdirp('/test',function(err) {
@@ -45,7 +45,7 @@ describe('FileSystemShell.mkdirp', function() {
 
   it('fail if a file name is provided', function(done) {
     var fs = util.fs();
-    var shell = fs.shell();
+    var shell = new fs.Shell();
     fs.writeFile('/test.txt', 'test', function(err){
       expect(err).to.not.exist;
       shell.mkdirp('/test.txt', function(err) {
@@ -58,7 +58,7 @@ describe('FileSystemShell.mkdirp', function() {
 
   it('should succeed on a folder on root (\'/test\')', function(done) {
     var fs = util.fs();
-    var shell = fs.shell();
+    var shell = new fs.Shell();
     shell.mkdirp('/test', function(err) {
       expect(err).to.not.exist;
       fs.exists('/test', function(dir){
@@ -70,7 +70,7 @@ describe('FileSystemShell.mkdirp', function() {
 
   it('should succeed on a folder with a nonexistant parent (\'/test/test\')', function(done) {
     var fs = util.fs();
-    var shell = fs.shell();
+    var shell = new fs.Shell();
     shell.mkdirp('/test/test', function(err) {
       expect(err).to.not.exist;
       fs.exists('/test', function(dir1){
@@ -85,7 +85,7 @@ describe('FileSystemShell.mkdirp', function() {
 
   it('should fail on a folder with a file for its parent (\'/test.txt/test\')', function(done) {
     var fs = util.fs();
-    var shell = fs.shell();
+    var shell = new fs.Shell();
     fs.writeFile('/test.txt', 'test', function(err){
       expect(err).to.not.exist;
       shell.mkdirp('/test.txt/test', function(err) {
