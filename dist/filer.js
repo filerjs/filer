@@ -5153,7 +5153,7 @@ module.exports = {
 };
 
 },{"./indexeddb.js":23,"./memory.js":24,"./websql.js":25}],23:[function(_dereq_,module,exports){
-(function (global){
+(function (global,Buffer){
 var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = _dereq_('../constants.js').FILE_STORE_NAME;
 var IDB_RW = _dereq_('../constants.js').IDB_RW;
@@ -5229,7 +5229,13 @@ IndexedDBContext.prototype.putObject = function(key, value, callback) {
   _put(this.objectStore, key, value, callback);
 };
 IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
-  _put(this.objectStore, key, uint8BackedBuffer.buffer, callback);
+  var buf;
+  if(!Buffer._useTypedArrays) { // workaround for fxos 1.3
+    buf = uint8BackedBuffer.toArrayBuffer();
+  } else {
+    buf = uint8BackedBuffer.buffer;
+  }
+  _put(this.objectStore, key, buf, callback);
 };
 
 IndexedDBContext.prototype.delete = function(key, callback) {
@@ -5297,8 +5303,8 @@ IndexedDB.prototype.getReadWriteContext = function() {
 
 module.exports = IndexedDB;
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../buffer.js":10,"../constants.js":11,"../errors.js":14}],24:[function(_dereq_,module,exports){
+}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer)
+},{"../buffer.js":10,"../constants.js":11,"../errors.js":14,"buffer":6}],24:[function(_dereq_,module,exports){
 var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
 // NOTE: prefer setImmediate to nextTick for proper recursion yielding.
 // see https://github.com/js-platform/filer/pull/24
