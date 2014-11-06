@@ -97,7 +97,7 @@ module.exports = function(grunt) {
         files: ['package.json', 'bower.json'],
         commit: true,
         commitMessage: 'v%VERSION%',
-        commitFiles: ['package.json', 'bower.json', './dist/filer.js', './dist/filer.min.js', './dist/filer-test.js'],
+        commitFiles: ['package.json', 'bower.json', './dist/filer.js', './dist/filer.min.js'],
         createTag: true,
         tagName: 'v%VERSION%',
         tagMessage: 'v%VERSION%',
@@ -162,6 +162,35 @@ module.exports = function(grunt) {
         },
       }
     },
+
+    gitpull: {
+      publish: {
+        options: {
+          remote: GIT_REMOTE,
+          branch: 'develop',
+          force: true
+        },
+      }
+    },
+
+    gitcommit: {
+      publish: {
+        options: {
+          message: 'Tests for Filer v' +
+            JSON.parse(fs.readFileSync('./package.json', 'utf8')).version,
+          noStatus: true
+        }
+      }
+    },
+
+    gitadd: {
+      publish: {
+        files: {
+          src: ['./dist/filer-test.js']
+        }
+      }
+    },
+
     connect: {
       serverForNode: {
         options: {
@@ -191,7 +220,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-browserify');
 
-  grunt.registerTask('develop', ['clean', 'browserify']);
+  grunt.registerTask('develop', ['clean', 'browserify:filerDist', 'browserify:filerIssue225']);
   grunt.registerTask('build-tests', ['clean', 'browserify:filerTest']);
   grunt.registerTask('release', ['test', 'develop', 'uglify']);
 
@@ -218,6 +247,10 @@ module.exports = function(grunt) {
       'release',
       'bump:' + patchLevel,
       'gitcheckout:publish',
+      'gitpull:publish',
+      'build-tests',
+      'gitadd:publish',
+      'gitcommit:publish',
       'gitpush:publish',
       'gitcheckout:revert',
       'npm-publish'
