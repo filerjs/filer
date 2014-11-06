@@ -85,7 +85,8 @@
   }
 
   function shell(options) {
-    return new (fs()).Shell(options);
+    var _fs = fs();
+    return new _fs.Shell(options);
   }
 
   function cleanup(callback) {
