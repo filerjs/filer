@@ -143,7 +143,7 @@ module.exports = function(grunt) {
       publish: {
         options: {
           branch: 'gh-pages',
-          overwrite: true
+          force: true
         }
       },
       revert: {
@@ -163,27 +163,33 @@ module.exports = function(grunt) {
       }
     },
 
-    gitpull: {
-      publish: {
-        options: {
-          remote: GIT_REMOTE,
-          branch: 'develop',
-          force: true
-        },
-      }
-    },
-
     gitcommit: {
       publish: {
         options: {
-          message: 'Tests for Filer v' +
-            JSON.parse(fs.readFileSync('./package.json', 'utf8')).version,
           noStatus: true
         }
       }
     },
 
     gitadd: {
+      publish: {
+        files: {
+          src: ['./dist/filer-test.js']
+        }
+      }
+    },
+
+    gitstash: {
+      publish: {
+      },
+      pop: {
+        options: {
+          command: "pop"
+        }
+      }
+    },
+
+    gitrm: {
       publish: {
         files: {
           src: ['./dist/filer-test.js']
@@ -205,6 +211,17 @@ module.exports = function(grunt) {
           keepalive: true
         }
       }
+    },
+
+    usebanner: {
+      publish: {
+        options: {
+          position: "top"
+        },
+        files: {
+          src: ['./dist/filer-test.js']
+        }
+      }
     }
   });
 
@@ -219,6 +236,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-banner');
 
   grunt.registerTask('develop', ['clean', 'browserify:filerDist', 'browserify:filerIssue225']);
   grunt.registerTask('build-tests', ['clean', 'browserify:filerTest']);
@@ -241,15 +259,30 @@ module.exports = function(grunt) {
       ' to ' + semver.inc(currentVersion, patchLevel).yellow + '?';
     grunt.config('prompt.confirm.options', promptOpts);
 
+    // Store the new version in the gh-pages commit message
+    var ghPagesMessage = 'Tests for Filer v' + semver.inc(currentVersion, patchLevel);
+    grunt.config('gitcommit.publish.options.message', ghPagesMessage);
+
+    // Store the new version as a banner in the test file
+    // NOTE: This is a hack intended to ensure that this build process
+    //       succeeds even if no changes were made to the tests
+    //       before publishing a new version. Otherwise, the automatic
+    //       commit + push to github pages would break a normal build
+    var bannerMsg = "/* Test file for filerjs v" + semver.inc(currentVersion, patchLevel) + "*/";
+    grunt.config('usebanner.publish.options.banner', bannerMsg);
+
     grunt.task.run([
       'prompt:confirm',
       'checkBranch',
       'release',
       'bump:' + patchLevel,
-      'gitcheckout:publish',
-      'gitpull:publish',
       'build-tests',
+      'usebanner:publish',
       'gitadd:publish',
+      'gitstash:publish',
+      'gitcheckout:publish',
+      'gitrm:publish',
+      'gitstash:pop',
       'gitcommit:publish',
       'gitpush:publish',
       'gitcheckout:revert',
