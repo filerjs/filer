@@ -8,7 +8,7 @@ describe('sh.cd doesn\'t seem to be working from a relative path if I am one or 
 
   it('should properly deal with relative paths missing ./ and ../', function(done) {
     var fs = util.fs();
-    var sh = fs.Shell();
+    var sh = new fs.Shell();
 
     sh.mkdirp('/home/scott', function(err) {
       if(err) throw err;
