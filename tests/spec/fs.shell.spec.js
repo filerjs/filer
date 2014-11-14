@@ -2,7 +2,7 @@ var Filer = require('../..');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
-describe("fs.shell", function() {
+describe("fs.Shell", function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 

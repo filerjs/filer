@@ -1093,20 +1093,20 @@ and provides augmented features. Many separate `FileSystemShell` objects can exi
 `FileSystem`, but each `FileSystemShell` is bound to a single instance of a `FileSystem`
 for its lifetime.
 
-A `FileSystemShell` is created by calling `Filer.FileSystem().shell()`:
+A `FileSystemShell` is created by instantiating `Filer.FileSystem().Shell`:
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = fs.shell(options);
-var sh2 = fs.shell(options);
+var sh = new fs.Shell(options);
+var sh2 = new fs.Shell(options);
 // sh and sh2 are two separate shells, each bound to fs
 ```
 
-Or, the original object can be accessed through `Filer`:
+In addition, the constructor function can be accessed through `Filer`:
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = fs.shell();
+var sh = new fs.Shell();
 
 Filer.Shell.prototype.newFunction = ...;
 
@@ -1120,7 +1120,7 @@ others may be added in the future. You can also add your own, or update existing
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = fs.shell({
+var sh = new fs.Shell({
   env: {
     TMP: '/tempdir',
     PATH: '/one:/two'
@@ -1146,7 +1146,7 @@ Example:
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = fs.shell();
+var sh = new fs.Shell();
 var p = sh.env.get('PATH');
 
 // Store the current location
@@ -1166,7 +1166,7 @@ examples below assume a `FileSystemShell` instance named `sh` has been created l
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = fs.shell();
+var sh = new fs.Shell();
 ```
 
 * [sh.cd(path, callback)](#cd)
