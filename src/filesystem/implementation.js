@@ -813,6 +813,8 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
   function read_file_data(error, result) {
     if(error) {
       callback(error);
+    } else if(result.mode === 'DIRECTORY') {
+      callback(new Errors.EISDIR('the named file is a directory', ofd.path));
     } else {
       fileNode = result;
       context.getBuffer(fileNode.data, handle_file_data);
