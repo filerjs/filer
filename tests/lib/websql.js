@@ -12,9 +12,12 @@ function WebSQLTestProvider(name) {
   var that = this;
 
   function cleanup(callback) {
+    callback = callback || function(){};
+
     if(!that.provider || _done) {
       return callback();
     }
+
     // Provider is there, but db was never touched
     if(!that.provider.db) {
       return callback();

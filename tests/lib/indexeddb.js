@@ -17,6 +17,8 @@ function IndexedDBTestProvider(name) {
   var that = this;
 
   function cleanup(callback) {
+    callback = callback || function(){};
+
     if(!that.provider || _done) {
       return callback();
     }
@@ -27,7 +29,6 @@ function IndexedDBTestProvider(name) {
       that.provider.db.close();
     }
 
-    callback = callback || function(){};
     var request = indexedDB.deleteDatabase(name);
     function finished() {
       that.provider = null;
