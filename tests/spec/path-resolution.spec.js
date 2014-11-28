@@ -223,4 +223,22 @@ describe('path resolution', function() {
       });
     });
   });
+
+  it('should properly add trailing slashes with Path.addTrailing()', function() {
+    var Path = Filer.Path;
+    expect(Path.addTrailing('/')).to.equal('/');
+    expect(Path.addTrailing('/////')).to.equal('/');
+    expect(Path.addTrailing('.')).to.equal('./');
+    expect(Path.addTrailing('/dir')).to.equal('/dir/');
+    expect(Path.addTrailing('/dir/')).to.equal('/dir/');
+  });
+
+  it('should properly remove trailing slashes with Path.removeTrailing()', function() {
+    var Path = Filer.Path;
+    expect(Path.removeTrailing('/')).to.equal('/');
+    expect(Path.removeTrailing('/////')).to.equal('/');
+    expect(Path.removeTrailing('./')).to.equal('.');
+    expect(Path.removeTrailing('/dir/')).to.equal('/dir');
+    expect(Path.removeTrailing('/dir//')).to.equal('/dir');
+  });
 });
