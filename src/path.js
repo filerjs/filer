@@ -66,7 +66,7 @@ function resolve() {
       resolvedAbsolute = false;
 
   for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    // XXXidbfs: we don't have process.cwd() so we use '/' as a fallback
+    // XXXfiler: we don't have process.cwd() so we use '/' as a fallback
     var path = (i >= 0) ? arguments[i] : '/';
 
     // Skip empty and invalid entries
@@ -184,7 +184,7 @@ function basename(path, ext) {
   if (ext && f.substr(-1 * ext.length) === ext) {
     f = f.substr(0, f.length - ext.length);
   }
-  // XXXidbfs: node.js just does `return f`
+  // XXXfiler: node.js just does `return f`
   return f === "" ? "/" : f;
 }
 
@@ -206,7 +206,19 @@ function isNull(path) {
   return false;
 }
 
-// XXXidbfs: we don't support path.exists() or path.existsSync(), which
+// Make sure we don't double-add a trailing slash (e.g., '/' -> '//')
+function addTrailing(path) {
+  return path.replace(/\/*$/, '/');
+}
+
+// Deal with multiple slashes at the end, one, or none
+// and make sure we don't return the empty string.
+function removeTrailing(path) {
+  path = path.replace(/\/*$/, '');
+  return path === '' ? '/' : path;
+}
+
+// XXXfiler: we don't support path.exists() or path.existsSync(), which
 // are deprecated, and need a FileSystem instance to work. Use fs.stat().
 
 module.exports = {
@@ -220,5 +232,8 @@ module.exports = {
   basename: basename,
   extname: extname,
   isAbsolute: isAbsolute,
-  isNull: isNull
+  isNull: isNull,
+  // Non-node but useful...
+  addTrailing: addTrailing,
+  removeTrailing: removeTrailing
 };

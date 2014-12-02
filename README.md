@@ -1171,6 +1171,7 @@ var sh = new fs.Shell();
 
 * [sh.cd(path, callback)](#cd)
 * [sh.pwd()](#pwd)
+* [sh.find(dir, [options], callback)](#find)
 * [sh.ls(dir, [options], callback)](#ls)
 * [sh.exec(path, [args], callback)](#exec)
 * [sh.touch(path, [options], callback)](#touch)
@@ -1198,6 +1199,66 @@ sh.cd('/dir1', function(err) {
 #### sh.pwd()<a name="pwd"></a>
 
 Returns the shell's current working directory. See [sh.cd()](#cd).
+
+#### sh.find(dir, [options], callback)<a name="find"></a>
+
+Recursively walk a directory tree, reporting back all paths that were
+found along the way. Asynchronous [find(1)](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/find.html
+)
+If given no options, `find` walks the given dir path
+and the callback gives `function(err, found)`, where `found` is an array of
+all paths discovered during a depth-first walk.
+
+Valid options include a `regex` for pattern matching paths, allowing paths
+to be ignored (e.g., ```regex: /\.bak$/``` to find all `.bak` files). You can
+also use `name` and `path` to provide a [match pattern](https://github.com/isaacs/minimatch) for the basename and
+dirname respectively (e.g., `{name: '*.js'}` to find all JavaScript files or
+`{path: '*-modules'}` to only look in folders named `base-modules`, `foo-modules`, etc.).
+Finally, you can also provide an `exec` function of the form `function(path, next)` where
+`path` is the current path that was found and matches any provided `regex`
+(NOTE: dir paths have an '/' appended), and `next` is a callback to call
+when you are done processing the path.
+
+Example:
+
+```javascript
+function processPath(path, next) {
+  // Process the path somehow, in this case we print it.
+  // Dir paths end with /
+  if(path.endsWith('/')) {
+    console.log('Found dir: ' + path);
+  } else {
+    console.log('Found file: ' + path);
+  }
+
+  // All done, let the process continue by invoking second arg:
+  next();
+}
+
+// Get every path (NOTE: no name or regex provided) below the root, depth first
+sh.find('/', {exec: processPath}, function(err, found) {
+  /* find command is finished, `found` contains the flattened list as an Array */
+});
+
+// Find all files that look like map201.jpg, map202.jpg in the /data dir
+sh.find('/data', {regex: /map20\d\.jpg$/, exec: processPath}, function(err) {
+  /* find command is finished */
+});
+
+// Find and delete all *.bak files under /app/user
+sh.find('/app/user', {
+  name: '*.bak',
+  exec: function(path, next) {
+    sh.rm(path, next);
+  }
+}, function callback(err, found) {
+  if(err) throw err;
+
+  if(found.length) {
+    console.log('Deleted the following ' + found.length + ' files: ', found);
+  }
+});
+```
 
 #### sh.ls(dir, [options], callback)<a name="ls"></a>
 

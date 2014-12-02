@@ -3,6 +3,7 @@ var Errors = require('../errors.js');
 var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
 var Encoding = require('../encoding.js');
+var minimatch = require('minimatch');
 
 function Shell(fs, options) {
   options = options || {};
@@ -424,6 +425,122 @@ Shell.prototype.mkdirp = function(path, callback) {
   }
 
   _mkdirp(path, callback);
+};
+
+/**
+ * Recursively walk a directory tree, reporting back all paths
+ * that were found along the way. The `path` must be a dir.
+ * Valid options include a `regex` for pattern matching paths
+ * and an `exec` function of the form `function(path, next)` where
+ * `path` is the current path that was found (dir paths have an '/'
+ * appended) and `next` is a callback to call when done processing
+ * the current path, passing any error object back as the first argument.
+ * `find` returns a flat array of absolute paths for all matching/found
+ * paths as the final argument to the callback.
+ */
+ Shell.prototype.find = function(path, options, callback) {
+  var sh = this;
+  var fs = sh.fs;
+  if(typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  options = options || {};
+  callback = callback || function(){};
+
+  var exec = options.exec || function(path, next) { next(); };
+  var found = [];
+
+  if(!path) {
+    callback(new Errors.EINVAL('Missing path argument'));
+    return;
+  }
+
+  function processPath(path, callback) {
+    exec(path, function(err) {
+      if(err) {
+        callback(err);
+        return;
+      }
+
+      found.push(path);
+      callback();
+    });
+  }
+
+  function maybeProcessPath(path, callback) {
+    // Test the path against the user's regex, name, path primaries (if any)
+    // and remove any trailing slashes added previously.
+    var rawPath = Path.removeTrailing(path);
+
+    // Check entire path against provided regex, if any
+    if(options.regex && !options.regex.test(rawPath)) {
+      callback();
+      return;
+    }
+
+    // Check basename for matches against name primary, if any
+    if(options.name && !minimatch(Path.basename(rawPath), options.name)) {
+      callback();
+      return;
+    }
+
+    // Check dirname for matches against path primary, if any
+    if(options.path && !minimatch(Path.dirname(rawPath), options.path)) {
+      callback();
+      return;
+    }
+
+    processPath(path, callback);
+  }
+
+  function walk(path, callback) {
+    path = Path.resolve(sh.pwd(), path);
+
+    // The path is either a file or dir, and instead of doing
+    // a stat() to determine it first, we just try to readdir()
+    // and it will either work or not, and we handle the non-dir error.
+    fs.readdir(path, function(err, entries) {
+      if(err) {
+        if(err.code === 'ENOTDIR' /* file case, ignore error */) {
+          maybeProcessPath(path, callback);
+        } else {
+          callback(err);
+        }
+        return;
+      }
+
+      // Path is really a dir, add a trailing / and report it found
+      maybeProcessPath(Path.addTrailing(path), function(err) {
+        if(err) {
+          callback(err);
+          return;
+        }
+
+        entries = entries.map(function(entry) {
+          return Path.join(path, entry);
+        });
+
+        async.eachSeries(entries, walk, function(err) {
+          callback(err, found);
+        });
+      });
+    });
+  }
+
+  // Make sure we are starting with a dir path
+  fs.stat(path, function(err, stats) {
+    if(err) {
+      callback(err);
+      return;
+    }
+    if(!stats.isDirectory()) {
+      callback(new Errors.ENOTDIR(null, path));
+      return;
+    }
+
+    walk(path, callback);
+  });
 };
 
 module.exports = Shell;
