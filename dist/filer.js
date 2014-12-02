@@ -87,7 +87,7 @@
 }());
 
 }).call(this,_dereq_("JkpR2F"))
-},{"JkpR2F":9}],2:[function(_dereq_,module,exports){
+},{"JkpR2F":10}],2:[function(_dereq_,module,exports){
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -482,7 +482,7 @@ Intercom.getInstance = (function() {
 module.exports = Intercom;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../src/shared.js":26,"./eventemitter.js":2}],4:[function(_dereq_,module,exports){
+},{"../src/shared.js":30,"./eventemitter.js":2}],4:[function(_dereq_,module,exports){
 // Cherry-picked bits of underscore.js, lodash.js
 
 /**
@@ -2009,6 +2009,234 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
 };
 
 },{}],9:[function(_dereq_,module,exports){
+(function (process){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// resolves . and .. elements in a path array with directory names there
+// must be no slashes, empty elements, or device names (c:\) in the array
+// (so also no leading and trailing slashes - it does not distinguish
+// relative and absolute paths)
+function normalizeArray(parts, allowAboveRoot) {
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var last = parts[i];
+    if (last === '.') {
+      parts.splice(i, 1);
+    } else if (last === '..') {
+      parts.splice(i, 1);
+      up++;
+    } else if (up) {
+      parts.splice(i, 1);
+      up--;
+    }
+  }
+
+  // if the path is allowed to go above the root, restore leading ..s
+  if (allowAboveRoot) {
+    for (; up--; up) {
+      parts.unshift('..');
+    }
+  }
+
+  return parts;
+}
+
+// Split a filename into [root, dir, basename, ext], unix version
+// 'root' is just a slash, or nothing.
+var splitPathRe =
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+var splitPath = function(filename) {
+  return splitPathRe.exec(filename).slice(1);
+};
+
+// path.resolve([from ...], to)
+// posix version
+exports.resolve = function() {
+  var resolvedPath = '',
+      resolvedAbsolute = false;
+
+  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+    var path = (i >= 0) ? arguments[i] : process.cwd();
+
+    // Skip empty and invalid entries
+    if (typeof path !== 'string') {
+      throw new TypeError('Arguments to path.resolve must be strings');
+    } else if (!path) {
+      continue;
+    }
+
+    resolvedPath = path + '/' + resolvedPath;
+    resolvedAbsolute = path.charAt(0) === '/';
+  }
+
+  // At this point the path should be resolved to a full absolute path, but
+  // handle relative paths to be safe (might happen when process.cwd() fails)
+
+  // Normalize the path
+  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
+    return !!p;
+  }), !resolvedAbsolute).join('/');
+
+  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+};
+
+// path.normalize(path)
+// posix version
+exports.normalize = function(path) {
+  var isAbsolute = exports.isAbsolute(path),
+      trailingSlash = substr(path, -1) === '/';
+
+  // Normalize the path
+  path = normalizeArray(filter(path.split('/'), function(p) {
+    return !!p;
+  }), !isAbsolute).join('/');
+
+  if (!path && !isAbsolute) {
+    path = '.';
+  }
+  if (path && trailingSlash) {
+    path += '/';
+  }
+
+  return (isAbsolute ? '/' : '') + path;
+};
+
+// posix version
+exports.isAbsolute = function(path) {
+  return path.charAt(0) === '/';
+};
+
+// posix version
+exports.join = function() {
+  var paths = Array.prototype.slice.call(arguments, 0);
+  return exports.normalize(filter(paths, function(p, index) {
+    if (typeof p !== 'string') {
+      throw new TypeError('Arguments to path.join must be strings');
+    }
+    return p;
+  }).join('/'));
+};
+
+
+// path.relative(from, to)
+// posix version
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
+
+  function trim(arr) {
+    var start = 0;
+    for (; start < arr.length; start++) {
+      if (arr[start] !== '') break;
+    }
+
+    var end = arr.length - 1;
+    for (; end >= 0; end--) {
+      if (arr[end] !== '') break;
+    }
+
+    if (start > end) return [];
+    return arr.slice(start, end - start + 1);
+  }
+
+  var fromParts = trim(from.split('/'));
+  var toParts = trim(to.split('/'));
+
+  var length = Math.min(fromParts.length, toParts.length);
+  var samePartsLength = length;
+  for (var i = 0; i < length; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      samePartsLength = i;
+      break;
+    }
+  }
+
+  var outputParts = [];
+  for (var i = samePartsLength; i < fromParts.length; i++) {
+    outputParts.push('..');
+  }
+
+  outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+  return outputParts.join('/');
+};
+
+exports.sep = '/';
+exports.delimiter = ':';
+
+exports.dirname = function(path) {
+  var result = splitPath(path),
+      root = result[0],
+      dir = result[1];
+
+  if (!root && !dir) {
+    // No dirname whatsoever
+    return '.';
+  }
+
+  if (dir) {
+    // It has a dirname, strip trailing slash
+    dir = dir.substr(0, dir.length - 1);
+  }
+
+  return root + dir;
+};
+
+
+exports.basename = function(path, ext) {
+  var f = splitPath(path)[2];
+  // TODO: make this comparison case-insensitive on windows?
+  if (ext && f.substr(-1 * ext.length) === ext) {
+    f = f.substr(0, f.length - ext.length);
+  }
+  return f;
+};
+
+
+exports.extname = function(path) {
+  return splitPath(path)[3];
+};
+
+function filter (xs, f) {
+    if (xs.filter) return xs.filter(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i], i, xs)) res.push(xs[i]);
+    }
+    return res;
+}
+
+// String.prototype.substr - negative index don't work in IE8
+var substr = 'ab'.substr(-1) === 'b'
+    ? function (str, start, len) { return str.substr(start, len) }
+    : function (str, start, len) {
+        if (start < 0) start = str.length + start;
+        return str.substr(start, len);
+    }
+;
+
+}).call(this,_dereq_("JkpR2F"))
+},{"JkpR2F":10}],10:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -2073,7 +2301,1379 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
+(function (process){
+;(function (_dereq_, exports, module, platform) {
+
+if (module) module.exports = minimatch
+else exports.minimatch = minimatch
+
+if (!_dereq_) {
+  _dereq_ = function (id) {
+    switch (id) {
+      case "sigmund": return function sigmund (obj) {
+        return JSON.stringify(obj)
+      }
+      case "path": return { basename: function (f) {
+        f = f.split(/[\/\\]/)
+        var e = f.pop()
+        if (!e) e = f.pop()
+        return e
+      }}
+      case "lru-cache": return function LRUCache () {
+        // not quite an LRU, but still space-limited.
+        var cache = {}
+        var cnt = 0
+        this.set = function (k, v) {
+          cnt ++
+          if (cnt >= 100) cache = {}
+          cache[k] = v
+        }
+        this.get = function (k) { return cache[k] }
+      }
+    }
+  }
+}
+
+minimatch.Minimatch = Minimatch
+
+var LRU = _dereq_("lru-cache")
+  , cache = minimatch.cache = new LRU({max: 100})
+  , GLOBSTAR = minimatch.GLOBSTAR = Minimatch.GLOBSTAR = {}
+  , sigmund = _dereq_("sigmund")
+
+var path = _dereq_("path")
+  // any single thing other than /
+  // don't need to escape / when using new RegExp()
+  , qmark = "[^/]"
+
+  // * => any number of characters
+  , star = qmark + "*?"
+
+  // ** when dots are allowed.  Anything goes, except .. and .
+  // not (^ or / followed by one or two dots followed by $ or /),
+  // followed by anything, any number of times.
+  , twoStarDot = "(?:(?!(?:\\\/|^)(?:\\.{1,2})($|\\\/)).)*?"
+
+  // not a ^ or / followed by a dot,
+  // followed by anything, any number of times.
+  , twoStarNoDot = "(?:(?!(?:\\\/|^)\\.).)*?"
+
+  // characters that need to be escaped in RegExp.
+  , reSpecials = charSet("().*{}+?[]^$\\!")
+
+// "abc" -> { a:true, b:true, c:true }
+function charSet (s) {
+  return s.split("").reduce(function (set, c) {
+    set[c] = true
+    return set
+  }, {})
+}
+
+// normalizes slashes.
+var slashSplit = /\/+/
+
+minimatch.filter = filter
+function filter (pattern, options) {
+  options = options || {}
+  return function (p, i, list) {
+    return minimatch(p, pattern, options)
+  }
+}
+
+function ext (a, b) {
+  a = a || {}
+  b = b || {}
+  var t = {}
+  Object.keys(b).forEach(function (k) {
+    t[k] = b[k]
+  })
+  Object.keys(a).forEach(function (k) {
+    t[k] = a[k]
+  })
+  return t
+}
+
+minimatch.defaults = function (def) {
+  if (!def || !Object.keys(def).length) return minimatch
+
+  var orig = minimatch
+
+  var m = function minimatch (p, pattern, options) {
+    return orig.minimatch(p, pattern, ext(def, options))
+  }
+
+  m.Minimatch = function Minimatch (pattern, options) {
+    return new orig.Minimatch(pattern, ext(def, options))
+  }
+
+  return m
+}
+
+Minimatch.defaults = function (def) {
+  if (!def || !Object.keys(def).length) return Minimatch
+  return minimatch.defaults(def).Minimatch
+}
+
+
+function minimatch (p, pattern, options) {
+  if (typeof pattern !== "string") {
+    throw new TypeError("glob pattern string required")
+  }
+
+  if (!options) options = {}
+
+  // shortcut: comments match nothing.
+  if (!options.nocomment && pattern.charAt(0) === "#") {
+    return false
+  }
+
+  // "" only matches ""
+  if (pattern.trim() === "") return p === ""
+
+  return new Minimatch(pattern, options).match(p)
+}
+
+function Minimatch (pattern, options) {
+  if (!(this instanceof Minimatch)) {
+    return new Minimatch(pattern, options, cache)
+  }
+
+  if (typeof pattern !== "string") {
+    throw new TypeError("glob pattern string required")
+  }
+
+  if (!options) options = {}
+  pattern = pattern.trim()
+
+  // windows: need to use /, not \
+  // On other platforms, \ is a valid (albeit bad) filename char.
+  if (platform === "win32") {
+    pattern = pattern.split("\\").join("/")
+  }
+
+  // lru storage.
+  // these things aren't particularly big, but walking down the string
+  // and turning it into a regexp can get pretty costly.
+  var cacheKey = pattern + "\n" + sigmund(options)
+  var cached = minimatch.cache.get(cacheKey)
+  if (cached) return cached
+  minimatch.cache.set(cacheKey, this)
+
+  this.options = options
+  this.set = []
+  this.pattern = pattern
+  this.regexp = null
+  this.negate = false
+  this.comment = false
+  this.empty = false
+
+  // make the set of regexps etc.
+  this.make()
+}
+
+Minimatch.prototype.debug = function() {}
+
+Minimatch.prototype.make = make
+function make () {
+  // don't do it more than once.
+  if (this._made) return
+
+  var pattern = this.pattern
+  var options = this.options
+
+  // empty patterns and comments match nothing.
+  if (!options.nocomment && pattern.charAt(0) === "#") {
+    this.comment = true
+    return
+  }
+  if (!pattern) {
+    this.empty = true
+    return
+  }
+
+  // step 1: figure out negation, etc.
+  this.parseNegate()
+
+  // step 2: expand braces
+  var set = this.globSet = this.braceExpand()
+
+  if (options.debug) this.debug = console.error
+
+  this.debug(this.pattern, set)
+
+  // step 3: now we have a set, so turn each one into a series of path-portion
+  // matching patterns.
+  // These will be regexps, except in the case of "**", which is
+  // set to the GLOBSTAR object for globstar behavior,
+  // and will not contain any / characters
+  set = this.globParts = set.map(function (s) {
+    return s.split(slashSplit)
+  })
+
+  this.debug(this.pattern, set)
+
+  // glob --> regexps
+  set = set.map(function (s, si, set) {
+    return s.map(this.parse, this)
+  }, this)
+
+  this.debug(this.pattern, set)
+
+  // filter out everything that didn't compile properly.
+  set = set.filter(function (s) {
+    return -1 === s.indexOf(false)
+  })
+
+  this.debug(this.pattern, set)
+
+  this.set = set
+}
+
+Minimatch.prototype.parseNegate = parseNegate
+function parseNegate () {
+  var pattern = this.pattern
+    , negate = false
+    , options = this.options
+    , negateOffset = 0
+
+  if (options.nonegate) return
+
+  for ( var i = 0, l = pattern.length
+      ; i < l && pattern.charAt(i) === "!"
+      ; i ++) {
+    negate = !negate
+    negateOffset ++
+  }
+
+  if (negateOffset) this.pattern = pattern.substr(negateOffset)
+  this.negate = negate
+}
+
+// Brace expansion:
+// a{b,c}d -> abd acd
+// a{b,}c -> abc ac
+// a{0..3}d -> a0d a1d a2d a3d
+// a{b,c{d,e}f}g -> abg acdfg acefg
+// a{b,c}d{e,f}g -> abdeg acdeg abdeg abdfg
+//
+// Invalid sets are not expanded.
+// a{2..}b -> a{2..}b
+// a{b}c -> a{b}c
+minimatch.braceExpand = function (pattern, options) {
+  return new Minimatch(pattern, options).braceExpand()
+}
+
+Minimatch.prototype.braceExpand = braceExpand
+
+function pad(n, width, z) {
+  z = z || '0';
+  n = n + '';
+  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
+function braceExpand (pattern, options) {
+  options = options || this.options
+  pattern = typeof pattern === "undefined"
+    ? this.pattern : pattern
+
+  if (typeof pattern === "undefined") {
+    throw new Error("undefined pattern")
+  }
+
+  if (options.nobrace ||
+      !pattern.match(/\{.*\}/)) {
+    // shortcut. no need to expand.
+    return [pattern]
+  }
+
+  var escaping = false
+
+  // examples and comments refer to this crazy pattern:
+  // a{b,c{d,e},{f,g}h}x{y,z}
+  // expected:
+  // abxy
+  // abxz
+  // acdxy
+  // acdxz
+  // acexy
+  // acexz
+  // afhxy
+  // afhxz
+  // aghxy
+  // aghxz
+
+  // everything before the first \{ is just a prefix.
+  // So, we pluck that off, and work with the rest,
+  // and then prepend it to everything we find.
+  if (pattern.charAt(0) !== "{") {
+    this.debug(pattern)
+    var prefix = null
+    for (var i = 0, l = pattern.length; i < l; i ++) {
+      var c = pattern.charAt(i)
+      this.debug(i, c)
+      if (c === "\\") {
+        escaping = !escaping
+      } else if (c === "{" && !escaping) {
+        prefix = pattern.substr(0, i)
+        break
+      }
+    }
+
+    // actually no sets, all { were escaped.
+    if (prefix === null) {
+      this.debug("no sets")
+      return [pattern]
+    }
+
+   var tail = braceExpand.call(this, pattern.substr(i), options)
+    return tail.map(function (t) {
+      return prefix + t
+    })
+  }
+
+  // now we have something like:
+  // {b,c{d,e},{f,g}h}x{y,z}
+  // walk through the set, expanding each part, until
+  // the set ends.  then, we'll expand the suffix.
+  // If the set only has a single member, then'll put the {} back
+
+  // first, handle numeric sets, since they're easier
+  var numset = pattern.match(/^\{(-?[0-9]+)\.\.(-?[0-9]+)\}/)
+  if (numset) {
+    this.debug("numset", numset[1], numset[2])
+    var suf = braceExpand.call(this, pattern.substr(numset[0].length), options)
+      , start = +numset[1]
+      , needPadding = numset[1][0] === '0'
+      , startWidth = numset[1].length
+      , padded
+      , end = +numset[2]
+      , inc = start > end ? -1 : 1
+      , set = []
+
+    for (var i = start; i != (end + inc); i += inc) {
+      padded = needPadding ? pad(i, startWidth) : i + ''
+      // append all the suffixes
+      for (var ii = 0, ll = suf.length; ii < ll; ii ++) {
+        set.push(padded + suf[ii])
+      }
+    }
+    return set
+  }
+
+  // ok, walk through the set
+  // We hope, somewhat optimistically, that there
+  // will be a } at the end.
+  // If the closing brace isn't found, then the pattern is
+  // interpreted as braceExpand("\\" + pattern) so that
+  // the leading \{ will be interpreted literally.
+  var i = 1 // skip the \{
+    , depth = 1
+    , set = []
+    , member = ""
+    , sawEnd = false
+    , escaping = false
+
+  function addMember () {
+    set.push(member)
+    member = ""
+  }
+
+  this.debug("Entering for")
+  FOR: for (i = 1, l = pattern.length; i < l; i ++) {
+    var c = pattern.charAt(i)
+    this.debug("", i, c)
+
+    if (escaping) {
+      escaping = false
+      member += "\\" + c
+    } else {
+      switch (c) {
+        case "\\":
+          escaping = true
+          continue
+
+        case "{":
+          depth ++
+          member += "{"
+          continue
+
+        case "}":
+          depth --
+          // if this closes the actual set, then we're done
+          if (depth === 0) {
+            addMember()
+            // pluck off the close-brace
+            i ++
+            break FOR
+          } else {
+            member += c
+            continue
+          }
+
+        case ",":
+          if (depth === 1) {
+            addMember()
+          } else {
+            member += c
+          }
+          continue
+
+        default:
+          member += c
+          continue
+      } // switch
+    } // else
+  } // for
+
+  // now we've either finished the set, and the suffix is
+  // pattern.substr(i), or we have *not* closed the set,
+  // and need to escape the leading brace
+  if (depth !== 0) {
+    this.debug("didn't close", pattern)
+    return braceExpand.call(this, "\\" + pattern, options)
+  }
+
+  // x{y,z} -> ["xy", "xz"]
+  this.debug("set", set)
+  this.debug("suffix", pattern.substr(i))
+  var suf = braceExpand.call(this, pattern.substr(i), options)
+  // ["b", "c{d,e}","{f,g}h"] ->
+  //   [["b"], ["cd", "ce"], ["fh", "gh"]]
+  var addBraces = set.length === 1
+  this.debug("set pre-expanded", set)
+  set = set.map(function (p) {
+    return braceExpand.call(this, p, options)
+  }, this)
+  this.debug("set expanded", set)
+
+
+  // [["b"], ["cd", "ce"], ["fh", "gh"]] ->
+  //   ["b", "cd", "ce", "fh", "gh"]
+  set = set.reduce(function (l, r) {
+    return l.concat(r)
+  })
+
+  if (addBraces) {
+    set = set.map(function (s) {
+      return "{" + s + "}"
+    })
+  }
+
+  // now attach the suffixes.
+  var ret = []
+  for (var i = 0, l = set.length; i < l; i ++) {
+    for (var ii = 0, ll = suf.length; ii < ll; ii ++) {
+      ret.push(set[i] + suf[ii])
+    }
+  }
+  return ret
+}
+
+// parse a component of the expanded set.
+// At this point, no pattern may contain "/" in it
+// so we're going to return a 2d array, where each entry is the full
+// pattern, split on '/', and then turned into a regular expression.
+// A regexp is made at the end which joins each array with an
+// escaped /, and another full one which joins each regexp with |.
+//
+// Following the lead of Bash 4.1, note that "**" only has special meaning
+// when it is the *only* thing in a path portion.  Otherwise, any series
+// of * is equivalent to a single *.  Globstar behavior is enabled by
+// default, and can be disabled by setting options.noglobstar.
+Minimatch.prototype.parse = parse
+var SUBPARSE = {}
+function parse (pattern, isSub) {
+  var options = this.options
+
+  // shortcuts
+  if (!options.noglobstar && pattern === "**") return GLOBSTAR
+  if (pattern === "") return ""
+
+  var re = ""
+    , hasMagic = !!options.nocase
+    , escaping = false
+    // ? => one single character
+    , patternListStack = []
+    , plType
+    , stateChar
+    , inClass = false
+    , reClassStart = -1
+    , classStart = -1
+    // . and .. never match anything that doesn't start with .,
+    // even when options.dot is set.
+    , patternStart = pattern.charAt(0) === "." ? "" // anything
+      // not (start or / followed by . or .. followed by / or end)
+      : options.dot ? "(?!(?:^|\\\/)\\.{1,2}(?:$|\\\/))"
+      : "(?!\\.)"
+    , self = this
+
+  function clearStateChar () {
+    if (stateChar) {
+      // we had some state-tracking character
+      // that wasn't consumed by this pass.
+      switch (stateChar) {
+        case "*":
+          re += star
+          hasMagic = true
+          break
+        case "?":
+          re += qmark
+          hasMagic = true
+          break
+        default:
+          re += "\\"+stateChar
+          break
+      }
+      self.debug('clearStateChar %j %j', stateChar, re)
+      stateChar = false
+    }
+  }
+
+  for ( var i = 0, len = pattern.length, c
+      ; (i < len) && (c = pattern.charAt(i))
+      ; i ++ ) {
+
+    this.debug("%s\t%s %s %j", pattern, i, re, c)
+
+    // skip over any that are escaped.
+    if (escaping && reSpecials[c]) {
+      re += "\\" + c
+      escaping = false
+      continue
+    }
+
+    SWITCH: switch (c) {
+      case "/":
+        // completely not allowed, even escaped.
+        // Should already be path-split by now.
+        return false
+
+      case "\\":
+        clearStateChar()
+        escaping = true
+        continue
+
+      // the various stateChar values
+      // for the "extglob" stuff.
+      case "?":
+      case "*":
+      case "+":
+      case "@":
+      case "!":
+        this.debug("%s\t%s %s %j <-- stateChar", pattern, i, re, c)
+
+        // all of those are literals inside a class, except that
+        // the glob [!a] means [^a] in regexp
+        if (inClass) {
+          this.debug('  in class')
+          if (c === "!" && i === classStart + 1) c = "^"
+          re += c
+          continue
+        }
+
+        // if we already have a stateChar, then it means
+        // that there was something like ** or +? in there.
+        // Handle the stateChar, then proceed with this one.
+        self.debug('call clearStateChar %j', stateChar)
+        clearStateChar()
+        stateChar = c
+        // if extglob is disabled, then +(asdf|foo) isn't a thing.
+        // just clear the statechar *now*, rather than even diving into
+        // the patternList stuff.
+        if (options.noext) clearStateChar()
+        continue
+
+      case "(":
+        if (inClass) {
+          re += "("
+          continue
+        }
+
+        if (!stateChar) {
+          re += "\\("
+          continue
+        }
+
+        plType = stateChar
+        patternListStack.push({ type: plType
+                              , start: i - 1
+                              , reStart: re.length })
+        // negation is (?:(?!js)[^/]*)
+        re += stateChar === "!" ? "(?:(?!" : "(?:"
+        this.debug('plType %j %j', stateChar, re)
+        stateChar = false
+        continue
+
+      case ")":
+        if (inClass || !patternListStack.length) {
+          re += "\\)"
+          continue
+        }
+
+        clearStateChar()
+        hasMagic = true
+        re += ")"
+        plType = patternListStack.pop().type
+        // negation is (?:(?!js)[^/]*)
+        // The others are (?:<pattern>)<type>
+        switch (plType) {
+          case "!":
+            re += "[^/]*?)"
+            break
+          case "?":
+          case "+":
+          case "*": re += plType
+          case "@": break // the default anyway
+        }
+        continue
+
+      case "|":
+        if (inClass || !patternListStack.length || escaping) {
+          re += "\\|"
+          escaping = false
+          continue
+        }
+
+        clearStateChar()
+        re += "|"
+        continue
+
+      // these are mostly the same in regexp and glob
+      case "[":
+        // swallow any state-tracking char before the [
+        clearStateChar()
+
+        if (inClass) {
+          re += "\\" + c
+          continue
+        }
+
+        inClass = true
+        classStart = i
+        reClassStart = re.length
+        re += c
+        continue
+
+      case "]":
+        //  a right bracket shall lose its special
+        //  meaning and represent itself in
+        //  a bracket expression if it occurs
+        //  first in the list.  -- POSIX.2 2.8.3.2
+        if (i === classStart + 1 || !inClass) {
+          re += "\\" + c
+          escaping = false
+          continue
+        }
+
+        // finish up the class.
+        hasMagic = true
+        inClass = false
+        re += c
+        continue
+
+      default:
+        // swallow any state char that wasn't consumed
+        clearStateChar()
+
+        if (escaping) {
+          // no need
+          escaping = false
+        } else if (reSpecials[c]
+                   && !(c === "^" && inClass)) {
+          re += "\\"
+        }
+
+        re += c
+
+    } // switch
+  } // for
+
+
+  // handle the case where we left a class open.
+  // "[abc" is valid, equivalent to "\[abc"
+  if (inClass) {
+    // split where the last [ was, and escape it
+    // this is a huge pita.  We now have to re-walk
+    // the contents of the would-be class to re-translate
+    // any characters that were passed through as-is
+    var cs = pattern.substr(classStart + 1)
+      , sp = this.parse(cs, SUBPARSE)
+    re = re.substr(0, reClassStart) + "\\[" + sp[0]
+    hasMagic = hasMagic || sp[1]
+  }
+
+  // handle the case where we had a +( thing at the *end*
+  // of the pattern.
+  // each pattern list stack adds 3 chars, and we need to go through
+  // and escape any | chars that were passed through as-is for the regexp.
+  // Go through and escape them, taking care not to double-escape any
+  // | chars that were already escaped.
+  var pl
+  while (pl = patternListStack.pop()) {
+    var tail = re.slice(pl.reStart + 3)
+    // maybe some even number of \, then maybe 1 \, followed by a |
+    tail = tail.replace(/((?:\\{2})*)(\\?)\|/g, function (_, $1, $2) {
+      if (!$2) {
+        // the | isn't already escaped, so escape it.
+        $2 = "\\"
+      }
+
+      // need to escape all those slashes *again*, without escaping the
+      // one that we need for escaping the | character.  As it works out,
+      // escaping an even number of slashes can be done by simply repeating
+      // it exactly after itself.  That's why this trick works.
+      //
+      // I am sorry that you have to see this.
+      return $1 + $1 + $2 + "|"
+    })
+
+    this.debug("tail=%j\n   %s", tail, tail)
+    var t = pl.type === "*" ? star
+          : pl.type === "?" ? qmark
+          : "\\" + pl.type
+
+    hasMagic = true
+    re = re.slice(0, pl.reStart)
+       + t + "\\("
+       + tail
+  }
+
+  // handle trailing things that only matter at the very end.
+  clearStateChar()
+  if (escaping) {
+    // trailing \\
+    re += "\\\\"
+  }
+
+  // only need to apply the nodot start if the re starts with
+  // something that could conceivably capture a dot
+  var addPatternStart = false
+  switch (re.charAt(0)) {
+    case ".":
+    case "[":
+    case "(": addPatternStart = true
+  }
+
+  // if the re is not "" at this point, then we need to make sure
+  // it doesn't match against an empty path part.
+  // Otherwise a/* will match a/, which it should not.
+  if (re !== "" && hasMagic) re = "(?=.)" + re
+
+  if (addPatternStart) re = patternStart + re
+
+  // parsing just a piece of a larger pattern.
+  if (isSub === SUBPARSE) {
+    return [ re, hasMagic ]
+  }
+
+  // skip the regexp for non-magical patterns
+  // unescape anything in it, though, so that it'll be
+  // an exact match against a file etc.
+  if (!hasMagic) {
+    return globUnescape(pattern)
+  }
+
+  var flags = options.nocase ? "i" : ""
+    , regExp = new RegExp("^" + re + "$", flags)
+
+  regExp._glob = pattern
+  regExp._src = re
+
+  return regExp
+}
+
+minimatch.makeRe = function (pattern, options) {
+  return new Minimatch(pattern, options || {}).makeRe()
+}
+
+Minimatch.prototype.makeRe = makeRe
+function makeRe () {
+  if (this.regexp || this.regexp === false) return this.regexp
+
+  // at this point, this.set is a 2d array of partial
+  // pattern strings, or "**".
+  //
+  // It's better to use .match().  This function shouldn't
+  // be used, really, but it's pretty convenient sometimes,
+  // when you just want to work with a regex.
+  var set = this.set
+
+  if (!set.length) return this.regexp = false
+  var options = this.options
+
+  var twoStar = options.noglobstar ? star
+      : options.dot ? twoStarDot
+      : twoStarNoDot
+    , flags = options.nocase ? "i" : ""
+
+  var re = set.map(function (pattern) {
+    return pattern.map(function (p) {
+      return (p === GLOBSTAR) ? twoStar
+           : (typeof p === "string") ? regExpEscape(p)
+           : p._src
+    }).join("\\\/")
+  }).join("|")
+
+  // must match entire pattern
+  // ending in a * or ** will make it less strict.
+  re = "^(?:" + re + ")$"
+
+  // can match anything, as long as it's not this.
+  if (this.negate) re = "^(?!" + re + ").*$"
+
+  try {
+    return this.regexp = new RegExp(re, flags)
+  } catch (ex) {
+    return this.regexp = false
+  }
+}
+
+minimatch.match = function (list, pattern, options) {
+  options = options || {}
+  var mm = new Minimatch(pattern, options)
+  list = list.filter(function (f) {
+    return mm.match(f)
+  })
+  if (mm.options.nonull && !list.length) {
+    list.push(pattern)
+  }
+  return list
+}
+
+Minimatch.prototype.match = match
+function match (f, partial) {
+  this.debug("match", f, this.pattern)
+  // short-circuit in the case of busted things.
+  // comments, etc.
+  if (this.comment) return false
+  if (this.empty) return f === ""
+
+  if (f === "/" && partial) return true
+
+  var options = this.options
+
+  // windows: need to use /, not \
+  // On other platforms, \ is a valid (albeit bad) filename char.
+  if (platform === "win32") {
+    f = f.split("\\").join("/")
+  }
+
+  // treat the test path as a set of pathparts.
+  f = f.split(slashSplit)
+  this.debug(this.pattern, "split", f)
+
+  // just ONE of the pattern sets in this.set needs to match
+  // in order for it to be valid.  If negating, then just one
+  // match means that we have failed.
+  // Either way, return on the first hit.
+
+  var set = this.set
+  this.debug(this.pattern, "set", set)
+
+  // Find the basename of the path by looking for the last non-empty segment
+  var filename;
+  for (var i = f.length - 1; i >= 0; i--) {
+    filename = f[i]
+    if (filename) break
+  }
+
+  for (var i = 0, l = set.length; i < l; i ++) {
+    var pattern = set[i], file = f
+    if (options.matchBase && pattern.length === 1) {
+      file = [filename]
+    }
+    var hit = this.matchOne(file, pattern, partial)
+    if (hit) {
+      if (options.flipNegate) return true
+      return !this.negate
+    }
+  }
+
+  // didn't get any hits.  this is success if it's a negative
+  // pattern, failure otherwise.
+  if (options.flipNegate) return false
+  return this.negate
+}
+
+// set partial to true to test if, for example,
+// "/a/b" matches the start of "/*/b/*/d"
+// Partial means, if you run out of file before you run
+// out of pattern, then that's fine, as long as all
+// the parts match.
+Minimatch.prototype.matchOne = function (file, pattern, partial) {
+  var options = this.options
+
+  this.debug("matchOne",
+              { "this": this
+              , file: file
+              , pattern: pattern })
+
+  this.debug("matchOne", file.length, pattern.length)
+
+  for ( var fi = 0
+          , pi = 0
+          , fl = file.length
+          , pl = pattern.length
+      ; (fi < fl) && (pi < pl)
+      ; fi ++, pi ++ ) {
+
+    this.debug("matchOne loop")
+    var p = pattern[pi]
+      , f = file[fi]
+
+    this.debug(pattern, p, f)
+
+    // should be impossible.
+    // some invalid regexp stuff in the set.
+    if (p === false) return false
+
+    if (p === GLOBSTAR) {
+      this.debug('GLOBSTAR', [pattern, p, f])
+
+      // "**"
+      // a/**/b/**/c would match the following:
+      // a/b/x/y/z/c
+      // a/x/y/z/b/c
+      // a/b/x/b/x/c
+      // a/b/c
+      // To do this, take the rest of the pattern after
+      // the **, and see if it would match the file remainder.
+      // If so, return success.
+      // If not, the ** "swallows" a segment, and try again.
+      // This is recursively awful.
+      //
+      // a/**/b/**/c matching a/b/x/y/z/c
+      // - a matches a
+      // - doublestar
+      //   - matchOne(b/x/y/z/c, b/**/c)
+      //     - b matches b
+      //     - doublestar
+      //       - matchOne(x/y/z/c, c) -> no
+      //       - matchOne(y/z/c, c) -> no
+      //       - matchOne(z/c, c) -> no
+      //       - matchOne(c, c) yes, hit
+      var fr = fi
+        , pr = pi + 1
+      if (pr === pl) {
+        this.debug('** at the end')
+        // a ** at the end will just swallow the rest.
+        // We have found a match.
+        // however, it will not swallow /.x, unless
+        // options.dot is set.
+        // . and .. are *never* matched by **, for explosively
+        // exponential reasons.
+        for ( ; fi < fl; fi ++) {
+          if (file[fi] === "." || file[fi] === ".." ||
+              (!options.dot && file[fi].charAt(0) === ".")) return false
+        }
+        return true
+      }
+
+      // ok, let's see if we can swallow whatever we can.
+      WHILE: while (fr < fl) {
+        var swallowee = file[fr]
+
+        this.debug('\nglobstar while',
+                    file, fr, pattern, pr, swallowee)
+
+        // XXX remove this slice.  Just pass the start index.
+        if (this.matchOne(file.slice(fr), pattern.slice(pr), partial)) {
+          this.debug('globstar found match!', fr, fl, swallowee)
+          // found a match.
+          return true
+        } else {
+          // can't swallow "." or ".." ever.
+          // can only swallow ".foo" when explicitly asked.
+          if (swallowee === "." || swallowee === ".." ||
+              (!options.dot && swallowee.charAt(0) === ".")) {
+            this.debug("dot detected!", file, fr, pattern, pr)
+            break WHILE
+          }
+
+          // ** swallows a segment, and continue.
+          this.debug('globstar swallow a segment, and continue')
+          fr ++
+        }
+      }
+      // no match was found.
+      // However, in partial mode, we can't say this is necessarily over.
+      // If there's more *pattern* left, then
+      if (partial) {
+        // ran out of file
+        this.debug("\n>>> no match, partial?", file, fr, pattern, pr)
+        if (fr === fl) return true
+      }
+      return false
+    }
+
+    // something other than **
+    // non-magic patterns just have to match exactly
+    // patterns with magic have been turned into regexps.
+    var hit
+    if (typeof p === "string") {
+      if (options.nocase) {
+        hit = f.toLowerCase() === p.toLowerCase()
+      } else {
+        hit = f === p
+      }
+      this.debug("string match", p, f, hit)
+    } else {
+      hit = f.match(p)
+      this.debug("pattern match", p, f, hit)
+    }
+
+    if (!hit) return false
+  }
+
+  // Note: ending in / means that we'll get a final ""
+  // at the end of the pattern.  This can only match a
+  // corresponding "" at the end of the file.
+  // If the file ends in /, then it can only match a
+  // a pattern that ends in /, unless the pattern just
+  // doesn't have any more for it. But, a/b/ should *not*
+  // match "a/b/*", even though "" matches against the
+  // [^/]*? pattern, except in partial mode, where it might
+  // simply not be reached yet.
+  // However, a/b/ should still satisfy a/*
+
+  // now either we fell off the end of the pattern, or we're done.
+  if (fi === fl && pi === pl) {
+    // ran out of pattern and filename at the same time.
+    // an exact hit!
+    return true
+  } else if (fi === fl) {
+    // ran out of file, but still had pattern left.
+    // this is ok if we're doing the match as part of
+    // a glob fs traversal.
+    return partial
+  } else if (pi === pl) {
+    // ran out of pattern, still have file left.
+    // this is only acceptable if we're on the very last
+    // empty segment of a file with a trailing slash.
+    // a/* should match a/b/
+    var emptyFileEnd = (fi === fl - 1) && (file[fi] === "")
+    return emptyFileEnd
+  }
+
+  // should be unreachable.
+  throw new Error("wtf?")
+}
+
+
+// replace stuff like \* with *
+function globUnescape (s) {
+  return s.replace(/\\(.)/g, "$1")
+}
+
+
+function regExpEscape (s) {
+  return s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
+}
+
+})( typeof _dereq_ === "function" ? _dereq_ : null,
+    this,
+    typeof module === "object" ? module : null,
+    typeof process === "object" ? process.platform : "win32"
+  )
+
+}).call(this,_dereq_("JkpR2F"))
+},{"JkpR2F":10,"lru-cache":12,"path":9,"sigmund":13}],12:[function(_dereq_,module,exports){
+;(function () { // closure for web browsers
+
+if (typeof module === 'object' && module.exports) {
+  module.exports = LRUCache
+} else {
+  // just set the global for non-node platforms.
+  this.LRUCache = LRUCache
+}
+
+function hOP (obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj, key)
+}
+
+function naiveLength () { return 1 }
+
+function LRUCache (options) {
+  if (!(this instanceof LRUCache))
+    return new LRUCache(options)
+
+  if (typeof options === 'number')
+    options = { max: options }
+
+  if (!options)
+    options = {}
+
+  this._max = options.max
+  // Kind of weird to have a default max of Infinity, but oh well.
+  if (!this._max || !(typeof this._max === "number") || this._max <= 0 )
+    this._max = Infinity
+
+  this._lengthCalculator = options.length || naiveLength
+  if (typeof this._lengthCalculator !== "function")
+    this._lengthCalculator = naiveLength
+
+  this._allowStale = options.stale || false
+  this._maxAge = options.maxAge || null
+  this._dispose = options.dispose
+  this.reset()
+}
+
+// resize the cache when the max changes.
+Object.defineProperty(LRUCache.prototype, "max",
+  { set : function (mL) {
+      if (!mL || !(typeof mL === "number") || mL <= 0 ) mL = Infinity
+      this._max = mL
+      if (this._length > this._max) trim(this)
+    }
+  , get : function () { return this._max }
+  , enumerable : true
+  })
+
+// resize the cache when the lengthCalculator changes.
+Object.defineProperty(LRUCache.prototype, "lengthCalculator",
+  { set : function (lC) {
+      if (typeof lC !== "function") {
+        this._lengthCalculator = naiveLength
+        this._length = this._itemCount
+        for (var key in this._cache) {
+          this._cache[key].length = 1
+        }
+      } else {
+        this._lengthCalculator = lC
+        this._length = 0
+        for (var key in this._cache) {
+          this._cache[key].length = this._lengthCalculator(this._cache[key].value)
+          this._length += this._cache[key].length
+        }
+      }
+
+      if (this._length > this._max) trim(this)
+    }
+  , get : function () { return this._lengthCalculator }
+  , enumerable : true
+  })
+
+Object.defineProperty(LRUCache.prototype, "length",
+  { get : function () { return this._length }
+  , enumerable : true
+  })
+
+
+Object.defineProperty(LRUCache.prototype, "itemCount",
+  { get : function () { return this._itemCount }
+  , enumerable : true
+  })
+
+LRUCache.prototype.forEach = function (fn, thisp) {
+  thisp = thisp || this
+  var i = 0;
+  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
+    i++
+    var hit = this._lruList[k]
+    if (this._maxAge && (Date.now() - hit.now > this._maxAge)) {
+      del(this, hit)
+      if (!this._allowStale) hit = undefined
+    }
+    if (hit) {
+      fn.call(thisp, hit.value, hit.key, this)
+    }
+  }
+}
+
+LRUCache.prototype.keys = function () {
+  var keys = new Array(this._itemCount)
+  var i = 0
+  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
+    var hit = this._lruList[k]
+    keys[i++] = hit.key
+  }
+  return keys
+}
+
+LRUCache.prototype.values = function () {
+  var values = new Array(this._itemCount)
+  var i = 0
+  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
+    var hit = this._lruList[k]
+    values[i++] = hit.value
+  }
+  return values
+}
+
+LRUCache.prototype.reset = function () {
+  if (this._dispose && this._cache) {
+    for (var k in this._cache) {
+      this._dispose(k, this._cache[k].value)
+    }
+  }
+
+  this._cache = Object.create(null) // hash of items by key
+  this._lruList = Object.create(null) // list of items in order of use recency
+  this._mru = 0 // most recently used
+  this._lru = 0 // least recently used
+  this._length = 0 // number of items in the list
+  this._itemCount = 0
+}
+
+// Provided for debugging/dev purposes only. No promises whatsoever that
+// this API stays stable.
+LRUCache.prototype.dump = function () {
+  return this._cache
+}
+
+LRUCache.prototype.dumpLru = function () {
+  return this._lruList
+}
+
+LRUCache.prototype.set = function (key, value) {
+  if (hOP(this._cache, key)) {
+    // dispose of the old one before overwriting
+    if (this._dispose) this._dispose(key, this._cache[key].value)
+    if (this._maxAge) this._cache[key].now = Date.now()
+    this._cache[key].value = value
+    this.get(key)
+    return true
+  }
+
+  var len = this._lengthCalculator(value)
+  var age = this._maxAge ? Date.now() : 0
+  var hit = new Entry(key, value, this._mru++, len, age)
+
+  // oversized objects fall out of cache automatically.
+  if (hit.length > this._max) {
+    if (this._dispose) this._dispose(key, value)
+    return false
+  }
+
+  this._length += hit.length
+  this._lruList[hit.lu] = this._cache[key] = hit
+  this._itemCount ++
+
+  if (this._length > this._max) trim(this)
+  return true
+}
+
+LRUCache.prototype.has = function (key) {
+  if (!hOP(this._cache, key)) return false
+  var hit = this._cache[key]
+  if (this._maxAge && (Date.now() - hit.now > this._maxAge)) {
+    return false
+  }
+  return true
+}
+
+LRUCache.prototype.get = function (key) {
+  return get(this, key, true)
+}
+
+LRUCache.prototype.peek = function (key) {
+  return get(this, key, false)
+}
+
+LRUCache.prototype.pop = function () {
+  var hit = this._lruList[this._lru]
+  del(this, hit)
+  return hit || null
+}
+
+LRUCache.prototype.del = function (key) {
+  del(this, this._cache[key])
+}
+
+function get (self, key, doUse) {
+  var hit = self._cache[key]
+  if (hit) {
+    if (self._maxAge && (Date.now() - hit.now > self._maxAge)) {
+      del(self, hit)
+      if (!self._allowStale) hit = undefined
+    } else {
+      if (doUse) use(self, hit)
+    }
+    if (hit) hit = hit.value
+  }
+  return hit
+}
+
+function use (self, hit) {
+  shiftLU(self, hit)
+  hit.lu = self._mru ++
+  self._lruList[hit.lu] = hit
+}
+
+function trim (self) {
+  while (self._lru < self._mru && self._length > self._max)
+    del(self, self._lruList[self._lru])
+}
+
+function shiftLU (self, hit) {
+  delete self._lruList[ hit.lu ]
+  while (self._lru < self._mru && !self._lruList[self._lru]) self._lru ++
+}
+
+function del (self, hit) {
+  if (hit) {
+    if (self._dispose) self._dispose(hit.key, hit.value)
+    self._length -= hit.length
+    self._itemCount --
+    delete self._cache[ hit.key ]
+    shiftLU(self, hit)
+  }
+}
+
+// classy, since V8 prefers predictable objects.
+function Entry (key, value, lu, length, now) {
+  this.key = key
+  this.value = value
+  this.lu = lu
+  this.length = length
+  this.now = now
+}
+
+})()
+
+},{}],13:[function(_dereq_,module,exports){
+module.exports = sigmund
+function sigmund (subject, maxSessions) {
+    maxSessions = maxSessions || 10;
+    var notes = [];
+    var analysis = '';
+    var RE = RegExp;
+
+    function psychoAnalyze (subject, session) {
+        if (session > maxSessions) return;
+
+        if (typeof subject === 'function' ||
+            typeof subject === 'undefined') {
+            return;
+        }
+
+        if (typeof subject !== 'object' || !subject ||
+            (subject instanceof RE)) {
+            analysis += subject;
+            return;
+        }
+
+        if (notes.indexOf(subject) !== -1 || session === maxSessions) return;
+
+        notes.push(subject);
+        analysis += '{';
+        Object.keys(subject).forEach(function (issue, _, __) {
+            // pseudo-private values.  skip those.
+            if (issue.charAt(0) === '_') return;
+            var to = typeof subject[issue];
+            if (to === 'function' || to === 'undefined') return;
+            analysis += issue;
+            psychoAnalyze(subject[issue], session + 1);
+        });
+    }
+    psychoAnalyze(subject, 0);
+    return analysis;
+}
+
+// vim: set softtabstop=4 shiftwidth=4:
+
+},{}],14:[function(_dereq_,module,exports){
 (function (Buffer){
 function FilerBuffer (subject, encoding, nonZero) {
 
@@ -2100,7 +3700,7 @@ Object.keys(Buffer).forEach(function (p) {
 module.exports = FilerBuffer;
 
 }).call(this,_dereq_("buffer").Buffer)
-},{"buffer":6}],11:[function(_dereq_,module,exports){
+},{"buffer":6}],15:[function(_dereq_,module,exports){
 var O_READ = 'READ';
 var O_WRITE = 'WRITE';
 var O_CREATE = 'CREATE';
@@ -2182,7 +3782,7 @@ module.exports = {
   }
 };
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 var MODE_FILE = _dereq_('./constants.js').MODE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
@@ -2190,7 +3790,7 @@ module.exports = function DirectoryEntry(id, type) {
   this.type = type || MODE_FILE;
 };
 
-},{"./constants.js":11}],13:[function(_dereq_,module,exports){
+},{"./constants.js":15}],17:[function(_dereq_,module,exports){
 (function (Buffer){
 // Adapt encodings to work with Buffer or Uint8Array, they expect the latter
 function decode(buf) {
@@ -2207,7 +3807,7 @@ module.exports = {
 };
 
 }).call(this,_dereq_("buffer").Buffer)
-},{"buffer":6}],14:[function(_dereq_,module,exports){
+},{"buffer":6}],18:[function(_dereq_,module,exports){
 var errors = {};
 [
   /**
@@ -2313,7 +3913,7 @@ var errors = {};
 
 module.exports = errors;
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 var _ = _dereq_('../../lib/nodash.js');
 
 var Path = _dereq_('../path.js');
@@ -3129,6 +4729,8 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
   function read_file_data(error, result) {
     if(error) {
       callback(error);
+    } else if(result.mode === 'DIRECTORY') {
+      callback(new Errors.EISDIR('the named file is a directory', ofd.path));
     } else {
       fileNode = result;
       context.getBuffer(fileNode.data, handle_file_data);
@@ -4386,7 +5988,7 @@ module.exports = {
   ftruncate: ftruncate
 };
 
-},{"../../lib/nodash.js":4,"../buffer.js":10,"../constants.js":11,"../directory-entry.js":12,"../encoding.js":13,"../errors.js":14,"../node.js":19,"../open-file-description.js":20,"../path.js":21,"../stats.js":29,"../super-node.js":30}],16:[function(_dereq_,module,exports){
+},{"../../lib/nodash.js":4,"../buffer.js":14,"../constants.js":15,"../directory-entry.js":16,"../encoding.js":17,"../errors.js":18,"../node.js":23,"../open-file-description.js":24,"../path.js":25,"../stats.js":33,"../super-node.js":34}],20:[function(_dereq_,module,exports){
 var _ = _dereq_('../../lib/nodash.js');
 
 var isNullPath = _dereq_('../path.js').isNull;
@@ -4475,6 +6077,9 @@ function FileSystem(options, callback) {
   fs.stdin = STDIN;
   fs.stdout = STDOUT;
   fs.stderr = STDERR;
+
+  // Expose Shell constructor
+  this.Shell = Shell.bind(undefined, this);
 
   // Safely expose the list of open files and file
   // descriptor management functions
@@ -4723,13 +6328,9 @@ FileSystem.providers = providers;
   };
 });
 
-FileSystem.prototype.Shell = function(options) {
-  return new Shell(this, options);
-};
-
 module.exports = FileSystem;
 
-},{"../../lib/intercom.js":3,"../../lib/nodash.js":4,"../constants.js":11,"../errors.js":14,"../fs-watcher.js":17,"../path.js":21,"../providers/index.js":22,"../shared.js":26,"../shell/shell.js":28,"./implementation.js":15}],17:[function(_dereq_,module,exports){
+},{"../../lib/intercom.js":3,"../../lib/nodash.js":4,"../constants.js":15,"../errors.js":18,"../fs-watcher.js":21,"../path.js":25,"../providers/index.js":26,"../shared.js":30,"../shell/shell.js":32,"./implementation.js":19}],21:[function(_dereq_,module,exports){
 var EventEmitter = _dereq_('../lib/eventemitter.js');
 var Path = _dereq_('./path.js');
 var Intercom = _dereq_('../lib/intercom.js');
@@ -4793,15 +6394,16 @@ FSWatcher.prototype.constructor = FSWatcher;
 
 module.exports = FSWatcher;
 
-},{"../lib/eventemitter.js":2,"../lib/intercom.js":3,"./path.js":21}],18:[function(_dereq_,module,exports){
+},{"../lib/eventemitter.js":2,"../lib/intercom.js":3,"./path.js":25}],22:[function(_dereq_,module,exports){
 module.exports = {
   FileSystem: _dereq_('./filesystem/interface.js'),
   Buffer: _dereq_('./buffer.js'),
   Path: _dereq_('./path.js'),
-  Errors: _dereq_('./errors.js')
+  Errors: _dereq_('./errors.js'),
+  Shell: _dereq_('./shell/shell.js')
 };
 
-},{"./buffer.js":10,"./errors.js":14,"./filesystem/interface.js":16,"./path.js":21}],19:[function(_dereq_,module,exports){
+},{"./buffer.js":14,"./errors.js":18,"./filesystem/interface.js":20,"./path.js":25,"./shell/shell.js":32}],23:[function(_dereq_,module,exports){
 var MODE_FILE = _dereq_('./constants.js').MODE_FILE;
 
 function Node(options) {
@@ -4856,7 +6458,7 @@ Node.create = function(options, callback) {
 
 module.exports = Node;
 
-},{"./constants.js":11}],20:[function(_dereq_,module,exports){
+},{"./constants.js":15}],24:[function(_dereq_,module,exports){
 var Errors = _dereq_('./errors.js');
 
 function OpenFileDescription(path, id, flags, position) {
@@ -4889,7 +6491,7 @@ OpenFileDescription.prototype.getNode = function(context, callback) {
 
 module.exports = OpenFileDescription;
 
-},{"./errors.js":14}],21:[function(_dereq_,module,exports){
+},{"./errors.js":18}],25:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4958,7 +6560,7 @@ function resolve() {
       resolvedAbsolute = false;
 
   for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    // XXXidbfs: we don't have process.cwd() so we use '/' as a fallback
+    // XXXfiler: we don't have process.cwd() so we use '/' as a fallback
     var path = (i >= 0) ? arguments[i] : '/';
 
     // Skip empty and invalid entries
@@ -5076,7 +6678,7 @@ function basename(path, ext) {
   if (ext && f.substr(-1 * ext.length) === ext) {
     f = f.substr(0, f.length - ext.length);
   }
-  // XXXidbfs: node.js just does `return f`
+  // XXXfiler: node.js just does `return f`
   return f === "" ? "/" : f;
 }
 
@@ -5098,7 +6700,19 @@ function isNull(path) {
   return false;
 }
 
-// XXXidbfs: we don't support path.exists() or path.existsSync(), which
+// Make sure we don't double-add a trailing slash (e.g., '/' -> '//')
+function addTrailing(path) {
+  return path.replace(/\/*$/, '/');
+}
+
+// Deal with multiple slashes at the end, one, or none
+// and make sure we don't return the empty string.
+function removeTrailing(path) {
+  path = path.replace(/\/*$/, '');
+  return path === '' ? '/' : path;
+}
+
+// XXXfiler: we don't support path.exists() or path.existsSync(), which
 // are deprecated, and need a FileSystem instance to work. Use fs.stat().
 
 module.exports = {
@@ -5112,10 +6726,13 @@ module.exports = {
   basename: basename,
   extname: extname,
   isAbsolute: isAbsolute,
-  isNull: isNull
+  isNull: isNull,
+  // Non-node but useful...
+  addTrailing: addTrailing,
+  removeTrailing: removeTrailing
 };
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],26:[function(_dereq_,module,exports){
 var IndexedDB = _dereq_('./indexeddb.js');
 var WebSQL = _dereq_('./websql.js');
 var Memory = _dereq_('./memory.js');
@@ -5152,7 +6769,7 @@ module.exports = {
   }())
 };
 
-},{"./indexeddb.js":23,"./memory.js":24,"./websql.js":25}],23:[function(_dereq_,module,exports){
+},{"./indexeddb.js":27,"./memory.js":28,"./websql.js":29}],27:[function(_dereq_,module,exports){
 (function (global,Buffer){
 var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = _dereq_('../constants.js').FILE_STORE_NAME;
@@ -5304,7 +6921,7 @@ IndexedDB.prototype.getReadWriteContext = function() {
 module.exports = IndexedDB;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer)
-},{"../buffer.js":10,"../constants.js":11,"../errors.js":14,"buffer":6}],24:[function(_dereq_,module,exports){
+},{"../buffer.js":14,"../constants.js":15,"../errors.js":18,"buffer":6}],28:[function(_dereq_,module,exports){
 var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
 // NOTE: prefer setImmediate to nextTick for proper recursion yielding.
 // see https://github.com/js-platform/filer/pull/24
@@ -5396,7 +7013,7 @@ Memory.prototype.getReadWriteContext = function() {
 
 module.exports = Memory;
 
-},{"../../lib/async.js":1,"../constants.js":11}],25:[function(_dereq_,module,exports){
+},{"../../lib/async.js":1,"../constants.js":15}],29:[function(_dereq_,module,exports){
 (function (global){
 var FILE_SYSTEM_NAME = _dereq_('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = _dereq_('../constants.js').FILE_STORE_NAME;
@@ -5571,7 +7188,7 @@ WebSQL.prototype.getReadWriteContext = function() {
 module.exports = WebSQL;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../buffer.js":10,"../constants.js":11,"../errors.js":14,"base64-arraybuffer":5}],26:[function(_dereq_,module,exports){
+},{"../buffer.js":14,"../constants.js":15,"../errors.js":18,"base64-arraybuffer":5}],30:[function(_dereq_,module,exports){
 function guid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
@@ -5599,7 +7216,7 @@ module.exports = {
   nop: nop
 };
 
-},{}],27:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 var defaults = _dereq_('../constants.js').ENVIRONMENT;
 
 module.exports = function Environment(env) {
@@ -5616,12 +7233,13 @@ module.exports = function Environment(env) {
   };
 };
 
-},{"../constants.js":11}],28:[function(_dereq_,module,exports){
+},{"../constants.js":15}],32:[function(_dereq_,module,exports){
 var Path = _dereq_('../path.js');
 var Errors = _dereq_('../errors.js');
 var Environment = _dereq_('./environment.js');
 var async = _dereq_('../../lib/async.js');
 var Encoding = _dereq_('../encoding.js');
+var minimatch = _dereq_('minimatch');
 
 function Shell(fs, options) {
   options = options || {};
@@ -6045,9 +7663,125 @@ Shell.prototype.mkdirp = function(path, callback) {
   _mkdirp(path, callback);
 };
 
+/**
+ * Recursively walk a directory tree, reporting back all paths
+ * that were found along the way. The `path` must be a dir.
+ * Valid options include a `regex` for pattern matching paths
+ * and an `exec` function of the form `function(path, next)` where
+ * `path` is the current path that was found (dir paths have an '/'
+ * appended) and `next` is a callback to call when done processing
+ * the current path, passing any error object back as the first argument.
+ * `find` returns a flat array of absolute paths for all matching/found
+ * paths as the final argument to the callback.
+ */
+ Shell.prototype.find = function(path, options, callback) {
+  var sh = this;
+  var fs = sh.fs;
+  if(typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  options = options || {};
+  callback = callback || function(){};
+
+  var exec = options.exec || function(path, next) { next(); };
+  var found = [];
+
+  if(!path) {
+    callback(new Errors.EINVAL('Missing path argument'));
+    return;
+  }
+
+  function processPath(path, callback) {
+    exec(path, function(err) {
+      if(err) {
+        callback(err);
+        return;
+      }
+
+      found.push(path);
+      callback();
+    });
+  }
+
+  function maybeProcessPath(path, callback) {
+    // Test the path against the user's regex, name, path primaries (if any)
+    // and remove any trailing slashes added previously.
+    var rawPath = Path.removeTrailing(path);
+
+    // Check entire path against provided regex, if any
+    if(options.regex && !options.regex.test(rawPath)) {
+      callback();
+      return;
+    }
+
+    // Check basename for matches against name primary, if any
+    if(options.name && !minimatch(Path.basename(rawPath), options.name)) {
+      callback();
+      return;
+    }
+
+    // Check dirname for matches against path primary, if any
+    if(options.path && !minimatch(Path.dirname(rawPath), options.path)) {
+      callback();
+      return;
+    }
+
+    processPath(path, callback);
+  }
+
+  function walk(path, callback) {
+    path = Path.resolve(sh.pwd(), path);
+
+    // The path is either a file or dir, and instead of doing
+    // a stat() to determine it first, we just try to readdir()
+    // and it will either work or not, and we handle the non-dir error.
+    fs.readdir(path, function(err, entries) {
+      if(err) {
+        if(err.code === 'ENOTDIR' /* file case, ignore error */) {
+          maybeProcessPath(path, callback);
+        } else {
+          callback(err);
+        }
+        return;
+      }
+
+      // Path is really a dir, add a trailing / and report it found
+      maybeProcessPath(Path.addTrailing(path), function(err) {
+        if(err) {
+          callback(err);
+          return;
+        }
+
+        entries = entries.map(function(entry) {
+          return Path.join(path, entry);
+        });
+
+        async.eachSeries(entries, walk, function(err) {
+          callback(err, found);
+        });
+      });
+    });
+  }
+
+  // Make sure we are starting with a dir path
+  fs.stat(path, function(err, stats) {
+    if(err) {
+      callback(err);
+      return;
+    }
+    if(!stats.isDirectory()) {
+      callback(new Errors.ENOTDIR(null, path));
+      return;
+    }
+
+    walk(path, callback);
+  });
+};
+
 module.exports = Shell;
 
-},{"../../lib/async.js":1,"../encoding.js":13,"../errors.js":14,"../path.js":21,"./environment.js":27}],29:[function(_dereq_,module,exports){
+},{"../../lib/async.js":1,"../encoding.js":17,"../errors.js":18,"../path.js":25,"./environment.js":31,"minimatch":11}],33:[function(_dereq_,module,exports){
 var Constants = _dereq_('./constants.js');
 
 function Stats(fileNode, devName) {
@@ -6084,7 +7818,7 @@ function() {
 
 module.exports = Stats;
 
-},{"./constants.js":11}],30:[function(_dereq_,module,exports){
+},{"./constants.js":15}],34:[function(_dereq_,module,exports){
 var Constants = _dereq_('./constants.js');
 
 function SuperNode(options) {
@@ -6112,6 +7846,6 @@ SuperNode.create = function(options, callback) {
 
 module.exports = SuperNode;
 
-},{"./constants.js":11}]},{},[18])
-(18)
+},{"./constants.js":15}]},{},[22])
+(22)
 });
