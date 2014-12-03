@@ -39,6 +39,13 @@ function maybeCallback(callback) {
   };
 }
 
+// Default callback that logs an error if passed in
+function defaultCallback(err) {
+  if(err) {
+    console.error('Filer error: ', err);
+  }
+}
+
 /**
  * FileSystem
  *
@@ -69,7 +76,7 @@ function maybeCallback(callback) {
  */
 function FileSystem(options, callback) {
   options = options || {};
-  callback = callback || nop;
+  callback = callback || defaultCallback;
 
   var flags = options.flags;
   var guid = options.guid ? options.guid : defaultGuidFn;
