@@ -1,4 +1,4 @@
-function nextTick(cb) {
+function setImmediate(cb) {
   setTimeout(cb, 0);
 }
 

@@ -65,7 +65,7 @@ module.exports = function(grunt) {
           exclude: ["./node_modules/request/index.js"]
         }
       },
-      perfTest: {
+      perf: {
         src: "./tests/perf/index.js",
         dest: "./tests/perf/filer-perf-test.js",
         options: {
