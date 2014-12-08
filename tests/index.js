@@ -47,6 +47,7 @@ require("./spec/providers/providers.websql.spec");
 require("./spec/providers/providers.memory.spec");
 
 // Filer.FileSystemShell.*
+require("./spec/filer.filesystemshell.spec");
 require("./spec/shell/cd.spec");
 require("./spec/shell/touch.spec");
 require("./spec/shell/exec.spec");

@@ -10,6 +10,8 @@ function Shell(fs, options) {
 
   var env = new Environment(options.env);
   var cwd = '/';
+  var self = this;
+  var fsCommands = require('../filesystem/commands');
 
   /**
    * The bound FileSystem (cannot be changed)
@@ -57,6 +59,13 @@ function Shell(fs, options) {
   this.pwd = function() {
     return cwd;
   };
+
+  /**
+   * Expose the bound FileSystem's methods on this Shell instance
+   */
+   fsCommands.forEach(function(fsCommand) {
+    self[fsCommand] = fs[fsCommand].bind(fs);
+   });
 }
 
 /**
