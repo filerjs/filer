@@ -1974,7 +1974,88 @@ function rename(fs, context, oldpath, newpath, callback) {
   if(!pathCheck(oldpath, callback)) return;
   if(!pathCheck(newpath, callback)) return;
 
-  function unlink_old_node(error) {
+  var oldParentPath = Path.dirname(oldpath);
+  var newParentPath = Path.dirname(oldpath);
+  var oldName = Path.basename(oldpath);
+  var newName = Path.basename(newpath);
+  var oldParentDirectory, oldParentData;
+  var newParentDirectory, newParentData;
+
+  function update_times(error, newNode) {
+    if(error) {
+      callback(error);
+    } else {
+      update_node_times(context, newpath,  newNode, { ctime: Date.now() }, callback);
+    }
+  }
+
+  function read_new_directory(error) {
+    if(error) {
+      callback(error);
+    } else {
+      context.getObject(newParentData[newName].id, update_times);
+    }
+  }
+
+  function update_old_parent_directory_data(error) {
+    if(error) {
+      callback(error);
+    } else {
+      delete oldParentData[oldName];
+      context.putObject(oldParentDirectory.data, oldParentData, read_new_directory);
+    }
+  }
+
+  function update_new_parent_directory_data(error) {
+    if(error) {
+      callback(error);
+    } else {
+      newParentData[newName] = oldParentData[oldName];
+      context.putObject(newParentDirectory.data, newParentData, update_old_parent_directory_data);
+    }
+  }
+
+  function check_if_new_directory_exists(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      newParentData = result;
+      if(_(newParentData).has(newName)) {
+        remove_directory(context, newpath, update_new_parent_directory_data);
+      } else {
+        update_new_parent_directory_data();
+      }
+    }
+  }
+
+  function read_new_parent_directory_data(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      newParentDirectory = result;
+      context.getObject(newParentDirectory.data, check_if_new_directory_exists);
+    }
+  }
+
+  function get_new_parent_directory(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      oldParentData = result;
+      find_node(context, newParentPath, read_new_parent_directory_data);
+    }
+  }
+
+  function read_parent_directory_data(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      oldParentDirectory = result;
+      context.getObject(result.data, get_new_parent_directory);
+    }
+  }
+
+  function unlink_old_file(error) {
     if(error) {
       callback(error);
     } else {
@@ -1982,7 +2063,17 @@ function rename(fs, context, oldpath, newpath, callback) {
     }
   }
 
-  link_node(context, oldpath, newpath, unlink_old_node);
+  function check_node_type(error, node) {
+    if(error) {
+      callback(error);
+    } else if(node.mode === 'DIRECTORY') {
+      find_node(context, oldParentPath, read_parent_directory_data);
+    } else {
+      link_node(context, oldpath, newpath, unlink_old_file);
+    }
+  }
+
+  find_node(context, oldpath, check_node_type);
 }
 
 function symlink(fs, context, srcpath, dstpath, type, callback) {
