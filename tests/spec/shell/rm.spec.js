@@ -1,6 +1,7 @@
 var Filer = require('../../..');
 var util = require('../../lib/test-utils.js');
 var expect = require('chai').expect;
+var optionals = require('../../../src/shell/optional');
 
 describe('FileSystemShell.rm', function() {
   beforeEach(util.setup);
@@ -69,7 +70,7 @@ describe('FileSystemShell.rm', function() {
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
 
-      shell.touch('/dir/file', function(err) {
+      optionals.touch(shell, '/dir/file', function(err) {
         if(err) throw err;
 
         shell.rm('/dir', function(err) {
@@ -88,7 +89,7 @@ describe('FileSystemShell.rm', function() {
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
 
-      shell.touch('/dir/file', function(err) {
+      optionals.touch(shell, '/dir/file', function(err) {
         if(err) throw err;
 
         shell.rm('/dir', { recursive: true }, function(err) {
