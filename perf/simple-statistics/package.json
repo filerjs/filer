@@ -1,0 +1,28 @@
+{
+  "name": "simple-statistics",
+  "version": "0.9.0",
+  "description": "Simple Statistics",
+  "author": "Tom MacWright <tom@macwright.org> (http://macwright.org/)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tmcw/simple-statistics.git"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jshint": "2.5.3",
+    "coveralls": "~2.11.1",
+    "istanbul": "~0.3.0",
+    "tape": "~2.14.0",
+    "random-js": "~1.0.4"
+  },
+  "scripts": {
+    "test": "tape test/*.js",
+    "cov": "istanbul cover ./node_modules/.bin/tape test/*.js && coveralls < ./coverage/lcov.info",
+    "api": "node api.js"
+  },
+  "main": "src/simple_statistics.js",
+  "engines": {
+    "node": "*"
+  },
+  "license": "ISC"
+}
