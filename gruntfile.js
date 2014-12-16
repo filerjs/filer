@@ -65,6 +65,18 @@ module.exports = function(grunt) {
           exclude: ["./node_modules/request/index.js"]
         }
       },
+      perf: {
+        src: "./tests/perf/index.js",
+        dest: "./tests/perf/filer-perf-test.js",
+        options: {
+          browserifyOptions: {
+            commondir: false
+          },
+          bundleOptions: {
+            standalone: 'Filer'
+          }
+        }
+      },
       filerTest: {
         src: "./tests/index.js",
         dest: "./dist/filer-test.js"
