@@ -15,7 +15,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
-    clean: ['dist/filer-test.js', 'dist/filer-issue225.js'],
+    clean: ['dist/filer-test.js', 'dist/filer-issue225.js', 'dist/filer-perf.js'],
 
     uglify: {
       options: {
@@ -65,9 +65,9 @@ module.exports = function(grunt) {
           exclude: ["./node_modules/request/index.js"]
         }
       },
-      perf: {
-        src: "./tests/perf/index.js",
-        dest: "./tests/perf/filer-perf-test.js",
+      filerPerf: {
+        src: "./perf/index.js",
+        dest: "./dist/filer-perf.js",
         options: {
           browserifyOptions: {
             commondir: false
@@ -186,7 +186,7 @@ module.exports = function(grunt) {
     gitadd: {
       publish: {
         files: {
-          src: ['./dist/filer-test.js']
+          src: ['./dist/filer-test.js', './dist/filer-perf.js']
         }
       }
     },
@@ -204,7 +204,7 @@ module.exports = function(grunt) {
     gitrm: {
       publish: {
         files: {
-          src: ['./dist/filer-test.js']
+          src: ['./dist/filer-test.js', './dist/filer-perf.js']
         }
       }
     },
@@ -231,7 +231,7 @@ module.exports = function(grunt) {
           position: "top"
         },
         files: {
-          src: ['./dist/filer-test.js']
+          src: ['./dist/filer-test.js', './dist/filer-perf.js']
         }
       }
     }
@@ -251,7 +251,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-banner');
 
   grunt.registerTask('develop', ['clean', 'browserify:filerDist', 'browserify:filerIssue225']);
-  grunt.registerTask('build-tests', ['clean', 'browserify:filerTest']);
+  grunt.registerTask('build-tests', ['clean', 'browserify:filerTest', 'browserify:filerPerf']);
   grunt.registerTask('release', ['test', 'develop', 'uglify']);
 
   grunt.registerTask('publish', 'Publish filer as a new version to NPM, bower and github.', function(patchLevel) {
