@@ -4,6 +4,8 @@ function MemoryTestProvider(name) {
   var that = this;
 
   function cleanup(callback) {
+    callback = callback || function(){};
+
     that.provider = null;
     callback();
   }
