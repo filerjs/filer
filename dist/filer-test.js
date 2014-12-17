@@ -1,4 +1,4 @@
-/* Test file for filerjs v0.0.36*/
+/* Test file for filerjs v0.0.37*/
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (process){
 /*global setImmediate: false, setTimeout: false, console: false */
@@ -10425,7 +10425,88 @@ function rename(fs, context, oldpath, newpath, callback) {
   if(!pathCheck(oldpath, callback)) return;
   if(!pathCheck(newpath, callback)) return;
 
-  function unlink_old_node(error) {
+  var oldParentPath = Path.dirname(oldpath);
+  var newParentPath = Path.dirname(oldpath);
+  var oldName = Path.basename(oldpath);
+  var newName = Path.basename(newpath);
+  var oldParentDirectory, oldParentData;
+  var newParentDirectory, newParentData;
+
+  function update_times(error, newNode) {
+    if(error) {
+      callback(error);
+    } else {
+      update_node_times(context, newpath,  newNode, { ctime: Date.now() }, callback);
+    }
+  }
+
+  function read_new_directory(error) {
+    if(error) {
+      callback(error);
+    } else {
+      context.getObject(newParentData[newName].id, update_times);
+    }
+  }
+
+  function update_old_parent_directory_data(error) {
+    if(error) {
+      callback(error);
+    } else {
+      delete oldParentData[oldName];
+      context.putObject(oldParentDirectory.data, oldParentData, read_new_directory);
+    }
+  }
+
+  function update_new_parent_directory_data(error) {
+    if(error) {
+      callback(error);
+    } else {
+      newParentData[newName] = oldParentData[oldName];
+      context.putObject(newParentDirectory.data, newParentData, update_old_parent_directory_data);
+    }
+  }
+
+  function check_if_new_directory_exists(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      newParentData = result;
+      if(_(newParentData).has(newName)) {
+        remove_directory(context, newpath, update_new_parent_directory_data);
+      } else {
+        update_new_parent_directory_data();
+      }
+    }
+  }
+
+  function read_new_parent_directory_data(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      newParentDirectory = result;
+      context.getObject(newParentDirectory.data, check_if_new_directory_exists);
+    }
+  }
+
+  function get_new_parent_directory(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      oldParentData = result;
+      find_node(context, newParentPath, read_new_parent_directory_data);
+    }
+  }
+
+  function read_parent_directory_data(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      oldParentDirectory = result;
+      context.getObject(result.data, get_new_parent_directory);
+    }
+  }
+
+  function unlink_old_file(error) {
     if(error) {
       callback(error);
     } else {
@@ -10433,7 +10514,17 @@ function rename(fs, context, oldpath, newpath, callback) {
     }
   }
 
-  link_node(context, oldpath, newpath, unlink_old_node);
+  function check_node_type(error, node) {
+    if(error) {
+      callback(error);
+    } else if(node.mode === 'DIRECTORY') {
+      find_node(context, oldParentPath, read_parent_directory_data);
+    } else {
+      link_node(context, oldpath, newpath, unlink_old_file);
+    }
+  }
+
+  find_node(context, oldpath, check_node_type);
 }
 
 function symlink(fs, context, srcpath, dstpath, type, callback) {
@@ -10565,6 +10656,13 @@ function maybeCallback(callback) {
   };
 }
 
+// Default callback that logs an error if passed in
+function defaultCallback(err) {
+  if(err) {
+    console.error('Filer error: ', err);
+  }
+}
+
 /**
  * FileSystem
  *
@@ -10595,7 +10693,7 @@ function maybeCallback(callback) {
  */
 function FileSystem(options, callback) {
   options = options || {};
-  callback = callback || nop;
+  callback = callback || defaultCallback;
 
   var flags = options.flags;
   var guid = options.guid ? options.guid : defaultGuidFn;
@@ -14465,6 +14563,110 @@ describe('fs.rename', function() {
             expect(result.nlinks).to.equal(1);
             complete2 = true;
             maybeDone();
+          });
+        });
+      });
+    });
+  });
+
+  it('should rename an existing directory', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.rename('/mydir', '/myotherdir', function(error) {
+        expect(error).not.to.exist;
+        fs.stat('/mydir', function(error) {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOENT');
+
+          fs.stat('/myotherdir', function(error, result) {
+            expect(error).not.to.exist;
+            expect(result.nlinks).to.equal(1);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should rename an existing directory if the new path points to an existing directory', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.mkdir('/myotherdir', function(error) {
+        if(error) throw error;
+
+        fs.rename('/mydir', '/myotherdir', function(error) {
+          expect(error).not.to.exist;
+          fs.stat('/mydir', function(error) {
+            expect(error).to.exist;
+            expect(error.code).to.equal('ENOENT');
+
+            fs.stat('/myotherdir', function(error, result) {
+              expect(error).not.to.exist;
+              expect(result.nlinks).to.equal(1);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should fail to rename an existing directory if the new path points to an existing directory that is not empty', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.mkdir('/myotherdir', function(error) {
+        if(error) throw error;
+
+        fs.writeFile('/myotherdir/myfile', 'This is a file', function(error) {
+          if(error) throw error;
+
+          fs.rename('/mydir', '/myotherdir', function(error) {
+            expect(error).to.exist;
+            expect(error.code).to.equal('ENOTEMPTY');
+
+            fs.stat('/mydir', function(error) {
+              expect(error).not.to.exist;
+
+              fs.stat('/myotherdir', function(error) {
+                expect(error).not.to.exist;
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should fail to rename an existing directory if the new path points to an existing file', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.writeFile('/myfile', 'This is a file', function(error) {
+        if(error) throw error;
+
+        fs.rename('/mydir', '/myfile', function(error) {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOTDIR');
+
+          fs.stat('/mydir', function(error) {
+            expect(error).not.to.exist;
+
+            fs.stat('/myfile', function(error) {
+              expect(error).not.to.exist;
+              done();
+            });
           });
         });
       });
