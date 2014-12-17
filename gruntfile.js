@@ -203,6 +203,9 @@ module.exports = function(grunt) {
 
     gitrm: {
       publish: {
+        options: {
+          force: true
+        },
         files: {
           src: ['./dist/filer-test.js', './dist/filer-perf.js', 'tests/', 'perf/']
         }
