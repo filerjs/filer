@@ -2003,6 +2003,9 @@ function rename(fs, context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
+      if(oldParentDirectory.id === newParentDirectory.id) {
+        oldParentData = newParentData;
+      }
       delete oldParentData[oldName];
       context.putObject(oldParentDirectory.data, oldParentData, read_new_directory);
     }
