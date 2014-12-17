@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Filer : Node-like file system for browsers">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Filer</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/filerjs/filer">View on GitHub</a>
+
+          <h1 id="project_title">Filer</h1>
+          <h2 id="project_tagline">Node-like file system for browsers</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/filerjs/filer/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/filerjs/filer/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p><a href="https://nodei.co/npm/filer/"><img src="https://nodei.co/npm/filer.png?downloads=true&amp;stars=true" alt="NPM"></a></p>
+
+<p><a href="http://travis-ci.org/filerjs/filer"><img src="https://secure.travis-ci.org/filerjs/filer.png?branch=develop" alt="Build Status"></a></p>
+
+<h3>
+<a id="filer" class="anchor" href="#filer" aria-hidden="true"><span class="octicon octicon-link"></span></a>Filer</h3>
+
+<p>Filer is a POSIX-like file system interface for node.js and browser-based JavaScript.</p>
+
+<h3>
+<a id="compatibility" class="anchor" href="#compatibility" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compatibility</h3>
+
+<p>Filer is known to work in the following browsers/versions, with the specified <a href="#providers">Storage Providers</a>:</p>
+
+<ul>
+<li>node.js: v0.10.*+</li>
+<li>IE: 10+ (IndexedDB)</li>
+<li>Firefox: 26+ (IndexedDB)</li>
+<li>Chrome: 31+ (IndexedDB, WebSQL)</li>
+<li>Safari: 7.0+ (WebSQL)</li>
+<li>Opera: 19+ (IndexedDB, WebSQL)</li>
+<li>iOS: 3.2+ (WebSQL)</li>
+<li>Android Browser: 2.1-4.4 (WebSQL), 4.4+ (IndexedDB)</li>
+</ul>
+
+<p>NOTE: if you're interested in maximum compatibility, use the <code>Fallback</code> provider instead of <code>Default</code>.
+See the section on <a href="#providers">Storage Providers</a>.</p>
+
+<h3>
+<a id="contributing" class="anchor" href="#contributing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contributing</h3>
+
+<p>Want to join the fun? We'd love to have you! See <a href="https://github.com/filerjs/filer/blob/develop/CONTRIBUTING.md">CONTRIBUTING</a>.</p>
+
+<h3>
+<a id="how-to-get-it" class="anchor" href="#how-to-get-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to Get It</h3>
+
+<p>Filer can be obtained in a number of ways:</p>
+
+<ol>
+<li>npm - <code>npm install filer</code>
+</li>
+<li>bower - <code>bower install filer</code>
+</li>
+<li>download pre-built versions: <a href="https://raw.github.com/filerjs/filer/develop/dist/filer.js">filer.js</a>, <a href="https://raw.github.com/filerjs/filer/develop/dist/filer.min.js">filer.min.js</a>
+</li>
+</ol>
+
+<h3>
+<a id="loading-and-usage" class="anchor" href="#loading-and-usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Loading and Usage</h3>
+
+<p>Filer is built as a UMD module and can therefore be loaded as a CommonJS or AMD module, or used via the global.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Option 1: Filer loaded via require() in node/browserify</span>
+<span class="pl-s">var</span> Filer <span class="pl-k">=</span> <span class="pl-s3">require</span>(<span class="pl-s1"><span class="pl-pds">'</span>filer<span class="pl-pds">'</span></span>);
+
+<span class="pl-c">// Option 2: Filer loaded via RequireJS</span>
+requirejs.config({
+  baseUrl<span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">'</span>/<span class="pl-pds">'</span></span>,
+  paths<span class="pl-k">:</span> {
+    <span class="pl-s1"><span class="pl-pds">'</span>filer<span class="pl-pds">'</span></span><span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">'</span>filer/dist/filer<span class="pl-pds">'</span></span>
+  }
+});
+requirejs([<span class="pl-s1"><span class="pl-pds">'</span>filer<span class="pl-pds">'</span></span>], <span class="pl-st">function</span>(<span class="pl-vpf">Filer</span>) {...}
+
+<span class="pl-c">// Option 3: Filer on global</span>
+<span class="pl-s">var</span> Filer <span class="pl-k">=</span> <span class="pl-s3">window</span>.Filer;</pre></div>
+
+<h3>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting Started</h3>
+
+<p>Filer is as close to the node.js <a href="http://nodejs.org/api/fs.html">fs module</a> as possible,
+with the following differences:</p>
+
+<ul>
+<li>No synchronous versions of methods (e.g., <code>mkdir()</code> but not <code>mkdirSync()</code>).</li>
+<li>No permissions (e.g., no <code>chown()</code>, <code>chmod()</code>, etc.).</li>
+<li>No support for stream-based operations (e.g., <code>fs.ReadStream</code>, <code>fs.WriteStream</code>).</li>
+</ul>
+
+<p>Filer has other features lacking in node.js (e.g., swappable backend
+storage providers, extended attributes, etc).</p>
+
+<p>Like node.js, the API is asynchronous and most methods expect the caller to provide
+a callback function (note: like node.js, Filer will supply one if it's missing).
+Errors are passed to callbacks through the first parameter.  As with node.js,
+there is no guarantee that file system operations will be executed in the order
+they are invoked. Ensure proper ordering by chaining operations in callbacks.</p>
+
+<h3>
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview</h3>
+
+<p>To create a new file system or open an existing one, create a new <code>FileSystem</code>
+instance.  By default, a new <a href="https://developer.mozilla.org/en/docs/IndexedDB">IndexedDB</a>
+database is created for each file system. The file system can also use other
+backend storage providers, for example <a href="http://en.wikipedia.org/wiki/Web_SQL_Database">WebSQL</a>
+or even RAM (i.e., for temporary storage). See the section on <a href="#providers">Storage Providers</a>.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> fs <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.FileSystem</span>();
+fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>w+<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+  fs.<span class="pl-s3">close</span>(fd, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+    fs.stat(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">stats</span>) {
+      <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+      <span class="pl-en">console</span><span class="pl-s3">.log</span>(<span class="pl-s1"><span class="pl-pds">'</span>stats: <span class="pl-pds">'</span></span> <span class="pl-k">+</span> JSON.stringify(stats));
+    });
+  });
+});</pre></div>
+
+<p>For a complete list of <code>FileSystem</code> methods and examples, see the <a href="#FileSystemMethods">FileSystem Instance Methods</a>
+section below.</p>
+
+<p>Filer also supports node's Path module. See the <a href="#FilerPath">Filer.Path</a> section below.</p>
+
+<p>In addition, common shell operations (e.g., rm, touch, cat, etc.) are supported via the
+<code>FileSystemShell</code> object, which can be obtained from, and used with a <code>FileSystem</code>.
+See the<a href="#FileSystemShell">FileSystemShell</a> section below.</p>
+
+<h3>
+<a id="api-reference" class="anchor" href="#api-reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>API Reference</h3>
+
+<p>Like node.js, callbacks for methods that accept them are optional but suggested (i.e., if
+you omit the callback, errors will be thrown as exceptions). The first callback parameter is
+reserved for passing errors. It will be <code>null</code> if no errors occurred and should always be checked.</p>
+
+<h4>
+<a id="filerfilesystemoptions-callback-constructor" class="anchor" href="#filerfilesystemoptions-callback-constructor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Filer.FileSystem(options, callback) constructor</h4>
+
+<p>File system constructor, invoked to open an existing file system or create a new one.
+Accepts two arguments: an <code>options</code> object, and an optional <code>callback</code>. The <code>options</code>
+object can specify a number of optional arguments, including:</p>
+
+<ul>
+<li>
+<code>name</code>: the name of the file system, defaults to <code>'"local'</code>
+</li>
+<li>
+<code>flags</code>: an Array of one or more flags to use when creating/opening the file system:
+
+<ul>
+<li>
+<code>'FORMAT'</code> to force Filer to format (i.e., erase) the file system</li>
+<li>
+<code>'NOCTIME'</code> to force Filer to not update <code>ctime</code> on nodes when metadata changes (i.e., for better performance)</li>
+<li>
+<code>'NOMTIME'</code> to force Filer to not update <code>mtime</code> on nodes when data changes (i.e., for better performance)</li>
+</ul>
+</li>
+<li>
+<code>provider</code>: an explicit storage provider to use for the file system's database context provider. See the section on <a href="#providers">Storage Providers</a>.</li>
+</ul>
+
+<p>The <code>callback</code> function indicates when the file system is ready for use. Depending on the storage provider used, this might
+be right away, or could take some time. The callback should expect two arguments: first, an <code>error</code> argument, which will be
+null if everything worked; second, an instance, such that you can access the newly ready FileSystem instance. Also users
+should check the file system's <code>readyState</code> and <code>error</code> properties to make sure it is usable.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> fs;
+
+<span class="pl-st">function</span> <span class="pl-en">fsReady</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fs</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// Safe to use fs now...</span>
+}
+
+fs <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.FileSystem</span>({
+  name<span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>my-filesystem<span class="pl-pds">"</span></span>,
+  flags<span class="pl-k">:</span> [ <span class="pl-s1"><span class="pl-pds">'</span>FORMAT<span class="pl-pds">'</span></span> ],
+  provider<span class="pl-k">:</span> <span class="pl-k">new</span> <span class="pl-en">Filer.FileSystem</span>.providers.Memory()
+}, fsReady);</pre></div>
+
+<p>NOTE: if the optional callback argument is not passed to the <code>FileSystem</code> constructor,
+operations done on the resulting file system will be queued and run in sequence when
+it becomes ready.</p>
+
+<h4>
+<a id="filerfilesystemproviders---storage-providers" class="anchor" href="#filerfilesystemproviders---storage-providers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Filer.FileSystem.providers - Storage Providers<a name="providers"></a>
+</h4>
+
+<p>Filer can be configured to use a number of different storage providers. The provider object encapsulates all aspects
+of data access, making it possible to swap in different backend storage options.  There are currently 4 different
+providers to choose from:</p>
+
+<ul>
+<li>
+<code>FileSystem.providers.IndexedDB()</code> - uses IndexedDB</li>
+<li>
+<code>FileSystem.providers.WebSQL()</code> - uses WebSQL</li>
+<li>
+<code>FileSystem.providers.Fallback()</code> - attempts to use IndexedDB if possible, falling-back to WebSQL if necessary</li>
+<li>
+<code>FileSystem.providers.Memory()</code> - uses memory (not suitable for data that needs to survive the current session)</li>
+</ul>
+
+<p>You can choose your provider when creating a <code>FileSystem</code>:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> FileSystem <span class="pl-k">=</span> Filer.FileSystem;
+<span class="pl-s">var</span> providers <span class="pl-k">=</span> FileSystem.providers;
+
+<span class="pl-c">// Example 1: Use the default provider (currently IndexedDB)</span>
+<span class="pl-s">var</span> fs1 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">FileSystem</span>();
+
+<span class="pl-c">// Example 2: Explicitly use IndexedDB</span>
+<span class="pl-s">var</span> fs2 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">FileSystem</span>({ provider<span class="pl-k">:</span> <span class="pl-k">new</span> <span class="pl-en">providers.IndexedDB</span>() });
+
+<span class="pl-c">// Example 3: Use one of IndexedDB or WebSQL, whichever is supported</span>
+<span class="pl-s">var</span> fs3 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">FileSystem</span>({ provider<span class="pl-k">:</span> <span class="pl-k">new</span> <span class="pl-en">providers.Fallback</span>() });</pre></div>
+
+<p>Every provider has an <code>isSupported()</code> method, which returns <code>true</code> if the browser supports this provider:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">if</span>( Filer.FileSystem.providers.WebSQL.isSupported() ) {
+  <span class="pl-c">// WebSQL provider will work in current environment...</span>
+}</pre></div>
+
+<p>You can also write your own provider if you need a different backend. See the code in <code>src/providers</code> for details.</p>
+
+<p>A number of other providers have been written, including:</p>
+
+<ul>
+<li>node.js fs provider: <a href="https://github.com/humphd/filer-fs">https://github.com/humphd/filer-fs</a>
+</li>
+<li>node.js Amazon S3 provider: <a href="https://github.com/alicoding/filer-s3">https://github.com/alicoding/filer-s3</a>
+</li>
+</ul>
+
+<h4>
+<a id="filerbuffer" class="anchor" href="#filerbuffer" aria-hidden="true"><span class="octicon octicon-link"></span></a>Filer.Buffer<a name="FilerBuffer"></a>
+</h4>
+
+<p>When reading and writing data, Filer follows node.js and uses <a href="http://nodejs.org/api/buffer.html"><code>Buffer</code></a>.
+When in a node.js environment, native <code>Buffer</code>s can be used, or Filer.Buffer, which is a shortcut
+to node's <code>Buffer</code>.  In a browser, you can use also use <code>Filer.Buffer</code>.</p>
+
+<p>NOTE: a <code>Filer.Buffer</code> in a browser is really an augmented <code>Uint8Array</code> (i.e., the node <code>Buffer</code> api
+methods are added to the instance). See <a href="https://github.com/feross/buffer">https://github.com/feross/buffer</a> for more details. Additionally, unlike native <code>Buffer</code>, <code>Filer.Buffer</code>'s constructor can accept <code>ArrayBuffer</code> objects, which will be interpreted as <code>Uint8Array</code>s.</p>
+
+<h4>
+<a id="filerpath" class="anchor" href="#filerpath" aria-hidden="true"><span class="octicon octicon-link"></span></a>Filer.Path<a name="FilerPath"></a>
+</h4>
+
+<p>The node.js <a href="http://nodejs.org/api/path.html">path module</a> is available via the <code>Filer.Path</code> object. It is
+identical to the node.js version with the following differences:</p>
+
+<ul>
+<li>No notion of a current working directory in <code>resolve</code> (the root dir is used instead)</li>
+</ul>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> path <span class="pl-k">=</span> Filer.Path;
+<span class="pl-s">var</span> dir <span class="pl-k">=</span> path.dirname(<span class="pl-s1"><span class="pl-pds">'</span>/foo/bar/baz/asdf/quux<span class="pl-pds">'</span></span>);
+<span class="pl-c">// dir is now '/foo/bar/baz/asdf'</span>
+
+<span class="pl-s">var</span> base <span class="pl-k">=</span> path.basename(<span class="pl-s1"><span class="pl-pds">'</span>/foo/bar/baz/asdf/quux.html<span class="pl-pds">'</span></span>);
+<span class="pl-c">// base is now 'quux.html'</span>
+
+<span class="pl-s">var</span> ext <span class="pl-k">=</span> path.extname(<span class="pl-s1"><span class="pl-pds">'</span>index.html<span class="pl-pds">'</span></span>);
+<span class="pl-c">// ext is now '.html'</span>
+
+<span class="pl-s">var</span> newpath <span class="pl-k">=</span> path.<span class="pl-s3">join</span>(<span class="pl-s1"><span class="pl-pds">'</span>/foo<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>baz/asdf<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>quux<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>..<span class="pl-pds">'</span></span>);
+<span class="pl-c">// new path is now '/foo/bar/baz/asdf'</span></pre></div>
+
+<p>For more info see the docs in the <a href="http://nodejs.org/api/path.html">path module</a> for a particular method:</p>
+
+<ul>
+<li><code>path.normalize(p)</code></li>
+<li><code>path.join([path1], [path2], [...])</code></li>
+<li><code>path.resolve([from ...], to)</code></li>
+<li><code>path.relative(from, to)</code></li>
+<li><code>path.dirname(p)</code></li>
+<li><code>path.basename(p, [ext])</code></li>
+<li><code>path.extname(p)</code></li>
+<li><code>path.sep</code></li>
+<li><code>path.delimiter</code></li>
+</ul>
+
+<h4>
+<a id="filererrors" class="anchor" href="#filererrors" aria-hidden="true"><span class="octicon octicon-link"></span></a>Filer.Errors<a name="Errors"></a>
+</h4>
+
+<p>The error objects used internally by Filer are also exposed via the <code>Filer.Errors</code> object. As much as possible
+these match their node.js counterparts, with a few Filer-specifc additions.
+See <a href="https://github.com/filerjs/filer/blob/develop/src/errors.js">src/errors.js</a> for the complete
+list. Errors can be used, or compared, like so:</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Example 1: create an EExist error</span>
+<span class="pl-s">var</span> err1 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.Errors</span>.EEXIST();
+<span class="pl-s">var</span> err2 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.Errors</span>[<span class="pl-c1">47</span>];
+
+<span class="pl-c">// Example 2: compare an error to see if it is EInvalid</span>
+<span class="pl-st">function</span> <span class="pl-en">callback</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err <span class="pl-k">instanceof</span> Filer.Errors.EINVAL){
+    ...
+  }
+
+  <span class="pl-c">// Or compare the error's code</span>
+  <span class="pl-k">if</span>(err.<span class="pl-sc">code</span> <span class="pl-k">===</span> <span class="pl-s1"><span class="pl-pds">'</span>EINVAL<span class="pl-pds">'</span></span>) {
+    ...
+  }
+}
+
+<span class="pl-c">// Example 4: compare an error using errno</span>
+<span class="pl-st">function</span> <span class="pl-en">callback</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err.errno <span class="pl-k">===</span> <span class="pl-c1">47</span>){
+    ...
+  }
+
+<span class="pl-c">// Example 5: display the error message</span>
+<span class="pl-en">console</span><span class="pl-s3">.log</span>(err.message);</pre></div>
+
+<h3>
+<a id="filesystem-instance-methods" class="anchor" href="#filesystem-instance-methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>FileSystem Instance Methods<a name="FileSystemMethods"></a>
+</h3>
+
+<p>Once a <code>FileSystem</code> is created, it has the following methods. NOTE: code examples below assume
+a <code>FileSystem</code> instance named <code>fs</code> has been created like so:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> fs <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.FileSystem</span>();</pre></div>
+
+<ul>
+<li><a href="#rename">fs.rename(oldPath, newPath, callback)</a></li>
+<li><a href="#ftruncate">fs.ftruncate(fd, len, callback)</a></li>
+<li><a href="#truncate">fs.truncate(path, len, callback)</a></li>
+<li><a href="#stat">fs.stat(path, callback)</a></li>
+<li><a href="#fstat">fs.fstat(fd, callback)</a></li>
+<li><a href="#lstat">fs.lstat(path, callback)</a></li>
+<li><a href="#exists">fs.exists(path, callback)</a></li>
+<li><a href="#link">fs.link(srcpath, dstpath, callback)</a></li>
+<li><a href="#symlink">fs.symlink(srcpath, dstpath, [type], callback)</a></li>
+<li><a href="#readlink">fs.readlink(path, callback)</a></li>
+<li><a href="#realpath">fs.realpath(path, [cache], callback)</a></li>
+<li><a href="#unlink">fs.unlink(path, callback)</a></li>
+<li><a href="#mknod">fs.mknod(path, mode, callback)</a></li>
+<li><a href="#rmdir">fs.rmdir(path, callback)</a></li>
+<li><a href="#mkdir">fs.mkdir(path, [mode], callback)</a></li>
+<li><a href="#readdir">fs.readdir(path, callback)</a></li>
+<li><a href="#close">fs.close(fd, callback)</a></li>
+<li><a href="#open">fs.open(path, flags, [mode], callback)</a></li>
+<li><a href="#utimes">fs.utimes(path, atime, mtime, callback)</a></li>
+<li><a href="#fsutimes">fs.futimes(fd, atime, mtime, callback)</a></li>
+<li><a href="#fsync">fs.fsync(fd, callback)</a></li>
+<li><a href="#write">fs.write(fd, buffer, offset, length, position, callback)</a></li>
+<li><a href="#read">fs.read(fd, buffer, offset, length, position, callback)</a></li>
+<li><a href="#readFile">fs.readFile(filename, [options], callback)</a></li>
+<li><a href="#writeFile">fs.writeFile(filename, data, [options], callback)</a></li>
+<li><a href="#appendFile">fs.appendFile(filename, data, [options], callback)</a></li>
+<li><a href="#setxattr">fs.setxattr(path, name, value, [flag], callback)</a></li>
+<li><a href="#fsetxattr">fs.fsetxattr(fd, name, value, [flag], callback)</a></li>
+<li><a href="#getxattr">fs.getxattr(path, name, callback)</a></li>
+<li><a href="#fgetxattr">fs.fgetxattr(fd, name, callback)</a></li>
+<li><a href="#removexattr">fs.removexattr(path, name, callback)</a></li>
+<li><a href="#fremovexattr">fs.fremovexattr(fd, name, callback)</a></li>
+<li><a href="#watch">fs.watch(filename, [options], [listener])</a></li>
+</ul>
+
+<h4>
+<a id="fsrenameoldpath-newpath-callback" class="anchor" href="#fsrenameoldpath-newpath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.rename(oldPath, newPath, callback)<a name="rename"></a>
+</h4>
+
+<p>Renames the file at <code>oldPath</code> to <code>newPath</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/rename.html">rename(2)</a>.
+Callback gets no additional arguments.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Rename myfile.txt to myfile.bak</span>
+fs.rename(<span class="pl-s1"><span class="pl-pds">"</span>/myfile.txt<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>/myfile.bak<span class="pl-pds">"</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// myfile.txt is now myfile.bak</span>
+});</pre></div>
+
+<h4>
+<a id="fsftruncatefd-len-callback" class="anchor" href="#fsftruncatefd-len-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.ftruncate(fd, len, callback)<a name="ftruncate"></a>
+</h4>
+
+<p>Change the size of the file represented by the open file descriptor <code>fd</code> to be length
+<code>len</code> bytes. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/ftruncate.html">ftruncate(2)</a>.
+If the file is larger than <code>len</code>, the extra bytes will be discarded; if smaller, its size will
+be increased, and the extended area will appear as if it were zero-filled. See also <a href="#truncate">fs.truncate()</a>.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Create a file, shrink it, expand it.</span>
+<span class="pl-s">var</span> buffer <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.Buffer</span>([<span class="pl-c1">1</span>, <span class="pl-c1">2</span>, <span class="pl-c1">3</span>, <span class="pl-c1">4</span>, <span class="pl-c1">5</span>, <span class="pl-c1">6</span>, <span class="pl-c1">7</span>, <span class="pl-c1">8</span>]);
+
+fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>w<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+  fs.<span class="pl-s3">write</span>(fd, buffer, <span class="pl-c1">0</span>, buffer.<span class="pl-sc">length</span>, <span class="pl-c1">0</span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">result</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+      fs.ftruncate(fd, <span class="pl-c1">3</span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+        <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+        <span class="pl-c">// /myfile is now 3 bytes in length, rest of data discarded</span>
+
+        fs.ftruncate(fd, <span class="pl-c1">50</span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+          <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+          <span class="pl-c">// /myfile is now 50 bytes in length, with zero padding at end</span>
+
+          fs.<span class="pl-s3">close</span>(fd);
+        });
+      });
+    });
+  });
+});</pre></div>
+
+<h4>
+<a id="fstruncatepath-len-callback" class="anchor" href="#fstruncatepath-len-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.truncate(path, len, callback)<a name="truncate"></a>
+</h4>
+
+<p>Change the size of the file at <code>path</code> to be length <code>len</code> bytes. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/truncate.html">truncate(2)</a>. If the file is larger than <code>len</code>, the extra bytes will be discarded; if smaller, its size will
+be increased, and the extended area will appear as if it were zero-filled. See also <a href="#ftruncate">fs.ftruncate()</a>.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Create a file, shrink it, expand it.</span>
+<span class="pl-s">var</span> buffer <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.Buffer</span>([<span class="pl-c1">1</span>, <span class="pl-c1">2</span>, <span class="pl-c1">3</span>, <span class="pl-c1">4</span>, <span class="pl-c1">5</span>, <span class="pl-c1">6</span>, <span class="pl-c1">7</span>, <span class="pl-c1">8</span>]);
+
+fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>w<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+  fs.<span class="pl-s3">write</span>(fd, buffer, <span class="pl-c1">0</span>, buffer.<span class="pl-sc">length</span>, <span class="pl-c1">0</span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">result</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+    fs.<span class="pl-s3">close</span>(fd, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+      <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+
+      fs.truncate(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-c1">3</span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+        <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+        <span class="pl-c">// /myfile is now 3 bytes in length, rest of data discarded</span>
+
+        fs.truncate(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-c1">50</span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+          <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+          <span class="pl-c">// /myfile is now 50 bytes in length, with zero padding at end</span>
+
+        });
+      });
+    });
+  });
+});</pre></div>
+
+<h4>
+<a id="fsstatpath-callback" class="anchor" href="#fsstatpath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.stat(path, callback)<a name="stat"></a>
+</h4>
+
+<p>Obtain file status about the file at <code>path</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/stat.html">stat(2)</a>.
+Callback gets <code>(error, stats)</code>, where <code>stats</code> is an object with the following properties:</p>
+
+<pre><code>{
+  node: &lt;string&gt;   // internal node id (unique)
+  dev: &lt;string&gt;    // file system name
+  size: &lt;number&gt;   // file size in bytes
+  nlinks: &lt;number&gt; // number of links
+  atime: &lt;number&gt;  // last access time
+  mtime: &lt;number&gt;  // last modified time
+  ctime: &lt;number&gt;  // creation time
+  type: &lt;string&gt;   // file type (FILE, DIRECTORY, SYMLINK)
+}
+</code></pre>
+
+<p>The following convenience methods are also present on the callback's <code>stats</code>:</p>
+
+<pre><code>isFile():             Returns true if the node is a file.
+isDirectory():        Returns true if the node is a directory.
+isBlockDevice():      Not implemented, returns false.
+isCharacterDevice():  Not implemented, returns false.
+isSymbolicLink():     Returns true if the node is a symbolic link.
+isFIFO():             Not implemented, returns false.
+isSocket():           Not implemented, returns false.
+</code></pre>
+
+<p>If the file at <code>path</code> is a symbolic link, the file to which it links will be used instead.
+To get the status of a symbolic link file, use <a href="#lstat">fs.lstat()</a> instead.</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Check if a directory exists</span>
+<span class="pl-st">function</span> <span class="pl-en">dirExists</span>(<span class="pl-vpf">path</span>, <span class="pl-vpf">callback</span>) {
+  fs.stat(path, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">stats</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">return</span> callback(err);
+    <span class="pl-s">var</span> exists <span class="pl-k">=</span> stats.<span class="pl-sc">type</span> <span class="pl-k">===</span> <span class="pl-s1"><span class="pl-pds">"</span>DIRECTORY<span class="pl-pds">"</span></span>;
+    callback(<span class="pl-c1">null</span>, exists);
+  });
+};
+
+<span class="pl-c">// Get the size of a file in KB</span>
+<span class="pl-st">function</span> <span class="pl-en">fileSize</span>(<span class="pl-vpf">path</span>, <span class="pl-vpf">callback</span>) {
+  fs.stat(path, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">stats</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">return</span> callback(err);
+    <span class="pl-s">var</span> kb <span class="pl-k">=</span> stats.<span class="pl-sc">size</span> / <span class="pl-c1">1000</span>;
+    callback(<span class="pl-c1">null</span>, kb);
+  });
+}</pre></div>
+
+<h4>
+<a id="fsfstatfd-callback" class="anchor" href="#fsfstatfd-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.fstat(fd, callback)<a name="fstat"></a>
+</h4>
+
+<p>Obtain information about the open file known by the file descriptor <code>fd</code>.
+Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/fstat.html">fstat(2)</a>.
+Callback gets <code>(error, stats)</code>. <code>fstat()</code> is identical to <code>stat()</code>, except that the file to be stat-ed is
+specified by the open file descriptor <code>fd</code> instead of a path.  See also <a href="#stat">fs.stat</a></p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">"</span>/file.txt<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>r<span class="pl-pds">"</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  fs.fstat(fd, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">stats</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+    <span class="pl-c">// do something with stats object</span>
+    <span class="pl-c">// ...</span>
+    fs.<span class="pl-s3">close</span>(fd);
+  });
+});</pre></div>
+
+<h4>
+<a id="fslstatpath-callback" class="anchor" href="#fslstatpath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.lstat(path, callback)<a name="lstat"></a>
+</h4>
+
+<p>Obtain information about the file at <code>path</code> (i.e., the symbolic link file itself) vs.
+the destination file to which it links. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/lstat.html">lstat(2)</a>.
+Callback gets <code>(error, stats)</code>. See also <a href="#stat">fs.stat</a>.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Create a symbolic link, /data/logs/current to /data/logs/august</span>
+<span class="pl-c">// and get info about the symbolic link file, and linked file.</span>
+fs.<span class="pl-s3">link</span>(<span class="pl-s1"><span class="pl-pds">"</span>/data/logs/august<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>/data/logs/current<span class="pl-pds">"</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  <span class="pl-c">// Get status of linked file, /data/logs/august</span>
+  fs.stat(<span class="pl-s1"><span class="pl-pds">"</span>/data/logs/current<span class="pl-pds">"</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">stats</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+    <span class="pl-c">// Size of /data/logs/august</span>
+    <span class="pl-s">var</span> size <span class="pl-k">=</span> stats.<span class="pl-sc">size</span>;
+  });
+
+  <span class="pl-c">// Get status of symbolic link file itself</span>
+  fs.lstat(<span class="pl-s1"><span class="pl-pds">"</span>/data/logs/current<span class="pl-pds">"</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">stats</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+    <span class="pl-c">// Size of /data/logs/current</span>
+    <span class="pl-s">var</span> size <span class="pl-k">=</span> stats.<span class="pl-sc">size</span>;
+  });
+});</pre></div>
+
+<h4>
+<a id="fsexistspath-callback" class="anchor" href="#fsexistspath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.exists(path, callback)<a name="exists"></a>
+</h4>
+
+<p>Test whether or not the given path exists by checking with the file system.
+Then call the callback argument with either true or false.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">//Test if the file exists</span>
+fs.exists(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">exists</span>) {
+  <span class="pl-en">console</span><span class="pl-s3">.log</span>(exists <span class="pl-k">?</span> <span class="pl-s1"><span class="pl-pds">"</span>file exists<span class="pl-pds">"</span></span> <span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">"</span>file not found<span class="pl-pds">"</span></span>);
+});</pre></div>
+
+<p>fs.exists() is an anachronism and exists only for historical reasons. There should almost never be a reason to use it in your own code.</p>
+
+<p>In particular, checking if a file exists before opening it is an anti-pattern that leaves you vulnerable to race conditions: another process may remove the file between the calls to fs.exists() and fs.open(). Just open the file and handle the error when it's not there.</p>
+
+<h4>
+<a id="fslinksrcpath-dstpath-callback" class="anchor" href="#fslinksrcpath-dstpath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.link(srcPath, dstPath, callback)<a name="link"></a>
+</h4>
+
+<p>Create a (hard) link to the file at <code>srcPath</code> named <code>dstPath</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/link.html">link(2)</a>. Callback gets no additional arguments. Links are directory entries that point to the same file node.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.<span class="pl-s3">link</span>(<span class="pl-s1"><span class="pl-pds">'</span>/logs/august.log<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>/logs/current<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  fs.readFile(<span class="pl-s1"><span class="pl-pds">'</span>/logs/current<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>utf8<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">data</span>) {
+    <span class="pl-c">// data is the contents of /logs/august.log</span>
+    <span class="pl-s">var</span> currentLog <span class="pl-k">=</span> data;
+  });
+});</pre></div>
+
+<h4>
+<a id="fssymlinksrcpath-dstpath-type-callback" class="anchor" href="#fssymlinksrcpath-dstpath-type-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.symlink(srcPath, dstPath, [type], callback)<a name="symlink"></a>
+</h4>
+
+<p>Create a symbolic link to the file at <code>dstPath</code> containing the path <code>srcPath</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/symlink.html">symlink(2)</a>. Callback gets no additional arguments.
+Symbolic links are files that point to other paths.</p>
+
+<p>NOTE: Filer allows for, but ignores the optional <code>type</code> parameter used in node.js.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.symlink(<span class="pl-s1"><span class="pl-pds">'</span>/logs/august.log<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>/logs/current<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  fs.readFile(<span class="pl-s1"><span class="pl-pds">'</span>/logs/current<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>utf8<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">data</span>) {
+    <span class="pl-c">// data is the contents of /logs/august.log</span>
+    <span class="pl-s">var</span> currentLog <span class="pl-k">=</span> data;
+  });
+});</pre></div>
+
+<h4>
+<a id="fsreadlinkpath-callback" class="anchor" href="#fsreadlinkpath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.readlink(path, callback)<a name="readlink"></a>
+</h4>
+
+<p>Reads the contents of a symbolic link. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/readlink.html">readlink(2)</a>. Callback gets <code>(error, linkContents)</code>, where <code>linkContents</code> is a string containing the symbolic link's link path.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.symlink(<span class="pl-s1"><span class="pl-pds">'</span>/logs/august.log<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>/logs/current<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">error</span>) {
+  <span class="pl-k">if</span>(error) <span class="pl-k">throw</span> error;
+
+  fs.readlink(<span class="pl-s1"><span class="pl-pds">'</span>/logs/current<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">error</span>, <span class="pl-vpf">linkContents</span>) {
+    <span class="pl-c">// linkContents is now '/logs/august.log'</span>
+  });
+});</pre></div>
+
+<h4>
+<a id="fsrealpathpath-cache-callback" class="anchor" href="#fsrealpathpath-cache-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.realpath(path, [cache], callback)<a name="realpath"></a>
+</h4>
+
+<p>NOTE: Not implemented, see <a href="https://github.com/filerjs/filer/issues/85">https://github.com/filerjs/filer/issues/85</a></p>
+
+<h4>
+<a id="fsunlinkpath-callback" class="anchor" href="#fsunlinkpath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.unlink(path, callback)<a name="unlink"></a>
+</h4>
+
+<p>Removes the directory entry located at <code>path</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/unlink.html">unlink(2)</a>.
+Callback gets no additional arguments. If <code>path</code> names a symbolic link, the symbolic link will be removed
+(i.e., not the linked file). Otherwise, the filed named by <code>path</code> will be removed (i.e., deleted).</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Delete regular file /backup.old</span>
+fs.unlink(<span class="pl-s1"><span class="pl-pds">'</span>/backup.old<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// /backup.old is now removed</span>
+});</pre></div>
+
+<h4>
+<a id="fsmknodpath-mode-callback" class="anchor" href="#fsmknodpath-mode-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.mknod(path, mode, callback)<a name="mknod"></a>
+</h4>
+
+<p>Creates a node at <code>path</code> based on the mode passed which is either <code>FILE</code> or <code>DIRECTORY</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/mknod.html">mknod(2)</a>. Callback gets no additional arguments.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Create a /dir directory</span>
+fs.mknod(<span class="pl-s1"><span class="pl-pds">'</span>/dir<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>DIRECTORY<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// /dir is now created</span>
+
+  <span class="pl-c">// Create a file inside /dir</span>
+  fs.mknod(<span class="pl-s1"><span class="pl-pds">'</span>/dir/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>FILE<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+    <span class="pl-c">// /dir/myfile now exists</span>
+  });
+});</pre></div>
+
+<h4>
+<a id="fsrmdirpath-callback" class="anchor" href="#fsrmdirpath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.rmdir(path, callback)<a name="rmdir"></a>
+</h4>
+
+<p>Removes the directory at <code>path</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/rmdir.html">rmdir(2)</a>.
+Callback gets no additional arguments. The operation will fail if the directory at <code>path</code> is not empty.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">/**</span>
+<span class="pl-c"> * Given the following dir structure, remove docs/</span>
+<span class="pl-c"> *  /docs</span>
+<span class="pl-c"> *    a.txt</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Start by deleting the files in docs/, then remove docs/</span>
+fs.unlink(<span class="pl-s1"><span class="pl-pds">'</span>/docs/a.txt<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  fs.rmdir(<span class="pl-s1"><span class="pl-pds">'</span>/docs<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  });
+});</pre></div>
+
+<h4>
+<a id="fsmkdirpath-mode-callback" class="anchor" href="#fsmkdirpath-mode-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.mkdir(path, [mode], callback)<a name="mkdir"></a>
+</h4>
+
+<p>Makes a directory with name supplied in <code>path</code> argument. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/mkdir.html">mkdir(2)</a>. Callback gets no additional arguments.</p>
+
+<p>NOTE: Filer allows for, but ignores the optional <code>mode</code> argument used in node.js.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Create /home and then /home/carl directories</span>
+fs.mkdir(<span class="pl-s1"><span class="pl-pds">'</span>/home<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  fs.mkdir(<span class="pl-s1"><span class="pl-pds">'</span>/home/carl<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+    <span class="pl-c">// directory /home/carl now exists</span>
+  });
+});</pre></div>
+
+<h4>
+<a id="fsreaddirpath-callback" class="anchor" href="#fsreaddirpath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.readdir(path, callback)<a name="readdir"></a>
+</h4>
+
+<p>Reads the contents of a directory. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/readdir.html">readdir(3)</a>.
+Callback gets <code>(error, files)</code>, where <code>files</code> is an array containing the names of each directory entry (i.e., file, directory, link) in the directory, excluding <code>.</code> and <code>..</code>.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">/**</span>
+<span class="pl-c"> * Given the following dir structure:</span>
+<span class="pl-c"> *  /docs</span>
+<span class="pl-c"> *    a.txt</span>
+<span class="pl-c"> *    b.txt</span>
+<span class="pl-c"> *    c/</span>
+<span class="pl-c"> */</span>
+fs.readdir(<span class="pl-s1"><span class="pl-pds">'</span>/docs<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">files</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// files now contains ['a.txt', 'b.txt', 'c']</span>
+});</pre></div>
+
+<h4>
+<a id="fsclosefd-callback" class="anchor" href="#fsclosefd-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.close(fd, callback)<a name="close"></a>
+</h4>
+
+<p>Closes a file descriptor. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/close.html">close(2)</a>.
+Callback gets no additional arguments.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>w<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+
+  <span class="pl-c">// Do something with open file descriptor `fd`</span>
+
+  <span class="pl-c">// Close file descriptor when done</span>
+  fs.<span class="pl-s3">close</span>(fd);
+});</pre></div>
+
+<h4>
+<a id="fsopenpath-flags-mode-callback" class="anchor" href="#fsopenpath-flags-mode-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.open(path, flags, [mode], callback)<a name="open"></a>
+</h4>
+
+<p>Opens a file. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/open.html">open(2)</a>.
+Callback gets <code>(error, fd)</code>, where <code>fd</code> is the file descriptor. The <code>flags</code> argument can be:</p>
+
+<ul>
+<li>
+<code>'r'</code>: Open file for reading. An exception occurs if the file does not exist.</li>
+<li>
+<code>'r+'</code>: Open file for reading and writing. An exception occurs if the file does not exist.</li>
+<li>
+<code>'w'</code>: Open file for writing. The file is created (if it does not exist) or truncated (if it exists).</li>
+<li>
+<code>'w+'</code>: Open file for reading and writing. The file is created (if it does not exist) or truncated (if it exists).</li>
+<li>
+<code>'a'</code>: Open file for appending. The file is created if it does not exist.</li>
+<li>
+<code>'a+'</code>: Open file for reading and appending. The file is created if it does not exist.</li>
+</ul>
+
+<p>NOTE: Filer allows for, but ignores the optional <code>mode</code> argument used in node.js.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>w<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+
+  <span class="pl-c">// Do something with open file descriptor `fd`</span>
+
+  <span class="pl-c">// Close file descriptor when done</span>
+  fs.<span class="pl-s3">close</span>(fd);
+});</pre></div>
+
+<h4>
+<a id="fsutimespath-atime-mtime-callback" class="anchor" href="#fsutimespath-atime-mtime-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.utimes(path, atime, mtime, callback)<a name="utimes"></a>
+</h4>
+
+<p>Changes the file timestamps for the file given at path <code>path</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/utimes.html">utimes(2)</a>. Callback gets no additional arguments. Both <code>atime</code> (access time) and <code>mtime</code> (modified time) arguments should be a JavaScript Date.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> now <span class="pl-k">=</span> <span class="pl-s3">Date</span>.now();
+fs.utimes(<span class="pl-s1"><span class="pl-pds">'</span>/myfile.txt<span class="pl-pds">'</span></span>, now, now, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// Access Time and Modified Time for /myfile.txt are now updated</span>
+});</pre></div>
+
+<h4>
+<a id="fsfutimesfd-atime-mtime-callback" class="anchor" href="#fsfutimesfd-atime-mtime-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.futimes(fd, atime, mtime, callback)<a name="futimes"></a>
+</h4>
+
+<p>Changes the file timestamps for the open file represented by the file descriptor <code>fd</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/utimes.html">utimes(2)</a>. Callback gets no additional arguments. Both <code>atime</code> (access time) and <code>mtime</code> (modified time) arguments should be a JavaScript Date.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile.txt<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  <span class="pl-s">var</span> now <span class="pl-k">=</span> <span class="pl-s3">Date</span>.now();
+  fs.futimes(fd, now, now, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+    <span class="pl-c">// Access Time and Modified Time for /myfile.txt are now updated</span>
+
+    fs.<span class="pl-s3">close</span>(fd);
+  });
+});</pre></div>
+
+<h4>
+<a id="fsfsyncfd-callback" class="anchor" href="#fsfsyncfd-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.fsync(fd, callback)<a name="fsync"></a>
+</h4>
+
+<p>NOTE: Not yet implemented, see <a href="https://github.com/filerjs/filer/issues/87">https://github.com/filerjs/filer/issues/87</a></p>
+
+<h4>
+<a id="fswritefd-buffer-offset-length-position-callback" class="anchor" href="#fswritefd-buffer-offset-length-position-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.write(fd, buffer, offset, length, position, callback)<a name="write"></a>
+</h4>
+
+<p>Writes bytes from <code>buffer</code> to the file specified by <code>fd</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/write.html">write(2), pwrite(2)</a>. The <code>offset</code> and <code>length</code> arguments describe the part of the buffer to be written. The <code>position</code> refers to the offset from the beginning of the file where this data should be written. If <code>position</code> is <code>null</code>, the data will be written at the current position. The callback gets <code>(error, nbytes)</code>, where <code>nbytes</code> is the number of bytes written.</p>
+
+<p>NOTE: Filer currently writes the entire buffer in a single operation. However, future versions may do it in chunks.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Create a file with the following bytes.</span>
+<span class="pl-s">var</span> buffer <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.Buffer</span>([<span class="pl-c1">1</span>, <span class="pl-c1">2</span>, <span class="pl-c1">3</span>, <span class="pl-c1">4</span>, <span class="pl-c1">5</span>, <span class="pl-c1">6</span>, <span class="pl-c1">7</span>, <span class="pl-c1">8</span>]);
+
+fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>w<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+
+  <span class="pl-s">var</span> expected <span class="pl-k">=</span> buffer.<span class="pl-sc">length</span>, written <span class="pl-k">=</span> <span class="pl-c1">0</span>;
+  <span class="pl-st">function</span> <span class="pl-en">writeBytes</span>(<span class="pl-vpf">offset</span>, <span class="pl-vpf">position</span>, <span class="pl-vpf">length</span>) {
+    length <span class="pl-k">=</span> length <span class="pl-k">||</span> buffer.<span class="pl-sc">length</span> <span class="pl-k">-</span> written;
+
+    fs.<span class="pl-s3">write</span>(fd, buffer, offset, length, position, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">nbytes</span>) {
+      <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+
+      <span class="pl-c">// nbytes is now the number of bytes written, between 0 and buffer.length.</span>
+      <span class="pl-c">// See if we still have more bytes to write.</span>
+      written <span class="pl-k">+=</span> nbytes;
+
+      <span class="pl-k">if</span>(written <span class="pl-k">&lt;</span> expected)
+        writeBytes(written, <span class="pl-c1">null</span>);
+      <span class="pl-k">else</span>
+        fs.<span class="pl-s3">close</span>(fd);
+    });
+  }
+
+  writeBytes(<span class="pl-c1">0</span>, <span class="pl-c1">0</span>);
+});</pre></div>
+
+<h4>
+<a id="fsreadfd-buffer-offset-length-position-callback" class="anchor" href="#fsreadfd-buffer-offset-length-position-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.read(fd, buffer, offset, length, position, callback)<a name="read"></a>
+</h4>
+
+<p>Read bytes from the file specified by <code>fd</code> into <code>buffer</code>. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/read.html">read(2), pread(2)</a>. The <code>offset</code> and <code>length</code> arguments describe the part of the buffer to be used. The <code>position</code> refers to the offset from the beginning of the file where this data should be read. If <code>position</code> is <code>null</code>, the data will be written at the current position. The callback gets <code>(error, nbytes)</code>, where <code>nbytes</code> is the number of bytes read.</p>
+
+<p>NOTE: Filer currently reads into the buffer in a single operation. However, future versions may do it in chunks.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>r<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+
+  <span class="pl-c">// Determine size of file</span>
+  fs.fstat(fd, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">stats</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+
+    <span class="pl-c">// Create a buffer large enough to hold the file's contents</span>
+    <span class="pl-s">var</span> nbytes <span class="pl-k">=</span> expected <span class="pl-k">=</span> stats.<span class="pl-sc">size</span>;
+    <span class="pl-s">var</span> buffer <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.Buffer</span>(nbytes);
+    <span class="pl-s">var</span> read <span class="pl-k">=</span> <span class="pl-c1">0</span>;
+
+    <span class="pl-st">function</span> <span class="pl-en">readBytes</span>(<span class="pl-vpf">offset</span>, <span class="pl-vpf">position</span>, <span class="pl-vpf">length</span>) {
+      length <span class="pl-k">=</span> length <span class="pl-k">||</span> buffer.<span class="pl-sc">length</span> <span class="pl-k">-</span> read;
+
+      fs.read(fd, buffer, offset, length, position, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">nbytes</span>) {
+        <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> error;
+
+        <span class="pl-c">// nbytes is now the number of bytes read, between 0 and buffer.length.</span>
+        <span class="pl-c">// See if we still have more bytes to read.</span>
+        read <span class="pl-k">+=</span> nbytes;
+
+        <span class="pl-k">if</span>(read <span class="pl-k">&lt;</span> expected)
+          readBytes(read, <span class="pl-c1">null</span>);
+        <span class="pl-k">else</span>
+          fs.<span class="pl-s3">close</span>(fd);
+      });
+    }
+
+    readBytes(<span class="pl-c1">0</span>, <span class="pl-c1">0</span>);
+  });
+});</pre></div>
+
+<h4>
+<a id="fsreadfilefilename-options-callback" class="anchor" href="#fsreadfilefilename-options-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.readFile(filename, [options], callback)<a name="readFile"></a>
+</h4>
+
+<p>Reads the entire contents of a file. The <code>options</code> argument is optional, and can take the form <code>"utf8"</code> (i.e., an encoding) or be an object literal: <code>{ encoding: "utf8", flag: "r" }</code>. If no encoding is specified, the raw binary buffer is returned via the callback. The callback gets <code>(error, data)</code>, where data is the contents of the file.</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Read UTF8 text file</span>
+fs.readFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile.txt<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>utf8<span class="pl-pds">'</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">err</span>, <span class="pl-vpf">data</span>) {
+  <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// data is now the contents of /myfile.txt (i.e., a String)</span>
+});
+
+<span class="pl-c">// Read binary file</span>
+fs.readFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile.txt<span class="pl-pds">'</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">err</span>, <span class="pl-vpf">data</span>) {
+  <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// data is now the contents of /myfile.txt (i.e., a Buffer with the bytes)</span>
+});</pre></div>
+
+<h4>
+<a id="fswritefilefilename-data-options-callback" class="anchor" href="#fswritefilefilename-data-options-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.writeFile(filename, data, [options], callback)<a name="writeFile"></a>
+</h4>
+
+<p>Writes data to a file. <code>data</code> can be a string or <code>Buffer</code>, in which case any encoding option is ignored. The <code>options</code> argument is optional, and can take the form <code>"utf8"</code> (i.e., an encoding) or be an object literal: <code>{ encoding: "utf8", flag: "w" }</code>. If no encoding is specified, and <code>data</code> is a string, the encoding defaults to <code>'utf8'</code>.  The callback gets <code>(error)</code>.</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Write UTF8 text file</span>
+fs.writeFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile.txt<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>...data...<span class="pl-pds">"</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+});
+
+<span class="pl-c">// Write binary file</span>
+<span class="pl-s">var</span> buffer <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.Buffer</span>([<span class="pl-c1">1</span>, <span class="pl-c1">2</span>, <span class="pl-c1">3</span>, <span class="pl-c1">4</span>, <span class="pl-c1">5</span>, <span class="pl-c1">6</span>, <span class="pl-c1">7</span>, <span class="pl-c1">8</span>]);
+fs.writeFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, buffer, <span class="pl-st">function</span> (<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+});</pre></div>
+
+<h4>
+<a id="fsappendfilefilename-data-options-callback" class="anchor" href="#fsappendfilefilename-data-options-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.appendFile(filename, data, [options], callback)<a name="appendFile"></a>
+</h4>
+
+<p>Writes data to the end of a file. <code>data</code> can be a string or a <code>Buffer</code>, in which case any encoding option is ignored. The <code>options</code> argument is optional, and can take the form <code>"utf8"</code> (i.e., an encoding) or be an object literal: <code>{ encoding: "utf8", flag: "w" }</code>. If no encoding is specified, and <code>data</code> is a string, the encoding defaults to <code>'utf8'</code>.  The callback gets <code>(error)</code>.</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Append UTF8 text file</span>
+fs.writeFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile.txt<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>More...<span class="pl-pds">"</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+});
+fs.appendFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile.txt<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>Data...<span class="pl-pds">"</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+});
+<span class="pl-c">// '/myfile.txt' would now read out 'More...Data...'</span>
+
+<span class="pl-c">// Append binary file</span>
+<span class="pl-s">var</span> data <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.Buffer</span>([<span class="pl-c1">1</span>, <span class="pl-c1">2</span>, <span class="pl-c1">3</span>, <span class="pl-c1">4</span>]);
+<span class="pl-s">var</span> more <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.Buffer</span>([<span class="pl-c1">5</span>, <span class="pl-c1">6</span>, <span class="pl-c1">7</span>, <span class="pl-c1">8</span>]);
+
+fs.writeFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, data, <span class="pl-st">function</span> (<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+
+  fs.appendFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, more, <span class="pl-st">function</span> (<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span> (err) <span class="pl-k">throw</span> err;
+
+    <span class="pl-c">// '/myfile' would now contain [1, 2, 3, 4, 5, 6, 7, 8]</span>
+  });
+});</pre></div>
+
+<h4>
+<a id="fssetxattrpath-name-value-flag-callback" class="anchor" href="#fssetxattrpath-name-value-flag-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.setxattr(path, name, value, [flag], callback)<a name="setxattr"></a>
+</h4>
+
+<p>Sets an extended attribute of a file or directory named <code>path</code>. Asynchronous <a href="http://man7.org/linux/man-pages/man2/setxattr.2.html">setxattr(2)</a>.
+The optional <code>flag</code> parameter can be set to the following:</p>
+
+<ul>
+<li>
+<code>XATTR_CREATE</code>: ensures that the extended attribute with the given name will be new and not previously set. If an attribute with the given name already exists, it will return an <code>EExists</code> error to the callback.</li>
+<li>
+<code>XATTR_REPLACE</code>: ensures that an extended attribute with the given name already exists. If an attribute with the given name does not exist, it will return an <code>ENoAttr</code> error to the callback.</li>
+</ul>
+
+<p>Callback gets no additional arguments.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.writeFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>data<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  <span class="pl-c">// Set a simple extended attribute on /myfile</span>
+  fs.setxattr(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>extra<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>some-information<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+    <span class="pl-c">// /myfile now has an added attribute of extra='some-information'</span>
+  });
+
+  <span class="pl-c">// Set a complex object attribute on /myfile</span>
+  fs.setxattr(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>extra-complex<span class="pl-pds">'</span></span>, { key1<span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">'</span>value1<span class="pl-pds">'</span></span>, key2<span class="pl-k">:</span> <span class="pl-c1">103</span> }, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+    <span class="pl-c">// /myfile now has an added attribute of extra={ key1: 'value1', key2: 103 }</span>
+  });
+});</pre></div>
+
+<h4>
+<a id="fsfsetxattrfd-name-value-flag-callback" class="anchor" href="#fsfsetxattrfd-name-value-flag-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.fsetxattr(fd, name, value, [flag], callback)<a name="fsetxattr"></a>
+</h4>
+
+<p>Sets an extended attribute of the file represented by the open file descriptor <code>fd</code>. Asynchronous <a href="http://man7.org/linux/man-pages/man2/setxattr.2.html">setxattr(2)</a>.  See <code>fs.setxattr</code> for more details. Callback gets no additional arguments.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>w<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  <span class="pl-c">// Set a simple extended attribute on fd for /myfile</span>
+  fs.fsetxattr(fd, <span class="pl-s1"><span class="pl-pds">'</span>extra<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>some-information<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+    <span class="pl-c">// /myfile now has an added attribute of extra='some-information'</span>
+  });
+
+  <span class="pl-c">// Set a complex object attribute on fd for /myfile</span>
+  fs.fsetxattr(fd, <span class="pl-s1"><span class="pl-pds">'</span>extra-complex<span class="pl-pds">'</span></span>, { key1<span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">'</span>value1<span class="pl-pds">'</span></span>, key2<span class="pl-k">:</span> <span class="pl-c1">103</span> }, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+    <span class="pl-c">// /myfile now has an added attribute of extra={ key1: 'value1', key2: 103 }</span>
+  });
+
+  fs.<span class="pl-s3">close</span>(fd);
+});</pre></div>
+
+<h4>
+<a id="fsgetxattrpath-name-callback" class="anchor" href="#fsgetxattrpath-name-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.getxattr(path, name, callback)<a name="getxattr"></a>
+</h4>
+
+<p>Gets an extended attribute value for a file or directory. Asynchronous <a href="http://man7.org/linux/man-pages/man2/getxattr.2.html">getxattr(2)</a>.
+Callback gets <code>(error, value)</code>, where <code>value</code> is the value for the extended attribute named <code>name</code>.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Get the value of the extended attribute on /myfile named `extra`</span>
+fs.getxattr(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>extra<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">value</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  <span class="pl-c">// `value` is now the value of the extended attribute named `extra` for /myfile</span>
+});</pre></div>
+
+<h4>
+<a id="fsfgetxattrfd-name-callback" class="anchor" href="#fsfgetxattrfd-name-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.fgetxattr(fd, name, callback)<a name="fgetxattr"></a>
+</h4>
+
+<p>Gets an extended attribute value for the file represented by the open file descriptor <code>fd</code>.
+Asynchronous <a href="http://man7.org/linux/man-pages/man2/getxattr.2.html">getxattr(2)</a>.
+See <code>fs.getxattr</code> for more details. Callback gets <code>(error, value)</code>, where <code>value</code> is the value for the extended attribute named <code>name</code>.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Get the value of the extended attribute on /myfile named `extra`</span>
+fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>r<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  fs.fgetxattr(fd, <span class="pl-s1"><span class="pl-pds">'</span>extra<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">value</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+    <span class="pl-c">// `value` is now the value of the extended attribute named `extra` for /myfile</span>
+  });
+
+  fs.<span class="pl-s3">close</span>(fd);
+});</pre></div>
+
+<h4>
+<a id="fsremovexattrpath-name-callback" class="anchor" href="#fsremovexattrpath-name-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.removexattr(path, name, callback)<a name="removexattr"></a>
+</h4>
+
+<p>Removes the extended attribute identified by <code>name</code> for the file given at <code>path</code>. Asynchronous <a href="http://man7.org/linux/man-pages/man2/removexattr.2.html">removexattr(2)</a>. Callback gets no additional arguments.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Remove an extended attribute on /myfile</span>
+fs.removexattr(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>extra<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  <span class="pl-c">// The `extra` extended attribute on /myfile is now gone</span>
+});</pre></div>
+
+<h4>
+<a id="fsfremovexattrfd-name-callback" class="anchor" href="#fsfremovexattrfd-name-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.fremovexattr(fd, name, callback)<a name="fremovexattr"></a>
+</h4>
+
+<p>Removes the extended attribute identified by <code>name</code> for the file represented by the open file descriptor <code>fd</code>.
+Asynchronous <a href="http://man7.org/linux/man-pages/man2/removexattr.2.html">removexattr(2)</a>. See <code>fs.removexattr</code> for more details.
+Callback gets no additional arguments.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Remove an extended attribute on /myfile</span>
+fs.<span class="pl-s3">open</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>r<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">fd</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  fs.fremovexattr(fd, <span class="pl-s1"><span class="pl-pds">'</span>extra<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+    <span class="pl-c">// The `extra` extended attribute on /myfile is now gone</span>
+  });
+
+  fs.<span class="pl-s3">close</span>(fd);
+});</pre></div>
+
+<h4>
+<a id="fswatchfilename-options-listener" class="anchor" href="#fswatchfilename-options-listener" aria-hidden="true"><span class="octicon octicon-link"></span></a>fs.watch(filename, [options], [listener])<a name="watch"></a>
+</h4>
+
+<p>Watch for changes to a file or directory at <code>filename</code>. The object returned is an <code>FSWatcher</code>,
+which is an <a href="http://nodejs.org/api/events.html"><code>EventEmitter</code></a> with the following additional method:</p>
+
+<ul>
+<li>
+<code>close()</code> - stops listening for changes, and removes all listeners from this instance. Use this
+to stop watching a file or directory after calling <code>fs.watch()</code>.</li>
+</ul>
+
+<p>The only supported option is <code>recursive</code>, which if <code>true</code> will cause a watch to be placed
+on a directory, and all sub-directories and files beneath it.</p>
+
+<p>The <code>listener</code> callback gets two arguments <code>(event, filename)</code>. <code>event</code> is either <code>'rename'</code> or <code>'change'</code>,
+(currenty only <code>'rename'</code> is supported) and <code>filename</code> is the name of the file/dir which triggered the event.</p>
+
+<p>Unlike node.js, all watch events return a path. Also, all returned paths are absolute from the root
+vs. just a relative filename.</p>
+
+<p>Examples:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Example 1: create a watcher to see when a file is created</span>
+<span class="pl-s">var</span> watcher <span class="pl-k">=</span> fs.<span class="pl-s3">watch</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">event</span>, <span class="pl-vpf">filename</span>) {
+  <span class="pl-c">// event could be 'change' or 'rename' and filename will be '/myfile'</span>
+  <span class="pl-c">// Stop watching for changes</span>
+  watcher.<span class="pl-s3">close</span>();
+});
+fs.writeFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>data<span class="pl-pds">'</span></span>);
+
+<span class="pl-c">// Example 2: add the listener via watcher.on()</span>
+<span class="pl-s">var</span> watcher <span class="pl-k">=</span> fs.<span class="pl-s3">watch</span>(<span class="pl-s1"><span class="pl-pds">'</span>/myfile2<span class="pl-pds">'</span></span>);
+watcher.on(<span class="pl-s1"><span class="pl-pds">'</span>change<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">event</span>, <span class="pl-vpf">filename</span>) {
+  <span class="pl-c">// event will be 'change' and filename will be '/myfile2'</span>
+  <span class="pl-c">// Stop watching for changes</span>
+  watcher.<span class="pl-s3">close</span>();
+});
+fs.writeFile(<span class="pl-s1"><span class="pl-pds">'</span>/myfile2<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>data2<span class="pl-pds">'</span></span>);
+
+<span class="pl-c">// Example 3: recursive watch on /data dir</span>
+<span class="pl-s">var</span> watcher <span class="pl-k">=</span> fs.<span class="pl-s3">watch</span>(<span class="pl-s1"><span class="pl-pds">'</span>/data<span class="pl-pds">'</span></span>, { recursive<span class="pl-k">:</span> <span class="pl-c1">true</span> }, <span class="pl-st">function</span>(<span class="pl-vpf">event</span>, <span class="pl-vpf">filename</span>) {
+  <span class="pl-c">// event could be 'change' or 'rename' and filename will be '/data/subdir/file'</span>
+  <span class="pl-c">// Stop watching for changes</span>
+  watcher.<span class="pl-s3">close</span>();
+});
+fs.writeFile(<span class="pl-s1"><span class="pl-pds">'</span>/data/subdir/file<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>data<span class="pl-pds">'</span></span>);</pre></div>
+
+<h3>
+<a id="filesystemshell" class="anchor" href="#filesystemshell" aria-hidden="true"><span class="octicon octicon-link"></span></a>FileSystemShell<a name="FileSystemShell"></a>
+</h3>
+
+<p>Many common file system shell operations are available by using a <code>FileSystemShell</code> object.
+The <code>FileSystemShell</code> is used in conjuction with a <code>FileSystem</code>,
+and provides augmented features. Many separate <code>FileSystemShell</code> objects can exist per
+<code>FileSystem</code>, but each <code>FileSystemShell</code> is bound to a single instance of a <code>FileSystem</code>
+for its lifetime.</p>
+
+<p>A <code>FileSystemShell</code> is created by instantiating <code>Filer.FileSystem().Shell</code>:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> fs <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.FileSystem</span>();
+<span class="pl-s">var</span> sh <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">fs.Shell</span>(options);
+<span class="pl-s">var</span> sh2 <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">fs.Shell</span>(options);
+<span class="pl-c">// sh and sh2 are two separate shells, each bound to fs</span></pre></div>
+
+<p>In addition, the constructor function can be accessed through <code>Filer</code>:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> fs <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.FileSystem</span>();
+<span class="pl-s">var</span> sh <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">fs.Shell</span>();
+
+<span class="pl-s3">Filer.Shell</span>.<span class="pl-sc">prototype</span>.<span class="pl-en">newFunction</span> <span class="pl-k">=</span> ...;
+
+sh.newFunction();</pre></div>
+
+<p>The <code>FileSystemShell</code> can take an optional <code>options</code> object. The <code>options</code> object
+can include <code>env</code>, which is a set of environment variables. Currently supported variables
+include <code>TMP</code> (the path to the temporary directory), and <code>PATH</code> (the list of known paths) and
+others may be added in the future. You can also add your own, or update existing variables.</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> fs <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.FileSystem</span>();
+<span class="pl-s">var</span> sh <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">fs.Shell</span>({
+  env<span class="pl-k">:</span> {
+    TMP<span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">'</span>/tempdir<span class="pl-pds">'</span></span>,
+    PATH<span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">'</span>/one:/two<span class="pl-pds">'</span></span>
+  }
+});
+<span class="pl-s">var</span> tempPath <span class="pl-k">=</span> sh.env.get(<span class="pl-s1"><span class="pl-pds">'</span>TMP<span class="pl-pds">'</span></span>);
+sh.env.set(<span class="pl-s1"><span class="pl-pds">'</span>TMP<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>/newtempdir<span class="pl-pds">'</span></span>);</pre></div>
+
+<p>NOTE: unless otherwise stated, all <code>FileSystemShell</code> methods can take relative or absolute
+paths. Relative paths are resolved relative to the shell's current working directory (<code>sh.cwd</code>).
+This is different from the <code>FileSystem</code>, which requires absolute paths, and has no notion
+of a current working directory.</p>
+
+<h4>
+<a id="filesystemshell-properties" class="anchor" href="#filesystemshell-properties" aria-hidden="true"><span class="octicon octicon-link"></span></a>FileSystemShell Properties</h4>
+
+<p>A <code>FileSystemShell</code> has a number of properties, including:</p>
+
+<ul>
+<li>
+<code>fs</code> - (readonly) a reference to the bound <code>FileSystem</code>
+</li>
+<li>
+<code>env</code> - (readonly) the shell's environment. The shell's environemnt <code>env</code> object has <code>get(name)</code>
+and <code>set(name, value)</code> methods.</li>
+</ul>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> fs <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.FileSystem</span>();
+<span class="pl-s">var</span> sh <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">fs.Shell</span>();
+<span class="pl-s">var</span> p <span class="pl-k">=</span> sh.env.get(<span class="pl-s1"><span class="pl-pds">'</span>PATH<span class="pl-pds">'</span></span>);
+
+<span class="pl-c">// Store the current location</span>
+<span class="pl-s">var</span> before <span class="pl-k">=</span> sh.pwd();
+<span class="pl-s">var</span> after;
+sh.cd(<span class="pl-s1"><span class="pl-pds">'</span>/newdir<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// Get the new location</span>
+  after <span class="pl-k">=</span> sh.pwd();
+});</pre></div>
+
+<h4>
+<a id="filesystemshell-instance-methods" class="anchor" href="#filesystemshell-instance-methods" aria-hidden="true"><span class="octicon octicon-link"></span></a>FileSystemShell Instance Methods</h4>
+
+<p>Once a <code>FileSystemShell</code> object is created, it has the following methods. NOTE: code
+examples below assume a <code>FileSystemShell</code> instance named <code>sh</code> has been created like so:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> fs <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">Filer.FileSystem</span>();
+<span class="pl-s">var</span> sh <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">fs.Shell</span>();</pre></div>
+
+<ul>
+<li><a href="#cd">sh.cd(path, callback)</a></li>
+<li><a href="#pwd">sh.pwd()</a></li>
+<li><a href="#find">sh.find(dir, [options], callback)</a></li>
+<li><a href="#ls">sh.ls(dir, [options], callback)</a></li>
+<li><a href="#exec">sh.exec(path, [args], callback)</a></li>
+<li><a href="#touch">sh.touch(path, [options], callback)</a></li>
+<li><a href="#cat">sh.cat(files, callback)</a></li>
+<li><a href="#rm">sh.rm(path, [options], callback)</a></li>
+<li><a href="#tempDir">sh.tempDir(callback)</a></li>
+<li><a href="#mkdirp">sh.mkdirp(path, callback)</a></li>
+</ul>
+
+<h4>
+<a id="shcdpath-callback" class="anchor" href="#shcdpath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.cd(path, callback)<a name="cd"></a>
+</h4>
+
+<p>Changes the current working directory to the directory at <code>path</code>. The callback returns
+an error if <code>path</code> does not exist, or is not a directory. Once the callback occurs
+the shell's cwd is updated to the new path (you can access it via <code>sh.pwd()</code>).</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>sh.cd(<span class="pl-s1"><span class="pl-pds">'</span>/dir1<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// sh.pwd() is now '/dir1'</span>
+});</pre></div>
+
+<h4>
+<a id="shpwd" class="anchor" href="#shpwd" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.pwd()<a name="pwd"></a>
+</h4>
+
+<p>Returns the shell's current working directory. See <a href="#cd">sh.cd()</a>.</p>
+
+<h4>
+<a id="shfinddir-options-callback" class="anchor" href="#shfinddir-options-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.find(dir, [options], callback)<a name="find"></a>
+</h4>
+
+<p>Recursively walk a directory tree, reporting back all paths that were
+found along the way. Asynchronous <a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/find.html">find(1)</a>
+If given no options, <code>find</code> walks the given dir path
+and the callback gives <code>function(err, found)</code>, where <code>found</code> is an array of
+all paths discovered during a depth-first walk.</p>
+
+<p>Valid options include a <code>regex</code> for pattern matching paths, allowing paths
+to be ignored (e.g., <code>regex: /\.bak$/</code> to find all <code>.bak</code> files). You can
+also use <code>name</code> and <code>path</code> to provide a <a href="https://github.com/isaacs/minimatch">match pattern</a> for the basename and
+dirname respectively (e.g., <code>{name: '*.js'}</code> to find all JavaScript files or
+<code>{path: '*-modules'}</code> to only look in folders named <code>base-modules</code>, <code>foo-modules</code>, etc.).
+Finally, you can also provide an <code>exec</code> function of the form <code>function(path, next)</code> where
+<code>path</code> is the current path that was found and matches any provided <code>regex</code>
+(NOTE: dir paths have an '/' appended), and <code>next</code> is a callback to call
+when you are done processing the path.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-st">function</span> <span class="pl-en">processPath</span>(<span class="pl-vpf">path</span>, <span class="pl-vpf">next</span>) {
+  <span class="pl-c">// Process the path somehow, in this case we print it.</span>
+  <span class="pl-c">// Dir paths end with /</span>
+  <span class="pl-k">if</span>(path.endsWith(<span class="pl-s1"><span class="pl-pds">'</span>/<span class="pl-pds">'</span></span>)) {
+    <span class="pl-en">console</span><span class="pl-s3">.log</span>(<span class="pl-s1"><span class="pl-pds">'</span>Found dir: <span class="pl-pds">'</span></span> <span class="pl-k">+</span> path);
+  } <span class="pl-k">else</span> {
+    <span class="pl-en">console</span><span class="pl-s3">.log</span>(<span class="pl-s1"><span class="pl-pds">'</span>Found file: <span class="pl-pds">'</span></span> <span class="pl-k">+</span> path);
+  }
+
+  <span class="pl-c">// All done, let the process continue by invoking second arg:</span>
+  next();
+}
+
+<span class="pl-c">// Get every path (NOTE: no name or regex provided) below the root, depth first</span>
+sh.<span class="pl-s3">find</span>(<span class="pl-s1"><span class="pl-pds">'</span>/<span class="pl-pds">'</span></span>, {exec<span class="pl-k">:</span> processPath}, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">found</span>) {
+  <span class="pl-c">/* find command is finished, `found` contains the flattened list as an Array */</span>
+});
+
+<span class="pl-c">// Find all files that look like map201.jpg, map202.jpg in the /data dir</span>
+sh.<span class="pl-s3">find</span>(<span class="pl-s1"><span class="pl-pds">'</span>/data<span class="pl-pds">'</span></span>, {regex<span class="pl-k">:</span><span class="pl-sr"> <span class="pl-pds">/</span>map20<span class="pl-c1">\d</span><span class="pl-cce">\.</span>jpg<span class="pl-k">$</span><span class="pl-pds">/</span></span>, exec<span class="pl-k">:</span> processPath}, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-c">/* find command is finished */</span>
+});
+
+<span class="pl-c">// Find and delete all *.bak files under /app/user</span>
+sh.<span class="pl-s3">find</span>(<span class="pl-s1"><span class="pl-pds">'</span>/app/user<span class="pl-pds">'</span></span>, {
+  name<span class="pl-k">:</span> <span class="pl-s1"><span class="pl-pds">'</span>*.bak<span class="pl-pds">'</span></span>,
+  <span class="pl-en">exec</span>: <span class="pl-st">function</span>(<span class="pl-vpf">path</span>, <span class="pl-vpf">next</span>) {
+    sh.rm(path, next);
+  }
+}, <span class="pl-st">function</span> <span class="pl-en">callback</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">found</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  <span class="pl-k">if</span>(found.<span class="pl-sc">length</span>) {
+    <span class="pl-en">console</span><span class="pl-s3">.log</span>(<span class="pl-s1"><span class="pl-pds">'</span>Deleted the following <span class="pl-pds">'</span></span> <span class="pl-k">+</span> found.<span class="pl-sc">length</span> <span class="pl-k">+</span> <span class="pl-s1"><span class="pl-pds">'</span> files: <span class="pl-pds">'</span></span>, found);
+  }
+});</pre></div>
+
+<h4>
+<a id="shlsdir-options-callback" class="anchor" href="#shlsdir-options-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.ls(dir, [options], callback)<a name="ls"></a>
+</h4>
+
+<p>Get the listing of a directory, returning an array of directory entries
+in the following form:</p>
+
+<pre><code>{
+  path: &lt;String&gt; the basename of the directory entry
+  links: &lt;Number&gt; the number of links to the entry
+  size: &lt;Number&gt; the size in bytes of the entry
+  modified: &lt;Number&gt; the last modified date/time
+  type: &lt;String&gt; the type of the entry
+  contents: &lt;Array&gt; an optional array of child entries, if this entry is itself a directory
+}
+</code></pre>
+
+<p>By default <code>sh.ls()</code> gives a shallow listing. If you want to follow
+directories as they are encountered, use the <code>recursive=true</code> option. NOTE:
+you should not count on the order of the returned entries always being the same.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">/**</span>
+<span class="pl-c"> * Given a dir structure of:</span>
+<span class="pl-c"> *</span>
+<span class="pl-c"> * /dir</span>
+<span class="pl-c"> *  file1</span>
+<span class="pl-c"> *  file2</span>
+<span class="pl-c"> *  dir2/</span>
+<span class="pl-c"> *   file3</span>
+<span class="pl-c"> */</span>
+
+<span class="pl-c">// Shallow listing</span>
+sh.ls(<span class="pl-s1"><span class="pl-pds">'</span>/dir<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">entries</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// entries is now an array of 3 file/dir entries under /dir</span>
+});
+
+<span class="pl-c">// Deep listing</span>
+sh.ls(<span class="pl-s1"><span class="pl-pds">'</span>/dir<span class="pl-pds">'</span></span>, { recursive<span class="pl-k">:</span> <span class="pl-c1">true</span> }, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">entries</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// entries is now an array of 3 file/dir entries under /dir.</span>
+  <span class="pl-c">// The entry object for '/dir2' also includes a `contents` property,</span>
+  <span class="pl-c">// which is an array of 1 entry element for `file3`.</span>
+});</pre></div>
+
+<h4>
+<a id="shexecpath-args-callback" class="anchor" href="#shexecpath-args-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.exec(path, [args], callback)<a name="exec"></a>
+</h4>
+
+<p>Attempts to execute the .js command located at <code>path</code>. The <code>sh.exec</code> method
+enables apps to install larger programs into the file system and run them
+later without having to re-download.  Such commands should be written so as
+to assume the existence of 3 global variables, which will be defined at runtime:</p>
+
+<ul>
+<li>
+<code>fs</code> - [FileSystem] the <code>FileSystem</code> object bound to this shell.</li>
+<li>
+<code>args</code> - [Array] a list of any arguments for the command, or the empty list</li>
+<li>
+<code>callback</code> - [Function] a callback function of the form <code>function callback(error, result)</code>
+to call when done.</li>
+</ul>
+
+<p>The .js command's contents should be the body of a function that
+looks like this:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-st">function</span>(<span class="pl-vpf">fs</span>, <span class="pl-vpf">args</span>, <span class="pl-vpf">callback</span>) {
+<span class="pl-c">//-------------------------commmand code here---------</span>
+<span class="pl-c">// ...</span>
+<span class="pl-c">//----------------------------------------------------</span>
+ }</pre></div>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Simple command to delete a file.</span>
+<span class="pl-s">var</span> cmd <span class="pl-k">=</span> <span class="pl-s1"><span class="pl-pds">"</span>fs.unlink(args[0], callback);<span class="pl-pds">"</span></span>
+
+<span class="pl-c">// Write the file to the filesystem</span>
+fs.writeFile(<span class="pl-s1"><span class="pl-pds">'</span>/cmd.js<span class="pl-pds">'</span></span>, cmd, callback(err) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  <span class="pl-c">// Execute the command</span>
+  sh.<span class="pl-s3">exec</span>(<span class="pl-s1"><span class="pl-pds">'</span>/cmd.js<span class="pl-pds">'</span></span>, [ <span class="pl-s1"><span class="pl-pds">'</span>/file<span class="pl-pds">'</span></span> ], <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">result</span>) {
+    <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  });
+});</pre></div>
+
+<h4>
+<a id="shtouchpath-options-callback" class="anchor" href="#shtouchpath-options-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.touch(path, [options], callback)<a name="touch"></a>
+</h4>
+
+<p>Create a file if it does not exist, or update the access and modified
+times if it does. Valid options include:</p>
+
+<ul>
+<li>
+<code>updateOnly</code> - <code>true</code> if the file's access/modified dates are to be updated
+only (but missing file not to be)</li>
+<li>
+<code>date</code> - a date to use instead of the current date and time when updating
+access and modified dates.</li>
+</ul>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>sh.touch(<span class="pl-s1"><span class="pl-pds">'</span>/newfile<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+
+  fs.exists(<span class="pl-s1"><span class="pl-pds">'</span>/newfile<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">exists</span>) {
+    <span class="pl-c">// exists is now true.</span>
+  }
+});</pre></div>
+
+<h4>
+<a id="shcatfiles-callback" class="anchor" href="#shcatfiles-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.cat(files, callback)<a name="cat"></a>
+</h4>
+
+<p>Concatenates multiple files into a single string, with each file
+separated by a newline character. The <code>files</code> argument should be
+a String (i.e., path to a single file) or an Array of Strings (i.e.,
+multiple paths for multiple files).</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>sh.cat([ <span class="pl-s1"><span class="pl-pds">'</span>./file1<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>../file2<span class="pl-pds">'</span></span> ], <span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">data</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// data is now the contents of file1 and file2 joined</span>
+});</pre></div>
+
+<h4>
+<a id="shrmpath-options-callback" class="anchor" href="#shrmpath-options-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.rm(path, [options], callback)<a name="rm"></a>
+</h4>
+
+<p>Removes (deletes) the file or directory at <code>path</code>. If <code>path</code> is a file, it will
+be removed. If <code>path</code> is a directory, it will be removed if it is empty, otherwise
+the callback will receive an error. In order to remove non-empty directories,
+use the <code>recursive=true</code> option.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre>sh.rm(<span class="pl-s1"><span class="pl-pds">'</span>./file<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// ./file is now removed</span>
+});
+
+sh.rm(<span class="pl-s1"><span class="pl-pds">'</span>/dir<span class="pl-pds">'</span></span>, { recursive<span class="pl-k">:</span> <span class="pl-c1">true</span> }, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// /dir and all its children are now removed</span>
+});</pre></div>
+
+<h4>
+<a id="shtempdircallback" class="anchor" href="#shtempdircallback" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.tempDir(callback)<a name="tempDir"></a>
+</h4>
+
+<p>Gets the path to the shell's temporary directory, creating it if it
+does not already exist. The temp directory to use is specified in the
+<code>env.TMP</code> environment variable. The callback receives an error
+and the <code>tempDir</code> path. NOTE: it is safe to call this many times (i.e.,
+the temp dir will only be created once). No effort is made to clean-up
+the temp dir, and it is up to the caller to destroy it if desired.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Default /tmp dir</span>
+sh.tempDir(<span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">tmp</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// tmp is now '/tmp' by default, and /tmp exists</span>
+});
+
+<span class="pl-c">// Specify a tmp dir path</span>
+sh.env.TMP <span class="pl-k">=</span> <span class="pl-s1"><span class="pl-pds">'</span>/temporary<span class="pl-pds">'</span></span>
+sh.tempDir(<span class="pl-st">function</span>(<span class="pl-vpf">err</span>, <span class="pl-vpf">tmp</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// tmp is now '/temporary', and /temporary exists</span>
+});</pre></div>
+
+<h4>
+<a id="shmkdirppath-callback" class="anchor" href="#shmkdirppath-callback" aria-hidden="true"><span class="octicon octicon-link"></span></a>sh.mkdirp(path, callback)<a name="mkdirp"></a>
+</h4>
+
+<p>Recursively creates the directory at the provided path. If the
+directory already exists, no error is returned. All parents must
+be valid directories (not files).</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-c">// Default empty filesystem</span>
+sh.mkdirp(<span class="pl-s1"><span class="pl-pds">'</span>/test/mkdirp<span class="pl-pds">'</span></span>, <span class="pl-st">function</span>(<span class="pl-vpf">err</span>) {
+  <span class="pl-k">if</span>(err) <span class="pl-k">throw</span> err;
+  <span class="pl-c">// the root '/' now contains a directory 'test' containing the directory 'mkdirp'</span>
+});</pre></div>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Filer maintained by <a href="https://github.com/filerjs">filerjs</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
