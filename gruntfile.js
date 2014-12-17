@@ -186,7 +186,7 @@ module.exports = function(grunt) {
     gitadd: {
       publish: {
         files: {
-          src: ['./dist/filer-test.js', './dist/filer-perf.js', 'tests/', 'perf/']
+          src: ['./dist/filer-test.js', './dist/filer-perf.js']
         }
       }
     },
@@ -207,7 +207,7 @@ module.exports = function(grunt) {
           force: true
         },
         files: {
-          src: ['./dist/filer-test.js', './dist/filer-perf.js', 'tests/', 'perf/']
+          src: ['./dist/filer-test.js', './dist/filer-perf.js']
         }
       }
     },
