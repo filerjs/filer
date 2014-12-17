@@ -942,6 +942,8 @@ function link_node(context, oldpath, newpath, callback) {
       oldDirectoryData = result;
       if(!_(oldDirectoryData).has(oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
+      } else if(oldDirectoryData[oldname].type === 'DIRECTORY') {
+        callback(new Errors.EPERM('oldpath refers to a directory'));
       } else {
         find_node(context, newParentPath, read_new_directory_data);
       }

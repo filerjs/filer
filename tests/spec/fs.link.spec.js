@@ -69,4 +69,18 @@ describe('fs.link', function() {
       });
     });
   });
+
+  it('should not allow links to a directory', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.link('/mydir', '/mydirlink', function(error) {
+        expect(error).to.exist;
+        expect(error.code).to.equal('EPERM');
+        done();
+      });
+    });
+  });
 });
