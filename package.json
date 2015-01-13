@@ -41,7 +41,7 @@
     "grunt-contrib-jshint": "~0.7.1",
     "grunt-contrib-uglify": "~0.1.2",
     "grunt-contrib-watch": "~0.3.1",
-    "grunt-git": "git://github.com/sedge/grunt-git.git#gitrm",
+    "grunt-git": "0.3.3",
     "grunt-npm": "git://github.com/sedge/grunt-npm.git#branchcheck",
     "grunt-prompt": "^1.1.0",
     "grunt-shell": "~0.7.0",
