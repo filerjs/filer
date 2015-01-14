@@ -4,7 +4,7 @@ var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
 var Encoding = require('../encoding.js');
 var minimatch = require('minimatch');
-var ROOT_DIRECTORY_NAME = require('src/constants').ROOT_DIRECTORY_NAME;
+var ROOT_DIRECTORY_NAME = require('../constants').ROOT_DIRECTORY_NAME;
 
 function Shell(fs, options) {
   options = options || {};
@@ -431,18 +431,18 @@ Shell.prototype.mkdirp = function(path, callback) {
 /**
  * Renames `src` to `dest`, or moves `src` to `dest` if `dest` is
  * a directory. For moving multiple files, provide an array of paths
- * to be moved as `src`.
+ * to be moved as `src`. Will automatically overwrite files if conflicts
+ * arise.
  */
 Shell.prototype.mv = function(src, dest, callback) {
   var sh = this;
   var fs = sh.fs;
   var srcPath;
-  if(typeof options === 'function') {
-    callback = options;
-    options = {};
+
+  if (!callback || typeof callback !== 'function') {
+    callback(new Errors.EINVAL('Missing callback function'));
+    return;
   }
-  options = options || {};
-  callback = callback || function(){};
 
   if(!src) {
     callback(new Errors.EINVAL('Missing src argument'));
@@ -467,7 +467,7 @@ Shell.prototype.mv = function(src, dest, callback) {
       return;
     }
 
-    move(src, function(err, data) {
+    move(src, function(err) {
       if(err) {
         callback(err);
         return;
@@ -493,9 +493,8 @@ Shell.prototype.mv = function(src, dest, callback) {
     callback();
   });
 
-  // xxx - Look at "fs.rename"'s callback arguments. There's a bug here!
-  function move(src, cb) {
-    fs.rename(src, dest, cb);
+  function move(srcPath, cb) {
+    fs.rename(srcPath, dest, cb);
   }
 };
 
