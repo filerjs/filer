@@ -92,25 +92,25 @@ function cat(files, callback) {
  * Convenience non-binding access methods
  */
 optional.touch = function(sh, path, options, callback) {
-	touch.call(sh, path, options, callback);
+  touch.call(sh, path, options, callback);
 };
 
 optional.cat = function(sh, files, callback) {
-	cat.call(sh, files, callback);
+  cat.call(sh, files, callback);
 };
 
 /**
  * Access to optional methods for shell
  */
 optional.bindTouch = function(sh) {
-	sh.touch = touch;
+  sh.touch = touch;
 };
 
 optional.bindCat = function(sh) {
-	sh.cat = cat;
+  sh.cat = cat;
 };
 
 optional.bindAll = function(sh) {
-	sh.touch = touch;
-	sh.cat = cat;
+  sh.touch = touch;
+  sh.cat = cat;
 };
