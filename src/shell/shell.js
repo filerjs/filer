@@ -4,7 +4,7 @@ var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
 var Encoding = require('../encoding.js');
 var minimatch = require('minimatch');
-var Constants = require('src/constants');
+var ROOT_DIRECTORY_NAME = require('../constants').ROOT_DIRECTORY_NAME;
 
 function Shell(fs, options) {
   options = options || {};
@@ -429,9 +429,9 @@ Shell.prototype.mkdirp = function(path, callback) {
 };
 
 /**
- * Moves the file or directory at the `source` path to the
- * `destination` path by relinking the source to the destination
- * path.
+ * Renames or moves `source` to `destination`, or moves each path
+ * in the `source` array into `destination`. Overwrites files in
+ * `destination` that have the same name(s) as `source` by default.
  */
 Shell.prototype.mv = function(source, destination, callback) {
   var fs = this.fs;
@@ -440,16 +440,17 @@ Shell.prototype.mv = function(source, destination, callback) {
   callback = callback || function() {};
 
   if(!source) {
-    callback(new Errors.EINVAL('missing source path argument'));
+    callback(new Errors.EINVAL('Missing source path argument'));
     return;
   }
-  else if(source === Constants.ROOT_DIRECTORY_NAME) {
-    callback(new Errors.EINVAL('the root directory is not a valid source argument'));
+
+  if(source === ROOT_DIRECTORY_NAME) {
+    callback(new Errors.EINVAL('The root directory is not a valid source argument'));
     return;
   }
 
   if(!destination) {
-    callback(new Errors.EINVAL('missing destination path argument'));
+    callback(new Errors.EINVAL('Missing destination path argument'));
     return;
   }
 
@@ -458,21 +459,22 @@ Shell.prototype.mv = function(source, destination, callback) {
     destpath = Path.resolve(this.cwd, destpath);
     var destdir = Path.dirname(destpath);
 
-    // Recursively create any directories on the destination path which do not exist
-    shell.mkdirp(destdir, function(error) {
+    // If there is no node at the source path, error and quit
+    fs.lstat(sourcepath, function(error, sourcestats) {
       if(error) {
         callback(error);
         return;
       }
 
-      // If there is no node at the source path, error and quit
-      fs.lstat(sourcepath, function(error, sourcestats) {
+      // If the destination's parent directory doesn't exist, error and quit
+      fs.lstat(destdir, function(error) {
+        // If there is an error unrelated to the existence of the destination, exit
         if(error) {
           callback(error);
           return;
         }
 
-        fs.lstat(destpath, function(error, deststats) {
+        fs.lstat(destpath, function(error, deststats){
           // If there is an error unrelated to the existence of the destination, exit
           if(error && error.code !== 'ENOENT') {
             callback(error);
@@ -480,9 +482,13 @@ Shell.prototype.mv = function(source, destination, callback) {
           }
 
           if(deststats) {
-            // If the destination is a directory, new destination is destpath/source.basename
-            if(deststats.isDirectory()) {
+            if (deststats.isDirectory()) {
+              // If the destination is a directory, new destination is destpath/source.basename
               destpath = Path.join(destpath, Path.basename(sourcepath));
+            } else if(sourcestats.isDirectory()) {
+              // If the source is a folder, but the destination isn't, error and exit
+              callback(new Errors.EINVAL("Destination is not a directory"));
+              return;
             }
           }
 
@@ -492,14 +498,15 @@ Shell.prototype.mv = function(source, destination, callback) {
               callback(error);
               return;
             }
-            // If the source is a file, link it to destination and remove the source, then done
+
+            // If the source isn't a directory, link it to destination and remove the source, then done
             if(sourcestats.isFile() || sourcestats.isSymbolicLink()) {
               fs.link(sourcepath, destpath, function(error) {
                 if (error) {
                   callback(error);
                   return;
                 }
-                shell.rm(sourcepath, {recursive:true}, function(error) {
+                fs.unlink(sourcepath, function(error) {
                   if (error) {
                     callback(error);
                     return;
@@ -507,10 +514,12 @@ Shell.prototype.mv = function(source, destination, callback) {
                   callback();
                 });
               });
+              return;
             }
+
             // If the source is a directory, create a directory at destination and then recursively
             // move every dir entry.
-            else if(sourcestats.isDirectory()) {
+            if(sourcestats.isDirectory()) {
               fs.mkdir(destpath, function(error) {
                 if (error) {
                   callback(error);
@@ -523,8 +532,8 @@ Shell.prototype.mv = function(source, destination, callback) {
                     return;
                   }
 
-                  // Asychronously applies move to all nodes in the source directory
-                  async.each(entries,
+                  // Apply the move to all nodes in the directory
+                  async.eachSeries(entries,
                     function(entry, callback) {
                       move(Path.join(sourcepath, entry), Path.join(destpath, entry), function(error) {
                         if(error) {
