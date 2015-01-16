@@ -19,8 +19,8 @@ npm install -g grunt-cli
 
 You can now run the following grunt tasks:
 * `grunt jshint` will run [JSHint](http://www.jshint.com/) on your code (do this before submitting a pull request) to catch errors
-* `grunt develop` will create a single file version of the library for testing in `dist/idbfs.js`
-* `grunt release` like `develop` but will also create a minified version of the library in `dist/idbfs.min.js`
+* `grunt develop` will create a single file version of the library for testing in `dist/filer.js`
+* `grunt release` like `develop` but will also create a minified version of the library in `dist/filer.min.js`
 * `grunt test` or `grunt test-node` will run [JSHint](http://www.jshint.com/) on your code and the test suite in the context of `nodejs`
 * `grunt test-browser` will run [JSHint](http://www.jshint.com/) and start a localhost server on port `1234`. Navigating to `localhost:1234/tests/index.html` will run the test suite in the context of the browser. **NOTE:** When finished, you will have to manually shut off the server by pressing `cmd/ctrl`+`c` in the same terminal session you ran `grunt test-browser`.
 
@@ -84,3 +84,48 @@ an example.
 ## Communication
 
 If you'd like to talk to someone about the project, you can reach us on irc.mozilla.org in the #filer or #mofodev channel. Look for "ack" or "humph".
+
+## Grunt tasks
+
+The importance of the third-party grunt tasks included in Filer's gruntfile's `grunt.initConfig()` will be explained here, with a focus on their use in Filer's custom build, test and release tasks. For details on the third-party tasks themselves, refer to their repos. For details on the grunt task running framework, see [here](LINKY)!L!L!L!L!L!L!L!L!
+
+Individual targets are shown *in italics*:
+
+### `uglify` ([LINK HERE]())
+
+* Adds a banner to ensure every release's distribution files are unique (**NOTE**: This is required for a successful `grunt release`)
+
+### `jshint` ([LINK HERE]())
+
+* Used to lint source files during Filer's test tasks.
+
+### `browserify` ([LINK HERE]())
+
+* *filerDist*: Combines the filer source tree into a single distribution file for the bower releases.
+* *filerPerf*: Combines performance tests into a single distribution file for browser performance benchmarks
+* *filerTest*: Combines unit tests into a single distribution file for testing Filer in the browser
+* *filerIssue225*: Used to generate a distribution file for testing based on the current state of the code, without affecting the current release's distribution file
+
+### `shell` ([LINK HERE]())
+
+* *mocha*: Used to invoke the `mocha` test framework from the command line and begin Filer's automated test process
+
+### `bump` ([LINK HERE]())
+
+* Responsible for creating the latest tag and release commit of the repo. In order, it:
+	1. Bumps the version number in Filer's `package.json` and `bower.json` files
+  2. Creates a release commit including updated manifest files and new filer distribution files
+  3. Tags the repo at this new version
+  4. Pushes the tag and the release commit upstream
+
+### `npm-checkbranch` ([LINK HERE]())
+
+* Used during the custom `release` task to fail out early if the user is not on the `develop` branch
+
+### `npm-publish` ([LINK HERE]())
+
+* Used to publish the latest release to NPM as the final step in the `release` task.
+
+### `prompt` ([LINK HERE]())
+
+* *confirm*: Interactive prompt task, used to confirm the kind of version release being requested by the user, and to give them an opportunity to abort the release.
