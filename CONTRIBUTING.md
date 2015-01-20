@@ -145,7 +145,7 @@ Individual targets are shown *in italics*:
 
 * Used to lint the source files.
 
-#### `build-tests` ([LINK HERE]())
+#### `build-tests` ([#3-grunt-build-tests](#3-grunt-build-tests))
 
 * Generates single-file versions of the test suite and a separate Filer distribution file for testing Filer's compatibility with the [requirejs module system](http://requirejs.og/).
 
@@ -163,7 +163,7 @@ Individual targets are shown *in italics*:
 
 * Causes `grunt publish` to fail out early if the user is not on the `develop` branch
 
-#### `release` ([LINK HERE]())
+#### `release` ([#2-grunt-release](#2-grunt-release))
 
 *  Runs the `grunt test`, and `grunt develop` tasks in one command, preventing new distribution files from being generated if tests fail.
 
@@ -175,7 +175,7 @@ Individual targets are shown *in italics*:
   3. Tags the repo at this new version
   4. Pushes the tag and the release commit upstream
 
-#### `build-tests` ([LINK HERE]())
+#### `build-tests` ([#3-grunt-build-tests](#3-grunt-build-tests))
 
 * Generates single-file versions of the test suite and a separate Filer distribution file for testing Filer's compatibility with the [requirejs module system](http://requirejs.og/).
 

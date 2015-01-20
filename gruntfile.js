@@ -10,7 +10,6 @@ var PROMPT_CONFIRM_CONFIG = 'confirmation',
     GIT_FULL_REMOTE = env.get('FILER_UPSTREAM_URI') + ' ' + GIT_BRANCH;
 
 module.exports = function(grunt) {
-
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -213,16 +212,10 @@ module.exports = function(grunt) {
     },
 
     connect: {
-      serverForNode: {
-        options: {
-          port: 1234,
-          base: '.'
-        }
-      },
       serverForBrowser: {
         options: {
           port: 1234,
-          base: '.',
+          base: './',
           keepalive: true
         }
       }
@@ -253,9 +246,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-banner');
 
-  grunt.registerTask('develop', ['clean', 'browserify:filerDist', 'browserify:filerIssue225']);
-  grunt.registerTask('build-tests', ['clean', 'browserify:filerTest', 'browserify:filerPerf']);
-  grunt.registerTask('release', ['test', 'develop', 'uglify']);
+  grunt.registerTask('develop', ['browserify:filerDist', 'uglify']);
+  grunt.registerTask('build-tests', ['clean', 'browserify:filerTest', 'browserify:filerPerf',  'browserify:filerIssue225']);
+  grunt.registerTask('release', ['test', 'develop']);
 
   grunt.registerTask('publish', 'Publish filer as a new version to NPM, bower and github.', function(patchLevel) {
     var allLevels = ['patch', 'minor', 'major'];
@@ -304,9 +297,9 @@ module.exports = function(grunt) {
       'npm-publish'
     ]);
   });
-  grunt.registerTask('test-node', ['jshint', 'browserify:filerIssue225', 'connect:serverForNode', 'shell:mocha']);
+  grunt.registerTask('test-node', ['jshint', 'browserify:filerIssue225', 'shell:mocha']);
   grunt.registerTask('test-browser', ['jshint', 'build-tests', 'connect:serverForBrowser']);
-  grunt.registerTask('test', ['clean', 'test-node']);
+  grunt.registerTask('test', ['test-node']);
 
   grunt.registerTask('default', ['test']);
 };
