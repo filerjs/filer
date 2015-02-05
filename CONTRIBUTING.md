@@ -19,8 +19,8 @@ npm install -g grunt-cli
 
 You can now run the following grunt tasks:
 * `grunt jshint` will run [JSHint](http://www.jshint.com/) on your code (do this before submitting a pull request) to catch errors
-* `grunt develop` will create a single file version of the library for testing in `dist/idbfs.js`
-* `grunt release` like `develop` but will also create a minified version of the library in `dist/idbfs.min.js`
+* `grunt develop` will create a single file version of the library for testing in `dist/filer.js`
+* `grunt release` like `develop` but will also create a minified version of the library in `dist/filer.min.js`
 * `grunt test` or `grunt test-node` will run [JSHint](http://www.jshint.com/) on your code and the test suite in the context of `nodejs`
 * `grunt test-browser` will run [JSHint](http://www.jshint.com/) and start a localhost server on port `1234`. Navigating to `localhost:1234/tests/index.html` will run the test suite in the context of the browser. **NOTE:** When finished, you will have to manually shut off the server by pressing `cmd/ctrl`+`c` in the same terminal session you ran `grunt test-browser`.
 
@@ -84,3 +84,129 @@ an example.
 ## Communication
 
 If you'd like to talk to someone about the project, you can reach us on irc.mozilla.org in the #filer or #mofodev channel. Look for "ack" or "humph".
+
+## Grunt tasks
+
+The six grunt tasks Filer provides for development are detailed here, including a description of the third party tasks that are used to complete the process in the order they are used. For details on the grunt task running framework, see [http://gruntjs.com/](http://gruntjs.com/).
+
+Individual targets are shown *in italics*:
+
+### 1. grunt develop
+
+*This task is responsible for producing the Filer distribution files.*
+
+#### `browserify` ([https://www.npmjs.org/package/grunt-browserify](https://www.npmjs.org/package/grunt-browserify))
+
+* *:filerDist*: Combines the filer source tree into a single distribution file for the bower releases.
+
+#### `uglify` ([https://www.npmjs.com/package/grunt-contrib-uglify](https://www.npmjs.com/package/grunt-contrib-uglify))
+
+* Adds a banner to ensure every release's distribution files are unique (**NOTE**: This is required for a successful `grunt release`)
+
+### 2. grunt release
+
+*This task runs the `grunt test`, and `grunt develop` tasks in one command, preventing new distribution files from being generated if tests fail.*
+
+### 3. grunt build-tests
+
+*This task generates single-file versions of the test suite and a separate Filer distribution file for testing Filer's compatibility with the [requirejs module system](http://requirejs.og/).*
+
+#### `clean` ([https://www.npmjs.com/package/grunt-contrib-clean](https://www.npmjs.com/package/grunt-contrib-clean))
+
+* Deletes the current browserified test files (see [http://browserify.org/](http://browserify.org/) for more details)
+
+#### `browserify` ([https://www.npmjs.org/package/grunt-browserify](https://www.npmjs.org/package/grunt-browserify))
+
+* *:filerPerf*: Combines performance tests into a single distribution file for browser performance benchmarks
+* *:filerTest*: Combines unit tests into a single distribution file for testing Filer in the browser
+* *:filerIssue225*: Used to generate a distribution file for testing based on the current state of the code, without affecting the current release's distribution file
+
+### 4. grunt test-node
+
+*This task lints and tests the Filer library in a nodejs context, aborting if any of the subtasks fail.*
+
+#### `jshint` ([https://www.npmjs.com/package/grunt-contrib-jshint](https://www.npmjs.com/package/grunt-contrib-jshint))
+
+* Used to lint the source files.
+
+#### `browserify` ([https://www.npmjs.org/package/grunt-browserify](https://www.npmjs.org/package/grunt-browserify))
+
+* *:filerIssue225*: Used to generate a distribution file for testing based on the current state of the code, without affecting the current release's distribution file
+
+#### `shell` ([https://www.npmjs.com/package/grunt-shell](https://www.npmjs.com/package/grunt-shell))
+
+* *:mocha*: Runs Filer's test suite on nodejs using the mocha test framework from the command line interface
+
+### 5. grunt test-browser
+
+*This task generates all the files necessary for running Filer's test suite in a browser, and starts a simple HTTP server to access the tests from your browser of choice*
+
+#### `jshint` ([https://www.npmjs.com/package/grunt-contrib-jshint](https://www.npmjs.com/package/grunt-contrib-jshint))
+
+* Used to lint the source files.
+
+#### `build-tests` ([#3-grunt-build-tests](#3-grunt-build-tests))
+
+* Generates single-file versions of the test suite and a separate Filer distribution file for testing Filer's compatibility with the [requirejs module system](http://requirejs.og/).
+
+#### `connect` ([https://www.npmjs.com/package/grunt-contrib-connect](https://www.npmjs.com/package/grunt-contrib-connect))
+
+* *:serverForBrowser*: Starts a simple HTTP server pointing at the root of the Filer directory. Browsing to the '/tests/' directory will run the Filer tests in the browser.
+
+### 6. grunt publish
+
+#### `prompt` ([https://www.npmjs.com/package/grunt-prompt](https://www.npmjs.com/package/grunt-prompt))
+
+* *confirm*: Interactive prompt task, used to confirm the kind of version release being requested by the user, and to give them an opportunity to abort the release. The prompt message is generated in the `grunt publish` task itself.
+
+#### `npm-checkbranch` ([https://github.com/sedge/grunt-npm/tree/branchcheck](https://github.com/sedge/grunt-npm/tree/branchcheck))
+
+* Causes `grunt publish` to fail out early if the user is not on the `develop` branch
+
+#### `release` ([#2-grunt-release](#2-grunt-release))
+
+*  Runs the `grunt test`, and `grunt develop` tasks in one command, preventing new distribution files from being generated if tests fail.
+
+#### `bump` ([https://www.npmjs.com/package/grunt-bump](https://www.npmjs.com/package/grunt-bump))
+
+* Responsible for creating the latest tag and release commit of the repo. In order, it:
+  1. Bumps the version number in Filer's `package.json` and `bower.json` files
+  2. Creates a release commit including updated manifest files and new filer distribution files
+  3. Tags the repo at this new version
+  4. Pushes the tag and the release commit upstream
+
+#### `build-tests` ([#3-grunt-build-tests](#3-grunt-build-tests))
+
+* Generates single-file versions of the test suite and a separate Filer distribution file for testing Filer's compatibility with the [requirejs module system](http://requirejs.og/).
+
+#### `usebanner` ([https://www.npmjs.com/package/grunt-banner](https://www.npmjs.com/package/grunt-banner))
+* *:publish*: Adds a banner to the generated test and performance test files. The banner contents are generated as part of the `grunt publish` task itself.
+
+#### `gitadd` ([https://www.npmjs.com/package/grunt-git](https://www.npmjs.com/package/grunt-git))
+* *:publish*: Adds the Filer test files to git's staging area to allow us to stash it in the next step
+
+#### `gitstash` ([https://www.npmjs.com/package/grunt-git](https://www.npmjs.com/package/grunt-git))
+* *:publish*: Stashes the Filer test files in preparation for switching to the `gh-pages` branch in the next step
+
+#### `gitcheckout` ([https://www.npmjs.com/package/grunt-git](https://www.npmjs.com/package/grunt-git))
+* *:publish*: Checks out the `gh-pages` branch to prepare for committing the newly generated test files in the next three steps
+
+#### `gitrm` ([https://www.npmjs.com/package/grunt-git](https://www.npmjs.com/package/grunt-git))
+* *:publish*: Equivalent of `git rm -f`, this task forces a removal of the existing versions of the generated test files on this branch in preparation for the next step.
+
+#### `gitstash` ([https://www.npmjs.com/package/grunt-git](https://www.npmjs.com/package/grunt-git))
+* *:pop*: Equivalent of `git stash pop`, this task reintroduces the staging area containing the newest version of the generated test files.
+
+#### `gitcommit` ([https://www.npmjs.com/package/grunt-git](https://www.npmjs.com/package/grunt-git))
+* *:publish*: This task commits the current staging area containing the newly generated test files. The commit message is generated during the `grunt publish` task itself.
+
+#### `gitpush` ([https://www.npmjs.com/package/grunt-git](https://www.npmjs.com/package/grunt-git))
+* *:publish*: This task pushes the local `gh-pages` branch to the remote specified in Filer's .env file as FILER_UPSTREAM_REMOTE_NAME.
+
+#### `gitcheckout` ([https://www.npmjs.com/package/grunt-git](https://www.npmjs.com/package/grunt-git))
+* *:revert*: This task checks out back to the main branch ('develop' by default, specified in the .env as FILER_UPSTREAM_BRANCH)
+
+#### `npm-publish` ([https://www.npmjs.com/package/grunt-npm](https://www.npmjs.com/package/grunt-npm))
+
+* Publishes the latest release to NPM
+
