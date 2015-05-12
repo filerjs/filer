@@ -86,8 +86,8 @@
 
 }());
 
-}).call(this,_dereq_("JkpR2F"))
-},{"JkpR2F":10}],2:[function(_dereq_,module,exports){
+}).call(this,_dereq_("FWaASH"))
+},{"FWaASH":10}],2:[function(_dereq_,module,exports){
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -698,8 +698,13 @@ function Buffer (subject, encoding, noZero) {
 
   var type = typeof subject
 
+  // Workaround: node's base64 implementation allows for non-padded strings
+  // while base64-js does not.
   if (encoding === 'base64' && type === 'string') {
-    subject = base64clean(subject)
+    subject = stringtrim(subject)
+    while (subject.length % 4 !== 0) {
+      subject = subject + '='
+    }
   }
 
   // Find the length
@@ -1656,18 +1661,6 @@ Buffer._augment = function (arr) {
   return arr
 }
 
-var INVALID_BASE64_RE = /[^+\/0-9A-z]/g
-
-function base64clean (str) {
-  // Node strips out invalid characters like \n and \t from the string, base64-js does not
-  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
-  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
-  while (str.length % 4 !== 0) {
-    str = str + '='
-  }
-  return str
-}
-
 function stringtrim (str) {
   if (str.trim) return str.trim()
   return str.replace(/^\s+|\s+$/g, '')
@@ -2235,8 +2228,8 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-}).call(this,_dereq_("JkpR2F"))
-},{"JkpR2F":10}],10:[function(_dereq_,module,exports){
+}).call(this,_dereq_("FWaASH"))
+},{"FWaASH":10}],10:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -3377,8 +3370,8 @@ function regExpEscape (s) {
     typeof process === "object" ? process.platform : "win32"
   )
 
-}).call(this,_dereq_("JkpR2F"))
-},{"JkpR2F":10,"lru-cache":12,"path":9,"sigmund":13}],12:[function(_dereq_,module,exports){
+}).call(this,_dereq_("FWaASH"))
+},{"FWaASH":10,"lru-cache":12,"path":9,"sigmund":13}],12:[function(_dereq_,module,exports){
 ;(function () { // closure for web browsers
 
 if (typeof module === 'object' && module.exports) {
@@ -4858,6 +4851,8 @@ function link_node(context, oldpath, newpath, callback) {
       oldDirectoryData = result;
       if(!_(oldDirectoryData).has(oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
+      } else if(oldDirectoryData[oldname].type === 'DIRECTORY') {
+        callback(new Errors.EPERM('oldpath refers to a directory'));
       } else {
         find_node(context, newParentPath, read_new_directory_data);
       }
@@ -5890,6 +5885,9 @@ function rename(fs, context, oldpath, newpath, callback) {
   if(!pathCheck(oldpath, callback)) return;
   if(!pathCheck(newpath, callback)) return;
 
+  oldpath = normalize(oldpath);
+  newpath = normalize(newpath);
+
   var oldParentPath = Path.dirname(oldpath);
   var newParentPath = Path.dirname(oldpath);
   var oldName = Path.basename(oldpath);
@@ -5917,6 +5915,9 @@ function rename(fs, context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
+      if(oldParentDirectory.id === newParentDirectory.id) {
+        oldParentData = newParentData;
+      }
       delete oldParentData[oldName];
       context.putObject(oldParentDirectory.data, oldParentData, read_new_directory);
     }
