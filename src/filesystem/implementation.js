@@ -1976,6 +1976,9 @@ function rename(fs, context, oldpath, newpath, callback) {
   if(!pathCheck(oldpath, callback)) return;
   if(!pathCheck(newpath, callback)) return;
 
+  oldpath = normalize(oldpath);
+  newpath = normalize(newpath);
+
   var oldParentPath = Path.dirname(oldpath);
   var newParentPath = Path.dirname(oldpath);
   var oldName = Path.basename(oldpath);

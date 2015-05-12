@@ -75,3 +75,4 @@ require("./bugs/issue254.js");
 require("./bugs/issue258.js");
 require("./bugs/issue267.js");
 require("./bugs/issue270.js");
+require("./bugs/rename-dir-trailing-slash.js");
