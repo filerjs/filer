@@ -64,9 +64,18 @@ module.exports = function(grunt) {
         dest: "./dist/filer.js",
         options: {
           browserifyOptions: {
-            commondir: false
+            commondir: false,
+            builtins: ["buffer", "path", "url", "punycode", "querystring"]
           },
           bundleOptions: {
+            insertGlobalVars: {
+              // This ensures that process won't be defined, since
+              // browserify will do so automatically if any globals
+              // are requested by us or detected by browserify.
+              process: function() {
+                return undefined;
+              }
+            },
             standalone: 'Filer'
           },
           exclude: ["./node_modules/request/index.js"]
@@ -77,16 +86,41 @@ module.exports = function(grunt) {
         dest: "./dist/filer-perf.js",
         options: {
           browserifyOptions: {
-            commondir: false
+            commondir: false,
+            builtins: ["buffer", "path", "url", "punycode", "querystring"]
           },
           bundleOptions: {
+            insertGlobalVars: {
+              // This ensures that process won't be defined, since
+              // browserify will do so automatically if any globals
+              // are requested by us or detected by browserify.
+              process: function() {
+                return undefined;
+              }
+            },
             standalone: 'Filer'
           }
         }
       },
       filerTest: {
         src: "./tests/index.js",
-        dest: "./dist/filer-test.js"
+        dest: "./dist/filer-test.js",
+        options: {
+          browserifyOptions: {
+            commondir: false,
+            builtins: ["buffer", "path", "url", "punycode", "querystring"]
+          },
+          bundleOptions: {
+            insertGlobalVars: {
+              // This ensures that process won't be defined, since
+              // browserify will do so automatically if any globals
+              // are requested by us or detected by browserify.
+              process: function() {
+                return undefined;
+              }
+            }
+          }
+        }
       },
       // See tests/bugs/issue225.js
       filerIssue225: {
@@ -94,9 +128,18 @@ module.exports = function(grunt) {
         dest: "./dist/filer-issue225.js",
         options: {
           browserifyOptions: {
-            commondir: false
+            commondir: false,
+            builtins: ["buffer", "path", "url", "punycode", "querystring"]
           },
           bundleOptions: {
+            insertGlobalVars: {
+              // This ensures that process won't be defined, since
+              // browserify will do so automatically if any globals
+              // are requested by us or detected by browserify.
+              process: function() {
+                return undefined;
+              }
+            },
             standalone: 'Filer'
           }
         }
