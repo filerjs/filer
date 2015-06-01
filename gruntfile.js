@@ -23,6 +23,14 @@ module.exports = function(grunt) {
       develop: {
         src: 'dist/filer.js',
         dest: 'dist/filer.min.js'
+      },
+      path: {
+        src: 'dist/path.js',
+        dest: 'dist/path.min.js'
+      },
+      buffer: {
+        src: 'dist/buffer.js',
+        dest: 'dist/buffer.min.js'
       }
     },
 
@@ -90,6 +98,26 @@ module.exports = function(grunt) {
           },
           bundleOptions: {
             standalone: 'Filer'
+          }
+        }
+      },
+
+      // For low-cost access to filer's `Path` and `buffer` modules
+      filerPath: {
+        src: "./src/path.js",
+        dest: "./dist/path.js",
+        options: {
+          bundleOptions: {
+            standalone: 'Path'
+          }
+        }
+      },
+      filerBuffer: {
+        src: "./src/buffer.js",
+        dest: "./dist/buffer.js",
+        options: {
+          bundleOptions: {
+            standalone: 'FilerBuffer'
           }
         }
       }
@@ -246,7 +274,15 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-banner');
 
-  grunt.registerTask('develop', ['browserify:filerDist', 'uglify']);
+  grunt.registerTask('develop', [
+    'browserify:filerDist',
+    'browserify:filerPath',
+    'browserify:filerBuffer',
+    'uglify:develop',
+    'uglify:path',
+    'uglify:buffer'
+  ]);
+
   grunt.registerTask('build-tests', ['clean', 'browserify:filerTest', 'browserify:filerPerf',  'browserify:filerIssue225']);
   grunt.registerTask('release', ['test', 'develop']);
 
