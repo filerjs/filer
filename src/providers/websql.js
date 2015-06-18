@@ -1,7 +1,6 @@
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
-var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
 var WSQL_DESC = require('../constants.js').WSQL_DESC;
 var Errors = require('../errors.js');
 var FilerBuffer = require('../buffer.js');
@@ -133,7 +132,16 @@ WebSQL.prototype.open = function(callback) {
     return callback();
   }
 
-  var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
+  // Deal with size limit like pouchdb:
+  // http://pouchdb.com/2014/10/26/10-things-i-learned-from-reading-and-writing-the-pouchdb-source.html
+  // https://github.com/pouchdb/pouchdb/blob/39da6013d74685189fcdf5bc2c617db5b76e88bd/lib/adapters/websql/utils.js#L161-L175
+  var isAndroid = false;
+  if(global.navigator && global.navigator.userAgent) {
+    isAndroid = /Android/.test(window.navigator.userAgent);
+  }
+  var dbSize = isAndroid ? 5000000 : 1; // in PhantomJS, if you use 0 it will crash
+
+  var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, dbSize);
   if(!db) {
     callback("[WebSQL] Unable to open database.");
     return;

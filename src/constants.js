@@ -16,7 +16,6 @@ module.exports = {
   IDB_RW: 'readwrite',
 
   WSQL_VERSION: "1",
-  WSQL_SIZE: 5 * 1024 * 1024,
   WSQL_DESC: "FileSystem Storage",
 
   MODE_FILE: 'FILE',
