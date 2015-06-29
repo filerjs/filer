@@ -65,9 +65,7 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: {
             commondir: false,
-            builtins: ["buffer", "path", "url", "punycode", "querystring"]
-          },
-          bundleOptions: {
+            builtins: ["buffer", "path", "url", "punycode", "querystring"],
             insertGlobalVars: {
               // This ensures that process won't be defined, since
               // browserify will do so automatically if any globals
@@ -87,9 +85,7 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: {
             commondir: false,
-            builtins: ["buffer", "path", "url", "punycode", "querystring"]
-          },
-          bundleOptions: {
+            builtins: ["buffer", "path", "url", "punycode", "querystring"],
             insertGlobalVars: {
               // This ensures that process won't be defined, since
               // browserify will do so automatically if any globals
@@ -108,9 +104,7 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: {
             commondir: false,
-            builtins: ["buffer", "path", "url", "punycode", "querystring"]
-          },
-          bundleOptions: {
+            builtins: ["buffer", "path", "url", "punycode", "querystring"],
             insertGlobalVars: {
               // This ensures that process won't be defined, since
               // browserify will do so automatically if any globals
@@ -129,9 +123,7 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: {
             commondir: false,
-            builtins: ["buffer", "path", "url", "punycode", "querystring"]
-          },
-          bundleOptions: {
+            builtins: ["buffer", "path", "url", "punycode", "querystring"],
             insertGlobalVars: {
               // This ensures that process won't be defined, since
               // browserify will do so automatically if any globals
@@ -150,7 +142,7 @@ module.exports = function(grunt) {
         src: "./src/path.js",
         dest: "./dist/path.js",
         options: {
-          bundleOptions: {
+          browserifyOptions: {
             standalone: 'Path'
           }
         }
@@ -159,7 +151,7 @@ module.exports = function(grunt) {
         src: "./src/buffer.js",
         dest: "./dist/buffer.js",
         options: {
-          bundleOptions: {
+          browserifyOptions: {
             standalone: 'FilerBuffer'
           }
         }
