@@ -120,8 +120,8 @@ function join() {
 
 // path.relative(from, to)
 function relative(from, to) {
-  from = exports.resolve(from).substr(1);
-  to = exports.resolve(to).substr(1);
+  from = resolve(from).substr(1);
+  to = resolve(to).substr(1);
 
   function trim(arr) {
     var start = 0;
