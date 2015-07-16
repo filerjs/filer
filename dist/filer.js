@@ -657,7 +657,6 @@ exports.SlowBuffer = SlowBuffer
 exports.INSPECT_MAX_BYTES = 50
 Buffer.poolSize = 8192 // not used by this implementation
 
-var kMaxLength = 0x3fffffff
 var rootParent = {}
 
 /**
@@ -683,17 +682,26 @@ var rootParent = {}
  * get the Object implementation, which is slower but will work correctly.
  */
 Buffer.TYPED_ARRAY_SUPPORT = (function () {
+  function Foo () {}
   try {
     var buf = new ArrayBuffer(0)
     var arr = new Uint8Array(buf)
     arr.foo = function () { return 42 }
+    arr.constructor = Foo
     return arr.foo() === 42 && // typed array instances can be augmented
+        arr.constructor === Foo && // constructor can be set
         typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
         new Uint8Array(1).subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
   } catch (e) {
     return false
   }
 })()
+
+function kMaxLength () {
+  return Buffer.TYPED_ARRAY_SUPPORT
+    ? 0x7fffffff
+    : 0x3fffffff
+}
 
 /**
  * Class: Buffer
@@ -845,9 +853,9 @@ function allocate (that, length) {
 function checked (length) {
   // Note: cannot use `length < kMaxLength` here because that fails when
   // length is NaN (which is otherwise coerced to zero.)
-  if (length >= kMaxLength) {
+  if (length >= kMaxLength()) {
     throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
-                         'size: 0x' + kMaxLength.toString(16) + ' bytes')
+                         'size: 0x' + kMaxLength().toString(16) + ' bytes')
   }
   return length | 0
 }
@@ -939,29 +947,38 @@ Buffer.concat = function concat (list, length) {
 }
 
 function byteLength (string, encoding) {
-  if (typeof string !== 'string') string = String(string)
+  if (typeof string !== 'string') string = '' + string
 
-  if (string.length === 0) return 0
+  var len = string.length
+  if (len === 0) return 0
 
-  switch (encoding || 'utf8') {
-    case 'ascii':
-    case 'binary':
-    case 'raw':
-      return string.length
-    case 'ucs2':
-    case 'ucs-2':
-    case 'utf16le':
-    case 'utf-16le':
-      return string.length * 2
-    case 'hex':
-      return string.length >>> 1
-    case 'utf8':
-    case 'utf-8':
-      return utf8ToBytes(string).length
-    case 'base64':
-      return base64ToBytes(string).length
-    default:
-      return string.length
+  // Use a for loop to avoid recursion
+  var loweredCase = false
+  for (;;) {
+    switch (encoding) {
+      case 'ascii':
+      case 'binary':
+      // Deprecated
+      case 'raw':
+      case 'raws':
+        return len
+      case 'utf8':
+      case 'utf-8':
+        return utf8ToBytes(string).length
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return len * 2
+      case 'hex':
+        return len >>> 1
+      case 'base64':
+        return base64ToBytes(string).length
+      default:
+        if (loweredCase) return utf8ToBytes(string).length // assume utf8
+        encoding = ('' + encoding).toLowerCase()
+        loweredCase = true
+    }
   }
 }
 Buffer.byteLength = byteLength
@@ -970,8 +987,7 @@ Buffer.byteLength = byteLength
 Buffer.prototype.length = undefined
 Buffer.prototype.parent = undefined
 
-// toString(encoding, start=0, end=buffer.length)
-Buffer.prototype.toString = function toString (encoding, start, end) {
+function slowToString (encoding, start, end) {
   var loweredCase = false
 
   start = start | 0
@@ -1012,6 +1028,13 @@ Buffer.prototype.toString = function toString (encoding, start, end) {
         loweredCase = true
     }
   }
+}
+
+Buffer.prototype.toString = function toString () {
+  var length = this.length | 0
+  if (length === 0) return ''
+  if (arguments.length === 0) return utf8Slice(this, 0, length)
+  return slowToString.apply(this, arguments)
 }
 
 Buffer.prototype.equals = function equals (b) {
@@ -3693,13 +3716,11 @@ Object.defineProperty(LRUCache.prototype, "itemCount",
 
 LRUCache.prototype.forEach = function (fn, thisp) {
   thisp = thisp || this
-  var i = 0
-  var itemCount = this._itemCount
-
-  for (var k = this._mru - 1; k >= 0 && i < itemCount; k--) if (this._lruList[k]) {
+  var i = 0;
+  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
     i++
     var hit = this._lruList[k]
-    if (isStale(this, hit)) {
+    if (this._maxAge && (Date.now() - hit.now > this._maxAge)) {
       del(this, hit)
       if (!this._allowStale) hit = undefined
     }
@@ -3754,24 +3775,19 @@ LRUCache.prototype.dumpLru = function () {
   return this._lruList
 }
 
-LRUCache.prototype.set = function (key, value, maxAge) {
-  maxAge = maxAge || this._maxAge
-  var now = maxAge ? Date.now() : 0
-
+LRUCache.prototype.set = function (key, value) {
   if (hOP(this._cache, key)) {
     // dispose of the old one before overwriting
-    if (this._dispose)
-      this._dispose(key, this._cache[key].value)
-
-    this._cache[key].now = now
-    this._cache[key].maxAge = maxAge
+    if (this._dispose) this._dispose(key, this._cache[key].value)
+    if (this._maxAge) this._cache[key].now = Date.now()
     this._cache[key].value = value
     this.get(key)
     return true
   }
 
   var len = this._lengthCalculator(value)
-  var hit = new Entry(key, value, this._mru++, len, now, maxAge)
+  var age = this._maxAge ? Date.now() : 0
+  var hit = new Entry(key, value, this._mru++, len, age)
 
   // oversized objects fall out of cache automatically.
   if (hit.length > this._max) {
@@ -3783,16 +3799,14 @@ LRUCache.prototype.set = function (key, value, maxAge) {
   this._lruList[hit.lu] = this._cache[key] = hit
   this._itemCount ++
 
-  if (this._length > this._max)
-    trim(this)
-
+  if (this._length > this._max) trim(this)
   return true
 }
 
 LRUCache.prototype.has = function (key) {
   if (!hOP(this._cache, key)) return false
   var hit = this._cache[key]
-  if (isStale(this, hit)) {
+  if (this._maxAge && (Date.now() - hit.now > this._maxAge)) {
     return false
   }
   return true
@@ -3819,7 +3833,7 @@ LRUCache.prototype.del = function (key) {
 function get (self, key, doUse) {
   var hit = self._cache[key]
   if (hit) {
-    if (isStale(self, hit)) {
+    if (self._maxAge && (Date.now() - hit.now > self._maxAge)) {
       del(self, hit)
       if (!self._allowStale) hit = undefined
     } else {
@@ -3828,18 +3842,6 @@ function get (self, key, doUse) {
     if (hit) hit = hit.value
   }
   return hit
-}
-
-function isStale(self, hit) {
-  if (!hit || (!hit.maxAge && !self._maxAge)) return false
-  var stale = false;
-  var diff = Date.now() - hit.now
-  if (hit.maxAge) {
-    stale = diff > hit.maxAge
-  } else {
-    stale = self._maxAge && (diff > self._maxAge)
-  }
-  return stale;
 }
 
 function use (self, hit) {
@@ -3869,13 +3871,12 @@ function del (self, hit) {
 }
 
 // classy, since V8 prefers predictable objects.
-function Entry (key, value, lu, length, now, maxAge) {
+function Entry (key, value, lu, length, now) {
   this.key = key
   this.value = value
   this.lu = lu
   this.length = length
   this.now = now
-  if (maxAge) this.maxAge = maxAge
 }
 
 })()

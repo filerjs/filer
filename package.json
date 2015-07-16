@@ -11,7 +11,7 @@
     "idb",
     "websql"
   ],
-  "version": "0.0.41",
+  "version": "0.0.42",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://filerjs.github.io/filer",
   "bugs": "https://github.com/filerjs/filer/issues",
