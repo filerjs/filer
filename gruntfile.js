@@ -171,7 +171,16 @@ module.exports = function(grunt) {
         files: ['package.json', 'bower.json'],
         commit: true,
         commitMessage: 'v%VERSION%',
-        commitFiles: ['package.json', 'bower.json', './dist/filer.js', './dist/filer.min.js'],
+        commitFiles: [
+          'package.json',
+          'bower.json',
+          './dist/filer.js',
+          './dist/filer.min.js',
+          './dist/buffer.js',
+          './dist/buffer.min.js',
+          './dist/path.js',
+          './dist/path.min.js'
+        ],
         createTag: true,
         tagName: 'v%VERSION%',
         tagMessage: 'v%VERSION%',
