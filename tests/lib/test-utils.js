@@ -37,6 +37,7 @@ function getUrlParams() {
 }
 
 function getProviderType() {
+  var defaultProvider = 'default';
   var queryString = getUrlParams();
 
   // If the environment is node or the query string is empty,
@@ -45,7 +46,7 @@ function getProviderType() {
     return defaultProvider;
   }
 
-  return queryString['filer-provider'] || 'default';
+  return queryString['filer-provider'] || defaultProvider;
 }
 
 function setup(callback) {
