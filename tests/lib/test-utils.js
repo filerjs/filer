@@ -37,7 +37,6 @@ function getUrlParams() {
 }
 
 function getProviderType() {
-  var defaultProvider = 'Memory';
   var queryString = getUrlParams();
 
   // If the environment is node or the query string is empty,
@@ -46,7 +45,7 @@ function getProviderType() {
     return defaultProvider;
   }
 
-  return queryString['filer-provider'] || defaultProvider;
+  return queryString['filer-provider'] || 'default';
 }
 
 function setup(callback) {
@@ -65,7 +64,9 @@ function setup(callback) {
       _provider = new WebSQLTestProvider(name);
       break;
     case 'memory':
-    /* falls through */
+      _provider = new MemoryTestProvider(name);
+      break;
+    case 'default':
     default:
       var BestProvider = findBestProvider();
       _provider = new BestProvider(name);
