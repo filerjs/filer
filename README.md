@@ -1088,7 +1088,7 @@ fs.writeFile('/data/subdir/file', 'data');
 ### FileSystemShell<a name="FileSystemShell"></a>
 
 Many common file system shell operations are available by using a `FileSystemShell` object.
-The `FileSystemShell` is used in conjuction with a `FileSystem`,
+The `FileSystemShell` is used in conjunction with a `FileSystem`,
 and provides augmented features. Many separate `FileSystemShell` objects can exist per
 `FileSystem`, but each `FileSystemShell` is bound to a single instance of a `FileSystem`
 for its lifetime.
