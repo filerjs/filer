@@ -267,6 +267,68 @@ Shell.prototype.ls = function(dir, options, callback) {
   list(dir, callback);
 };
 
+Shell.prototype.du = function(dir, callback) {
+  var sh = this;
+  var fs = sh.fs;
+  
+  callback = callback || function(){};
+
+  if(!dir) {
+    callback(new Errors.EINVAL('Missing dir argument'));
+    return;
+  }
+
+  function list(path, callback) {
+    var pathname = Path.resolve(sh.pwd(), path);
+    var result = [];
+
+    fs.readdir(pathname, function(error, entries) {
+      if(error) {
+        callback(error);
+        return;
+      }
+
+      function getDirEntry(name, callback) {
+        name = Path.join(pathname, name);
+        fs.stat(name, function(error, stats) {
+          if(error) {
+            callback(error);
+            return;
+          }
+          var entry = {
+            path: Path.basename(name),
+            links: stats.nlinks,
+            size: stats.size,
+            modified: stats.mtime,
+            type: stats.type
+          };
+
+          if(stats.type === 'DIRECTORY') {
+            list(Path.join(pathname, entry.path), function(error, items) {
+              if(error) {
+                callback(error);
+                return;
+              }
+              entry.contents = items;
+              result.push(entry);
+              callback();
+            });
+          } else {
+            result.push(entry);
+            callback();
+          }
+        });
+      }
+
+      async.eachSeries(entries, getDirEntry, function(error) {
+        callback(error, result);
+      });
+    });
+  }
+
+  list(dir, callback);
+};
+
 /**
  * Removes the file or directory at `path`. If `path` is a file
  * it will be removed. If `path` is a directory, it will be
