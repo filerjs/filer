@@ -2,11 +2,11 @@
 
 [![Build Status](https://secure.travis-ci.org/filerjs/filer.png?branch=develop)](http://travis-ci.org/filerjs/filer)
 
-###Filer
+### Filer
 
 Filer is a POSIX-like file system interface for node.js and browser-based JavaScript.
 
-###Compatibility
+### Compatibility
 
 Filer is known to work in the following browsers/versions, with the specified [Storage Providers](#providers):
 
@@ -147,7 +147,7 @@ NOTE: if the optional callback argument is not passed to the `FileSystem` constr
 operations done on the resulting file system will be queued and run in sequence when
 it becomes ready.
 
-####Filer.FileSystem.providers - Storage Providers<a name="providers"></a>
+#### Filer.FileSystem.providers - Storage Providers<a name="providers"></a>
 
 Filer can be configured to use a number of different storage providers. The provider object encapsulates all aspects
 of data access, making it possible to swap in different backend storage options.  There are currently 4 different
@@ -189,7 +189,7 @@ A number of other providers have been written, including:
 * node.js fs provider: https://github.com/humphd/filer-fs
 * node.js Amazon S3 provider: https://github.com/alicoding/filer-s3
 
-####Filer.Buffer<a name="FilerBuffer"></a>
+#### Filer.Buffer<a name="FilerBuffer"></a>
 
 When reading and writing data, Filer follows node.js and uses [`Buffer`](http://nodejs.org/api/buffer.html).
 When in a node.js environment, native `Buffer`s can be used, or Filer.Buffer, which is a shortcut
@@ -198,7 +198,7 @@ to node's `Buffer`.  In a browser, you can use also use `Filer.Buffer`.
 NOTE: a `Filer.Buffer` in a browser is really an augmented `Uint8Array` (i.e., the node `Buffer` api
 methods are added to the instance). See https://github.com/feross/buffer for more details. Additionally, unlike native `Buffer`, `Filer.Buffer`'s constructor can accept `ArrayBuffer` objects, which will be interpreted as `Uint8Array`s.
 
-####Filer.Path<a name="FilerPath"></a>
+#### Filer.Path<a name="FilerPath"></a>
 
 The node.js [path module](http://nodejs.org/api/path.html) is available via the `Filer.Path` object. It is
 identical to the node.js version with the following differences:
@@ -230,7 +230,7 @@ For more info see the docs in the [path module](http://nodejs.org/api/path.html)
 * `path.sep`
 * `path.delimiter`
 
-####Filer.Errors<a name="Errors"></a>
+#### Filer.Errors<a name="Errors"></a>
 
 The error objects used internally by Filer are also exposed via the `Filer.Errors` object. As much as possible
 these match their node.js counterparts, with a few Filer-specifc additions.
@@ -266,7 +266,7 @@ function callback(err) {
 console.log(err.message);
 ```
 
-###FileSystem Instance Methods<a name="FileSystemMethods"></a>
+### FileSystem Instance Methods<a name="FileSystemMethods"></a>
 
 Once a `FileSystem` is created, it has the following methods. NOTE: code examples below assume
 a `FileSystem` instance named `fs` has been created like so:
