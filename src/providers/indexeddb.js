@@ -11,43 +11,57 @@ var indexedDB = global.indexedDB       ||
                 global.msIndexedDB;
 
 function IndexedDBContext(db, mode) {
-  var transaction = db.transaction(FILE_STORE_NAME, mode);
-  this.objectStore = transaction.objectStore(FILE_STORE_NAME);
+  this.db = db;
+  this.mode = mode;
 }
+
+IndexedDBContext.prototype._getObjectStore = function() {
+  if(this.objectStore) {
+    return this.objectStore;
+  }
+
+  var transaction = this.db.transaction(FILE_STORE_NAME, this.mode);
+  this.objectStore = transaction.objectStore(FILE_STORE_NAME);
+  return this.objectStore;
+};
 
 IndexedDBContext.prototype.clear = function(callback) {
   try {
-    var request = this.objectStore.clear();
-    request.onsuccess = function(event) {
+    var objectStore = this._getObjectStore();
+    var request = objectStore.clear();
+    request.onsuccess = function() {
       callback();
     };
-    request.onerror = function(error) {
-      callback(error);
+    request.onerror = function(event) {
+      event.preventDefault();
+      callback(event.error);
     };
-  } catch(e) {
-    callback(e);
+  } catch(err) {
+    callback(err);
   }
 };
 
-function _get(objectStore, key, callback) {
+IndexedDBContext.prototype._get = function(key, callback) {
   try {
+    var objectStore = this._getObjectStore();
     var request = objectStore.get(key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
     };
-    request.onerror = function onerror(error) {
-      callback(error);
+    request.onerror = function(event) {
+      event.preventDefault();
+      callback(event.error);
     };
-  } catch(e) {
-    callback(e);
+  } catch(err) {
+    callback(err);
   }
-}
+};
 IndexedDBContext.prototype.getObject = function(key, callback) {
-  _get(this.objectStore, key, callback);
+  this._get(key, callback);
 };
 IndexedDBContext.prototype.getBuffer = function(key, callback) {
-  _get(this.objectStore, key, function(err, arrayBuffer) {
+  this._get(key, function(err, arrayBuffer) {
     if(err) {
       return callback(err);
     }
@@ -55,22 +69,24 @@ IndexedDBContext.prototype.getBuffer = function(key, callback) {
   });
 };
 
-function _put(objectStore, key, value, callback) {
+IndexedDBContext.prototype._put = function(key, value, callback) {
   try {
+    var objectStore = this._getObjectStore();
     var request = objectStore.put(value, key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
     };
-    request.onerror = function onerror(error) {
-      callback(error);
+    request.onerror = function(event) {
+      event.preventDefault();
+      callback(event.error);
     };
-  } catch(e) {
-    callback(e);
+  } catch(err) {
+    callback(err);
   }
-}
+};
 IndexedDBContext.prototype.putObject = function(key, value, callback) {
-  _put(this.objectStore, key, value, callback);
+  this._put(key, value, callback);
 };
 IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
   var buf;
@@ -79,21 +95,23 @@ IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback
   } else {
     buf = uint8BackedBuffer.buffer;
   }
-  _put(this.objectStore, key, buf, callback);
+  this._put(key, buf, callback);
 };
 
 IndexedDBContext.prototype.delete = function(key, callback) {
   try {
-    var request = this.objectStore.delete(key);
+    var objectStore = this._getObjectStore();
+    var request = objectStore.delete(key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
     };
-    request.onerror = function(error) {
-      callback(error);
+    request.onerror = function(event) {
+      event.preventDefault();
+      callback(event.error);
     };
-  } catch(e) {
-    callback(e);
+  } catch(err) {
+    callback(err);
   }
 };
 
@@ -114,32 +132,35 @@ IndexedDB.prototype.open = function(callback) {
     return callback();
   }
 
-  // NOTE: we're not using versioned databases.
-  var openRequest = indexedDB.open(that.name);
+  try {
+    // NOTE: we're not using versioned databases.
+    var openRequest = indexedDB.open(that.name);
 
-  // If the db doesn't exist, we'll create it
-  openRequest.onupgradeneeded = function onupgradeneeded(event) {
-    var db = event.target.result;
+    // If the db doesn't exist, we'll create it
+    openRequest.onupgradeneeded = function onupgradeneeded(event) {
+      var db = event.target.result;
 
-    if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
-      db.deleteObjectStore(FILE_STORE_NAME);
-    }
-    db.createObjectStore(FILE_STORE_NAME);
-  };
+      if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
+        db.deleteObjectStore(FILE_STORE_NAME);
+      }
+      db.createObjectStore(FILE_STORE_NAME);
+    };
 
-  openRequest.onsuccess = function onsuccess(event) {
-    that.db = event.target.result;
-    callback();
-  };
-  openRequest.onerror = function onerror(error) {
-    callback(new Errors.EINVAL('IndexedDB cannot be accessed. If private browsing is enabled, disable it.'));
-  };
+    openRequest.onsuccess = function onsuccess(event) {
+      that.db = event.target.result;
+      callback();
+    };
+    openRequest.onerror = function onerror(event) {
+      event.preventDefault();
+      callback(event.error);
+    };
+  } catch(err) {
+    callback(err);
+  }
 };
+
 IndexedDB.prototype.getReadOnlyContext = function() {
-  // Due to timing issues in Chrome with readwrite vs. readonly indexeddb transactions
-  // always use readwrite so we can make sure pending commits finish before callbacks.
-  // See https://github.com/js-platform/filer/issues/128
-  return new IndexedDBContext(this.db, IDB_RW);
+  return new IndexedDBContext(this.db, IDB_RO);
 };
 IndexedDB.prototype.getReadWriteContext = function() {
   return new IndexedDBContext(this.db, IDB_RW);

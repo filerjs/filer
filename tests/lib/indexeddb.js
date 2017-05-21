@@ -23,20 +23,26 @@ function IndexedDBTestProvider(name) {
       return callback();
     }
 
-    // We have to force any other connections to close
-    // before we can delete a db.
-    if(that.provider.db) {
-      that.provider.db.close();
-    }
-
-    var request = indexedDB.deleteDatabase(name);
     function finished() {
       that.provider = null;
       _done = true;
       callback();
     }
-    request.onsuccess = finished;
-    request.onerror = finished;
+
+    try {
+      // We have to force any other connections to close
+      // before we can delete a db.
+      if(that.provider.db) {
+        that.provider.db.close();
+      }
+
+      var request = indexedDB.deleteDatabase(name);
+      request.onsuccess = finished;
+      request.onerror = finished;
+    } catch(e) {
+      console.log("Failed to delete test database", e);
+      finished();
+    }
   }
 
   function init() {
