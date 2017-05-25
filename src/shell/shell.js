@@ -4,6 +4,7 @@ var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
 var Encoding = require('../encoding.js');
 var minimatch = require('minimatch');
+var ROOT_DIRECTORY_NAME = require('../constants').ROOT_DIRECTORY_NAME;
 
 function Shell(fs, options) {
   options = options || {};
@@ -426,6 +427,77 @@ Shell.prototype.mkdirp = function(path, callback) {
 
   _mkdirp(path, callback);
 };
+
+/**
+ * Renames `src` to `dest`, or moves `src` to `dest` if `dest` is
+ * a directory. For moving multiple files, provide an array of paths
+ * to be moved as `src`. Will automatically overwrite files if conflicts
+ * arise.
+ */
+Shell.prototype.mv = function(src, dest, callback) {
+  var sh = this;
+  var fs = sh.fs;
+  var srcPath;
+
+  if (!callback || typeof callback !== 'function') {
+    callback(new Errors.EINVAL('Missing callback function'));
+    return;
+  }
+
+  if(!src) {
+    callback(new Errors.EINVAL('Missing src argument'));
+    return;
+  }
+
+  if(src === ROOT_DIRECTORY_NAME) {
+    callback(new Errors.EINVAL('Root directory is not a valid path'));
+    return;
+  }
+
+  if(!dest) {
+    callback(new Errors.EINVAL('Missing dest argument'));
+    return;
+  }
+
+  // Is there a single source path?
+  if(!Array.isArray(src)) {
+    src = Path.resolve(src);
+    if(src === '') {
+      callback(new Errors.EINVAL('Path cannot be an empty string'));
+      return;
+    }
+
+    move(src, function(err) {
+      if(err) {
+        callback(err);
+        return;
+      }
+      callback();
+    });
+    return;
+  }
+
+  for (var i = 0; i < src.length; i++) {
+    src[i] = Path.resolve(src[i]);
+    if(src[i] === '') {
+      callback(new Errors.EINVAL('Paths cannot be an empty string'));
+      return;
+    }
+  }
+
+  async.eachSeries(src, move, function(error) {
+    if(error) {
+      callback(error);
+      return;
+    }
+    callback();
+  });
+
+  function move(srcPath, cb) {
+    fs.rename(srcPath, dest, cb);
+  }
+};
+
 
 /**
  * Recursively walk a directory tree, reporting back all paths
