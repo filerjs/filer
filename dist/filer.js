@@ -657,6 +657,7 @@ exports.SlowBuffer = SlowBuffer
 exports.INSPECT_MAX_BYTES = 50
 Buffer.poolSize = 8192 // not used by this implementation
 
+var kMaxLength = 0x3fffffff
 var rootParent = {}
 
 /**
@@ -682,26 +683,17 @@ var rootParent = {}
  * get the Object implementation, which is slower but will work correctly.
  */
 Buffer.TYPED_ARRAY_SUPPORT = (function () {
-  function Foo () {}
   try {
     var buf = new ArrayBuffer(0)
     var arr = new Uint8Array(buf)
     arr.foo = function () { return 42 }
-    arr.constructor = Foo
     return arr.foo() === 42 && // typed array instances can be augmented
-        arr.constructor === Foo && // constructor can be set
         typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
         new Uint8Array(1).subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
   } catch (e) {
     return false
   }
 })()
-
-function kMaxLength () {
-  return Buffer.TYPED_ARRAY_SUPPORT
-    ? 0x7fffffff
-    : 0x3fffffff
-}
 
 /**
  * Class: Buffer
@@ -853,9 +845,9 @@ function allocate (that, length) {
 function checked (length) {
   // Note: cannot use `length < kMaxLength` here because that fails when
   // length is NaN (which is otherwise coerced to zero.)
-  if (length >= kMaxLength()) {
+  if (length >= kMaxLength) {
     throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
-                         'size: 0x' + kMaxLength().toString(16) + ' bytes')
+                         'size: 0x' + kMaxLength.toString(16) + ' bytes')
   }
   return length | 0
 }
@@ -947,38 +939,29 @@ Buffer.concat = function concat (list, length) {
 }
 
 function byteLength (string, encoding) {
-  if (typeof string !== 'string') string = '' + string
+  if (typeof string !== 'string') string = String(string)
 
-  var len = string.length
-  if (len === 0) return 0
+  if (string.length === 0) return 0
 
-  // Use a for loop to avoid recursion
-  var loweredCase = false
-  for (;;) {
-    switch (encoding) {
-      case 'ascii':
-      case 'binary':
-      // Deprecated
-      case 'raw':
-      case 'raws':
-        return len
-      case 'utf8':
-      case 'utf-8':
-        return utf8ToBytes(string).length
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
-        return len * 2
-      case 'hex':
-        return len >>> 1
-      case 'base64':
-        return base64ToBytes(string).length
-      default:
-        if (loweredCase) return utf8ToBytes(string).length // assume utf8
-        encoding = ('' + encoding).toLowerCase()
-        loweredCase = true
-    }
+  switch (encoding || 'utf8') {
+    case 'ascii':
+    case 'binary':
+    case 'raw':
+      return string.length
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      return string.length * 2
+    case 'hex':
+      return string.length >>> 1
+    case 'utf8':
+    case 'utf-8':
+      return utf8ToBytes(string).length
+    case 'base64':
+      return base64ToBytes(string).length
+    default:
+      return string.length
   }
 }
 Buffer.byteLength = byteLength
@@ -987,7 +970,8 @@ Buffer.byteLength = byteLength
 Buffer.prototype.length = undefined
 Buffer.prototype.parent = undefined
 
-function slowToString (encoding, start, end) {
+// toString(encoding, start=0, end=buffer.length)
+Buffer.prototype.toString = function toString (encoding, start, end) {
   var loweredCase = false
 
   start = start | 0
@@ -1028,13 +1012,6 @@ function slowToString (encoding, start, end) {
         loweredCase = true
     }
   }
-}
-
-Buffer.prototype.toString = function toString () {
-  var length = this.length | 0
-  if (length === 0) return ''
-  if (arguments.length === 0) return utf8Slice(this, 0, length)
-  return slowToString.apply(this, arguments)
 }
 
 Buffer.prototype.equals = function equals (b) {
@@ -7161,43 +7138,57 @@ var indexedDB = global.indexedDB       ||
                 global.msIndexedDB;
 
 function IndexedDBContext(db, mode) {
-  var transaction = db.transaction(FILE_STORE_NAME, mode);
-  this.objectStore = transaction.objectStore(FILE_STORE_NAME);
+  this.db = db;
+  this.mode = mode;
 }
+
+IndexedDBContext.prototype._getObjectStore = function() {
+  if(this.objectStore) {
+    return this.objectStore;
+  }
+
+  var transaction = this.db.transaction(FILE_STORE_NAME, this.mode);
+  this.objectStore = transaction.objectStore(FILE_STORE_NAME);
+  return this.objectStore;
+};
 
 IndexedDBContext.prototype.clear = function(callback) {
   try {
-    var request = this.objectStore.clear();
-    request.onsuccess = function(event) {
+    var objectStore = this._getObjectStore();
+    var request = objectStore.clear();
+    request.onsuccess = function() {
       callback();
     };
-    request.onerror = function(error) {
-      callback(error);
+    request.onerror = function(event) {
+      event.preventDefault();
+      callback(event.error);
     };
-  } catch(e) {
-    callback(e);
+  } catch(err) {
+    callback(err);
   }
 };
 
-function _get(objectStore, key, callback) {
+IndexedDBContext.prototype._get = function(key, callback) {
   try {
+    var objectStore = this._getObjectStore();
     var request = objectStore.get(key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
     };
-    request.onerror = function onerror(error) {
-      callback(error);
+    request.onerror = function(event) {
+      event.preventDefault();
+      callback(event.error);
     };
-  } catch(e) {
-    callback(e);
+  } catch(err) {
+    callback(err);
   }
-}
+};
 IndexedDBContext.prototype.getObject = function(key, callback) {
-  _get(this.objectStore, key, callback);
+  this._get(key, callback);
 };
 IndexedDBContext.prototype.getBuffer = function(key, callback) {
-  _get(this.objectStore, key, function(err, arrayBuffer) {
+  this._get(key, function(err, arrayBuffer) {
     if(err) {
       return callback(err);
     }
@@ -7205,22 +7196,24 @@ IndexedDBContext.prototype.getBuffer = function(key, callback) {
   });
 };
 
-function _put(objectStore, key, value, callback) {
+IndexedDBContext.prototype._put = function(key, value, callback) {
   try {
+    var objectStore = this._getObjectStore();
     var request = objectStore.put(value, key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
     };
-    request.onerror = function onerror(error) {
-      callback(error);
+    request.onerror = function(event) {
+      event.preventDefault();
+      callback(event.error);
     };
-  } catch(e) {
-    callback(e);
+  } catch(err) {
+    callback(err);
   }
-}
+};
 IndexedDBContext.prototype.putObject = function(key, value, callback) {
-  _put(this.objectStore, key, value, callback);
+  this._put(key, value, callback);
 };
 IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
   var buf;
@@ -7229,21 +7222,23 @@ IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback
   } else {
     buf = uint8BackedBuffer.buffer;
   }
-  _put(this.objectStore, key, buf, callback);
+  this._put(key, buf, callback);
 };
 
 IndexedDBContext.prototype.delete = function(key, callback) {
   try {
-    var request = this.objectStore.delete(key);
+    var objectStore = this._getObjectStore();
+    var request = objectStore.delete(key);
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
     };
-    request.onerror = function(error) {
-      callback(error);
+    request.onerror = function(event) {
+      event.preventDefault();
+      callback(event.error);
     };
-  } catch(e) {
-    callback(e);
+  } catch(err) {
+    callback(err);
   }
 };
 
@@ -7264,32 +7259,35 @@ IndexedDB.prototype.open = function(callback) {
     return callback();
   }
 
-  // NOTE: we're not using versioned databases.
-  var openRequest = indexedDB.open(that.name);
+  try {
+    // NOTE: we're not using versioned databases.
+    var openRequest = indexedDB.open(that.name);
 
-  // If the db doesn't exist, we'll create it
-  openRequest.onupgradeneeded = function onupgradeneeded(event) {
-    var db = event.target.result;
+    // If the db doesn't exist, we'll create it
+    openRequest.onupgradeneeded = function onupgradeneeded(event) {
+      var db = event.target.result;
 
-    if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
-      db.deleteObjectStore(FILE_STORE_NAME);
-    }
-    db.createObjectStore(FILE_STORE_NAME);
-  };
+      if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
+        db.deleteObjectStore(FILE_STORE_NAME);
+      }
+      db.createObjectStore(FILE_STORE_NAME);
+    };
 
-  openRequest.onsuccess = function onsuccess(event) {
-    that.db = event.target.result;
-    callback();
-  };
-  openRequest.onerror = function onerror(error) {
-    callback(new Errors.EINVAL('IndexedDB cannot be accessed. If private browsing is enabled, disable it.'));
-  };
+    openRequest.onsuccess = function onsuccess(event) {
+      that.db = event.target.result;
+      callback();
+    };
+    openRequest.onerror = function onerror(event) {
+      event.preventDefault();
+      callback(event.error);
+    };
+  } catch(err) {
+    callback(err);
+  }
 };
+
 IndexedDB.prototype.getReadOnlyContext = function() {
-  // Due to timing issues in Chrome with readwrite vs. readonly indexeddb transactions
-  // always use readwrite so we can make sure pending commits finish before callbacks.
-  // See https://github.com/js-platform/filer/issues/128
-  return new IndexedDBContext(this.db, IDB_RW);
+  return new IndexedDBContext(this.db, IDB_RO);
 };
 IndexedDB.prototype.getReadWriteContext = function() {
   return new IndexedDBContext(this.db, IDB_RW);
