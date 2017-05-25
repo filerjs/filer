@@ -25,7 +25,7 @@ describe('sh.ls and deep directory trees', function() {
         done();
       });
     });
-  });
+  }).timeout(15000);
 
   it('should not crash when calling sh.ls() on wide directory layouts', function(done) {
     var fs = util.fs();
@@ -55,5 +55,5 @@ describe('sh.ls and deep directory trees', function() {
         });
       });
     });
-  });
+  }).timeout(15000);
 });

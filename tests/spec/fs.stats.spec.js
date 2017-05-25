@@ -7,11 +7,12 @@ describe('fs.stats', function() {
     beforeEach(util.setup);
     afterEach(util.cleanup);
 
-    it('should be a function', function() {
+    it('should be a function', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isFile).to.be.a('function');
+        done();
       });
     });
 
@@ -60,11 +61,12 @@ describe('fs.stats', function() {
     beforeEach(util.setup);
     afterEach(util.cleanup);
 
-    it('should be a function', function() {
+    it('should be a function', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isDirectory).to.be.a('function');
+        done();
       });
     });
 
@@ -113,19 +115,21 @@ describe('fs.stats', function() {
     beforeEach(util.setup);
     afterEach(util.cleanup);
 
-    it('should be a function', function() {
+    it('should be a function', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isBlockDevice).to.be.a('function');
+        done();
       });
     });
 
-    it('should return false', function() {
+    it('should return false', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isBlockDevice()).to.be.false;
+        done();
       });
     });
   });
@@ -134,19 +138,21 @@ describe('fs.stats', function() {
     beforeEach(util.setup);
     afterEach(util.cleanup);
 
-    it('should be a function', function() {
+    it('should be a function', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isCharacterDevice).to.be.a('function');
+        done();
       });
     });
 
-    it('should return false', function() {
+    it('should return false', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isCharacterDevice()).to.be.false;
+        done();
       });
     });
   });
@@ -155,11 +161,12 @@ describe('fs.stats', function() {
     beforeEach(util.setup);
     afterEach(util.cleanup);
 
-    it('should be a function', function() {
+    it('should be a function', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isSymbolicLink).to.be.a('function');
+        done();
       });
     });
 
@@ -208,19 +215,21 @@ describe('fs.stats', function() {
     beforeEach(util.setup);
     afterEach(util.cleanup);
 
-    it('should be a function', function() {
+    it('should be a function', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isFIFO).to.be.a('function');
+        done();
       });
     });
 
-    it('should return false', function() {
+    it('should return false', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isFIFO()).to.be.false;
+        done();
       });
     });
   });
@@ -229,19 +238,21 @@ describe('fs.stats', function() {
     beforeEach(util.setup);
     afterEach(util.cleanup);
 
-    it('should be a function', function() {
+    it('should be a function', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isSocket).to.be.a('function');
+        done();
       });
     });
 
-    it('should return false', function() {
+    it('should return false', function(done) {
       var fs = util.fs();
       fs.stat('/', function(error, stats) {
         if(error) throw error;
         expect(stats.isSocket()).to.be.false;
+        done();
       });
     });
   });
