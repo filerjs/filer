@@ -4,6 +4,7 @@ var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
 var Encoding = require('../encoding.js');
 var minimatch = require('minimatch');
+var ROOT_DIRECTORY_NAME = require('../constants').ROOT_DIRECTORY_NAME;
 
 function Shell(fs, options) {
   options = options || {};
@@ -425,6 +426,148 @@ Shell.prototype.mkdirp = function(path, callback) {
   }
 
   _mkdirp(path, callback);
+};
+
+/**
+ * Renames or moves `source` to `destination`, or moves each path
+ * in the `source` array into `destination`. Overwrites files in
+ * `destination` that have the same name(s) as `source` by default.
+ */
+Shell.prototype.mv = function(source, destination, callback) {
+  var fs = this.fs;
+  var shell = this;
+
+  callback = callback || function() {};
+
+  if(!source) {
+    callback(new Errors.EINVAL('Missing source path argument'));
+    return;
+  }
+
+  if(source === ROOT_DIRECTORY_NAME) {
+    callback(new Errors.EINVAL('The root directory is not a valid source argument'));
+    return;
+  }
+
+  if(!destination) {
+    callback(new Errors.EINVAL('Missing destination path argument'));
+    return;
+  }
+
+  function move(sourcepath, destpath, callback) {
+    sourcepath = Path.resolve(this.cwd, sourcepath);
+    destpath = Path.resolve(this.cwd, destpath);
+    var destdir = Path.dirname(destpath);
+
+    // If there is no node at the source path, error and quit
+    fs.lstat(sourcepath, function(error, sourcestats) {
+      if(error) {
+        callback(error);
+        return;
+      }
+
+      // If the destination's parent directory doesn't exist, error and quit
+      fs.lstat(destdir, function(error) {
+        // If there is an error unrelated to the existence of the destination, exit
+        if(error) {
+          callback(error);
+          return;
+        }
+
+        fs.lstat(destpath, function(error, deststats){
+          // If there is an error unrelated to the existence of the destination, exit
+          if(error && error.code !== 'ENOENT') {
+            callback(error);
+            return;
+          }
+
+          if(deststats) {
+            if (deststats.isDirectory()) {
+              // If the destination is a directory, new destination is destpath/source.basename
+              destpath = Path.join(destpath, Path.basename(sourcepath));
+            } else if(sourcestats.isDirectory()) {
+              // If the source is a folder, but the destination isn't, error and exit
+              callback(new Errors.EINVAL("Destination is not a directory"));
+              return;
+            }
+          }
+
+          // Unlink existing destinations
+          fs.unlink(destpath, function(error) {
+            if (error && error.code !== 'ENOENT') {
+              callback(error);
+              return;
+            }
+
+            // If the source isn't a directory, link it to destination and remove the source, then done
+            if(sourcestats.isFile() || sourcestats.isSymbolicLink()) {
+              fs.link(sourcepath, destpath, function(error) {
+                if (error) {
+                  callback(error);
+                  return;
+                }
+                fs.unlink(sourcepath, function(error) {
+                  if (error) {
+                    callback(error);
+                    return;
+                  }
+                  callback();
+                });
+              });
+              return;
+            }
+
+            // If the source is a directory, create a directory at destination and then recursively
+            // move every dir entry.
+            if(sourcestats.isDirectory()) {
+              fs.mkdir(destpath, function(error) {
+                if (error) {
+                  callback(error);
+                  return;
+                }
+
+                fs.readdir(sourcepath, function(error, entries) {
+                  if(error) {
+                    callback(error);
+                    return;
+                  }
+
+                  // Apply the move to all nodes in the directory
+                  async.eachSeries(entries,
+                    function(entry, callback) {
+                      move(Path.join(sourcepath, entry), Path.join(destpath, entry), function(error) {
+                        if(error) {
+                          callback(error);
+                          return;
+                        }
+                        callback();
+                      });
+                    },
+                    function(error) {
+                      if(error) {
+                        callback(error);
+                        return;
+                      }
+                      // Remove source links after relocating
+                      shell.rm(sourcepath, {recursive:true}, function(error) {
+                        if (error) {
+                          callback(error);
+                          return;
+                        }
+                        callback();
+                      });
+                    }
+                  );
+                });
+              });
+            }
+          });
+        });
+      });
+    });
+  }
+
+  move(source, destination, callback);
 };
 
 /**
