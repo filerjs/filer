@@ -76,5 +76,43 @@ module.exports = {
   ENVIRONMENT: {
     TMP: '/tmp',
     PATH: ''
+  },
+
+  /**
+   * Plan 9 related
+   *  - https://github.com/chaos/diod/blob/master/libnpfs/9p.h
+   *  - https://en.wikibooks.org/wiki/C_Programming/POSIX_Reference/sys/stat.h
+   */
+  P9: {
+    /**
+    * QID types
+    * 
+    * @P9_QTDIR: directory
+    * @P9_QTAPPEND: append-only
+    * @P9_QTEXCL: excluse use (only one open handle allowed)
+    * @P9_QTMOUNT: mount points
+    * @P9_QTAUTH: authentication file
+    * @P9_QTTMP: non-backed-up files
+    * @P9_QTSYMLINK: symbolic links (9P2000.u)
+    * @P9_QTLINK: hard-link (9P2000.u)
+    * @P9_QTFILE: normal files
+    */
+    QTDIR: 0x80,
+    QTAPPEND: 0x40,
+    QTEXCL: 0x20,
+    QTMOUNT: 0x10,
+    QTAUTH: 0x08,
+    QTTMP: 0x04,
+    QTSYMLINK: 0x02,
+    QTLINK: 0x01,
+    QTFILE: 0x00,
+
+    /**
+     * POSIX System Values
+     */
+    S_IFMT: 0xF000, // mask for file type 
+    S_IFLNK: 0xA000, // symbolic link
+    S_IFDIR: 0x4000, // directory
+    S_IFREG: 0x8000 // regular file
   }
 };

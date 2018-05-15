@@ -1,4 +1,46 @@
+var path = require('./path.js');
+var hash32 = require('./encoding.js').hash32;
+
 var MODE_FILE = require('./constants.js').MODE_FILE;
+var MODE_DIRECTORY = require('./constants.js').MODE_DIRECTORY;
+var MODE_SYMBOLIC_LINK = require('./constants.js').MODE_SYMBOLIC_LINK;
+var MODE_META = require('./constants.js').MODE_META;
+
+var P9_QTFILE = require('./constants.js').P9.QTFILE;
+var P9_QTDIR = require('./constants.js').P9.QTDIR;
+var P9_QTSYMLINK = require('./constants.js').P9.QTSYMLINK;
+
+var S_IFLNK = require('./constants.js').P9.S_IFLNK;
+var S_IFDIR = require('./constants.js').P9.S_IFDIR;
+var S_IFREG = require('./constants.js').P9.S_IFREG;
+
+var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
+
+function getQType(mode) {
+  switch(mode) {
+    case MODE_FILE:
+      return P9_QTFILE;
+    case MODE_DIRECTORY:
+      return P9_QTDIR;
+    case MODE_SYMBOLIC_LINK:
+      return P9_QTSYMLINK;
+    default:
+      return null;
+  }
+}
+
+function getPOSIXMode(mode) {
+  switch(mode) {
+    case MODE_FILE:
+      return S_IFREG;
+    case MODE_DIRECTORY:
+      return S_IFDIR;
+    case MODE_SYMBOLIC_LINK:
+      return S_IFLNK;
+    default:
+      return null;
+  }
+}
 
 function Node(options) {
   var now = Date.now();
@@ -16,6 +58,44 @@ function Node(options) {
   this.blksize = undefined; // block size
   this.nblocks = 1; // blocks count
   this.data = options.data; // id for data object
+
+  /**
+   * Plan 9 related metadata:
+   * https://web.archive.org/web/20170601072902/http://plan9.bell-labs.com/magic/man2html/5/0intro
+   * 
+   * "The qid represents the server's unique identification for the file being
+   * accessed: two files on the same server hierarchy are the same if and only
+   * if their qids are the same. (The client may have multiple fids pointing to
+   * a single file on a server and hence having a single qid.) The thirteen–byte
+   * qid fields hold a one–byte type, specifying whether the file is a directory,
+   * append–only file, etc., and two unsigned integers: first the four–byte qid
+   * version, then the eight–byte qid path. The path is an integer unique among
+   * all files in the hierarchy. If a file is deleted and recreated with the same
+   * name in the same directory, the old and new path components of the qids
+   * should be different. The version is a version number for a file; typically,
+   * it is incremented every time the file is modified."
+   */
+  this.p9 = {
+    qid: {
+      type: getQType(this.mode) || P9_QTFILE,
+      // use mtime for version info, since we already keep that updated
+      version: now,
+      // files have a unique `path` number, which takes into account files with same
+      // name but created at different times.
+      path: hash32(options.path + this.ctime)
+    },
+    // permissions and flags
+    // TODO: I don't think I'm doing this correctly yet...
+    mode: getPOSIXMode(this.mode) || S_IFREG,
+    // Name of file/dir. Must be / if the file is the root directory of the server
+    // TODO: do I need this or can I derive it from abs path?
+    name: options.path === ROOT_DIRECTORY_NAME ? ROOT_DIRECTORY_NAME : path.basename(options.path),
+    uid: 0x0, // owner name
+    gid: 0x0, // group name
+    muid: 0x0// name of the user who last modified the file 
+  };
+
+  console.log('Node', this);
 }
 
 // Make sure the options object has an id on property,

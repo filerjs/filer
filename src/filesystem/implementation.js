@@ -12,6 +12,9 @@ var MODE_FILE = Constants.MODE_FILE;
 var MODE_DIRECTORY = Constants.MODE_DIRECTORY;
 var MODE_SYMBOLIC_LINK = Constants.MODE_SYMBOLIC_LINK;
 var MODE_META = Constants.MODE_META;
+var P9_QTDIR = Constants.P9.QTDIR;
+var P9_QTFILE = Constants.P9.QTFILE;
+var P9_QTSYMLINK = Constants.P9.QTSYMLINK;
 
 var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
 var SUPER_NODE_ID = Constants.SUPER_NODE_ID;
@@ -44,17 +47,24 @@ var Buffer = require('../buffer.js');
  * and filesystem flags are examined in order to override update logic.
  */
 function update_node_times(context, path, node, times, callback) {
+  var update = false;
+
+  if(times.ctime || times.mtime) {
+    // Update the qid's version field, since node has changed.
+    // TODO: this might more than I need to do...
+    node.p9.qid.version = times.ctime || times.mtime;
+    update = true;
+  }
+
   // Honour mount flags for how we update times
   var flags = context.flags;
   if(_(flags).contains(FS_NOCTIME)) {
     delete times.ctime;
   }
-  if(_(flags).contains(FS_NOMTIME)) {
+   if(_(flags).contains(FS_NOMTIME)) {
     delete times.mtime;
   }
 
-  // Only do the update if required (i.e., times are still present)
-  var update = false;
   if(times.ctime) {
     node.ctime = times.ctime;
     // We don't do atime tracking for perf reasons, but do mirror ctime
@@ -69,6 +79,8 @@ function update_node_times(context, path, node, times, callback) {
   }
   if(times.mtime) {
     node.mtime = times.mtime;
+    // Also update the qid's version filed, since file has changed.
+    node.p9.qid.version = times.mtime;
     update = true;
   }
 
@@ -133,7 +145,11 @@ function make_node(context, path, mode, callback) {
       callback(error);
     } else {
       parentNodeData = result;
-      Node.create({guid: context.guid, mode: mode}, function(error, result) {
+      Node.create({
+        path: path,
+        guid: context.guid,
+        mode: mode
+      }, function(error, result) {
         if(error) {
           callback(error);
           return;
@@ -311,7 +327,7 @@ function ensure_root_directory(context, callback) {
     } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
-      SuperNode.create({guid: context.guid}, function(error, result) {
+      SuperNode.create({ guid: context.guid }, function(error, result) {
         if(error) {
           callback(error);
           return;
@@ -326,7 +342,12 @@ function ensure_root_directory(context, callback) {
     if(error) {
       callback(error);
     } else {
-      Node.create({guid: context.guid, id: superNode.rnode, mode: MODE_DIRECTORY}, function(error, result) {
+      Node.create({
+        guid: context.guid,
+        id: superNode.rnode,
+        mode: MODE_DIRECTORY,
+        path: ROOT_DIRECTORY_NAME
+      }, function(error, result) {
         if(error) {
           callback(error);
           return;
@@ -387,7 +408,11 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryData = result;
-      Node.create({guid: context.guid, mode: MODE_DIRECTORY}, function(error, result) {
+      Node.create({
+        guid: context.guid,
+        mode: MODE_DIRECTORY,
+        path: path
+      }, function(error, result) {
         if(error) {
           callback(error);
           return;
@@ -624,7 +649,11 @@ function open_file(context, path, flags, callback) {
   }
 
   function write_file_node() {
-    Node.create({guid: context.guid, mode: MODE_FILE}, function(error, result) {
+    Node.create({
+      guid: context.guid,
+      mode: MODE_FILE,
+      path: path
+    }, function(error, result) {
       if(error) {
         callback(error);
         return;
@@ -1111,7 +1140,11 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   }
 
   function write_file_node() {
-    Node.create({guid: context.guid, mode: MODE_SYMBOLIC_LINK}, function(error, result) {
+    Node.create({
+      guid: context.guid,
+      mode: MODE_SYMBOLIC_LINK,
+      path: dstpath
+    }, function(error, result) {
       if(error) {
         callback(error);
         return;
