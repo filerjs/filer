@@ -75,28 +75,36 @@ function Node(options) {
    * should be different. The version is a version number for a file; typically,
    * it is incremented every time the file is modified."
    */
+
+  options.p9 = options.p9 || {qid: {}};
+
   this.p9 = {
     qid: {
-      type: getQType(this.mode) || P9_QTFILE,
+      type: options.p9.qid.type || (getQType(this.mode) || P9_QTFILE),
       // use mtime for version info, since we already keep that updated
-      version: now,
+      version: options.p9.qid.now || now,
       // files have a unique `path` number, which takes into account files with same
       // name but created at different times.
-      path: hash32(options.path + this.ctime)
+      path: options.p9.qid.path || hash32(options.path + this.ctime)
     },
     // permissions and flags
     // TODO: I don't think I'm doing this correctly yet...
-    mode: getPOSIXMode(this.mode) || S_IFREG,
+    mode: options.p9.mode || (getPOSIXMode(this.mode) || S_IFREG),
     // Name of file/dir. Must be / if the file is the root directory of the server
     // TODO: do I need this or can I derive it from abs path?
-    name: options.path === ROOT_DIRECTORY_NAME ? ROOT_DIRECTORY_NAME : path.basename(options.path),
-    uid: 0x0, // owner name
-    gid: 0x0, // group name
-    muid: 0x0// name of the user who last modified the file 
+    name: options.p9.name || (options.path === ROOT_DIRECTORY_NAME ? ROOT_DIRECTORY_NAME : path.basename(options.path)),
+    uid: options.p9.uid || 0x0, // owner name
+    gid: options.p9.gid || 0x0, // group name
+    muid: options.p9.muid || 0x0 // name of the user who last modified the file 
   };
-
-  console.log('Node', this);
 }
+
+// When the node's path changes, update info that relates to it.
+Node.prototype.updatePathInfo = function(newPath, ctime) {
+  // XXX: need to confirm that qid's path actually changes on rename.
+  this.p9.qid.path = hash32(newPath + (ctime || this.ctime));
+  this.p9.name = newPath === ROOT_DIRECTORY_NAME ? ROOT_DIRECTORY_NAME : path.basename(newPath);
+};
 
 // Make sure the options object has an id on property,
 // either from caller or one we generate using supplied guid fn.
@@ -127,6 +135,33 @@ Node.create = function(options, callback) {
 
       callback(null, new Node(options));
     });
+  });
+};
+
+Node.fromObject = function(object) {
+  return new Node({
+    id: object.id,
+    mode: object.mode,
+    size: object.size,
+    atime: object.atime,
+    ctime: object.ctime,
+    mtime: object.mtime,
+    flags: object.flags,
+    xattrs: object.xattrs,
+    nlinks: object.nlinks,
+    data: object.data,
+    p9: {
+      qid: {
+        type: object.p9.qid.type,
+        version: object.p9.qid.version,
+        path: object.p9.qid.path
+      },
+      mode: object.p9.mode,
+      name: object.p9.name,
+      uid: object.p9.uid,
+      gid: object.p9.gid,
+      muid: object.p9.muid 
+    }
   });
 };
 

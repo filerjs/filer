@@ -48,10 +48,12 @@ var Buffer = require('../buffer.js');
  */
 function update_node_times(context, path, node, times, callback) {
   var update = false;
+  // If updating the P9 info only, don't send change events (honour flags).
+  var queueChangeEvent = false;
 
   if(times.ctime || times.mtime) {
     // Update the qid's version field, since node has changed.
-    // TODO: this might more than I need to do...
+    // TODO: this might be more than I need to do...
     node.p9.qid.version = times.ctime || times.mtime;
     update = true;
   }
@@ -70,24 +72,27 @@ function update_node_times(context, path, node, times, callback) {
     // We don't do atime tracking for perf reasons, but do mirror ctime
     node.atime = times.ctime;
     update = true;
+    queueChangeEvent = true;
   }
   if(times.atime) {
     // The only time we explicitly pass atime is when utimes(), futimes() is called.
     // Override ctime mirror here if so
     node.atime = times.atime;
     update = true;
+    queueChangeEvent = true;
   }
   if(times.mtime) {
     node.mtime = times.mtime;
-    // Also update the qid's version filed, since file has changed.
-    node.p9.qid.version = times.mtime;
     update = true;
+    queueChangeEvent = true;
   }
 
   function complete(error) {
     // Queue this change so we can send watch events.
     // Unlike node.js, we send the full path vs. basename/dirname only.
-    context.changes.push({ event: 'change', path: path });
+    if(queueChangeEvent) {
+      context.changes.push({ event: 'change', path: path });
+    }
     callback(error);
   }
 
@@ -908,6 +913,7 @@ function link_node(context, oldpath, newpath, callback) {
   newpath = normalize(newpath);
   var newname = basename(newpath);
   var newParentPath = dirname(newpath);
+  var ctime = Date.now();
 
   var oldDirectoryNode;
   var oldDirectoryData;
@@ -919,7 +925,7 @@ function link_node(context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
-      update_node_times(context, newpath,  fileNode, { ctime: Date.now() }, callback);
+      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
     }
   }
 
@@ -927,8 +933,9 @@ function link_node(context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
-      fileNode = result;
+      fileNode = Node.fromObject(result);
       fileNode.nlinks += 1;
+      fileNode.updatePathInfo(newpath, ctime);
       context.putObject(fileNode.id, fileNode, update_time);
     }
   }
@@ -2018,12 +2025,26 @@ function rename(fs, context, oldpath, newpath, callback) {
   var newName = Path.basename(newpath);
   var oldParentDirectory, oldParentData;
   var newParentDirectory, newParentData;
+  var ctime = Date.now();
+  var fileNode;
 
-  function update_times(error, newNode) {
+  function update_times(error) {
     if(error) {
       callback(error);
     } else {
-      update_node_times(context, newpath,  newNode, { ctime: Date.now() }, callback);
+      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
+    }
+  }
+
+  function update_file_node(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      fileNode = Node.fromObject(result);
+// Don't think I need this here...
+//      fileNode.nlinks += 1;
+      fileNode.updatePathInfo(newpath, ctime);
+      context.putObject(fileNode.id, fileNode, update_times);
     }
   }
 
@@ -2031,7 +2052,7 @@ function rename(fs, context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
-      context.getObject(newParentData[newName].id, update_times);
+      context.getObject(newParentData[newName].id, update_file_node);
     }
   }
 

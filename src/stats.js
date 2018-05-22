@@ -9,6 +9,8 @@ function Stats(fileNode, devName) {
   this.mtime = fileNode.mtime;
   this.ctime = fileNode.ctime;
   this.type = fileNode.mode;
+  // Expose extra Plan 9 bits too
+  this.p9 = fileNode.p9;
 }
 
 Stats.prototype.isFile = function() {
