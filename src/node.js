@@ -1,10 +1,10 @@
 var path = require('./path.js');
 var hash32 = require('./encoding.js').hash32;
 
-var MODE_FILE = require('./constants.js').MODE_FILE;
-var MODE_DIRECTORY = require('./constants.js').MODE_DIRECTORY;
-var MODE_SYMBOLIC_LINK = require('./constants.js').MODE_SYMBOLIC_LINK;
-var MODE_META = require('./constants.js').MODE_META;
+var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
+var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
+var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
+var NODE_TYPE_META = require('./constants.js').NODE_TYPE_META;
 
 var P9_QTFILE = require('./constants.js').P9.QTFILE;
 var P9_QTDIR = require('./constants.js').P9.QTDIR;
@@ -18,11 +18,11 @@ var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
 
 function getQType(mode) {
   switch(mode) {
-    case MODE_FILE:
+    case NODE_TYPE_FILE:
       return P9_QTFILE;
-    case MODE_DIRECTORY:
+    case NODE_TYPE_DIRECTORY:
       return P9_QTDIR;
-    case MODE_SYMBOLIC_LINK:
+    case NODE_TYPE_SYMBOLIC_LINK:
       return P9_QTSYMLINK;
     default:
       return null;
@@ -31,11 +31,11 @@ function getQType(mode) {
 
 function getPOSIXMode(mode) {
   switch(mode) {
-    case MODE_FILE:
+    case NODE_TYPE_FILE:
       return S_IFREG;
-    case MODE_DIRECTORY:
+    case NODE_TYPE_DIRECTORY:
       return S_IFDIR;
-    case MODE_SYMBOLIC_LINK:
+    case NODE_TYPE_SYMBOLIC_LINK:
       return S_IFLNK;
     default:
       return null;
@@ -46,7 +46,7 @@ function Node(options) {
   var now = Date.now();
 
   this.id = options.id;
-  this.mode = options.mode || MODE_FILE;  // node type (file, directory, etc)
+  this.mode = options.mode || NODE_TYPE_FILE;  // node type (file, directory, etc)
   this.size = options.size || 0; // size (bytes for files, entries for directories)
   this.atime = options.atime || now; // access time (will mirror ctime after creation)
   this.ctime = options.ctime || now; // creation/change time

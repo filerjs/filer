@@ -1,6 +1,6 @@
-var MODE_FILE = require('./constants.js').MODE_FILE;
+var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
   this.id = id;
-  this.type = type || MODE_FILE;
+  this.type = type || NODE_TYPE_FILE;
 };

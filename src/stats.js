@@ -14,15 +14,15 @@ function Stats(fileNode, devName) {
 }
 
 Stats.prototype.isFile = function() {
-  return this.type === Constants.MODE_FILE;
+  return this.type === Constants.NODE_TYPE_FILE;
 };
 
 Stats.prototype.isDirectory = function() {
-  return this.type === Constants.MODE_DIRECTORY;
+  return this.type === Constants.NODE_TYPE_DIRECTORY;
 };
 
 Stats.prototype.isSymbolicLink = function() {
-  return this.type === Constants.MODE_SYMBOLIC_LINK;
+  return this.type === Constants.NODE_TYPE_SYMBOLIC_LINK;
 };
 
 // These will always be false in Filer.
