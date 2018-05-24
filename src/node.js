@@ -25,21 +25,13 @@ function getQType(type) {
     case NODE_TYPE_SYMBOLIC_LINK:
       return P9_QTSYMLINK;
     default:
-      return null;
+      return P9_QTFILE;
   }
 }
 
-function getPOSIXMode(type) {
-  switch(type) {
-    case NODE_TYPE_FILE:
-      return S_IFREG;
-    case NODE_TYPE_DIRECTORY:
-      return S_IFDIR;
-    case NODE_TYPE_SYMBOLIC_LINK:
-      return S_IFLNK;
-    default:
-      return null;
-  }
+// Name of file/dir. Must be '/' if the file is the root directory of the server
+function pathToName(pathName) {
+  return pathName === ROOT_DIRECTORY_NAME ? ROOT_DIRECTORY_NAME : path.basename(pathName);
 }
 
 function Node(options) {
@@ -47,6 +39,7 @@ function Node(options) {
 
   this.id = options.id;
   this.type = options.type || NODE_TYPE_FILE;  // node type (file, directory, etc)
+  this.name = options.name || (pathToName(options.path));
   this.size = options.size || 0; // size (bytes for files, entries for directories)
   this.atime = options.atime || now; // access time (will mirror ctime after creation)
   this.ctime = options.ctime || now; // creation/change time
@@ -54,9 +47,6 @@ function Node(options) {
   this.flags = options.flags || []; // file flags
   this.xattrs = options.xattrs || {}; // extended attributes
   this.nlinks = options.nlinks || 0; // links count
-  this.version = options.version || 0; // node version
-  this.blksize = undefined; // block size
-  this.nblocks = 1; // blocks count
   this.data = options.data; // id for data object
 
   /**
@@ -75,35 +65,21 @@ function Node(options) {
    * should be different. The version is a version number for a file; typically,
    * it is incremented every time the file is modified."
    */
+  this.qid_type = options.qid_type || (getQType(this.type));
+  this.qid_version = options.qid_version || 1;
+  this.qid_path = options.qid_path || hash32(options.path + this.qid_version);
 
-  options.p9 = options.p9 || {qid: {}};
-
-  this.p9 = {
-    qid: {
-      type: options.p9.qid.type || (getQType(this.type) || P9_QTFILE),
-      // use mtime for version info, since we already keep that updated
-      version: options.p9.qid.now || now,
-      // files have a unique `path` number, which takes into account files with same
-      // name but created at different times.
-      path: options.p9.qid.path || hash32(options.path + this.ctime)
-    },
-    // permissions and flags
-    // TODO: I don't think I'm doing this correctly yet...
-    mode: options.p9.mode || (getPOSIXMode(this.type) || S_IFREG),
-    // Name of file/dir. Must be / if the file is the root directory of the server
-    // TODO: do I need this or can I derive it from abs path?
-    name: options.p9.name || (options.path === ROOT_DIRECTORY_NAME ? ROOT_DIRECTORY_NAME : path.basename(options.path)),
-    uid: options.p9.uid || 0x0, // owner name
-    gid: options.p9.gid || 0x0, // group name
-    muid: options.p9.muid || 0x0 // name of the user who last modified the file 
-  };
+  // permissions and flags
+  this.mode = options.mode || (this.type === NODE_TYPE_DIRECTORY ? /* 755 */ 493 : /* 644 */ 420);
+  this.uid = options.uid || 0x0; // owner name
+  this.gid = options.gid || 0x0; // group name
 }
 
 // When the node's path changes, update info that relates to it.
-Node.prototype.updatePathInfo = function(newPath, ctime) {
+Node.prototype.updatePathInfo = function(newPath) {
   // XXX: need to confirm that qid's path actually changes on rename.
-  this.p9.qid.path = hash32(newPath + (ctime || this.ctime));
-  this.p9.name = newPath === ROOT_DIRECTORY_NAME ? ROOT_DIRECTORY_NAME : path.basename(newPath);
+  this.qid_path = hash32(newPath + this.qid_version);
+  this.name = pathToName(newPath);
 };
 
 // Make sure the options object has an id on property,
@@ -142,6 +118,7 @@ Node.fromObject = function(object) {
   return new Node({
     id: object.id,
     type: object.type,
+    name: object.name,
     size: object.size,
     atime: object.atime,
     ctime: object.ctime,
@@ -150,18 +127,12 @@ Node.fromObject = function(object) {
     xattrs: object.xattrs,
     nlinks: object.nlinks,
     data: object.data,
-    p9: {
-      qid: {
-        type: object.p9.qid.type,
-        version: object.p9.qid.version,
-        path: object.p9.qid.path
-      },
-      mode: object.p9.mode,
-      name: object.p9.name,
-      uid: object.p9.uid,
-      gid: object.p9.gid,
-      muid: object.p9.muid 
-    }
+    mode: object.mode,
+    uid: object.uid,
+    gid: object.gid,
+    qid_type: object.qid_type,
+    qid_version: object.qid_version,
+    qid_path: object.qid_path
   });
 };
 

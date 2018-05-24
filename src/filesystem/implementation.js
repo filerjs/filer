@@ -48,15 +48,6 @@ var Buffer = require('../buffer.js');
  */
 function update_node_times(context, path, node, times, callback) {
   var update = false;
-  // If updating the P9 info only, don't send change events (honour flags).
-  var queueChangeEvent = false;
-
-  if(times.ctime || times.mtime) {
-    // Update the qid's version field, since node has changed.
-    // TODO: this might be more than I need to do...
-    node.p9.qid.version = times.ctime || times.mtime;
-    update = true;
-  }
 
   // Honour mount flags for how we update times
   var flags = context.flags;
@@ -72,27 +63,20 @@ function update_node_times(context, path, node, times, callback) {
     // We don't do atime tracking for perf reasons, but do mirror ctime
     node.atime = times.ctime;
     update = true;
-    queueChangeEvent = true;
   }
   if(times.atime) {
     // The only time we explicitly pass atime is when utimes(), futimes() is called.
     // Override ctime mirror here if so
     node.atime = times.atime;
     update = true;
-    queueChangeEvent = true;
   }
   if(times.mtime) {
     node.mtime = times.mtime;
     update = true;
-    queueChangeEvent = true;
   }
 
   function complete(error) {
-    // Queue this change so we can send watch events.
-    // Unlike node.js, we send the full path vs. basename/dirname only.
-    if(queueChangeEvent) {
-      context.changes.push({ event: 'change', path: path });
-    }
+    context.changes.push({ event: 'change', path: path });
     callback(error);
   }
 
@@ -745,7 +729,7 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
       ofd.position = length;
 
       fileNode.size = length;
-      fileNode.version += 1;
+      fileNode.qid_version += 1;
 
       context.putBuffer(fileNode.data, newData, update_file_node);
     }
@@ -804,7 +788,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       }
 
       fileNode.size = newSize;
-      fileNode.version += 1;
+      fileNode.qid_version += 1;
 
       context.putBuffer(fileNode.data, newData, update_file_node);
     }
@@ -935,7 +919,7 @@ function link_node(context, oldpath, newpath, callback) {
     } else {
       fileNode = Node.fromObject(result);
       fileNode.nlinks += 1;
-      fileNode.updatePathInfo(newpath, ctime);
+      fileNode.updatePathInfo(newpath);
       context.putObject(fileNode.id, fileNode, update_time);
     }
   }
@@ -1274,7 +1258,7 @@ function truncate_file(context, path, length, callback) {
       callback(error);
     } else {
       fileNode.size = length;
-      fileNode.version += 1;
+      fileNode.qid_version += 1;
       context.putObject(fileNode.id, fileNode, update_time);
     }
   }
@@ -1332,7 +1316,7 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(error);
     } else {
       fileNode.size = length;
-      fileNode.version += 1;
+      fileNode.qid_version += 1;
       context.putObject(fileNode.id, fileNode, update_time);
     }
   }
@@ -2043,7 +2027,7 @@ function rename(fs, context, oldpath, newpath, callback) {
       fileNode = Node.fromObject(result);
 // Don't think I need this here...
 //      fileNode.nlinks += 1;
-      fileNode.updatePathInfo(newpath, ctime);
+      fileNode.updatePathInfo(newpath);
       context.putObject(fileNode.id, fileNode, update_times);
     }
   }
