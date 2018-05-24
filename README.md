@@ -397,14 +397,19 @@ Callback gets `(error, stats)`, where `stats` is an object with the following pr
 
 ```
 {
-  node: <string>   // internal node id (unique)
-  dev: <string>    // file system name
-  size: <number>   // file size in bytes
-  nlinks: <number> // number of links
-  atime: <number>  // last access time
-  mtime: <number>  // last modified time
-  ctime: <number>  // creation time
-  type: <string>   // file type (FILE, DIRECTORY, SYMLINK)
+  node: <string>    // internal node id (unique)
+  dev: <string>     // file system name
+  name: <string>    // the entry's name (basename)
+  size: <number>    // file size in bytes
+  nlinks: <number>  // number of links
+  atime: <number>   // last access time
+  mtime: <number>   // last modified time
+  ctime: <number>   // creation time
+  type: <string>    // file type (FILE, DIRECTORY, SYMLINK),
+  gid: <number>     // group name
+  uid: <number>     // owner name
+  mode: <number>    // permissions
+  version: <number> // version of the node
 }
 ```
 
@@ -1263,17 +1268,8 @@ sh.find('/app/user', {
 #### sh.ls(dir, [options], callback)<a name="ls"></a>
 
 Get the listing of a directory, returning an array of directory entries
-in the following form:
-```
-{
-  path: <String> the basename of the directory entry
-  links: <Number> the number of links to the entry
-  size: <Number> the size in bytes of the entry
-  modified: <Number> the last modified date/time
-  type: <String> the type of the entry
-  contents: <Array> an optional array of child entries, if this entry is itself a directory
-}
-```
+in the same form as [fs.stat()](#stat), with the exception that a new Array named
+`contents` is added for directory entries, containing child entries.
 
 By default `sh.ls()` gives a shallow listing. If you want to follow
 directories as they are encountered, use the `recursive=true` option. NOTE:

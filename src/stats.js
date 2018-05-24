@@ -1,16 +1,19 @@
 var Constants = require('./constants.js');
 
 function Stats(fileNode, devName) {
-  this.node = fileNode.id;
   this.dev = devName;
+  this.node = fileNode.id;
+  this.type = fileNode.type;
+  this.name = fileNode.name;
   this.size = fileNode.size;
   this.nlinks = fileNode.nlinks;
   this.atime = fileNode.atime;
   this.mtime = fileNode.mtime;
   this.ctime = fileNode.ctime;
-  this.type = fileNode.type;
-  // Expose extra Plan 9 bits too
-  this.p9 = fileNode.p9;
+  this.version = fileNode.version;
+  this.mode = fileNode.mode;
+  this.uid = fileNode.uid;
+  this.gid = fileNode.gid;
 }
 
 Stats.prototype.isFile = function() {

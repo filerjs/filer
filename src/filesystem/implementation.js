@@ -12,9 +12,6 @@ var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
 var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
 var NODE_TYPE_META = Constants.NODE_TYPE_META;
-var P9_QTDIR = Constants.P9.QTDIR;
-var P9_QTFILE = Constants.P9.QTFILE;
-var P9_QTSYMLINK = Constants.P9.QTSYMLINK;
 
 var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
 var SUPER_NODE_ID = Constants.SUPER_NODE_ID;
@@ -729,7 +726,7 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
       ofd.position = length;
 
       fileNode.size = length;
-      fileNode.qid_version += 1;
+      fileNode.version += 1;
 
       context.putBuffer(fileNode.data, newData, update_file_node);
     }
@@ -788,7 +785,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       }
 
       fileNode.size = newSize;
-      fileNode.qid_version += 1;
+      fileNode.version += 1;
 
       context.putBuffer(fileNode.data, newData, update_file_node);
     }
@@ -1258,7 +1255,7 @@ function truncate_file(context, path, length, callback) {
       callback(error);
     } else {
       fileNode.size = length;
-      fileNode.qid_version += 1;
+      fileNode.version += 1;
       context.putObject(fileNode.id, fileNode, update_time);
     }
   }
@@ -1316,7 +1313,7 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(error);
     } else {
       fileNode.size = length;
-      fileNode.qid_version += 1;
+      fileNode.version += 1;
       context.putObject(fileNode.id, fileNode, update_time);
     }
   }
