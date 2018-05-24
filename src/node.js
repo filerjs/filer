@@ -16,8 +16,8 @@ var S_IFREG = require('./constants.js').P9.S_IFREG;
 
 var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
 
-function getQType(mode) {
-  switch(mode) {
+function getQType(type) {
+  switch(type) {
     case NODE_TYPE_FILE:
       return P9_QTFILE;
     case NODE_TYPE_DIRECTORY:
@@ -29,8 +29,8 @@ function getQType(mode) {
   }
 }
 
-function getPOSIXMode(mode) {
-  switch(mode) {
+function getPOSIXMode(type) {
+  switch(type) {
     case NODE_TYPE_FILE:
       return S_IFREG;
     case NODE_TYPE_DIRECTORY:
@@ -46,7 +46,7 @@ function Node(options) {
   var now = Date.now();
 
   this.id = options.id;
-  this.mode = options.mode || NODE_TYPE_FILE;  // node type (file, directory, etc)
+  this.type = options.type || NODE_TYPE_FILE;  // node type (file, directory, etc)
   this.size = options.size || 0; // size (bytes for files, entries for directories)
   this.atime = options.atime || now; // access time (will mirror ctime after creation)
   this.ctime = options.ctime || now; // creation/change time
@@ -80,7 +80,7 @@ function Node(options) {
 
   this.p9 = {
     qid: {
-      type: options.p9.qid.type || (getQType(this.mode) || P9_QTFILE),
+      type: options.p9.qid.type || (getQType(this.type) || P9_QTFILE),
       // use mtime for version info, since we already keep that updated
       version: options.p9.qid.now || now,
       // files have a unique `path` number, which takes into account files with same
@@ -89,7 +89,7 @@ function Node(options) {
     },
     // permissions and flags
     // TODO: I don't think I'm doing this correctly yet...
-    mode: options.p9.mode || (getPOSIXMode(this.mode) || S_IFREG),
+    mode: options.p9.mode || (getPOSIXMode(this.type) || S_IFREG),
     // Name of file/dir. Must be / if the file is the root directory of the server
     // TODO: do I need this or can I derive it from abs path?
     name: options.p9.name || (options.path === ROOT_DIRECTORY_NAME ? ROOT_DIRECTORY_NAME : path.basename(options.path)),
@@ -141,7 +141,7 @@ Node.create = function(options, callback) {
 Node.fromObject = function(object) {
   return new Node({
     id: object.id,
-    mode: object.mode,
+    type: object.type,
     size: object.size,
     atime: object.atime,
     ctime: object.ctime,

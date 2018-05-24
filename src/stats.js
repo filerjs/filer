@@ -8,7 +8,7 @@ function Stats(fileNode, devName) {
   this.atime = fileNode.atime;
   this.mtime = fileNode.mtime;
   this.ctime = fileNode.ctime;
-  this.type = fileNode.mode;
+  this.type = fileNode.type;
   // Expose extra Plan 9 bits too
   this.p9 = fileNode.p9;
 }
