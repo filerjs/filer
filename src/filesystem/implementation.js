@@ -900,6 +900,7 @@ function link_node(context, oldpath, newpath, callback) {
   var oldDirectoryData;
   var newDirectoryNode;
   var newDirectoryData;
+  var fileNodeID;
   var fileNode;
 
   function update_time(error) {
@@ -914,18 +915,17 @@ function link_node(context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
-      fileNode = Node.fromObject(result);
+      fileNode = result;
       fileNode.nlinks += 1;
-      fileNode.updatePathInfo(newpath);
       context.putObject(fileNode.id, fileNode, update_time);
     }
   }
 
-  function read_directory_entry(error, result) {
+  function read_file_node(error, result) {
     if(error) {
       callback(error);
     } else {
-      context.getObject(newDirectoryData[newname].id, update_file_node);
+      context.getObject(fileNodeID, update_file_node);
     }
   }
 
@@ -938,7 +938,8 @@ function link_node(context, oldpath, newpath, callback) {
         callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
-        context.putObject(newDirectoryNode.data, newDirectoryData, read_directory_entry);
+        fileNodeID = newDirectoryData[newname].id;
+        context.putObject(newDirectoryNode.data, newDirectoryData, read_file_node);
       }
     }
   }
@@ -1648,7 +1649,7 @@ function stat(fs, context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      var stats = new Stats(result, fs.name);
+      var stats = new Stats(path, result, fs.name);
       callback(null, stats);
     }
   }
@@ -1661,7 +1662,7 @@ function fstat(fs, context, fd, callback) {
     if(error) {
       callback(error);
     } else {
-      var stats = new Stats(result, fs.name);
+      var stats = new Stats(fd.path, result, fs.name);
       callback(null, stats);
     }
   }
@@ -1734,7 +1735,7 @@ function readFile(fs, context, path, options, callback) {
         return callback(err);
       }
 
-      var stats = new Stats(fstatResult, fs.name);
+      var stats = new Stats(ofd.path, fstatResult, fs.name);
 
       if(stats.isDirectory()) {
         cleanup();
@@ -2009,23 +2010,12 @@ function rename(fs, context, oldpath, newpath, callback) {
   var ctime = Date.now();
   var fileNode;
 
-  function update_times(error) {
+  function update_times(error, result) {
     if(error) {
       callback(error);
     } else {
+      fileNode = result;
       update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
-    }
-  }
-
-  function update_file_node(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      fileNode = Node.fromObject(result);
-// Don't think I need this here...
-//      fileNode.nlinks += 1;
-      fileNode.updatePathInfo(newpath);
-      context.putObject(fileNode.id, fileNode, update_times);
     }
   }
 
@@ -2033,7 +2023,7 @@ function rename(fs, context, oldpath, newpath, callback) {
     if(error) {
       callback(error);
     } else {
-      context.getObject(newParentData[newName].id, update_file_node);
+      context.getObject(newParentData[newName].id, update_times);
     }
   }
 
@@ -2139,7 +2129,7 @@ function lstat(fs, context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      var stats = new Stats(result, fs.name);
+      var stats = new Stats(path, result, fs.name);
       callback(null, stats);
     }
   }

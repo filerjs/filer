@@ -8,9 +8,25 @@ var NODE_TYPE_META = require('./constants.js').NODE_TYPE_META;
 
 var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
 
-// Name of file/dir. Must be '/' if the file is the root directory of the server
-function pathToName(pathName) {
-  return pathName === ROOT_DIRECTORY_NAME ? ROOT_DIRECTORY_NAME : path.basename(pathName);
+var S_IFREG = require('./constants.js').S_IFREG;
+var S_IFDIR = require('./constants.js').S_IFDIR;
+var S_IFLNK = require('./constants.js').S_IFLNK;
+
+var DEFAULT_FILE_PERMISSIONS = require('./constants.js').DEFAULT_FILE_PERMISSIONS;
+var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
+
+function getMode(type) {
+  switch(type) {
+    case NODE_TYPE_DIRECTORY:
+      return DEFAULT_DIR_PERMISSIONS | S_IFDIR;
+    case NODE_TYPE_SYMBOLIC_LINK:
+      return DEFAULT_FILE_PERMISSIONS | S_IFLNK;
+    /* jshint -W086 */
+    case NODE_TYPE_FILE:
+      // falls through
+    default:
+      return DEFAULT_FILE_PERMISSIONS | S_IFREG;
+  }
 }
 
 function Node(options) {
@@ -18,7 +34,6 @@ function Node(options) {
 
   this.id = options.id;
   this.type = options.type || NODE_TYPE_FILE;  // node type (file, directory, etc)
-  this.name = options.name || (pathToName(options.path));
   this.size = options.size || 0; // size (bytes for files, entries for directories)
   this.atime = options.atime || now; // access time (will mirror ctime after creation)
   this.ctime = options.ctime || now; // creation/change time
@@ -30,15 +45,10 @@ function Node(options) {
   this.version = options.version || 1;
 
   // permissions and flags
-  this.mode = options.mode || (this.type === NODE_TYPE_DIRECTORY ? /* 755 */ 493 : /* 644 */ 420);
+  this.mode = options.mode || (getMode(this.type));
   this.uid = options.uid || 0x0; // owner name
   this.gid = options.gid || 0x0; // group name
 }
-
-// When the node's path changes, update info that relates to it.
-Node.prototype.updatePathInfo = function(newPath) {
-  this.name = pathToName(newPath);
-};
 
 // Make sure the options object has an id on property,
 // either from caller or one we generate using supplied guid fn.
@@ -69,26 +79,6 @@ Node.create = function(options, callback) {
 
       callback(null, new Node(options));
     });
-  });
-};
-
-Node.fromObject = function(object) {
-  return new Node({
-    id: object.id,
-    type: object.type,
-    name: object.name,
-    size: object.size,
-    atime: object.atime,
-    ctime: object.ctime,
-    mtime: object.mtime,
-    flags: object.flags,
-    xattrs: object.xattrs,
-    nlinks: object.nlinks,
-    data: object.data,
-    mode: object.mode,
-    uid: object.uid,
-    gid: object.gid,
-    version: object.version
   });
 };
 

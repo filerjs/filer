@@ -1,6 +1,7 @@
 var Constants = require('./constants.js');
+var Path = require('./path.js');
 
-function Stats(fileNode, devName) {
+function Stats(path, fileNode, devName) {
   this.dev = devName;
   this.node = fileNode.id;
   this.type = fileNode.type;
@@ -14,6 +15,7 @@ function Stats(fileNode, devName) {
   this.mode = fileNode.mode;
   this.uid = fileNode.uid;
   this.gid = fileNode.gid;
+  this.name = Path.basename(path);
 }
 
 Stats.prototype.isFile = function() {

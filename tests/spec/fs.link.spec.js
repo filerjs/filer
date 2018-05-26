@@ -42,6 +42,30 @@ describe('fs.link', function() {
     });
   });
 
+  it('should create hard link to identical data node', function(done) {
+    var fs = util.fs();
+    var contents = "Hello World!";
+
+    fs.writeFile('/file', contents, function(err) {
+      if(err) throw err;
+
+      fs.link('/file', '/hlink', function(err) {
+        if(err) throw err;
+
+        fs.readFile('/file', 'utf8', function(err, fileData) {
+          if(err) throw err;
+
+          fs.readFile('/hlink', 'utf8', function(err, hlinkData) {
+            if(err) throw err;
+
+            expect(fileData).to.equal(hlinkData);
+            done();
+          });
+        });
+      });
+    });
+  });
+
   it('should not follow symbolic links', function(done) {
     var fs = util.fs();
 
