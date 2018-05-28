@@ -13,6 +13,10 @@ var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
 var NODE_TYPE_META = Constants.NODE_TYPE_META;
 
+var DEFAULT_FILE_PERMISSIONS = Constants.DEFAULT_FILE_PERMISSIONS;
+var DEFAULT_DIR_PERMISSIONS = Constants.DEFAULT_DIR_PERMISSIONS;
+var FULL_READ_WRITE_EXEC_PERMISSIONS = Constants.FULL_READ_WRITE_EXEC_PERMISSIONS;
+
 var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
 var SUPER_NODE_ID = Constants.SUPER_NODE_ID;
 var SYMLOOP_MAX = Constants.SYMLOOP_MAX;
@@ -1587,8 +1591,22 @@ function pathCheck(path, callback) {
 
 
 function open(fs, context, path, flags, mode, callback) {
-  // NOTE: we support the same signature as node with a `mode` arg,
-  // but ignore it.
+  /**
+   * NOTE: we support the same signature as node with a `mode` arg,
+   * but ignore it. We need to add it.  Here is what node.js does:
+   * function open(path, flags, mode, callback) {
+   *    path = getPathFromURL(path);
+   *  validatePath(path);
+   *  const flagsNumber = stringToFlags(flags);
+   *  if (arguments.length < 4) {
+   *    callback = makeCallback(mode);
+   *    mode = 0o666;
+   *  } else {
+   *    mode = validateAndMaskMode(mode, 'mode', 0o666);
+   *    callback = makeCallback(callback);
+   * }
+  */
+
   callback = arguments[arguments.length - 1];
   if(!pathCheck(path, callback)) return;
 
@@ -1631,8 +1649,14 @@ function mknod(fs, context, path, type, callback) {
 }
 
 function mkdir(fs, context, path, mode, callback) {
-  // NOTE: we support passing a mode arg, but we ignore it internally for now.
-  callback = arguments[arguments.length - 1];
+  if (arguments.length < 5) {
+    callback = mode;
+    mode = FULL_READ_WRITE_EXEC_PERMISSIONS;
+  } else {
+    mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
+    if(!mode) return;
+  }
+ 
   if(!pathCheck(path, callback)) return;
   make_directory(context, path, callback);
 }
@@ -1863,6 +1887,121 @@ function exists(fs, context, path, callback) {
   stat(fs, context, path, cb);
 }
 
+// Based on https://github.com/nodejs/node/blob/c700cc42da9cf73af9fec2098520a6c0a631d901/lib/internal/validators.js#L21
+var octalReg = /^[0-7]+$/;
+var modeDesc = 'must be a 32-bit unsigned integer or an octal string';
+function isUint32(value) {
+  return value === (value >>> 0);
+}
+// Validator for mode_t (the S_* constants). Valid numbers or octal strings
+// will be masked with 0o777 to be consistent with the behavior in POSIX APIs.
+function validateAndMaskMode(value, def, callback) {
+  if(typeof def === 'function') {
+    callback = def;
+    def = undefined;
+  }
+
+  if (isUint32(value)) {
+    return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isInteger(value)) {
+      callback(new Errors.EINVAL('mode not a valid an integer value', value));
+      return false;
+    } else {
+      // 2 ** 32 === 4294967296
+      callback(new Errors.EINVAL('mode not a valid an integer value', value));
+      return false;
+    }
+  }
+
+  if (typeof value === 'string') {
+    if (!octalReg.test(value)) {
+      callback(new Errors.EINVAL('mode not a valid octal string', value));
+      return false;
+    }
+    var parsed = parseInt(value, 8);
+    return parsed & FULL_READ_WRITE_EXEC_PERMISSIONS;
+  }
+
+  // TODO(BridgeAR): Only return `def` in case `value == null`
+  if (def !== undefined) {
+    return def;
+  }
+
+  callback(new Errors.EINVAL('mode not valid', value));
+  return false;
+}
+
+function chmod_file(context, path, mode, callback) {
+  path = normalize(path);
+
+  function update_mode(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.mode = mode;
+      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  if (typeof mode != 'number') {
+    callback(new Errors.EINVAL('mode must be number', path));
+  }
+  else {
+    find_node(context, path, update_mode);
+  }
+}
+
+function fchmod_file(context, ofd, mode, callback) {
+  function update_mode(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.mode = mode;
+      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  if (typeof mode != 'number') {
+    callback(new Errors.EINVAL('mode must be a number'));
+  }
+  else {
+    ofd.getNode(context, update_mode);
+  }
+}
+
+function chown_file(context, path, uid, gid, callback) {
+  path = normalize(path);
+
+  function update_owner(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.uid = uid;
+      node.gid = gid;
+      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  find_node(context, path, update_owner);
+}
+
+function fchown_file(context, ofd, uid, gid, callback) {
+  function update_owner(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.uid = uid;
+      node.gid = gid;
+      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  ofd.getNode(context, update_owner);
+}
+
 function getxattr(fs, context, path, name, callback) {
   if (!pathCheck(path, callback)) return;
   getxattr_file(context, path, name, callback);
@@ -1877,7 +2016,7 @@ function fgetxattr(fs, context, fd, name, callback) {
     fgetxattr_file(context, ofd, name, callback);
   }
 }
-
+  
 function setxattr(fs, context, path, name, value, flag, callback) {
   if(typeof flag === 'function') {
     callback = flag;
@@ -1991,6 +2130,58 @@ function futimes(fs, context, fd, atime, mtime, callback) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     futimes_file(context, ofd, atime, mtime, callback);
+  }
+}
+
+function chmod(fs, context, path, mode, callback) {
+  if(!pathCheck(path, callback)) return;
+  mode = validateAndMaskMode(mode, 'mode');
+  if(!mode) return;
+
+  chmod_file(context, path, mode, callback);
+}
+
+function fchmod(fs, context, fd, mode, callback) {
+  mode = validateAndMaskMode(mode, 'mode');
+  if(!mode) return;
+
+  var ofd = fs.openFiles[fd];
+  if(!ofd) {
+    callback(new Errors.EBADF());
+  } else if(!_(ofd.flags).contains(O_WRITE)) {
+    callback(new Errors.EBADF('descriptor does not permit writing'));
+  } else {
+    fchmod_file(context, ofd, mode, callback);
+  }
+}
+
+function chown(fs, context, path, uid, gid, callback) {
+  if(!pathCheck(path, callback)) return;
+  if(!isUint32(uid)) {
+    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
+  }
+  if(!isUint32(gid)) {
+    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
+  }
+
+  chown_file(context, path, uid, gid, callback);
+}
+
+function fchown(fs, context, fd, uid, gid, callback) {
+  if(!isUint32(uid)) {
+    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
+  }
+  if(!isUint32(gid)) {
+    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
+  }
+
+  var ofd = fs.openFiles[fd];
+  if(!ofd) {
+    callback(new Errors.EBADF());
+  } else if(!_(ofd.flags).contains(O_WRITE)) {
+    callback(new Errors.EBADF('descriptor does not permit writing'));
+  } else {
+    fchown_file(context, ofd, uid, gid, callback);
   }
 }
 
@@ -2164,6 +2355,10 @@ function ftruncate(fs, context, fd, length, callback) {
 module.exports = {
   ensureRootDirectory: ensure_root_directory,
   open: open,
+  chmod: chmod,
+  fchmod: fchmod,
+  chown: chown,
+  fchown: fchown,
   close: close,
   mknod: mknod,
   mkdir: mkdir,
