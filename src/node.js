@@ -12,17 +12,17 @@ var S_IFLNK = require('./constants.js').S_IFLNK;
 var DEFAULT_FILE_PERMISSIONS = require('./constants.js').DEFAULT_FILE_PERMISSIONS;
 var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
 
-function getMode(type) {
+function getMode(type, mode) {
   switch(type) {
     case NODE_TYPE_DIRECTORY:
-      return DEFAULT_DIR_PERMISSIONS | S_IFDIR;
+      return (mode || DEFAULT_DIR_PERMISSIONS) | S_IFDIR;
     case NODE_TYPE_SYMBOLIC_LINK:
-      return DEFAULT_FILE_PERMISSIONS | S_IFLNK;
+      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFLNK;
     /* jshint -W086 */
     case NODE_TYPE_FILE:
       // falls through
     default:
-      return DEFAULT_FILE_PERMISSIONS | S_IFREG;
+      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFREG;
   }
 }
 
@@ -77,6 +77,11 @@ Node.create = function(options, callback) {
       callback(null, new Node(options));
     });
   });
+};
+
+// Update the node's mode (permissions), taking file type bits into account.
+Node.setMode = function(mode, node) {
+  node.mode = getMode(node.type, mode);
 };
 
 module.exports = Node;

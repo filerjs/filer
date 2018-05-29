@@ -1953,7 +1953,7 @@ function chmod_file(context, path, mode, callback) {
     if (error) {
       callback(error);
     } else {
-      node.mode = mode;
+      Node.setMode(mode, node);
       update_node_times(context, path, node, { mtime: Date.now() }, callback);
     }
   }
