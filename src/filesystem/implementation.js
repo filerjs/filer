@@ -136,7 +136,6 @@ function make_node(context, path, type, callback) {
     } else {
       parentNodeData = result;
       Node.create({
-        path: path,
         guid: context.guid,
         type: type
       }, function(error, result) {
@@ -335,8 +334,7 @@ function ensure_root_directory(context, callback) {
       Node.create({
         guid: context.guid,
         id: superNode.rnode,
-        type: NODE_TYPE_DIRECTORY,
-        path: ROOT_DIRECTORY_NAME
+        type: NODE_TYPE_DIRECTORY
       }, function(error, result) {
         if(error) {
           callback(error);
@@ -400,8 +398,7 @@ function make_directory(context, path, callback) {
       parentDirectoryData = result;
       Node.create({
         guid: context.guid,
-        type: NODE_TYPE_DIRECTORY,
-        path: path
+        type: NODE_TYPE_DIRECTORY
       }, function(error, result) {
         if(error) {
           callback(error);
@@ -641,8 +638,7 @@ function open_file(context, path, flags, callback) {
   function write_file_node() {
     Node.create({
       guid: context.guid,
-      type: NODE_TYPE_FILE,
-      path: path
+      type: NODE_TYPE_FILE
     }, function(error, result) {
       if(error) {
         callback(error);
@@ -1135,8 +1131,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   function write_file_node() {
     Node.create({
       guid: context.guid,
-      type: NODE_TYPE_SYMBOLIC_LINK,
-      path: dstpath
+      type: NODE_TYPE_SYMBOLIC_LINK
     }, function(error, result) {
       if(error) {
         callback(error);
@@ -1144,8 +1139,17 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       }
       fileNode = result;
       fileNode.nlinks += 1;
+
+      // If the srcpath isn't absolute, resolve it relative to the dstpath
+      // but store both versions, since we'll use the relative one in readlink().
+      if(!isAbsolutePath(srcpath)) {
+        fileNode.symlink_relpath = srcpath;
+        srcpath = Path.resolve(parentPath, srcpath); 
+      }
+
       fileNode.size = srcpath.length;
       fileNode.data = srcpath;
+      
       context.putObject(fileNode.id, fileNode, update_directory_data);
     });
   }
@@ -1201,14 +1205,17 @@ function read_link(context, path, callback) {
     }
   }
 
-  function check_if_symbolic(error, result) {
+  function check_if_symbolic(error, fileNode) {
     if(error) {
       callback(error);
     } else {
-      if(result.type != NODE_TYPE_SYMBOLIC_LINK) {
+      if(fileNode.type != NODE_TYPE_SYMBOLIC_LINK) {
         callback(new Errors.EINVAL('path not a symbolic link', path));
       } else {
-        callback(null, result.data);
+        // If we were originally given a relative path, return that now vs. the
+        // absolute path we've generated and use elsewhere internally.
+        var target = fileNode.symlink_relpath ? fileNode.symlink_relpath : fileNode.data;
+        callback(null, target);
       }
     }
   }
@@ -1571,14 +1578,19 @@ function validate_file_options(options, enc, fileMode){
   return options;
 }
 
-function pathCheck(path, callback) {
+function pathCheck(path, allowRelative, callback) {
   var err;
+
+  if(typeof allowRelative === 'function') {
+    callback = allowRelative;
+    allowRelative = false;
+  }
 
   if(!path) {
     err = new Errors.EINVAL('Path must be a string', path);
   } else if(isNullPath(path)) {
     err = new Errors.EINVAL('Path must be a string without null bytes.', path);
-  } else if(!isAbsolutePath(path)) {
+  } else if(!allowRelative && !isAbsolutePath(path)) {
     err = new Errors.EINVAL('Path must be absolute.', path);
   }
 
@@ -2303,8 +2315,13 @@ function rename(fs, context, oldpath, newpath, callback) {
 function symlink(fs, context, srcpath, dstpath, type, callback) {
   // NOTE: we support passing the `type` arg, but ignore it.
   callback = arguments[arguments.length - 1];
-  if(!pathCheck(srcpath, callback)) return;
+
+  // Special Case: allow srcpath to be relative, which we normally don't permit.
+  // If the srcpath is relative, we assume it's relative to the dirpath of 
+  // dstpath.
+  if(!pathCheck(srcpath, true, callback)) return;
   if(!pathCheck(dstpath, callback)) return;
+
   make_symbolic_link(context, srcpath, dstpath, callback);
 }
 

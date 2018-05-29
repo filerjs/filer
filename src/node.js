@@ -1,6 +1,3 @@
-var path = require('./path.js');
-var hash32 = require('./encoding.js').hash32;
-
 var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;

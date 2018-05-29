@@ -26,7 +26,7 @@ describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/
           done();
         }
       });
-
+      console.log('fn', fn);
       fn.apply(fs, args);
     }
 
@@ -49,11 +49,10 @@ describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/
     check(fs.appendFile,  '/foo\u0000bar');
     check(fs.truncate,    '/foo\u0000bar');
     check(fs.utimes,      '/foo\u0000bar', 0, 0);
-    // TODO - need to be implemented still...
-    //  check(fs.realpath,    '/foo\u0000bar');
-    //  check(fs.chmod,       '/foo\u0000bar', '0644');
-    //  check(fs.chown,       '/foo\u0000bar', 12, 34);
-    //  check(fs.realpath,    '/foo\u0000bar');
+// Not implemented
+//    check(fs.realpath,    '/foo\u0000bar');
+    check(fs.chmod,       '/foo\u0000bar', '0644');
+    check(fs.chown,       '/foo\u0000bar', 12, 34);
 
     checks.forEach(function(fn){
       fn();
