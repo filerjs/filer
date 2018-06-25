@@ -294,6 +294,10 @@ var fs = new Filer.FileSystem();
 * [fs.close(fd, callback)](#close)
 * [fs.open(path, flags, [mode], callback)](#open)
 * [fs.utimes(path, atime, mtime, callback)](#utimes)
+* [fs.chown(path, uid, gid, callback)](#chown)
+* [fs.fchown(fd, uid, gid, callback)](#fchown)
+* [fs.chmod(path, mode, callback)](#chmod)
+* [fs.fchmod(fd, mode, callback)](#fchmod)
 * [fs.futimes(fd, atime, mtime, callback)](#fsutimes)
 * [fs.fsync(fd, callback)](#fsync)
 * [fs.write(fd, buffer, offset, length, position, callback)](#write)
@@ -748,6 +752,89 @@ fs.open('/myfile.txt', function(err, fd) {
     if(err) throw err;
 
     // Access Time and Modified Time for /myfile.txt are now updated
+
+    fs.close(fd);
+  });
+});
+```
+
+#### fs.chown(path, uid, gid, callback)<a name="chown"></a>
+
+Changes the owner and group of a file. Asynchronous [chown(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/chown.html). Callback gets no additional arguments. Both `uid` (user id) and `gid` (group id) arguments should be a JavaScript Number.  By default, `0x0` is used (i.e., `root:root` ownership).
+
+Example:
+
+```javascript
+fs.chown('/myfile.txt', 500, 500, function(err) {
+  if(err) throw err;
+
+  // /myfile.txt is now owned by user with id 500, group 500
+});
+```
+
+#### fs.fchown(fd, uid, gid, callback)<a name="fchown"></a>
+
+Changes the owner and group of a file. Asynchronous [chown(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/chown.html). Callback gets no additional arguments. Both `uid` (user id) and `gid` (group id) arguments should be a JavaScript Number.  By default, `0x0` is used (i.e., `root:root` ownership).
+
+Example:
+
+```javascript
+fs.open('/myfile.txt', function(err, fd) {
+  if(err) throw err;
+
+  fs.fchown(fd, 500, 500, function(err) {
+    if(err) throw err;
+
+    // /myfile.txt is now owned by user with id 500, group 500
+
+    fs.close(fd);
+  });
+});
+```
+
+#### fs.chmod(path, mode, callback)<a name="chmod"></a>
+
+Changes the mode of a file. Asynchronous [chmod(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/chmod.html). Callback gets no additional arguments. The `mode` argument should be a JavaScript Number, which combines file type and permission information.  Here are a list of common values useful for setting the `mode`:
+
+* File type `S_IFREG=0x8000`
+* Dir type `S_IFDIR=0x4000`
+* Link type `S_IFLNK=0xA000`
+
+* Permissions `755=0x1ED`
+* Permissions `644=0x1A4`
+* Permissions `777=0x1FF`
+* Permissions `666=0x1B6`
+
+By default, directories use `(0x4000 | 0x1ED)` and files use `(0x8000 | 0x1A4)`.
+
+Example:
+
+```javascript
+// S_IFREG | 0o777
+var mode = 0x8000 | 0x1FF
+fs.chmod('/myfile.txt', mode, function(err) {
+  if(err) throw err;
+
+  // /myfile.txt is a regular file with permissions 777
+});
+```
+
+#### fs.fchmod(fd, mode, callback)<a name="fchmod"></a>
+
+Changes the mode of a file. Asynchronous [chmod(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/chmod.html). Callback gets no additional arguments. The `mode` argument should be a JavaScript Number, which combines file type and permission information.  By default, `755` (dir) and `644` (file) are used.
+
+Example:
+
+```javascript
+fs.open('/myfile.txt', function(err, fd) {
+  if(err) throw err;
+
+  // S_IFREG | 0o777
+  var mode = 0x8000 | 0x1FF
+  fs.fchmod(fd, mode, function(err) {
+    if(err) throw err;
+
+    // /myfile.txt is a regular file with permissions 777
 
     fs.close(fd);
   });
