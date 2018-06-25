@@ -5,7 +5,6 @@ function Stats(path, fileNode, devName) {
   this.dev = devName;
   this.node = fileNode.id;
   this.type = fileNode.type;
-  this.name = fileNode.name;
   this.size = fileNode.size;
   this.nlinks = fileNode.nlinks;
   this.atime = fileNode.atime;

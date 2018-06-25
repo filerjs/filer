@@ -26,7 +26,6 @@ describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/
           done();
         }
       });
-      console.log('fn', fn);
       fn.apply(fs, args);
     }
 
