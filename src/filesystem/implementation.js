@@ -77,6 +77,8 @@ function update_node_times(context, path, node, times, callback) {
   }
 
   function complete(error) {
+    // Queue this change so we can send watch events.
+    // Unlike node.js, we send the full path vs. basename/dirname only.
     context.changes.push({ event: 'change', path: path });
     callback(error);
   }
