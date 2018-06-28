@@ -1,13 +1,16 @@
+
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Mocha Tests</title>
+  <title>Filer Tests</title>
   <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/mocha/1.21.4/mocha.css" />
-  <script src="//cdnjs.cloudflare.com/ajax/libs/mocha/1.21.4/mocha.js"></script>
-  <script>window.mocha || document.write('<script src="../node_modules/mocha/mocha.js"><\/script>')</script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/chai/1.9.2/chai.min.js"></script>
-  <script>window.chai || document.write('<script src="../node_modules/chai/chai.js"><\/script>')</script>
+ </head>
+<body>
+  <div id="mocha"></div>
+
+  <script src="../node_modules/chai/chai.js"></script>
+  <script src="../node_modules/mocha/mocha.js"></script>
   <script>
     mocha.setup('bdd').timeout(5000).slow(250);;
 
@@ -16,9 +19,7 @@
       mocha.run();
     };
   </script>
-  <script src="../dist/filer-test.js"></script>
- </head>
-<body>
-  <div id="mocha"></div>
+  <script src="./index.js"></script>
+
 </body>
 </html>
