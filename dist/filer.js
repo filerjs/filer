@@ -1,42 +1,3 @@
-<<<<<<< HEAD
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Filer = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*global setImmediate: false, setTimeout: false, console: false */
-
-/**
- * async.js shim, based on https://raw.github.com/caolan/async/master/lib/async.js Feb 18, 2014
- * Used under MIT - https://github.com/caolan/async/blob/master/LICENSE
- */
-
-(function () {
-
-    var async = {};
-
-    // async.js functions used in Filer
-
-    //// nextTick implementation with browser-compatible fallback ////
-    if (typeof process === 'undefined' || !(process.nextTick)) {
-        if (typeof setImmediate === 'function') {
-            async.nextTick = function (fn) {
-                // not a direct alias for IE10 compatibility
-                setImmediate(fn);
-            };
-            async.setImmediate = async.nextTick;
-        }
-        else {
-            async.nextTick = function (fn) {
-                setTimeout(fn, 0);
-            };
-            async.setImmediate = async.nextTick;
-        }
-    }
-    else {
-        async.nextTick = process.nextTick;
-        if (typeof setImmediate !== 'undefined') {
-            async.setImmediate = function (fn) {
-              // not a direct alias for IE10 compatibility
-              setImmediate(fn);
-            };
-=======
 // modules are defined as an array
 // [ module function, map of requires ]
 //
@@ -60,7 +21,6 @@ parcelRequire = (function (modules, cache, entry, globalName) {
         var currentRequire = typeof parcelRequire === 'function' && parcelRequire;
         if (!jumped && currentRequire) {
           return currentRequire(name, true);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
         }
 
         // If there are other bundles on this page the require from the
@@ -83,14 +43,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
       localRequire.resolve = resolve;
 
-<<<<<<< HEAD
-},{}],2:[function(require,module,exports){
-// Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
-// Copyright 2012 DIY Co Apache License, Version 2.0
-// http://www.apache.org/licenses/LICENSE-2.0
-=======
       var module = cache[name] = new newRequire.Module(name);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
       modules[name][0].call(module.exports, localRequire, module, module.exports, this);
     }
@@ -127,16 +80,6 @@ parcelRequire = (function (modules, cache, entry, globalName) {
     newRequire(entry[i]);
   }
 
-<<<<<<< HEAD
-},{}],3:[function(require,module,exports){
-(function (global){
-// Based on https://github.com/diy/intercom.js/blob/master/lib/intercom.js
-// Copyright 2012 DIY Co Apache License, Version 2.0
-// http://www.apache.org/licenses/LICENSE-2.0
-
-var EventEmitter = require('./eventemitter.js');
-var guid = require('../src/shared.js').guid;
-=======
   if (entry.length) {
     // Expose entry point to Node, AMD or browser globals
     // Based on https://github.com/ForbesLindesay/umd/blob/master/template.js
@@ -145,7 +88,6 @@ var guid = require('../src/shared.js').guid;
     // CommonJS
     if (typeof exports === "object" && typeof module !== "undefined") {
       module.exports = mainExports;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
     // RequireJS
     } else if (typeof define === "function" && define.amd) {
@@ -161,7 +103,7 @@ var guid = require('../src/shared.js').guid;
 
   // Override the current require with this new one
   return newRequire;
-})({13:[function(require,module,exports) {
+})({14:[function(require,module,exports) {
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 // Cherry-picked bits of underscore.js, lodash.js
@@ -328,7 +270,7 @@ function resolve() {
       resolvedAbsolute = false;
 
   for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    // XXXidbfs: we don't have process.cwd() so we use '/' as a fallback
+    // XXXfiler: we don't have process.cwd() so we use '/' as a fallback
     var path = i >= 0 ? arguments[i] : '/';
 
     // Skip empty and invalid entries
@@ -382,8 +324,8 @@ function join() {
 
 // path.relative(from, to)
 function relative(from, to) {
-  from = exports.resolve(from).substr(1);
-  to = exports.resolve(to).substr(1);
+  from = resolve(from).substr(1);
+  to = resolve(to).substr(1);
 
   function trim(arr) {
     var start = 0;
@@ -422,46 +364,10 @@ function relative(from, to) {
   return outputParts.join('/');
 }
 
-<<<<<<< HEAD
-Intercom.destroy = function() {
-  localStorage.removeItem(INDEX_LOCK);
-  localStorage.removeItem(INDEX_EMIT);
-  localStorage.removeItem(INDEX_ONCE);
-};
-
-Intercom.getInstance = (function() {
-  var intercom;
-  return function() {
-    if (!intercom) {
-      intercom = new Intercom();
-    }
-    return intercom;
-  };
-})();
-
-module.exports = Intercom;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../src/shared.js":30,"./eventemitter.js":2}],4:[function(require,module,exports){
-// Cherry-picked bits of underscore.js, lodash.js
-
-/**
- * Lo-Dash 2.4.0 <http://lodash.com/>
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var ArrayProto = Array.prototype;
-var nativeForEach = ArrayProto.forEach;
-var nativeIndexOf = ArrayProto.indexOf;
-var nativeSome = ArrayProto.some;
-=======
 function dirname(path) {
   var result = splitPath(path),
       root = result[0],
       dir = result[1];
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   if (!root && !dir) {
     // No dirname whatsoever
@@ -482,7 +388,7 @@ function basename(path, ext) {
   if (ext && f.substr(-1 * ext.length) === ext) {
     f = f.substr(0, f.length - ext.length);
   }
-  // XXXidbfs: node.js just does `return f`
+  // XXXfiler: node.js just does `return f`
   return f === "" ? "/" : f;
 }
 
@@ -504,7 +410,19 @@ function isNull(path) {
   return false;
 }
 
-// XXXidbfs: we don't support path.exists() or path.existsSync(), which
+// Make sure we don't double-add a trailing slash (e.g., '/' -> '//')
+function addTrailing(path) {
+  return path.replace(/\/*$/, '/');
+}
+
+// Deal with multiple slashes at the end, one, or none
+// and make sure we don't return the empty string.
+function removeTrailing(path) {
+  path = path.replace(/\/*$/, '');
+  return path === '' ? '/' : path;
+}
+
+// XXXfiler: we don't support path.exists() or path.existsSync(), which
 // are deprecated, and need a FileSystem instance to work. Use fs.stat().
 
 module.exports = {
@@ -518,9 +436,12 @@ module.exports = {
   basename: basename,
   extname: extname,
   isAbsolute: isAbsolute,
-  isNull: isNull
+  isNull: isNull,
+  // Non-node but useful...
+  addTrailing: addTrailing,
+  removeTrailing: removeTrailing
 };
-},{}],14:[function(require,module,exports) {
+},{}],15:[function(require,module,exports) {
 function guid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0,
@@ -548,7 +469,7 @@ module.exports = {
   u8toArray: u8toArray,
   nop: nop
 };
-},{}],15:[function(require,module,exports) {
+},{}],16:[function(require,module,exports) {
 var O_READ = 'READ';
 var O_WRITE = 'WRITE';
 var O_CREATE = 'CREATE';
@@ -558,6 +479,7 @@ var O_APPEND = 'APPEND';
 var XATTR_CREATE = 'CREATE';
 var XATTR_REPLACE = 'REPLACE';
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 },{}],5:[function(require,module,exports){
 /*
@@ -570,9 +492,10 @@ var XATTR_REPLACE = 'REPLACE';
 (function(){
   "use strict";
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 module.exports = {
   FILE_SYSTEM_NAME: 'local',
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 <<<<<<< HEAD
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -650,6 +573,7 @@ module.exports = {
   },
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 },{}],6:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -800,6 +724,8 @@ Buffer.poolSize = 8192 // not used by this implementation
 
 var rootParent = {}
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   XATTR_CREATE: XATTR_CREATE,
   XATTR_REPLACE: XATTR_REPLACE,
 
@@ -814,7 +740,6 @@ var rootParent = {}
   STDOUT: 1,
   STDERR: 2,
   FIRST_DESCRIPTOR: 3,
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   ENVIRONMENT: {
     TMP: '/tmp',
@@ -825,6 +750,7 @@ var rootParent = {}
 var errors = {};
 [
 /**
+<<<<<<< HEAD
 <<<<<<< HEAD
  * If `Buffer.TYPED_ARRAY_SUPPORT`:
  *   === true    Use Uint8Array implementation (fastest)
@@ -880,6 +806,8 @@ function kMaxLength () {
 =======
 })()
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
  * node.js errors - we only use some of these, add as needed.
  */
 //'-1:UNKNOWN:unknown error',
@@ -931,8 +859,7 @@ function kMaxLength () {
 '47:EEXIST:file already exists',
 //'48:ESRCH:no such process',
 //'49:ENAMETOOLONG:name too long',
-//'50:EPERM:operation not permitted',
-'51:ELOOP:too many symbolic links encountered',
+'50:EPERM:operation not permitted', '51:ELOOP:too many symbolic links encountered',
 //'52:EXDEV:cross-device link not permitted',
 '53:ENOTEMPTY:directory not empty',
 //'54:ENOSPC:no space left on device',
@@ -941,12 +868,16 @@ function kMaxLength () {
 //'57:ENODEV:no such device',
 //'58:ESPIPE:invalid seek',
 //'59:ECANCELED:operation canceled',
+<<<<<<< HEAD
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
 /**
  * Filer specific errors
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
 function Buffer (arg) {
   if (!(this instanceof Buffer)) {
@@ -980,6 +911,8 @@ function fromNumber (that, length) {
     for (var i = 0; i < length; i++) {
       that[i] = 0
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 '1000:ENOTMOUNTED:not mounted', '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.', '1002:ENOATTR:attribute does not exist'].forEach(function (e) {
   e = e.split(':');
   var errno = +e[0];
@@ -995,34 +928,51 @@ function fromNumber (that, length) {
     this.message = msg || defaultMessage;
     if (path) {
       this.path = path;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
     this.stack = new Error(this.message).stack;
   }
-<<<<<<< HEAD
-  return that
+  FilerError.prototype = Object.create(Error.prototype);
+  FilerError.prototype.constructor = FilerError;
+  FilerError.prototype.toString = function () {
+    var pathInfo = this.path ? ', \'' + this.path + '\'' : '';
+    return this.name + ': ' + this.message + pathInfo;
+  };
+
+  // We expose the error as both Errors.EINVAL and Errors[18]
+  errors[errName] = errors[errno] = FilerError;
+});
+
+module.exports = errors;
+},{}],37:[function(require,module,exports) {
+'use strict'
+
+exports.byteLength = byteLength
+exports.toByteArray = toByteArray
+exports.fromByteArray = fromByteArray
+
+var lookup = []
+var revLookup = []
+var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
+
+var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+for (var i = 0, len = code.length; i < len; ++i) {
+  lookup[i] = code[i]
+  revLookup[code.charCodeAt(i)] = i
 }
 
-function fromString (that, string, encoding) {
-  if (typeof encoding !== 'string' || encoding === '') encoding = 'utf8'
+// Support decoding URL-safe base64 strings, as Node.js does.
+// See: https://en.wikipedia.org/wiki/Base64#URL_applications
+revLookup['-'.charCodeAt(0)] = 62
+revLookup['_'.charCodeAt(0)] = 63
 
-  // Assumption: byteLength() return value is always < kMaxLength.
-  var length = byteLength(string, encoding) | 0
-  that = allocate(that, length)
+function getLens (b64) {
+  var len = b64.length
 
-  that.write(string, encoding)
-  return that
-}
-
-function fromObject (that, object) {
-  if (Buffer.isBuffer(object)) return fromBuffer(that, object)
-
-  if (isArray(object)) return fromArray(that, object)
-
-  if (object == null) {
-    throw new TypeError('must start with number, buffer, array or string')
+  if (len % 4 > 0) {
+    throw new Error('Invalid string. Length must be a multiple of 4')
   }
 
+<<<<<<< HEAD
   if (typeof ArrayBuffer !== 'undefined') {
     if (object.buffer instanceof ArrayBuffer) {
       return fromTypedArray(that, object)
@@ -1031,41 +981,39 @@ function fromObject (that, object) {
       return fromArrayBuffer(that, object)
     }
   }
+=======
+  // Trim off extra bytes after placeholder bytes are found
+  // See: https://github.com/beatgammit/base64-js/issues/42
+  var validLen = b64.indexOf('=')
+  if (validLen === -1) validLen = len
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
-  if (object.length) return fromArrayLike(that, object)
+  var placeHoldersLen = validLen === len
+    ? 0
+    : 4 - (validLen % 4)
 
-  return fromJsonObject(that, object)
+  return [validLen, placeHoldersLen]
 }
 
-function fromBuffer (that, buffer) {
-  var length = checked(buffer.length) | 0
-  that = allocate(that, length)
-  buffer.copy(that, 0, 0, length)
-  return that
+// base64 is 4/3 + up to two characters of the original data
+function byteLength (b64) {
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
 }
 
-function fromArray (that, array) {
-  var length = checked(array.length) | 0
-  that = allocate(that, length)
-  for (var i = 0; i < length; i += 1) {
-    that[i] = array[i] & 255
-  }
-  return that
+function _byteLength (b64, validLen, placeHoldersLen) {
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
 }
 
-// Duplicate of fromArray() to keep fromArray() monomorphic.
-function fromTypedArray (that, array) {
-  var length = checked(array.length) | 0
-  that = allocate(that, length)
-  // Truncating the elements is probably not what people expect from typed
-  // arrays with BYTES_PER_ELEMENT > 1 but it's compatible with the behavior
-  // of the old Buffer constructor.
-  for (var i = 0; i < length; i += 1) {
-    that[i] = array[i] & 255
-  }
-  return that
-}
+function toByteArray (b64) {
+  var tmp
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
 
+<<<<<<< HEAD
 function fromArrayBuffer (that, array) {
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     // Return an augmented `Uint8Array` instance, for best performance
@@ -1086,25 +1034,29 @@ function fromArrayLike (that, array) {
   }
   return that
 }
+=======
+  var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen))
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
-// Deserialize { type: 'Buffer', data: [1,2,3,...] } into a Buffer object.
-// Returns a zero-length buffer for inputs that don't conform to the spec.
-function fromJsonObject (that, object) {
-  var array
-  var length = 0
+  var curByte = 0
 
-  if (object.type === 'Buffer' && isArray(object.data)) {
-    array = object.data
-    length = checked(array.length) | 0
+  // if there are placeholders, only get up to the last complete 4 chars
+  var len = placeHoldersLen > 0
+    ? validLen - 4
+    : validLen
+
+  for (var i = 0; i < len; i += 4) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 18) |
+      (revLookup[b64.charCodeAt(i + 1)] << 12) |
+      (revLookup[b64.charCodeAt(i + 2)] << 6) |
+      revLookup[b64.charCodeAt(i + 3)]
+    arr[curByte++] = (tmp >> 16) & 0xFF
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
   }
-  that = allocate(that, length)
 
-  for (var i = 0; i < length; i += 1) {
-    that[i] = array[i] & 255
-  }
-  return that
-}
-
+<<<<<<< HEAD
 if (Buffer.TYPED_ARRAY_SUPPORT) {
   Buffer.prototype.__proto__ = Uint8Array.prototype
   Buffer.__proto__ = Uint8Array
@@ -1137,368 +1089,14 @@ function checked (length) {
   if (length >= kMaxLength()) {
     throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
                          'size: 0x' + kMaxLength().toString(16) + ' bytes')
-  }
-  return length | 0
-}
-
-function SlowBuffer (subject, encoding) {
-  if (!(this instanceof SlowBuffer)) return new SlowBuffer(subject, encoding)
-
-  var buf = new Buffer(subject, encoding)
-  delete buf.parent
-  return buf
-}
-
-Buffer.isBuffer = function isBuffer (b) {
-  return !!(b != null && b._isBuffer)
-}
-
-Buffer.compare = function compare (a, b) {
-  if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) {
-    throw new TypeError('Arguments must be Buffers')
-  }
-
-  if (a === b) return 0
-
-  var x = a.length
-  var y = b.length
-
-  var i = 0
-  var len = Math.min(x, y)
-  while (i < len) {
-    if (a[i] !== b[i]) break
-
-    ++i
-  }
-
-  if (i !== len) {
-    x = a[i]
-    y = b[i]
-  }
-
-  if (x < y) return -1
-  if (y < x) return 1
-  return 0
-}
-
-Buffer.isEncoding = function isEncoding (encoding) {
-  switch (String(encoding).toLowerCase()) {
-    case 'hex':
-    case 'utf8':
-    case 'utf-8':
-    case 'ascii':
-    case 'binary':
-    case 'base64':
-    case 'raw':
-    case 'ucs2':
-    case 'ucs-2':
-    case 'utf16le':
-    case 'utf-16le':
-      return true
-    default:
-      return false
 =======
-  FilerError.prototype = Object.create(Error.prototype);
-  FilerError.prototype.constructor = FilerError;
-  FilerError.prototype.toString = function () {
-    var pathInfo = this.path ? ', \'' + this.path + '\'' : '';
-    return this.name + ': ' + this.message + pathInfo;
-  };
-
-  // We expose the error as both Errors.EINVAL and Errors[18]
-  errors[errName] = errors[errno] = FilerError;
-});
-
-module.exports = errors;
-},{}],29:[function(require,module,exports) {
-'use strict'
-
-exports.byteLength = byteLength
-exports.toByteArray = toByteArray
-exports.fromByteArray = fromByteArray
-
-var lookup = []
-var revLookup = []
-var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
-
-var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-for (var i = 0, len = code.length; i < len; ++i) {
-  lookup[i] = code[i]
-  revLookup[code.charCodeAt(i)] = i
-}
-
-// Support decoding URL-safe base64 strings, as Node.js does.
-// See: https://en.wikipedia.org/wiki/Base64#URL_applications
-revLookup['-'.charCodeAt(0)] = 62
-revLookup['_'.charCodeAt(0)] = 63
-
-function getLens (b64) {
-  var len = b64.length
-
-  if (len % 4 > 0) {
-    throw new Error('Invalid string. Length must be a multiple of 4')
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-
-  // Trim off extra bytes after placeholder bytes are found
-  // See: https://github.com/beatgammit/base64-js/issues/42
-  var validLen = b64.indexOf('=')
-  if (validLen === -1) validLen = len
-
-  var placeHoldersLen = validLen === len
-    ? 0
-    : 4 - (validLen % 4)
-
-  return [validLen, placeHoldersLen]
-}
-
-<<<<<<< HEAD
-Buffer.concat = function concat (list, length) {
-  if (!isArray(list)) throw new TypeError('list argument must be an Array of Buffers.')
-
-  if (list.length === 0) {
-    return new Buffer(0)
-  }
-
-  var i
-  if (length === undefined) {
-    length = 0
-    for (i = 0; i < list.length; i++) {
-      length += list[i].length
-    }
-  }
-
-  var buf = new Buffer(length)
-  var pos = 0
-  for (i = 0; i < list.length; i++) {
-    var item = list[i]
-    item.copy(buf, pos)
-    pos += item.length
-  }
-  return buf
-}
-
-function byteLength (string, encoding) {
-  if (typeof string !== 'string') string = '' + string
-
-  var len = string.length
-  if (len === 0) return 0
-
-  // Use a for loop to avoid recursion
-  var loweredCase = false
-  for (;;) {
-    switch (encoding) {
-      case 'ascii':
-      case 'binary':
-      // Deprecated
-      case 'raw':
-      case 'raws':
-        return len
-      case 'utf8':
-      case 'utf-8':
-        return utf8ToBytes(string).length
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
-        return len * 2
-      case 'hex':
-        return len >>> 1
-      case 'base64':
-        return base64ToBytes(string).length
-      default:
-        if (loweredCase) return utf8ToBytes(string).length // assume utf8
-        encoding = ('' + encoding).toLowerCase()
-        loweredCase = true
-    }
-  }
-=======
-// base64 is 4/3 + up to two characters of the original data
-function byteLength (b64) {
-  var lens = getLens(b64)
-  var validLen = lens[0]
-  var placeHoldersLen = lens[1]
-  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
-}
-
-function _byteLength (b64, validLen, placeHoldersLen) {
-  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-}
-Buffer.byteLength = byteLength
-
-<<<<<<< HEAD
-function slowToString (encoding, start, end) {
-=======
-<<<<<<< HEAD
-// pre-set for values that may exist in the future
-Buffer.prototype.length = undefined
-Buffer.prototype.parent = undefined
-
-// toString(encoding, start=0, end=buffer.length)
-Buffer.prototype.toString = function toString (encoding, start, end) {
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  var loweredCase = false
-
-  start = start | 0
-  end = end === undefined || end === Infinity ? this.length : end | 0
-
-  if (!encoding) encoding = 'utf8'
-  if (start < 0) start = 0
-  if (end > this.length) end = this.length
-  if (end <= start) return ''
-
-  while (true) {
-    switch (encoding) {
-      case 'hex':
-        return hexSlice(this, start, end)
-
-      case 'utf8':
-      case 'utf-8':
-        return utf8Slice(this, start, end)
-
-      case 'ascii':
-        return asciiSlice(this, start, end)
-
-      case 'binary':
-        return binarySlice(this, start, end)
-
-      case 'base64':
-        return base64Slice(this, start, end)
-
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
-        return utf16leSlice(this, start, end)
-
-      default:
-        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
-        encoding = (encoding + '').toLowerCase()
-        loweredCase = true
-    }
-=======
-function toByteArray (b64) {
-  var tmp
-  var lens = getLens(b64)
-  var validLen = lens[0]
-  var placeHoldersLen = lens[1]
-
-  var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen))
-
-  var curByte = 0
-
-  // if there are placeholders, only get up to the last complete 4 chars
-  var len = placeHoldersLen > 0
-    ? validLen - 4
-    : validLen
-
-  for (var i = 0; i < len; i += 4) {
-    tmp =
-      (revLookup[b64.charCodeAt(i)] << 18) |
-      (revLookup[b64.charCodeAt(i + 1)] << 12) |
-      (revLookup[b64.charCodeAt(i + 2)] << 6) |
-      revLookup[b64.charCodeAt(i + 3)]
-    arr[curByte++] = (tmp >> 16) & 0xFF
-    arr[curByte++] = (tmp >> 8) & 0xFF
-    arr[curByte++] = tmp & 0xFF
-  }
-
   if (placeHoldersLen === 2) {
     tmp =
       (revLookup[b64.charCodeAt(i)] << 2) |
       (revLookup[b64.charCodeAt(i + 1)] >> 4)
     arr[curByte++] = tmp & 0xFF
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-}
-
-<<<<<<< HEAD
-Buffer.prototype.toString = function toString () {
-  var length = this.length | 0
-  if (length === 0) return ''
-  if (arguments.length === 0) return utf8Slice(this, 0, length)
-  return slowToString.apply(this, arguments)
-}
-
-=======
-<<<<<<< HEAD
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-Buffer.prototype.equals = function equals (b) {
-  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
-  if (this === b) return true
-  return Buffer.compare(this, b) === 0
-}
-
-Buffer.prototype.inspect = function inspect () {
-  var str = ''
-  var max = exports.INSPECT_MAX_BYTES
-  if (this.length > 0) {
-    str = this.toString('hex', 0, max).match(/.{2}/g).join(' ')
-    if (this.length > max) str += ' ... '
-  }
-  return '<Buffer ' + str + '>'
-}
-
-Buffer.prototype.compare = function compare (b) {
-  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
-  if (this === b) return 0
-  return Buffer.compare(this, b)
-}
-
-Buffer.prototype.indexOf = function indexOf (val, byteOffset) {
-  if (byteOffset > 0x7fffffff) byteOffset = 0x7fffffff
-  else if (byteOffset < -0x80000000) byteOffset = -0x80000000
-  byteOffset >>= 0
-
-  if (this.length === 0) return -1
-  if (byteOffset >= this.length) return -1
-
-  // Negative offsets start from the end of the buffer
-  if (byteOffset < 0) byteOffset = Math.max(this.length + byteOffset, 0)
-
-  if (typeof val === 'string') {
-    if (val.length === 0) return -1 // special case: looking for empty string always fails
-    return String.prototype.indexOf.call(this, val, byteOffset)
-  }
-  if (Buffer.isBuffer(val)) {
-    return arrayIndexOf(this, val, byteOffset)
-  }
-  if (typeof val === 'number') {
-    if (Buffer.TYPED_ARRAY_SUPPORT && Uint8Array.prototype.indexOf === 'function') {
-      return Uint8Array.prototype.indexOf.call(this, val, byteOffset)
-    }
-    return arrayIndexOf(this, [ val ], byteOffset)
   }
 
-  function arrayIndexOf (arr, val, byteOffset) {
-    var foundIndex = -1
-    for (var i = 0; byteOffset + i < arr.length; i++) {
-      if (arr[byteOffset + i] === val[foundIndex === -1 ? 0 : i - foundIndex]) {
-        if (foundIndex === -1) foundIndex = i
-        if (i - foundIndex + 1 === val.length) return byteOffset + foundIndex
-      } else {
-        foundIndex = -1
-      }
-    }
-    return -1
-  }
-
-  throw new TypeError('val must be string, number or Buffer')
-}
-
-// `get` is deprecated
-Buffer.prototype.get = function get (offset) {
-  console.log('.get() is deprecated. Access using array indexes instead.')
-  return this.readUInt8(offset)
-}
-
-// `set` is deprecated
-Buffer.prototype.set = function set (v, offset) {
-  console.log('.set() is deprecated. Access using array indexes instead.')
-  return this.writeUInt8(v, offset)
-}
-=======
   if (placeHoldersLen === 1) {
     tmp =
       (revLookup[b64.charCodeAt(i)] << 10) |
@@ -1506,6 +1104,7 @@ Buffer.prototype.set = function set (v, offset) {
       (revLookup[b64.charCodeAt(i + 2)] >> 2)
     arr[curByte++] = (tmp >> 8) & 0xFF
     arr[curByte++] = tmp & 0xFF
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 
   return arr
@@ -1566,7 +1165,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],30:[function(require,module,exports) {
+},{}],38:[function(require,module,exports) {
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -1609,9 +1208,14 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var i = isLE ? 0 : (nBytes - 1)
   var d = isLE ? 1 : -1
   var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
+<<<<<<< HEAD
+  if (list.length === 0) {
+    return new Buffer(0)
+  }
+=======
   value = Math.abs(value)
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   if (isNaN(value) || value === Infinity) {
     m = isNaN(value) ? 1 : 0
@@ -1645,28 +1249,47 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   }
 
 <<<<<<< HEAD
-  // must be an even number of digits
-  var strLen = string.length
-  if (strLen % 2 !== 0) throw new Error('Invalid hex string')
+function byteLength (string, encoding) {
+  if (typeof string !== 'string') string = '' + string
 
-  if (length > strLen / 2) {
-    length = strLen / 2
+  var len = string.length
+  if (len === 0) return 0
+
+  // Use a for loop to avoid recursion
+  var loweredCase = false
+  for (;;) {
+    switch (encoding) {
+      case 'ascii':
+      case 'binary':
+      // Deprecated
+      case 'raw':
+      case 'raws':
+        return len
+      case 'utf8':
+      case 'utf-8':
+        return utf8ToBytes(string).length
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return len * 2
+      case 'hex':
+        return len >>> 1
+      case 'base64':
+        return base64ToBytes(string).length
+      default:
+        if (loweredCase) return utf8ToBytes(string).length // assume utf8
+        encoding = ('' + encoding).toLowerCase()
+        loweredCase = true
+    }
   }
-  for (var i = 0; i < length; i++) {
-    var parsed = parseInt(string.substr(i * 2, 2), 16)
-    if (isNaN(parsed)) throw new Error('Invalid hex string')
-    buf[offset + i] = parsed
-  }
-  return i
-}
-
-function utf8Write (buf, string, offset, length) {
-  return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
-}
-
-function asciiWrite (buf, string, offset, length) {
-  return blitBuffer(asciiToBytes(string), buf, offset, length)
-}
+=======
+// base64 is 4/3 + up to two characters of the original data
+function byteLength (b64) {
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
 =======
   for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
 
@@ -1675,103 +1298,32 @@ function asciiWrite (buf, string, offset, length) {
   for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
 
   buffer[offset + i - d] |= s * 128
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 }
 
-},{}],31:[function(require,module,exports) {
+},{}],39:[function(require,module,exports) {
 var toString = {}.toString;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+function slowToString (encoding, start, end) {
+=======
+<<<<<<< HEAD
+// pre-set for values that may exist in the future
+Buffer.prototype.length = undefined
+Buffer.prototype.parent = undefined
+
+// toString(encoding, start=0, end=buffer.length)
+Buffer.prototype.toString = function toString (encoding, start, end) {
+>>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+  var loweredCase = false
+=======
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-<<<<<<< HEAD
-function base64Write (buf, string, offset, length) {
-  return blitBuffer(base64ToBytes(string), buf, offset, length)
-}
-
-function ucs2Write (buf, string, offset, length) {
-  return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
-}
-
-Buffer.prototype.write = function write (string, offset, length, encoding) {
-  // Buffer#write(string)
-  if (offset === undefined) {
-    encoding = 'utf8'
-    length = this.length
-    offset = 0
-  // Buffer#write(string, encoding)
-  } else if (length === undefined && typeof offset === 'string') {
-    encoding = offset
-    length = this.length
-    offset = 0
-  // Buffer#write(string, offset[, length][, encoding])
-  } else if (isFinite(offset)) {
-    offset = offset | 0
-    if (isFinite(length)) {
-      length = length | 0
-      if (encoding === undefined) encoding = 'utf8'
-    } else {
-      encoding = length
-      length = undefined
-    }
-  // legacy write(string, encoding, offset, length) - remove in v0.13
-  } else {
-    var swap = encoding
-    encoding = offset
-    offset = length | 0
-    length = swap
-  }
-
-  var remaining = this.length - offset
-  if (length === undefined || length > remaining) length = remaining
-
-  if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
-    throw new RangeError('attempt to write outside buffer bounds')
-  }
-
-  if (!encoding) encoding = 'utf8'
-
-  var loweredCase = false
-  for (;;) {
-    switch (encoding) {
-      case 'hex':
-        return hexWrite(this, string, offset, length)
-
-      case 'utf8':
-      case 'utf-8':
-        return utf8Write(this, string, offset, length)
-
-      case 'ascii':
-        return asciiWrite(this, string, offset, length)
-
-      case 'binary':
-        return binaryWrite(this, string, offset, length)
-
-      case 'base64':
-        // Warning: maxLength not taken into account in base64Write
-        return base64Write(this, string, offset, length)
-
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
-        return ucs2Write(this, string, offset, length)
-
-      default:
-        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
-        encoding = ('' + encoding).toLowerCase()
-        loweredCase = true
-    }
-  }
-}
-
-Buffer.prototype.toJSON = function toJSON () {
-  return {
-    type: 'Buffer',
-    data: Array.prototype.slice.call(this._arr || this, 0)
-=======
-},{}],11:[function(require,module,exports) {
+},{}],13:[function(require,module,exports) {
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
 var global = arguments[3];
 /*!
@@ -1859,7 +1411,25 @@ function createBuffer (that, length) {
     that.length = length
   }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+Buffer.prototype.toString = function toString () {
+  var length = this.length | 0
+  if (length === 0) return ''
+  if (arguments.length === 0) return utf8Slice(this, 0, length)
+  return slowToString.apply(this, arguments)
+}
+
+=======
+<<<<<<< HEAD
+>>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+Buffer.prototype.equals = function equals (b) {
+  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
+  if (this === b) return true
+  return Buffer.compare(this, b) === 0
+=======
   return that
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 }
 
 /**
@@ -1885,18 +1455,10 @@ function Buffer (arg, encodingOrOffset, length) {
       )
     }
     return allocUnsafe(this, arg)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
   return from(this, arg, encodingOrOffset, length)
 }
 
-<<<<<<< HEAD
-function base64Slice (buf, start, end) {
-  if (start === 0 && end === buf.length) {
-    return base64.fromByteArray(buf)
-  } else {
-    return base64.fromByteArray(buf.slice(start, end))
-=======
 Buffer.poolSize = 8192 // not used by this implementation
 
 // TODO: Legacy, not needed anymore. Remove in next major version.
@@ -1921,6 +1483,27 @@ function from (that, value, encodingOrOffset, length) {
   return fromObject(that, value)
 }
 
+<<<<<<< HEAD
+// `get` is deprecated
+Buffer.prototype.get = function get (offset) {
+  console.log('.get() is deprecated. Access using array indexes instead.')
+  return this.readUInt8(offset)
+}
+
+// `set` is deprecated
+Buffer.prototype.set = function set (v, offset) {
+  console.log('.set() is deprecated. Access using array indexes instead.')
+  return this.writeUInt8(v, offset)
+}
+=======
+  if (placeHoldersLen === 1) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 10) |
+      (revLookup[b64.charCodeAt(i + 1)] << 4) |
+      (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
+=======
 /**
  * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
  * if value is a number.
@@ -1943,75 +1526,10 @@ if (Buffer.TYPED_ARRAY_SUPPORT) {
       value: null,
       configurable: true
     })
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 }
 
-<<<<<<< HEAD
-function utf8Slice (buf, start, end) {
-  end = Math.min(buf.length, end)
-  var res = []
-
-  var i = start
-  while (i < end) {
-    var firstByte = buf[i]
-    var codePoint = null
-    var bytesPerSequence = (firstByte > 0xEF) ? 4
-      : (firstByte > 0xDF) ? 3
-      : (firstByte > 0xBF) ? 2
-      : 1
-
-    if (i + bytesPerSequence <= end) {
-      var secondByte, thirdByte, fourthByte, tempCodePoint
-
-      switch (bytesPerSequence) {
-        case 1:
-          if (firstByte < 0x80) {
-            codePoint = firstByte
-          }
-          break
-        case 2:
-          secondByte = buf[i + 1]
-          if ((secondByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
-            if (tempCodePoint > 0x7F) {
-              codePoint = tempCodePoint
-            }
-          }
-          break
-        case 3:
-          secondByte = buf[i + 1]
-          thirdByte = buf[i + 2]
-          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
-            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
-              codePoint = tempCodePoint
-            }
-          }
-          break
-        case 4:
-          secondByte = buf[i + 1]
-          thirdByte = buf[i + 2]
-          fourthByte = buf[i + 3]
-          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
-            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
-              codePoint = tempCodePoint
-            }
-          }
-      }
-    }
-
-    if (codePoint === null) {
-      // we did not generate a valid codePoint so insert a
-      // replacement char (U+FFFD) and advance only 1 byte
-      codePoint = 0xFFFD
-      bytesPerSequence = 1
-    } else if (codePoint > 0xFFFF) {
-      // encode to utf16 (surrogate pair dance)
-      codePoint -= 0x10000
-      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
-      codePoint = 0xDC00 | codePoint & 0x3FF
-=======
 function assertSize (size) {
   if (typeof size !== 'number') {
     throw new TypeError('"size" argument must be a number')
@@ -2032,7 +1550,6 @@ function alloc (that, size, fill, encoding) {
     return typeof encoding === 'string'
       ? createBuffer(that, size).fill(fill, encoding)
       : createBuffer(that, size).fill(fill)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
   return createBuffer(that, size)
 }
@@ -2051,41 +1568,11 @@ function allocUnsafe (that, size) {
   if (!Buffer.TYPED_ARRAY_SUPPORT) {
     for (var i = 0; i < size; ++i) {
       that[i] = 0
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
-
-    res.push(codePoint)
-    i += bytesPerSequence
-  }
-
-  return decodeCodePointsArray(res)
-}
-
-// Based on http://stackoverflow.com/a/22747272/680742, the browser with
-// the lowest limit is Chrome, with 0x10000 args.
-// We go 1 magnitude less, for safety
-var MAX_ARGUMENTS_LENGTH = 0x1000
-
-function decodeCodePointsArray (codePoints) {
-  var len = codePoints.length
-  if (len <= MAX_ARGUMENTS_LENGTH) {
-    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
   }
   return that
 }
 
-<<<<<<< HEAD
-  // Decode in chunks to avoid "call stack size exceeded".
-  var res = ''
-  var i = 0
-  while (i < len) {
-    res += String.fromCharCode.apply(
-      String,
-      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
-    )
-  }
-  return res
-=======
 /**
  * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
  * */
@@ -2097,38 +1584,16 @@ Buffer.allocUnsafe = function (size) {
  */
 Buffer.allocUnsafeSlow = function (size) {
   return allocUnsafe(null, size)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 }
 
-<<<<<<< HEAD
-function asciiSlice (buf, start, end) {
-  var ret = ''
-  end = Math.min(buf.length, end)
-
-  for (var i = start; i < end; i++) {
-    ret += String.fromCharCode(buf[i] & 0x7F)
-=======
 function fromString (that, string, encoding) {
   if (typeof encoding !== 'string' || encoding === '') {
     encoding = 'utf8'
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
-<<<<<<< HEAD
-function binarySlice (buf, start, end) {
-  var ret = ''
-  end = Math.min(buf.length, end)
-
-  for (var i = start; i < end; i++) {
-    ret += String.fromCharCode(buf[i])
-  }
-  return ret
-}
-=======
   if (!Buffer.isEncoding(encoding)) {
     throw new TypeError('"encoding" must be a valid string encoding')
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   var length = byteLength(string, encoding) | 0
   that = createBuffer(that, length)
@@ -2154,127 +1619,6 @@ function fromArrayLike (that, array) {
   return that
 }
 
-<<<<<<< HEAD
-Buffer.prototype.slice = function slice (start, end) {
-  var len = this.length
-  start = ~~start
-  end = end === undefined ? len : ~~end
-
-  if (start < 0) {
-    start += len
-    if (start < 0) start = 0
-  } else if (start > len) {
-    start = len
-  }
-
-  if (end < 0) {
-    end += len
-    if (end < 0) end = 0
-  } else if (end > len) {
-    end = len
-  }
-
-  if (end < start) end = start
-
-  var newBuf
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    newBuf = Buffer._augment(this.subarray(start, end))
-  } else {
-    var sliceLen = end - start
-    newBuf = new Buffer(sliceLen, undefined)
-    for (var i = 0; i < sliceLen; i++) {
-      newBuf[i] = this[i + start]
-    }
-  }
-
-  if (newBuf.length) newBuf.parent = this.parent || this
-
-  return newBuf
-}
-
-/*
- * Need to make sure that buffer isn't trying to write out of bounds.
- */
-function checkOffset (offset, ext, length) {
-  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
-  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
-}
-
-Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) checkOffset(offset, byteLength, this.length)
-
-  var val = this[offset]
-  var mul = 1
-  var i = 0
-  while (++i < byteLength && (mul *= 0x100)) {
-    val += this[offset + i] * mul
-  }
-
-  return val
-}
-
-Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) {
-    checkOffset(offset, byteLength, this.length)
-  }
-
-  var val = this[offset + --byteLength]
-  var mul = 1
-  while (byteLength > 0 && (mul *= 0x100)) {
-    val += this[offset + --byteLength] * mul
-  }
-
-  return val
-}
-
-Buffer.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 1, this.length)
-  return this[offset]
-}
-
-Buffer.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length)
-  return this[offset] | (this[offset + 1] << 8)
-}
-
-Buffer.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length)
-  return (this[offset] << 8) | this[offset + 1]
-}
-
-Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-
-  return ((this[offset]) |
-      (this[offset + 1] << 8) |
-      (this[offset + 2] << 16)) +
-      (this[offset + 3] * 0x1000000)
-}
-
-Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-
-  return (this[offset] * 0x1000000) +
-    ((this[offset + 1] << 16) |
-    (this[offset + 2] << 8) |
-    this[offset + 3])
-}
-
-Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) checkOffset(offset, byteLength, this.length)
-
-  var val = this[offset]
-  var mul = 1
-  var i = 0
-  while (++i < byteLength && (mul *= 0x100)) {
-    val += this[offset + i] * mul
-=======
 function fromArrayBuffer (that, array, byteOffset, length) {
   array.byteLength // this throws if `array` is not a valid ArrayBuffer
 
@@ -2401,27 +1745,8 @@ Buffer.isEncoding = function isEncoding (encoding) {
 Buffer.concat = function concat (list, length) {
   if (!isArray(list)) {
     throw new TypeError('"list" argument must be an Array of Buffers')
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
-  mul *= 0x80
 
-<<<<<<< HEAD
-  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
-
-  return val
-}
-
-Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) checkOffset(offset, byteLength, this.length)
-
-  var i = byteLength
-  var mul = 1
-  var val = this[offset + --i]
-  while (i > 0 && (mul *= 0x100)) {
-    val += this[offset + --i] * mul
-=======
   if (list.length === 0) {
     return Buffer.alloc(0)
   }
@@ -2432,125 +1757,8 @@ Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
     for (i = 0; i < list.length; ++i) {
       length += list[i].length
     }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-  mul *= 0x80
-
-<<<<<<< HEAD
-  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
-
-  return val
-}
-
-Buffer.prototype.readInt8 = function readInt8 (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 1, this.length)
-  if (!(this[offset] & 0x80)) return (this[offset])
-  return ((0xff - this[offset] + 1) * -1)
-}
-
-Buffer.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length)
-  var val = this[offset] | (this[offset + 1] << 8)
-  return (val & 0x8000) ? val | 0xFFFF0000 : val
-}
-
-Buffer.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length)
-  var val = this[offset + 1] | (this[offset] << 8)
-  return (val & 0x8000) ? val | 0xFFFF0000 : val
-}
-
-Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-
-  return (this[offset]) |
-    (this[offset + 1] << 8) |
-    (this[offset + 2] << 16) |
-    (this[offset + 3] << 24)
-}
-
-Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-
-  return (this[offset] << 24) |
-    (this[offset + 1] << 16) |
-    (this[offset + 2] << 8) |
-    (this[offset + 3])
-}
-
-Buffer.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-  return ieee754.read(this, offset, true, 23, 4)
-}
-
-Buffer.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-  return ieee754.read(this, offset, false, 23, 4)
-}
-
-Buffer.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 8, this.length)
-  return ieee754.read(this, offset, true, 52, 8)
-}
-
-Buffer.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 8, this.length)
-  return ieee754.read(this, offset, false, 52, 8)
-}
-
-function checkInt (buf, value, offset, ext, max, min) {
-  if (!Buffer.isBuffer(buf)) throw new TypeError('buffer must be a Buffer instance')
-  if (value > max || value < min) throw new RangeError('value is out of bounds')
-  if (offset + ext > buf.length) throw new RangeError('index out of range')
-}
-
-Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
-  value = +value
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) checkInt(this, value, offset, byteLength, Math.pow(2, 8 * byteLength), 0)
-
-  var mul = 1
-  var i = 0
-  this[offset] = value & 0xFF
-  while (++i < byteLength && (mul *= 0x100)) {
-    this[offset + i] = (value / mul) & 0xFF
   }
 
-  return offset + byteLength
-}
-
-Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
-  value = +value
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) checkInt(this, value, offset, byteLength, Math.pow(2, 8 * byteLength), 0)
-
-  var i = byteLength - 1
-  var mul = 1
-  this[offset + i] = value & 0xFF
-  while (--i >= 0 && (mul *= 0x100)) {
-    this[offset + i] = (value / mul) & 0xFF
-  }
-
-  return offset + byteLength
-}
-
-Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
-  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
-  this[offset] = (value & 0xff)
-  return offset + 1
-}
-
-function objectWriteUInt16 (buf, value, offset, littleEndian) {
-  if (value < 0) value = 0xffff + value + 1
-  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; i++) {
-    buf[offset + i] = (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
-      (littleEndian ? i : 1 - i) * 8
-=======
   var buffer = Buffer.allocUnsafe(length)
   var pos = 0
   for (i = 0; i < list.length; ++i) {
@@ -2767,8 +1975,82 @@ Buffer.prototype.compare = function compare (target, start, end, thisStart, this
     thisEnd = this.length
   }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+function utf8Slice (buf, start, end) {
+  end = Math.min(buf.length, end)
+  var res = []
+
+  var i = start
+  while (i < end) {
+    var firstByte = buf[i]
+    var codePoint = null
+    var bytesPerSequence = (firstByte > 0xEF) ? 4
+      : (firstByte > 0xDF) ? 3
+      : (firstByte > 0xBF) ? 2
+      : 1
+
+    if (i + bytesPerSequence <= end) {
+      var secondByte, thirdByte, fourthByte, tempCodePoint
+
+      switch (bytesPerSequence) {
+        case 1:
+          if (firstByte < 0x80) {
+            codePoint = firstByte
+          }
+          break
+        case 2:
+          secondByte = buf[i + 1]
+          if ((secondByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
+            if (tempCodePoint > 0x7F) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 3:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
+            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 4:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          fourthByte = buf[i + 3]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
+            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
+              codePoint = tempCodePoint
+            }
+          }
+      }
+    }
+
+    if (codePoint === null) {
+      // we did not generate a valid codePoint so insert a
+      // replacement char (U+FFFD) and advance only 1 byte
+      codePoint = 0xFFFD
+      bytesPerSequence = 1
+    } else if (codePoint > 0xFFFF) {
+      // encode to utf16 (surrogate pair dance)
+      codePoint -= 0x10000
+      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
+      codePoint = 0xDC00 | codePoint & 0x3FF
+=======
+function assertSize (size) {
+  if (typeof size !== 'number') {
+    throw new TypeError('"size" argument must be a number')
+  } else if (size < 0) {
+    throw new RangeError('"size" argument must not be negative')
+=======
   if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
     throw new RangeError('out of range index')
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 
   if (thisStart >= thisEnd && start >= end) {
@@ -2777,13 +2059,771 @@ Buffer.prototype.compare = function compare (target, start, end, thisStart, this
   if (thisStart >= thisEnd) {
     return -1
   }
+<<<<<<< HEAD
+  return createBuffer(that, size)
+}
+
+/**
+ * Creates a new filled Buffer instance.
+ * alloc(size[, fill[, encoding]])
+ **/
+Buffer.alloc = function (size, fill, encoding) {
+  return alloc(null, size, fill, encoding)
+}
+
+function allocUnsafe (that, size) {
+  assertSize(size)
+  that = createBuffer(that, size < 0 ? 0 : checked(size) | 0)
+  if (!Buffer.TYPED_ARRAY_SUPPORT) {
+    for (var i = 0; i < size; ++i) {
+      that[i] = 0
+>>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+    }
+
+    res.push(codePoint)
+    i += bytesPerSequence
+  }
+
+  return decodeCodePointsArray(res)
+}
+
+// Based on http://stackoverflow.com/a/22747272/680742, the browser with
+// the lowest limit is Chrome, with 0x10000 args.
+// We go 1 magnitude less, for safety
+var MAX_ARGUMENTS_LENGTH = 0x1000
+
+function decodeCodePointsArray (codePoints) {
+  var len = codePoints.length
+  if (len <= MAX_ARGUMENTS_LENGTH) {
+    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
+=======
   if (start >= end) {
     return 1
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+  }
+
+<<<<<<< HEAD
+<<<<<<< HEAD
+  // Decode in chunks to avoid "call stack size exceeded".
+  var res = ''
+  var i = 0
+  while (i < len) {
+    res += String.fromCharCode.apply(
+      String,
+      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+    )
+  }
+  return res
+=======
+/**
+ * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
+ * */
+Buffer.allocUnsafe = function (size) {
+  return allocUnsafe(null, size)
+}
+/**
+ * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
+ */
+Buffer.allocUnsafeSlow = function (size) {
+  return allocUnsafe(null, size)
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+}
+=======
+  start >>>= 0
+  end >>>= 0
+  thisStart >>>= 0
+  thisEnd >>>= 0
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+
+  if (this === target) return 0
+
+  var x = thisEnd - thisStart
+  var y = end - start
+  var len = Math.min(x, y)
+
+  var thisCopy = this.slice(thisStart, thisEnd)
+  var targetCopy = target.slice(start, end)
+
+  for (var i = 0; i < len; ++i) {
+    if (thisCopy[i] !== targetCopy[i]) {
+      x = thisCopy[i]
+      y = targetCopy[i]
+      break
+    }
+  }
+
+  if (x < y) return -1
+  if (y < x) return 1
+  return 0
+}
+
+// Finds either the first index of `val` in `buffer` at offset >= `byteOffset`,
+// OR the last index of `val` in `buffer` at offset <= `byteOffset`.
+//
+// Arguments:
+// - buffer - a Buffer to search
+// - val - a string, Buffer, or number
+// - byteOffset - an index into `buffer`; will be clamped to an int32
+// - encoding - an optional encoding, relevant is val is a string
+// - dir - true for indexOf, false for lastIndexOf
+function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
+  // Empty buffer means no match
+  if (buffer.length === 0) return -1
+
+  // Normalize byteOffset
+  if (typeof byteOffset === 'string') {
+    encoding = byteOffset
+    byteOffset = 0
+  } else if (byteOffset > 0x7fffffff) {
+    byteOffset = 0x7fffffff
+  } else if (byteOffset < -0x80000000) {
+    byteOffset = -0x80000000
+  }
+  byteOffset = +byteOffset  // Coerce to Number.
+  if (isNaN(byteOffset)) {
+    // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
+    byteOffset = dir ? 0 : (buffer.length - 1)
+  }
+
+  // Normalize byteOffset: negative offsets start from the end of the buffer
+  if (byteOffset < 0) byteOffset = buffer.length + byteOffset
+  if (byteOffset >= buffer.length) {
+    if (dir) return -1
+    else byteOffset = buffer.length - 1
+  } else if (byteOffset < 0) {
+    if (dir) byteOffset = 0
+    else return -1
+  }
+
+  // Normalize val
+  if (typeof val === 'string') {
+    val = Buffer.from(val, encoding)
+  }
+
+  // Finally, search either indexOf (if dir is true) or lastIndexOf
+  if (Buffer.isBuffer(val)) {
+    // Special case: looking for empty string/buffer always fails
+    if (val.length === 0) {
+      return -1
+    }
+    return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
+  } else if (typeof val === 'number') {
+    val = val & 0xFF // Search for a byte value [0-255]
+    if (Buffer.TYPED_ARRAY_SUPPORT &&
+        typeof Uint8Array.prototype.indexOf === 'function') {
+      if (dir) {
+        return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
+      } else {
+        return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset)
+      }
+    }
+    return arrayIndexOf(buffer, [ val ], byteOffset, encoding, dir)
+  }
+
+  throw new TypeError('val must be string, number or Buffer')
+}
+
+function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
+  var indexSize = 1
+  var arrLength = arr.length
+  var valLength = val.length
+
+  if (encoding !== undefined) {
+    encoding = String(encoding).toLowerCase()
+    if (encoding === 'ucs2' || encoding === 'ucs-2' ||
+        encoding === 'utf16le' || encoding === 'utf-16le') {
+      if (arr.length < 2 || val.length < 2) {
+        return -1
+      }
+      indexSize = 2
+      arrLength /= 2
+      valLength /= 2
+      byteOffset /= 2
+    }
+  }
+
+  function read (buf, i) {
+    if (indexSize === 1) {
+      return buf[i]
+    } else {
+      return buf.readUInt16BE(i * indexSize)
+    }
+  }
+
+  var i
+  if (dir) {
+    var foundIndex = -1
+    for (i = byteOffset; i < arrLength; i++) {
+      if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
+        if (foundIndex === -1) foundIndex = i
+        if (i - foundIndex + 1 === valLength) return foundIndex * indexSize
+      } else {
+        if (foundIndex !== -1) i -= i - foundIndex
+        foundIndex = -1
+      }
+    }
+  } else {
+    if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength
+    for (i = byteOffset; i >= 0; i--) {
+      var found = true
+      for (var j = 0; j < valLength; j++) {
+        if (read(arr, i + j) !== read(val, j)) {
+          found = false
+          break
+        }
+      }
+      if (found) return i
+    }
+  }
+
+  return -1
+}
+
+Buffer.prototype.includes = function includes (val, byteOffset, encoding) {
+  return this.indexOf(val, byteOffset, encoding) !== -1
+}
+
+Buffer.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
+  return bidirectionalIndexOf(this, val, byteOffset, encoding, true)
+}
+
+Buffer.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
+  return bidirectionalIndexOf(this, val, byteOffset, encoding, false)
+}
+
+function hexWrite (buf, string, offset, length) {
+  offset = Number(offset) || 0
+  var remaining = buf.length - offset
+  if (!length) {
+    length = remaining
+  } else {
+    length = Number(length)
+    if (length > remaining) {
+      length = remaining
+    }
+  }
+
+  // must be an even number of digits
+  var strLen = string.length
+  if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
+
+  if (length > strLen / 2) {
+    length = strLen / 2
+  }
+  for (var i = 0; i < length; ++i) {
+    var parsed = parseInt(string.substr(i * 2, 2), 16)
+    if (isNaN(parsed)) return i
+    buf[offset + i] = parsed
+  }
+  return i
+}
+
+function utf8Write (buf, string, offset, length) {
+  return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
+}
+
+function asciiWrite (buf, string, offset, length) {
+  return blitBuffer(asciiToBytes(string), buf, offset, length)
+}
+
+function latin1Write (buf, string, offset, length) {
+  return asciiWrite(buf, string, offset, length)
+}
+
+function base64Write (buf, string, offset, length) {
+  return blitBuffer(base64ToBytes(string), buf, offset, length)
+}
+
+function ucs2Write (buf, string, offset, length) {
+  return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
+}
+
+Buffer.prototype.write = function write (string, offset, length, encoding) {
+  // Buffer#write(string)
+  if (offset === undefined) {
+    encoding = 'utf8'
+    length = this.length
+    offset = 0
+  // Buffer#write(string, encoding)
+  } else if (length === undefined && typeof offset === 'string') {
+    encoding = offset
+    length = this.length
+    offset = 0
+  // Buffer#write(string, offset[, length][, encoding])
+  } else if (isFinite(offset)) {
+    offset = offset | 0
+    if (isFinite(length)) {
+      length = length | 0
+      if (encoding === undefined) encoding = 'utf8'
+    } else {
+      encoding = length
+      length = undefined
+    }
+  // legacy write(string, encoding, offset, length) - remove in v0.13
+  } else {
+    throw new Error(
+      'Buffer.write(string, encoding, offset[, length]) is no longer supported'
+    )
+  }
+
+  var remaining = this.length - offset
+  if (length === undefined || length > remaining) length = remaining
+
+  if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
+    throw new RangeError('Attempt to write outside buffer bounds')
+  }
+
+  if (!encoding) encoding = 'utf8'
+
+  var loweredCase = false
+  for (;;) {
+    switch (encoding) {
+      case 'hex':
+        return hexWrite(this, string, offset, length)
+
+      case 'utf8':
+      case 'utf-8':
+        return utf8Write(this, string, offset, length)
+
+      case 'ascii':
+        return asciiWrite(this, string, offset, length)
+
+      case 'latin1':
+      case 'binary':
+        return latin1Write(this, string, offset, length)
+
+      case 'base64':
+        // Warning: maxLength not taken into account in base64Write
+        return base64Write(this, string, offset, length)
+
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return ucs2Write(this, string, offset, length)
+
+      default:
+        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
+        encoding = ('' + encoding).toLowerCase()
+        loweredCase = true
+    }
   }
 }
 
-<<<<<<< HEAD
+Buffer.prototype.toJSON = function toJSON () {
+  return {
+    type: 'Buffer',
+    data: Array.prototype.slice.call(this._arr || this, 0)
+  }
+}
+
+function base64Slice (buf, start, end) {
+  if (start === 0 && end === buf.length) {
+    return base64.fromByteArray(buf)
+  } else {
+    return base64.fromByteArray(buf.slice(start, end))
+  }
+}
+
+function utf8Slice (buf, start, end) {
+  end = Math.min(buf.length, end)
+  var res = []
+
+  var i = start
+  while (i < end) {
+    var firstByte = buf[i]
+    var codePoint = null
+    var bytesPerSequence = (firstByte > 0xEF) ? 4
+      : (firstByte > 0xDF) ? 3
+      : (firstByte > 0xBF) ? 2
+      : 1
+
+    if (i + bytesPerSequence <= end) {
+      var secondByte, thirdByte, fourthByte, tempCodePoint
+
+      switch (bytesPerSequence) {
+        case 1:
+          if (firstByte < 0x80) {
+            codePoint = firstByte
+          }
+          break
+        case 2:
+          secondByte = buf[i + 1]
+          if ((secondByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
+            if (tempCodePoint > 0x7F) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 3:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
+            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 4:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          fourthByte = buf[i + 3]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
+            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
+              codePoint = tempCodePoint
+            }
+          }
+      }
+    }
+
+    if (codePoint === null) {
+      // we did not generate a valid codePoint so insert a
+      // replacement char (U+FFFD) and advance only 1 byte
+      codePoint = 0xFFFD
+      bytesPerSequence = 1
+    } else if (codePoint > 0xFFFF) {
+      // encode to utf16 (surrogate pair dance)
+      codePoint -= 0x10000
+      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
+      codePoint = 0xDC00 | codePoint & 0x3FF
+    }
+
+    res.push(codePoint)
+    i += bytesPerSequence
+  }
+
+  return decodeCodePointsArray(res)
+}
+
+// Based on http://stackoverflow.com/a/22747272/680742, the browser with
+// the lowest limit is Chrome, with 0x10000 args.
+// We go 1 magnitude less, for safety
+var MAX_ARGUMENTS_LENGTH = 0x1000
+
+function decodeCodePointsArray (codePoints) {
+  var len = codePoints.length
+  if (len <= MAX_ARGUMENTS_LENGTH) {
+    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
+  }
+
+  // Decode in chunks to avoid "call stack size exceeded".
+  var res = ''
+  var i = 0
+  while (i < len) {
+    res += String.fromCharCode.apply(
+      String,
+      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+    )
+  }
+  return res
+}
+
+function asciiSlice (buf, start, end) {
+  var ret = ''
+  end = Math.min(buf.length, end)
+
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i] & 0x7F)
+  }
+  return ret
+}
+
+function latin1Slice (buf, start, end) {
+  var ret = ''
+  end = Math.min(buf.length, end)
+
+  for (var i = start; i < end; ++i) {
+    ret += String.fromCharCode(buf[i])
+  }
+  return ret
+}
+
+function hexSlice (buf, start, end) {
+  var len = buf.length
+
+  if (!start || start < 0) start = 0
+  if (!end || end < 0 || end > len) end = len
+
+  var out = ''
+  for (var i = start; i < end; ++i) {
+    out += toHex(buf[i])
+  }
+  return out
+}
+
+function utf16leSlice (buf, start, end) {
+  var bytes = buf.slice(start, end)
+  var res = ''
+  for (var i = 0; i < bytes.length; i += 2) {
+    res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256)
+  }
+  return res
+}
+
+Buffer.prototype.slice = function slice (start, end) {
+  var len = this.length
+  start = ~~start
+  end = end === undefined ? len : ~~end
+
+  if (start < 0) {
+    start += len
+    if (start < 0) start = 0
+  } else if (start > len) {
+    start = len
+  }
+
+  if (end < 0) {
+    end += len
+    if (end < 0) end = 0
+  } else if (end > len) {
+    end = len
+  }
+
+  if (end < start) end = start
+
+  var newBuf
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    newBuf = this.subarray(start, end)
+    newBuf.__proto__ = Buffer.prototype
+  } else {
+    var sliceLen = end - start
+    newBuf = new Buffer(sliceLen, undefined)
+    for (var i = 0; i < sliceLen; ++i) {
+      newBuf[i] = this[i + start]
+    }
+  }
+
+  return newBuf
+}
+
+/*
+ * Need to make sure that buffer isn't trying to write out of bounds.
+ */
+function checkOffset (offset, ext, length) {
+  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
+  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
+}
+
+Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul
+  }
+
+  return val
+}
+
+Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) {
+    checkOffset(offset, byteLength, this.length)
+  }
+
+  var val = this[offset + --byteLength]
+  var mul = 1
+  while (byteLength > 0 && (mul *= 0x100)) {
+    val += this[offset + --byteLength] * mul
+  }
+
+  return val
+}
+
+Buffer.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 1, this.length)
+  return this[offset]
+}
+
+Buffer.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  return this[offset] | (this[offset + 1] << 8)
+}
+
+Buffer.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  return (this[offset] << 8) | this[offset + 1]
+}
+
+Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return ((this[offset]) |
+      (this[offset + 1] << 8) |
+      (this[offset + 2] << 16)) +
+      (this[offset + 3] * 0x1000000)
+}
+
+Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset] * 0x1000000) +
+    ((this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    this[offset + 3])
+}
+
+Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var val = this[offset]
+  var mul = 1
+  var i = 0
+  while (++i < byteLength && (mul *= 0x100)) {
+    val += this[offset + i] * mul
+  }
+  mul *= 0x80
+
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+
+  return val
+}
+
+Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) checkOffset(offset, byteLength, this.length)
+
+  var i = byteLength
+  var mul = 1
+  var val = this[offset + --i]
+  while (i > 0 && (mul *= 0x100)) {
+    val += this[offset + --i] * mul
+  }
+  mul *= 0x80
+
+  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
+
+  return val
+}
+
+Buffer.prototype.readInt8 = function readInt8 (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 1, this.length)
+  if (!(this[offset] & 0x80)) return (this[offset])
+  return ((0xff - this[offset] + 1) * -1)
+}
+
+Buffer.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  var val = this[offset] | (this[offset + 1] << 8)
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
+}
+
+Buffer.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 2, this.length)
+  var val = this[offset + 1] | (this[offset] << 8)
+  return (val & 0x8000) ? val | 0xFFFF0000 : val
+}
+
+Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset]) |
+    (this[offset + 1] << 8) |
+    (this[offset + 2] << 16) |
+    (this[offset + 3] << 24)
+}
+
+Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+
+  return (this[offset] << 24) |
+    (this[offset + 1] << 16) |
+    (this[offset + 2] << 8) |
+    (this[offset + 3])
+}
+
+Buffer.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+  return ieee754.read(this, offset, true, 23, 4)
+}
+
+Buffer.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 4, this.length)
+  return ieee754.read(this, offset, false, 23, 4)
+}
+
+Buffer.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 8, this.length)
+  return ieee754.read(this, offset, true, 52, 8)
+}
+
+Buffer.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
+  if (!noAssert) checkOffset(offset, 8, this.length)
+  return ieee754.read(this, offset, false, 52, 8)
+}
+
+function checkInt (buf, value, offset, ext, max, min) {
+  if (!Buffer.isBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance')
+  if (value > max || value < min) throw new RangeError('"value" argument is out of bounds')
+  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+}
+
+Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) {
+    var maxBytes = Math.pow(2, 8 * byteLength) - 1
+    checkInt(this, value, offset, byteLength, maxBytes, 0)
+  }
+
+  var mul = 1
+  var i = 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset | 0
+  byteLength = byteLength | 0
+  if (!noAssert) {
+    var maxBytes = Math.pow(2, 8 * byteLength) - 1
+    checkInt(this, value, offset, byteLength, maxBytes, 0)
+  }
+
+  var i = byteLength - 1
+  var mul = 1
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100)) {
+    this[offset + i] = (value / mul) & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
+  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
+  this[offset] = (value & 0xff)
+  return offset + 1
+}
+
+function objectWriteUInt16 (buf, value, offset, littleEndian) {
+  if (value < 0) value = 0xffff + value + 1
+  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; ++i) {
+    buf[offset + i] = (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
+      (littleEndian ? i : 1 - i) * 8
+  }
+}
+
 Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
   value = +value
   offset = offset | 0
@@ -2812,20 +2852,139 @@ Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert
 
 function objectWriteUInt32 (buf, value, offset, littleEndian) {
   if (value < 0) value = 0xffffffff + value + 1
-  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; i++) {
+  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; ++i) {
     buf[offset + i] = (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff
-=======
-  start >>>= 0
-  end >>>= 0
-  thisStart >>>= 0
-  thisEnd >>>= 0
+  }
+}
 
-  if (this === target) return 0
+Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset + 3] = (value >>> 24)
+    this[offset + 2] = (value >>> 16)
+    this[offset + 1] = (value >>> 8)
+    this[offset] = (value & 0xff)
+  } else {
+    objectWriteUInt32(this, value, offset, true)
+  }
+  return offset + 4
+}
 
-  var x = thisEnd - thisStart
-  var y = end - start
-  var len = Math.min(x, y)
+Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 24)
+    this[offset + 1] = (value >>> 16)
+    this[offset + 2] = (value >>> 8)
+    this[offset + 3] = (value & 0xff)
+  } else {
+    objectWriteUInt32(this, value, offset, false)
+  }
+  return offset + 4
+}
 
+Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) {
+    var limit = Math.pow(2, 8 * byteLength - 1)
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit)
+  }
+
+  var i = 0
+  var mul = 1
+  var sub = 0
+  this[offset] = value & 0xFF
+  while (++i < byteLength && (mul *= 0x100)) {
+    if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
+      sub = 1
+    }
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) {
+    var limit = Math.pow(2, 8 * byteLength - 1)
+
+    checkInt(this, value, offset, byteLength, limit - 1, -limit)
+  }
+
+  var i = byteLength - 1
+  var mul = 1
+  var sub = 0
+  this[offset + i] = value & 0xFF
+  while (--i >= 0 && (mul *= 0x100)) {
+    if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
+      sub = 1
+    }
+    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
+  }
+
+  return offset + byteLength
+}
+
+Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
+  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
+  if (value < 0) value = 0xff + value + 1
+  this[offset] = (value & 0xff)
+  return offset + 1
+}
+
+Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value & 0xff)
+    this[offset + 1] = (value >>> 8)
+  } else {
+    objectWriteUInt16(this, value, offset, true)
+  }
+  return offset + 2
+}
+
+Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value >>> 8)
+    this[offset + 1] = (value & 0xff)
+  } else {
+    objectWriteUInt16(this, value, offset, false)
+  }
+  return offset + 2
+}
+
+Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
+  value = +value
+  offset = offset | 0
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    this[offset] = (value & 0xff)
+    this[offset + 1] = (value >>> 8)
+    this[offset + 2] = (value >>> 16)
+    this[offset + 3] = (value >>> 24)
+  } else {
+    objectWriteUInt32(this, value, offset, true)
+  }
+  return offset + 4
+}
+
+<<<<<<< HEAD
   var thisCopy = this.slice(thisStart, thisEnd)
   var targetCopy = target.slice(start, end)
 
@@ -2923,9 +3082,13 @@ function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
 
 <<<<<<< HEAD
 Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
+=======
+Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   value = +value
   offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
+  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
+  if (value < 0) value = 0xffffffff + value + 1
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 24)
     this[offset + 1] = (value >>> 16)
@@ -2937,46 +3100,36 @@ Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert
   return offset + 4
 }
 
-Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) {
-    var limit = Math.pow(2, 8 * byteLength - 1)
-
-    checkInt(this, value, offset, byteLength, limit - 1, -limit)
-  }
-
-  var i = 0
-  var mul = 1
-  var sub = value < 0 ? 1 : 0
-  this[offset] = value & 0xFF
-  while (++i < byteLength && (mul *= 0x100)) {
-    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
-  }
-
-  return offset + byteLength
+function checkIEEE754 (buf, value, offset, ext, max, min) {
+  if (offset + ext > buf.length) throw new RangeError('Index out of range')
+  if (offset < 0) throw new RangeError('Index out of range')
 }
 
-Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
-  value = +value
-  offset = offset | 0
+function writeFloat (buf, value, offset, littleEndian, noAssert) {
   if (!noAssert) {
-    var limit = Math.pow(2, 8 * byteLength - 1)
-
-    checkInt(this, value, offset, byteLength, limit - 1, -limit)
+    checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38)
   }
-
-  var i = byteLength - 1
-  var mul = 1
-  var sub = value < 0 ? 1 : 0
-  this[offset + i] = value & 0xFF
-  while (--i >= 0 && (mul *= 0x100)) {
-    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
-  }
-
-  return offset + byteLength
+  ieee754.write(buf, value, offset, littleEndian, 23, 4)
+  return offset + 4
 }
 
+Buffer.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
+  return writeFloat(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
+  return writeFloat(this, value, offset, false, noAssert)
+}
+
+function writeDouble (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308)
+  }
+  ieee754.write(buf, value, offset, littleEndian, 52, 8)
+  return offset + 8
+}
+
+<<<<<<< HEAD
 Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
   value = +value
   offset = offset | 0
@@ -3019,85 +3172,126 @@ function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
   var indexSize = 1
   var arrLength = arr.length
   var valLength = val.length
+=======
+Buffer.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
+  return writeDouble(this, value, offset, true, noAssert)
+}
 
-  if (encoding !== undefined) {
-    encoding = String(encoding).toLowerCase()
-    if (encoding === 'ucs2' || encoding === 'ucs-2' ||
-        encoding === 'utf16le' || encoding === 'utf-16le') {
-      if (arr.length < 2 || val.length < 2) {
-        return -1
+Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
+  return writeDouble(this, value, offset, false, noAssert)
+}
+
+// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
+Buffer.prototype.copy = function copy (target, targetStart, start, end) {
+  if (!start) start = 0
+  if (!end && end !== 0) end = this.length
+  if (targetStart >= target.length) targetStart = target.length
+  if (!targetStart) targetStart = 0
+  if (end > 0 && end < start) end = start
+
+  // Copy 0 bytes; we're done
+  if (end === start) return 0
+  if (target.length === 0 || this.length === 0) return 0
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+
+  // Fatal error conditions
+  if (targetStart < 0) {
+    throw new RangeError('targetStart out of bounds')
+  }
+  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
+  if (end < 0) throw new RangeError('sourceEnd out of bounds')
+
+  // Are we oob?
+  if (end > this.length) end = this.length
+  if (target.length - targetStart < end - start) {
+    end = target.length - targetStart + start
+  }
+
+  var len = end - start
+  var i
+
+  if (this === target && start < targetStart && targetStart < end) {
+    // descending copy from end
+    for (i = len - 1; i >= 0; --i) {
+      target[i + targetStart] = this[i + start]
+    }
+  } else if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
+    // ascending copy from start
+    for (i = 0; i < len; ++i) {
+      target[i + targetStart] = this[i + start]
+    }
+  } else {
+    Uint8Array.prototype.set.call(
+      target,
+      this.subarray(start, start + len),
+      targetStart
+    )
+  }
+
+  return len
+}
+
+// Usage:
+//    buffer.fill(number[, offset[, end]])
+//    buffer.fill(buffer[, offset[, end]])
+//    buffer.fill(string[, offset[, end]][, encoding])
+Buffer.prototype.fill = function fill (val, start, end, encoding) {
+  // Handle string cases:
+  if (typeof val === 'string') {
+    if (typeof start === 'string') {
+      encoding = start
+      start = 0
+      end = this.length
+    } else if (typeof end === 'string') {
+      encoding = end
+      end = this.length
+    }
+    if (val.length === 1) {
+      var code = val.charCodeAt(0)
+      if (code < 256) {
+        val = code
       }
-      indexSize = 2
-      arrLength /= 2
-      valLength /= 2
-      byteOffset /= 2
     }
+    if (encoding !== undefined && typeof encoding !== 'string') {
+      throw new TypeError('encoding must be a string')
+    }
+    if (typeof encoding === 'string' && !Buffer.isEncoding(encoding)) {
+      throw new TypeError('Unknown encoding: ' + encoding)
+    }
+  } else if (typeof val === 'number') {
+    val = val & 255
   }
 
-  function read (buf, i) {
-    if (indexSize === 1) {
-      return buf[i]
-    } else {
-      return buf.readUInt16BE(i * indexSize)
-    }
+  // Invalid ranges are not set to a default, so can range check early.
+  if (start < 0 || this.length < start || this.length < end) {
+    throw new RangeError('Out of range index')
   }
+
+  if (end <= start) {
+    return this
+  }
+
+  start = start >>> 0
+  end = end === undefined ? this.length : end >>> 0
+
+  if (!val) val = 0
 
   var i
-  if (dir) {
-    var foundIndex = -1
-    for (i = byteOffset; i < arrLength; i++) {
-      if (read(arr, i) === read(val, foundIndex === -1 ? 0 : i - foundIndex)) {
-        if (foundIndex === -1) foundIndex = i
-        if (i - foundIndex + 1 === valLength) return foundIndex * indexSize
-      } else {
-        if (foundIndex !== -1) i -= i - foundIndex
-        foundIndex = -1
-      }
+  if (typeof val === 'number') {
+    for (i = start; i < end; ++i) {
+      this[i] = val
     }
   } else {
-    if (byteOffset + valLength > arrLength) byteOffset = arrLength - valLength
-    for (i = byteOffset; i >= 0; i--) {
-      var found = true
-      for (var j = 0; j < valLength; j++) {
-        if (read(arr, i + j) !== read(val, j)) {
-          found = false
-          break
-        }
-      }
-      if (found) return i
+    var bytes = Buffer.isBuffer(val)
+      ? val
+      : utf8ToBytes(new Buffer(val, encoding).toString())
+    var len = bytes.length
+    for (i = 0; i < end - start; ++i) {
+      this[i + start] = bytes[i % len]
     }
   }
 
-  return -1
-}
-
-Buffer.prototype.includes = function includes (val, byteOffset, encoding) {
-  return this.indexOf(val, byteOffset, encoding) !== -1
-}
-
-Buffer.prototype.indexOf = function indexOf (val, byteOffset, encoding) {
-  return bidirectionalIndexOf(this, val, byteOffset, encoding, true)
-}
-
-Buffer.prototype.lastIndexOf = function lastIndexOf (val, byteOffset, encoding) {
-  return bidirectionalIndexOf(this, val, byteOffset, encoding, false)
-}
-
-function hexWrite (buf, string, offset, length) {
-  offset = Number(offset) || 0
-  var remaining = buf.length - offset
-  if (!length) {
-    length = remaining
-  } else {
-    length = Number(length)
-    if (length > remaining) {
-      length = remaining
-    }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-  return offset + 2
-}
-
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
@@ -3134,70 +3328,84 @@ Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) 
   }
   return offset + 4
 }
-
-function checkIEEE754 (buf, value, offset, ext, max, min) {
-  if (value > max || value < min) throw new RangeError('value is out of bounds')
-  if (offset + ext > buf.length) throw new RangeError('index out of range')
-  if (offset < 0) throw new RangeError('index out of range')
+=======
+  return this
 }
 
-function writeFloat (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38)
+// HELPER FUNCTIONS
+// ================
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+
+var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
+
+function base64clean (str) {
+  // Node strips out invalid characters like \n and \t from the string, base64-js does not
+  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
+  // Node converts strings with length < 2 to ''
+  if (str.length < 2) return ''
+  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
+  while (str.length % 4 !== 0) {
+    str = str + '='
   }
-  ieee754.write(buf, value, offset, littleEndian, 23, 4)
-  return offset + 4
+  return str
 }
 
-Buffer.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
-  return writeFloat(this, value, offset, true, noAssert)
+function stringtrim (str) {
+  if (str.trim) return str.trim()
+  return str.replace(/^\s+|\s+$/g, '')
 }
 
-Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
-  return writeFloat(this, value, offset, false, noAssert)
+function toHex (n) {
+  if (n < 16) return '0' + n.toString(16)
+  return n.toString(16)
 }
 
-function writeDouble (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308)
-  }
-  ieee754.write(buf, value, offset, littleEndian, 52, 8)
-  return offset + 8
-}
+function utf8ToBytes (string, units) {
+  units = units || Infinity
+  var codePoint
+  var length = string.length
+  var leadSurrogate = null
+  var bytes = []
 
-Buffer.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
-  return writeDouble(this, value, offset, true, noAssert)
-}
+  for (var i = 0; i < length; ++i) {
+    codePoint = string.charCodeAt(i)
 
-Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
-  return writeDouble(this, value, offset, false, noAssert)
-}
+    // is surrogate component
+    if (codePoint > 0xD7FF && codePoint < 0xE000) {
+      // last char was a lead
+      if (!leadSurrogate) {
+        // no lead yet
+        if (codePoint > 0xDBFF) {
+          // unexpected trail
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        } else if (i + 1 === length) {
+          // unpaired lead
+          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+          continue
+        }
 
-// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
-Buffer.prototype.copy = function copy (target, targetStart, start, end) {
-  if (!start) start = 0
-  if (!end && end !== 0) end = this.length
-  if (targetStart >= target.length) targetStart = target.length
-  if (!targetStart) targetStart = 0
-  if (end > 0 && end < start) end = start
+        // valid lead
+        leadSurrogate = codePoint
 
-  // Copy 0 bytes; we're done
-  if (end === start) return 0
-  if (target.length === 0 || this.length === 0) return 0
+        continue
+      }
 
-  // Fatal error conditions
-  if (targetStart < 0) {
-    throw new RangeError('targetStart out of bounds')
-  }
-  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
-  if (end < 0) throw new RangeError('sourceEnd out of bounds')
+      // 2 leads in a row
+      if (codePoint < 0xDC00) {
+        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+        leadSurrogate = codePoint
+        continue
+      }
 
-  // Are we oob?
-  if (end > this.length) end = this.length
-  if (target.length - targetStart < end - start) {
-    end = target.length - targetStart + start
-  }
+      // valid surrogate pair
+      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
+    } else if (leadSurrogate) {
+      // valid bmp char, but last char was a lead
+      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+    }
 
+<<<<<<< HEAD
   var len = end - start
   var i
 
@@ -3210,186 +3418,251 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
     // ascending copy from start
     for (i = 0; i < len; i++) {
       target[i + targetStart] = this[i + start]
+=======
+    leadSurrogate = null
+
+    // encode utf8
+    if (codePoint < 0x80) {
+      if ((units -= 1) < 0) break
+      bytes.push(codePoint)
+    } else if (codePoint < 0x800) {
+      if ((units -= 2) < 0) break
+      bytes.push(
+        codePoint >> 0x6 | 0xC0,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x10000) {
+      if ((units -= 3) < 0) break
+      bytes.push(
+        codePoint >> 0xC | 0xE0,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else if (codePoint < 0x110000) {
+      if ((units -= 4) < 0) break
+      bytes.push(
+        codePoint >> 0x12 | 0xF0,
+        codePoint >> 0xC & 0x3F | 0x80,
+        codePoint >> 0x6 & 0x3F | 0x80,
+        codePoint & 0x3F | 0x80
+      )
+    } else {
+      throw new Error('Invalid code point')
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     }
-  } else {
-    target._set(this.subarray(start, start + len), targetStart)
   }
 
-  return len
+  return bytes
 }
 
-// fill(value, start=0, end=buffer.length)
-Buffer.prototype.fill = function fill (value, start, end) {
-  if (!value) value = 0
-  if (!start) start = 0
-  if (!end) end = this.length
-
-  if (end < start) throw new RangeError('end < start')
-=======
-  // must be an even number of digits
-  var strLen = string.length
-  if (strLen % 2 !== 0) throw new TypeError('Invalid hex string')
-
-  if (length > strLen / 2) {
-    length = strLen / 2
+function asciiToBytes (str) {
+  var byteArray = []
+  for (var i = 0; i < str.length; ++i) {
+    // Node's code seems to be doing this and not & 0x7F..
+    byteArray.push(str.charCodeAt(i) & 0xFF)
   }
+  return byteArray
+}
+
+function utf16leToBytes (str, units) {
+  var c, hi, lo
+  var byteArray = []
+  for (var i = 0; i < str.length; ++i) {
+    if ((units -= 2) < 0) break
+
+    c = str.charCodeAt(i)
+    hi = c >> 8
+    lo = c % 256
+    byteArray.push(lo)
+    byteArray.push(hi)
+  }
+
+  return byteArray
+}
+
+function base64ToBytes (str) {
+  return base64.toByteArray(base64clean(str))
+}
+
+function blitBuffer (src, dst, offset, length) {
   for (var i = 0; i < length; ++i) {
-    var parsed = parseInt(string.substr(i * 2, 2), 16)
-    if (isNaN(parsed)) return i
-    buf[offset + i] = parsed
+    if ((i + offset >= dst.length) || (i >= src.length)) break
+    dst[i + offset] = src[i]
   }
   return i
 }
 
-function utf8Write (buf, string, offset, length) {
-  return blitBuffer(utf8ToBytes(string, buf.length - offset), buf, offset, length)
+function isnan (val) {
+  return val !== val // eslint-disable-line no-self-compare
 }
 
-function asciiWrite (buf, string, offset, length) {
-  return blitBuffer(asciiToBytes(string), buf, offset, length)
+},{"base64-js":37,"ieee754":38,"isarray":39,"buffer":13}],3:[function(require,module,exports) {
+var Buffer = require("buffer").Buffer;
+function FilerBuffer(subject, encoding, nonZero) {
+
+  // Automatically turn ArrayBuffer into Uint8Array so that underlying
+  // Buffer code doesn't just throw away and ignore ArrayBuffer data.
+  if (subject instanceof ArrayBuffer) {
+    subject = new Uint8Array(subject);
+  }
+
+  return new Buffer(subject, encoding, nonZero);
+};
+
+// Inherit prototype from Buffer
+FilerBuffer.prototype = Object.create(Buffer.prototype);
+FilerBuffer.prototype.constructor = FilerBuffer;
+
+// Also copy static methods onto FilerBuffer ctor
+Object.keys(Buffer).forEach(function (p) {
+  if (Buffer.hasOwnProperty(p)) {
+    FilerBuffer[p] = Buffer[p];
+  }
+});
+
+module.exports = FilerBuffer;
+},{"buffer":13}],53:[function(require,module,exports) {
+var global = arguments[3];
+var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
+var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
+var IDB_RW = require('../constants.js').IDB_RW;
+var IDB_RO = require('../constants.js').IDB_RO;
+var Errors = require('../errors.js');
+var FilerBuffer = require('../buffer.js');
+
+var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB;
+
+function IndexedDBContext(db, mode) {
+  this.db = db;
+  this.mode = mode;
 }
 
-function latin1Write (buf, string, offset, length) {
-  return asciiWrite(buf, string, offset, length)
-}
+IndexedDBContext.prototype._getObjectStore = function () {
+  if (this.objectStore) {
+    return this.objectStore;
+  }
 
-function base64Write (buf, string, offset, length) {
-  return blitBuffer(base64ToBytes(string), buf, offset, length)
-}
+  var transaction = this.db.transaction(FILE_STORE_NAME, this.mode);
+  this.objectStore = transaction.objectStore(FILE_STORE_NAME);
+  return this.objectStore;
+};
 
-function ucs2Write (buf, string, offset, length) {
-  return blitBuffer(utf16leToBytes(string, buf.length - offset), buf, offset, length)
-}
+IndexedDBContext.prototype.clear = function (callback) {
+  try {
+    var objectStore = this._getObjectStore();
+    var request = objectStore.clear();
+    request.onsuccess = function () {
+      callback();
+    };
+    request.onerror = function (event) {
+      event.preventDefault();
+      callback(event.error);
+    };
+  } catch (err) {
+    callback(err);
+  }
+};
 
-Buffer.prototype.write = function write (string, offset, length, encoding) {
-  // Buffer#write(string)
-  if (offset === undefined) {
-    encoding = 'utf8'
-    length = this.length
-    offset = 0
-  // Buffer#write(string, encoding)
-  } else if (length === undefined && typeof offset === 'string') {
-    encoding = offset
-    length = this.length
-    offset = 0
-  // Buffer#write(string, offset[, length][, encoding])
-  } else if (isFinite(offset)) {
-    offset = offset | 0
-    if (isFinite(length)) {
-      length = length | 0
-      if (encoding === undefined) encoding = 'utf8'
-    } else {
-      encoding = length
-      length = undefined
+IndexedDBContext.prototype._get = function (key, callback) {
+  try {
+    var objectStore = this._getObjectStore();
+    var request = objectStore.get(key);
+    request.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(null, result);
+    };
+    request.onerror = function (event) {
+      event.preventDefault();
+      callback(event.error);
+    };
+  } catch (err) {
+    callback(err);
+  }
+};
+IndexedDBContext.prototype.getObject = function (key, callback) {
+  this._get(key, callback);
+};
+IndexedDBContext.prototype.getBuffer = function (key, callback) {
+  this._get(key, function (err, arrayBuffer) {
+    if (err) {
+      return callback(err);
     }
-  // legacy write(string, encoding, offset, length) - remove in v0.13
-  } else {
-    throw new Error(
-      'Buffer.write(string, encoding, offset[, length]) is no longer supported'
-    )
+    callback(null, new FilerBuffer(arrayBuffer));
+  });
+};
+
+IndexedDBContext.prototype._put = function (key, value, callback) {
+  try {
+    var objectStore = this._getObjectStore();
+    var request = objectStore.put(value, key);
+    request.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(null, result);
+    };
+    request.onerror = function (event) {
+      event.preventDefault();
+      callback(event.error);
+    };
+  } catch (err) {
+    callback(err);
   }
+};
+IndexedDBContext.prototype.putObject = function (key, value, callback) {
+  this._put(key, value, callback);
+};
+IndexedDBContext.prototype.putBuffer = function (key, uint8BackedBuffer, callback) {
+  var buf = uint8BackedBuffer.buffer;
+  this._put(key, buf, callback);
+};
 
-  var remaining = this.length - offset
-  if (length === undefined || length > remaining) length = remaining
-
-  if ((string.length > 0 && (length < 0 || offset < 0)) || offset > this.length) {
-    throw new RangeError('Attempt to write outside buffer bounds')
+IndexedDBContext.prototype.delete = function (key, callback) {
+  try {
+    var objectStore = this._getObjectStore();
+    var request = objectStore.delete(key);
+    request.onsuccess = function onsuccess(event) {
+      var result = event.target.result;
+      callback(null, result);
+    };
+    request.onerror = function (event) {
+      event.preventDefault();
+      callback(event.error);
+    };
+  } catch (err) {
+    callback(err);
   }
+};
 
-  if (!encoding) encoding = 'utf8'
-
-  var loweredCase = false
-  for (;;) {
-    switch (encoding) {
-      case 'hex':
-        return hexWrite(this, string, offset, length)
-
-      case 'utf8':
-      case 'utf-8':
-        return utf8Write(this, string, offset, length)
-
-      case 'ascii':
-        return asciiWrite(this, string, offset, length)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-      case 'latin1':
-      case 'binary':
-        return latin1Write(this, string, offset, length)
-
-<<<<<<< HEAD
-  if (start < 0 || start >= this.length) throw new RangeError('start out of bounds')
-  if (end < 0 || end > this.length) throw new RangeError('end out of bounds')
-=======
-      case 'base64':
-        // Warning: maxLength not taken into account in base64Write
-        return base64Write(this, string, offset, length)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
-        return ucs2Write(this, string, offset, length)
-
-      default:
-        if (loweredCase) throw new TypeError('Unknown encoding: ' + encoding)
-        encoding = ('' + encoding).toLowerCase()
-        loweredCase = true
-    }
-  }
+function IndexedDB(name) {
+  this.name = name || FILE_SYSTEM_NAME;
+  this.db = null;
 }
+IndexedDB.isSupported = function () {
+  return !!indexedDB;
+};
 
-<<<<<<< HEAD
-/**
- * Creates a new `ArrayBuffer` with the *copied* memory of the buffer instance.
- * Added in Node 0.12. Only available in browsers that support ArrayBuffer.
- */
-Buffer.prototype.toArrayBuffer = function toArrayBuffer () {
-  if (typeof Uint8Array !== 'undefined') {
-    if (Buffer.TYPED_ARRAY_SUPPORT) {
-      return (new Buffer(this)).buffer
-    } else {
-      var buf = new Uint8Array(this.length)
-      for (var i = 0, len = buf.length; i < len; i += 1) {
-        buf[i] = this[i]
+IndexedDB.prototype.open = function (callback) {
+  var that = this;
+
+  // Bail if we already have a db open
+  if (that.db) {
+    return callback();
+  }
+
+  try {
+    // NOTE: we're not using versioned databases.
+    var openRequest = indexedDB.open(that.name);
+
+    // If the db doesn't exist, we'll create it
+    openRequest.onupgradeneeded = function onupgradeneeded(event) {
+      var db = event.target.result;
+
+      if (db.objectStoreNames.contains(FILE_STORE_NAME)) {
+        db.deleteObjectStore(FILE_STORE_NAME);
       }
-      return buf.buffer
-    }
-  } else {
-    throw new TypeError('Buffer.toArrayBuffer not supported in this browser')
-=======
-Buffer.prototype.toJSON = function toJSON () {
-  return {
-    type: 'Buffer',
-    data: Array.prototype.slice.call(this._arr || this, 0)
-  }
-}
+      db.createObjectStore(FILE_STORE_NAME);
+    };
 
-function base64Slice (buf, start, end) {
-  if (start === 0 && end === buf.length) {
-    return base64.fromByteArray(buf)
-  } else {
-    return base64.fromByteArray(buf.slice(start, end))
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-}
-
-function utf8Slice (buf, start, end) {
-  end = Math.min(buf.length, end)
-  var res = []
-
-  var i = start
-  while (i < end) {
-    var firstByte = buf[i]
-    var codePoint = null
-    var bytesPerSequence = (firstByte > 0xEF) ? 4
-      : (firstByte > 0xDF) ? 3
-      : (firstByte > 0xBF) ? 2
-      : 1
-
-    if (i + bytesPerSequence <= end) {
-      var secondByte, thirdByte, fourthByte, tempCodePoint
-
+<<<<<<< HEAD
       switch (bytesPerSequence) {
         case 1:
           if (firstByte < 0x80) {
@@ -3506,58 +3779,71 @@ Buffer._augment = function _augment (arr) {
 =======
     res.push(codePoint)
     i += bytesPerSequence
+=======
+    openRequest.onsuccess = function onsuccess(event) {
+      that.db = event.target.result;
+      callback();
+    };
+    openRequest.onerror = function onerror(event) {
+      event.preventDefault();
+      callback(event.error);
+    };
+  } catch (err) {
+    callback(err);
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+};
 
-  return decodeCodePointsArray(res)
-}
+IndexedDB.prototype.getReadOnlyContext = function () {
+  return new IndexedDBContext(this.db, IDB_RO);
+};
+IndexedDB.prototype.getReadWriteContext = function () {
+  return new IndexedDBContext(this.db, IDB_RW);
+};
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
 =======
 <<<<<<< HEAD
 var INVALID_BASE64_RE = /[^+\/0-9A-z\-]/g
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-function base64clean (str) {
-  // Node strips out invalid characters like \n and \t from the string, base64-js does not
-  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
-  // Node converts strings with length < 2 to ''
-  if (str.length < 2) return ''
-  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
-  while (str.length % 4 !== 0) {
-    str = str + '='
 =======
-// Based on http://stackoverflow.com/a/22747272/680742, the browser with
-// the lowest limit is Chrome, with 0x10000 args.
-// We go 1 magnitude less, for safety
-var MAX_ARGUMENTS_LENGTH = 0x1000
+module.exports = IndexedDB;
+},{"../constants.js":16,"../errors.js":5,"../buffer.js":3}],69:[function(require,module,exports) {
+/*
+ * base64-arraybuffer
+ * https://github.com/niklasvh/base64-arraybuffer
+ *
+ * Copyright (c) 2012 Niklas von Hertzen
+ * Licensed under the MIT license.
+ */
+(function () {
+  "use strict";
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
-function decodeCodePointsArray (codePoints) {
-  var len = codePoints.length
-  if (len <= MAX_ARGUMENTS_LENGTH) {
-    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+  // Use a lookup table to find the index.
+  var lookup = new Uint8Array(256);
+  for (var i = 0; i < chars.length; i++) {
+    lookup[chars.charCodeAt(i)] = i;
   }
 
-  // Decode in chunks to avoid "call stack size exceeded".
-  var res = ''
-  var i = 0
-  while (i < len) {
-    res += String.fromCharCode.apply(
-      String,
-      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
-    )
-  }
-  return res
-}
+  exports.encode = function (arraybuffer) {
+    var bytes = new Uint8Array(arraybuffer),
+        i,
+        len = bytes.length,
+        base64 = "";
+
+    for (i = 0; i < len; i += 3) {
+      base64 += chars[bytes[i] >> 2];
+      base64 += chars[(bytes[i] & 3) << 4 | bytes[i + 1] >> 4];
+      base64 += chars[(bytes[i + 1] & 15) << 2 | bytes[i + 2] >> 6];
+      base64 += chars[bytes[i + 2] & 63];
+    }
 
 <<<<<<< HEAD
-function toHex (n) {
-  if (n < 16) return '0' + n.toString(16)
-  return n.toString(16)
-}
-
 function utf8ToBytes (string, units) {
   units = units || Infinity
   var codePoint
@@ -3632,49 +3918,109 @@ function utf8ToBytes (string, units) {
       )
     } else {
       throw new Error('Invalid code point')
+=======
+    if (len % 3 === 2) {
+      base64 = base64.substring(0, base64.length - 1) + "=";
+    } else if (len % 3 === 1) {
+      base64 = base64.substring(0, base64.length - 2) + "==";
     }
+
+    return base64;
+  };
+
+  exports.decode = function (base64) {
+    var bufferLength = base64.length * 0.75,
+        len = base64.length,
+        i,
+        p = 0,
+        encoded1,
+        encoded2,
+        encoded3,
+        encoded4;
+
+    if (base64[base64.length - 1] === "=") {
+      bufferLength--;
+      if (base64[base64.length - 2] === "=") {
+        bufferLength--;
+      }
+    }
+
+    var arraybuffer = new ArrayBuffer(bufferLength),
+        bytes = new Uint8Array(arraybuffer);
+
+    for (i = 0; i < len; i += 4) {
+      encoded1 = lookup[base64.charCodeAt(i)];
+      encoded2 = lookup[base64.charCodeAt(i + 1)];
+      encoded3 = lookup[base64.charCodeAt(i + 2)];
+      encoded4 = lookup[base64.charCodeAt(i + 3)];
+
+      bytes[p++] = encoded1 << 2 | encoded2 >> 4;
+      bytes[p++] = (encoded2 & 15) << 4 | encoded3 >> 2;
+      bytes[p++] = (encoded3 & 3) << 6 | encoded4 & 63;
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+    }
+
+    return arraybuffer;
+  };
+})();
+},{}],54:[function(require,module,exports) {
+var global = arguments[3];
+var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
+var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
+var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
+var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
+var WSQL_DESC = require('../constants.js').WSQL_DESC;
+var Errors = require('../errors.js');
+var FilerBuffer = require('../buffer.js');
+var base64ArrayBuffer = require('base64-arraybuffer');
+
+function WebSQLContext(db, isReadOnly) {
+  var that = this;
+  this.getTransaction = function (callback) {
+    if (that.transaction) {
+      callback(that.transaction);
+      return;
+    }
+    // Either do readTransaction() (read-only) or transaction() (read/write)
+    db[isReadOnly ? 'readTransaction' : 'transaction'](function (transaction) {
+      that.transaction = transaction;
+      callback(transaction);
+    });
+  };
+}
+
+WebSQLContext.prototype.clear = function (callback) {
+  function onError(transaction, error) {
+    callback(error);
   }
-
-  return bytes
-}
-
-function asciiToBytes (str) {
-  var byteArray = []
-  for (var i = 0; i < str.length; i++) {
-    // Node's code seems to be doing this and not & 0x7F..
-    byteArray.push(str.charCodeAt(i) & 0xFF)
+  function onSuccess(transaction, result) {
+    callback(null);
   }
-  return byteArray
-}
+  this.getTransaction(function (transaction) {
+    transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + ";", [], onSuccess, onError);
+  });
+};
 
-function utf16leToBytes (str, units) {
-  var c, hi, lo
-  var byteArray = []
-  for (var i = 0; i < str.length; i++) {
-    if ((units -= 2) < 0) break
-
-    c = str.charCodeAt(i)
-    hi = c >> 8
-    lo = c % 256
-    byteArray.push(lo)
-    byteArray.push(hi)
+function _get(getTransaction, key, callback) {
+  function onSuccess(transaction, result) {
+    // If the key isn't found, return null
+    var value = result.rows.length === 0 ? null : result.rows.item(0).data;
+    callback(null, value);
   }
-
-  return byteArray
-}
-
-function base64ToBytes (str) {
-  return base64.toByteArray(base64clean(str))
-}
-
-function blitBuffer (src, dst, offset, length) {
-  for (var i = 0; i < length; i++) {
-    if ((i + offset >= dst.length) || (i >= src.length)) break
-    dst[i + offset] = src[i]
+  function onError(transaction, error) {
+    callback(error);
   }
-  return i
+  getTransaction(function (transaction) {
+    transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ? LIMIT 1;", [key], onSuccess, onError);
+  });
 }
+WebSQLContext.prototype.getObject = function (key, callback) {
+  _get(this.getTransaction, key, function (err, result) {
+    if (err) {
+      return callback(err);
+    }
 
+<<<<<<< HEAD
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"base64-js":6,"ieee754":9,"isarray":8}],8:[function(require,module,exports){
 var toString = {}.toString;
@@ -3758,17 +4104,76 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
       e = 0
     }
+=======
+    try {
+      if (result) {
+        result = JSON.parse(result);
+      }
+    } catch (e) {
+      return callback(e);
+    }
+
+    callback(null, result);
+  });
+};
+WebSQLContext.prototype.getBuffer = function (key, callback) {
+  _get(this.getTransaction, key, function (err, result) {
+    if (err) {
+      return callback(err);
+    }
+
+    // Deal with zero-length ArrayBuffers, which will be encoded as ''
+    if (result || result === '') {
+      var arrayBuffer = base64ArrayBuffer.decode(result);
+      result = new FilerBuffer(arrayBuffer);
+    }
+
+    callback(null, result);
+  });
+};
+
+function _put(getTransaction, key, value, callback) {
+  function onSuccess(transaction, result) {
+    callback(null);
   }
-
-  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
-
-  e = (e << mLen) | m
-  eLen += mLen
-  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
-
-  buffer[offset + i - d] |= s * 128
+  function onError(transaction, error) {
+    callback(error);
+  }
+  getTransaction(function (transaction) {
+    transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data) VALUES (?, ?);", [key, value], onSuccess, onError);
+  });
 }
+WebSQLContext.prototype.putObject = function (key, value, callback) {
+  var json = JSON.stringify(value);
+  _put(this.getTransaction, key, json, callback);
+};
+WebSQLContext.prototype.putBuffer = function (key, uint8BackedBuffer, callback) {
+  var base64 = base64ArrayBuffer.encode(uint8BackedBuffer.buffer);
+  _put(this.getTransaction, key, base64, callback);
+};
 
+WebSQLContext.prototype.delete = function (key, callback) {
+  function onSuccess(transaction, result) {
+    callback(null);
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+  }
+  function onError(transaction, error) {
+    callback(error);
+  }
+  this.getTransaction(function (transaction) {
+    transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + " WHERE id = ?;", [key], onSuccess, onError);
+  });
+};
+
+function WebSQL(name) {
+  this.name = name || FILE_SYSTEM_NAME;
+  this.db = null;
+}
+WebSQL.isSupported = function () {
+  return !!global.openDatabase;
+};
+
+<<<<<<< HEAD
 },{}],10:[function(require,module,exports){
 ;(function () { // closure for web browsers
 
@@ -4023,1083 +4428,473 @@ function Entry (key, value, lu, length, now) {
 }
 
 })()
+=======
+WebSQL.prototype.open = function (callback) {
+  var that = this;
 
-},{}],11:[function(require,module,exports){
-;(function (require, exports, module, platform) {
+  // Bail if we already have a db open
+  if (that.db) {
+    return callback();
+  }
 
-if (module) module.exports = minimatch
-else exports.minimatch = minimatch
+  var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
+  if (!db) {
+    callback("[WebSQL] Unable to open database.");
+    return;
+  }
 
-if (!require) {
-  require = function (id) {
-    switch (id) {
-      case "sigmund": return function sigmund (obj) {
-        return JSON.stringify(obj)
-      }
-      case "path": return { basename: function (f) {
-        f = f.split(/[\/\\]/)
-        var e = f.pop()
-        if (!e) e = f.pop()
-        return e
-      }}
-      case "lru-cache": return function LRUCache () {
-        // not quite an LRU, but still space-limited.
-        var cache = {}
-        var cnt = 0
-        this.set = function (k, v) {
-          cnt ++
-          if (cnt >= 100) cache = {}
-          cache[k] = v
-        }
-        this.get = function (k) { return cache[k] }
-      }
+  function onError(transaction, error) {
+    if (error.code === 5) {
+      callback(new Errors.EINVAL('WebSQL cannot be accessed. If private browsing is enabled, disable it.'));
     }
+    callback(error);
   }
-}
-
-minimatch.Minimatch = Minimatch
-
-var LRU = require("lru-cache")
-  , cache = minimatch.cache = new LRU({max: 100})
-  , GLOBSTAR = minimatch.GLOBSTAR = Minimatch.GLOBSTAR = {}
-  , sigmund = require("sigmund")
-
-var path = require("path")
-  // any single thing other than /
-  // don't need to escape / when using new RegExp()
-  , qmark = "[^/]"
-
-  // * => any number of characters
-  , star = qmark + "*?"
-
-  // ** when dots are allowed.  Anything goes, except .. and .
-  // not (^ or / followed by one or two dots followed by $ or /),
-  // followed by anything, any number of times.
-  , twoStarDot = "(?:(?!(?:\\\/|^)(?:\\.{1,2})($|\\\/)).)*?"
-
-  // not a ^ or / followed by a dot,
-  // followed by anything, any number of times.
-  , twoStarNoDot = "(?:(?!(?:\\\/|^)\\.).)*?"
-
-  // characters that need to be escaped in RegExp.
-  , reSpecials = charSet("().*{}+?[]^$\\!")
-
-// "abc" -> { a:true, b:true, c:true }
-function charSet (s) {
-  return s.split("").reduce(function (set, c) {
-    set[c] = true
-    return set
-  }, {})
-}
-
-// normalizes slashes.
-var slashSplit = /\/+/
-
-minimatch.filter = filter
-function filter (pattern, options) {
-  options = options || {}
-  return function (p, i, list) {
-    return minimatch(p, pattern, options)
-  }
-}
-
-function ext (a, b) {
-  a = a || {}
-  b = b || {}
-  var t = {}
-  Object.keys(b).forEach(function (k) {
-    t[k] = b[k]
-  })
-  Object.keys(a).forEach(function (k) {
-    t[k] = a[k]
-  })
-  return t
-}
-
-minimatch.defaults = function (def) {
-  if (!def || !Object.keys(def).length) return minimatch
-
-  var orig = minimatch
-
-  var m = function minimatch (p, pattern, options) {
-    return orig.minimatch(p, pattern, ext(def, options))
+  function onSuccess(transaction, result) {
+    that.db = db;
+    callback();
   }
 
-  m.Minimatch = function Minimatch (pattern, options) {
-    return new orig.Minimatch(pattern, ext(def, options))
-  }
-
-  return m
-}
-
-Minimatch.defaults = function (def) {
-  if (!def || !Object.keys(def).length) return Minimatch
-  return minimatch.defaults(def).Minimatch
-}
-
-
-function minimatch (p, pattern, options) {
-  if (typeof pattern !== "string") {
-    throw new TypeError("glob pattern string required")
-  }
-
-  if (!options) options = {}
-
-  // shortcut: comments match nothing.
-  if (!options.nocomment && pattern.charAt(0) === "#") {
-    return false
-  }
-
-  // "" only matches ""
-  if (pattern.trim() === "") return p === ""
-
-  return new Minimatch(pattern, options).match(p)
-}
-
-function Minimatch (pattern, options) {
-  if (!(this instanceof Minimatch)) {
-    return new Minimatch(pattern, options, cache)
-  }
-
-  if (typeof pattern !== "string") {
-    throw new TypeError("glob pattern string required")
-  }
-
-  if (!options) options = {}
-  pattern = pattern.trim()
-
-  // windows: need to use /, not \
-  // On other platforms, \ is a valid (albeit bad) filename char.
-  if (platform === "win32") {
-    pattern = pattern.split("\\").join("/")
-  }
-
-  // lru storage.
-  // these things aren't particularly big, but walking down the string
-  // and turning it into a regexp can get pretty costly.
-  var cacheKey = pattern + "\n" + sigmund(options)
-  var cached = minimatch.cache.get(cacheKey)
-  if (cached) return cached
-  minimatch.cache.set(cacheKey, this)
-
-  this.options = options
-  this.set = []
-  this.pattern = pattern
-  this.regexp = null
-  this.negate = false
-  this.comment = false
-  this.empty = false
-
-  // make the set of regexps etc.
-  this.make()
-}
-
-Minimatch.prototype.debug = function() {}
-
-Minimatch.prototype.make = make
-function make () {
-  // don't do it more than once.
-  if (this._made) return
-
-  var pattern = this.pattern
-  var options = this.options
-
-  // empty patterns and comments match nothing.
-  if (!options.nocomment && pattern.charAt(0) === "#") {
-    this.comment = true
-    return
-  }
-  if (!pattern) {
-    this.empty = true
-    return
-  }
-
-  // step 1: figure out negation, etc.
-  this.parseNegate()
-
-  // step 2: expand braces
-  var set = this.globSet = this.braceExpand()
-
-  if (options.debug) this.debug = console.error
-
-  this.debug(this.pattern, set)
-
-  // step 3: now we have a set, so turn each one into a series of path-portion
-  // matching patterns.
-  // These will be regexps, except in the case of "**", which is
-  // set to the GLOBSTAR object for globstar behavior,
-  // and will not contain any / characters
-  set = this.globParts = set.map(function (s) {
-    return s.split(slashSplit)
-  })
-
-  this.debug(this.pattern, set)
-
-  // glob --> regexps
-  set = set.map(function (s, si, set) {
-    return s.map(this.parse, this)
-  }, this)
-
-  this.debug(this.pattern, set)
-
-  // filter out everything that didn't compile properly.
-  set = set.filter(function (s) {
-    return -1 === s.indexOf(false)
-  })
-
-  this.debug(this.pattern, set)
-
-  this.set = set
-}
-
-Minimatch.prototype.parseNegate = parseNegate
-function parseNegate () {
-  var pattern = this.pattern
-    , negate = false
-    , options = this.options
-    , negateOffset = 0
-
-  if (options.nonegate) return
-
-  for ( var i = 0, l = pattern.length
-      ; i < l && pattern.charAt(i) === "!"
-      ; i ++) {
-    negate = !negate
-    negateOffset ++
-  }
-
-  if (negateOffset) this.pattern = pattern.substr(negateOffset)
-  this.negate = negate
-}
-
-// Brace expansion:
-// a{b,c}d -> abd acd
-// a{b,}c -> abc ac
-// a{0..3}d -> a0d a1d a2d a3d
-// a{b,c{d,e}f}g -> abg acdfg acefg
-// a{b,c}d{e,f}g -> abdeg acdeg abdeg abdfg
-//
-// Invalid sets are not expanded.
-// a{2..}b -> a{2..}b
-// a{b}c -> a{b}c
-minimatch.braceExpand = function (pattern, options) {
-  return new Minimatch(pattern, options).braceExpand()
-}
-
-Minimatch.prototype.braceExpand = braceExpand
-
-function pad(n, width, z) {
-  z = z || '0';
-  n = n + '';
-  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-}
-
-function braceExpand (pattern, options) {
-  options = options || this.options
-  pattern = typeof pattern === "undefined"
-    ? this.pattern : pattern
-
-  if (typeof pattern === "undefined") {
-    throw new Error("undefined pattern")
-  }
-
-  if (options.nobrace ||
-      !pattern.match(/\{.*\}/)) {
-    // shortcut. no need to expand.
-    return [pattern]
-  }
-
-  var escaping = false
-
-  // examples and comments refer to this crazy pattern:
-  // a{b,c{d,e},{f,g}h}x{y,z}
-  // expected:
-  // abxy
-  // abxz
-  // acdxy
-  // acdxz
-  // acexy
-  // acexz
-  // afhxy
-  // afhxz
-  // aghxy
-  // aghxz
-
-  // everything before the first \{ is just a prefix.
-  // So, we pluck that off, and work with the rest,
-  // and then prepend it to everything we find.
-  if (pattern.charAt(0) !== "{") {
-    this.debug(pattern)
-    var prefix = null
-    for (var i = 0, l = pattern.length; i < l; i ++) {
-      var c = pattern.charAt(i)
-      this.debug(i, c)
-      if (c === "\\") {
-        escaping = !escaping
-      } else if (c === "{" && !escaping) {
-        prefix = pattern.substr(0, i)
-        break
-      }
+  // Create the table and index we'll need to store the fs data.
+  db.transaction(function (transaction) {
+    function createIndex(transaction) {
+      transaction.executeSql("CREATE INDEX IF NOT EXISTS idx_" + FILE_STORE_NAME + "_id" + " on " + FILE_STORE_NAME + " (id);", [], onSuccess, onError);
     }
+    transaction.executeSql("CREATE TABLE IF NOT EXISTS " + FILE_STORE_NAME + " (id unique, data TEXT);", [], createIndex, onError);
+  });
+};
+WebSQL.prototype.getReadOnlyContext = function () {
+  return new WebSQLContext(this.db, true);
+};
+WebSQL.prototype.getReadWriteContext = function () {
+  return new WebSQLContext(this.db, false);
+};
 
-    // actually no sets, all { were escaped.
-    if (prefix === null) {
-      this.debug("no sets")
-      return [pattern]
-    }
+module.exports = WebSQL;
+},{"../constants.js":16,"../errors.js":5,"../buffer.js":3,"base64-arraybuffer":69}],42:[function(require,module,exports) {
 
-   var tail = braceExpand.call(this, pattern.substr(i), options)
-    return tail.map(function (t) {
-      return prefix + t
-    })
-  }
+// shim for using process in browser
+var process = module.exports = {};
 
-  // now we have something like:
-  // {b,c{d,e},{f,g}h}x{y,z}
-  // walk through the set, expanding each part, until
-  // the set ends.  then, we'll expand the suffix.
-  // If the set only has a single member, then'll put the {} back
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
 
-  // first, handle numeric sets, since they're easier
-  var numset = pattern.match(/^\{(-?[0-9]+)\.\.(-?[0-9]+)\}/)
-  if (numset) {
-    this.debug("numset", numset[1], numset[2])
-    var suf = braceExpand.call(this, pattern.substr(numset[0].length), options)
-      , start = +numset[1]
-      , needPadding = numset[1][0] === '0'
-      , startWidth = numset[1].length
-      , padded
-      , end = +numset[2]
-      , inc = start > end ? -1 : 1
-      , set = []
+var cachedSetTimeout;
+var cachedClearTimeout;
 
-    for (var i = start; i != (end + inc); i += inc) {
-      padded = needPadding ? pad(i, startWidth) : i + ''
-      // append all the suffixes
-      for (var ii = 0, ll = suf.length; ii < ll; ii ++) {
-        set.push(padded + suf[ii])
-      }
-    }
-    return set
-  }
-
-  // ok, walk through the set
-  // We hope, somewhat optimistically, that there
-  // will be a } at the end.
-  // If the closing brace isn't found, then the pattern is
-  // interpreted as braceExpand("\\" + pattern) so that
-  // the leading \{ will be interpreted literally.
-  var i = 1 // skip the \{
-    , depth = 1
-    , set = []
-    , member = ""
-    , sawEnd = false
-    , escaping = false
-
-  function addMember () {
-    set.push(member)
-    member = ""
-  }
-
-  this.debug("Entering for")
-  FOR: for (i = 1, l = pattern.length; i < l; i ++) {
-    var c = pattern.charAt(i)
-    this.debug("", i, c)
-
-    if (escaping) {
-      escaping = false
-      member += "\\" + c
-    } else {
-      switch (c) {
-        case "\\":
-          escaping = true
-          continue
-
-        case "{":
-          depth ++
-          member += "{"
-          continue
-
-        case "}":
-          depth --
-          // if this closes the actual set, then we're done
-          if (depth === 0) {
-            addMember()
-            // pluck off the close-brace
-            i ++
-            break FOR
-          } else {
-            member += c
-            continue
-          }
-
-        case ",":
-          if (depth === 1) {
-            addMember()
-          } else {
-            member += c
-          }
-          continue
-
-        default:
-          member += c
-          continue
-      } // switch
-    } // else
-  } // for
-
-  // now we've either finished the set, and the suffix is
-  // pattern.substr(i), or we have *not* closed the set,
-  // and need to escape the leading brace
-  if (depth !== 0) {
-    this.debug("didn't close", pattern)
-    return braceExpand.call(this, "\\" + pattern, options)
-  }
-
-  // x{y,z} -> ["xy", "xz"]
-  this.debug("set", set)
-  this.debug("suffix", pattern.substr(i))
-  var suf = braceExpand.call(this, pattern.substr(i), options)
-  // ["b", "c{d,e}","{f,g}h"] ->
-  //   [["b"], ["cd", "ce"], ["fh", "gh"]]
-  var addBraces = set.length === 1
-  this.debug("set pre-expanded", set)
-  set = set.map(function (p) {
-    return braceExpand.call(this, p, options)
-  }, this)
-  this.debug("set expanded", set)
-
-
-  // [["b"], ["cd", "ce"], ["fh", "gh"]] ->
-  //   ["b", "cd", "ce", "fh", "gh"]
-  set = set.reduce(function (l, r) {
-    return l.concat(r)
-  })
-
-  if (addBraces) {
-    set = set.map(function (s) {
-      return "{" + s + "}"
-    })
-  }
-
-  // now attach the suffixes.
-  var ret = []
-  for (var i = 0, l = set.length; i < l; i ++) {
-    for (var ii = 0, ll = suf.length; ii < ll; ii ++) {
-      ret.push(set[i] + suf[ii])
-    }
-  }
-  return ret
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
 }
-
-// parse a component of the expanded set.
-// At this point, no pattern may contain "/" in it
-// so we're going to return a 2d array, where each entry is the full
-// pattern, split on '/', and then turned into a regular expression.
-// A regexp is made at the end which joins each array with an
-// escaped /, and another full one which joins each regexp with |.
-//
-// Following the lead of Bash 4.1, note that "**" only has special meaning
-// when it is the *only* thing in a path portion.  Otherwise, any series
-// of * is equivalent to a single *.  Globstar behavior is enabled by
-// default, and can be disabled by setting options.noglobstar.
-Minimatch.prototype.parse = parse
-var SUBPARSE = {}
-function parse (pattern, isSub) {
-  var options = this.options
-
-  // shortcuts
-  if (!options.noglobstar && pattern === "**") return GLOBSTAR
-  if (pattern === "") return ""
-
-  var re = ""
-    , hasMagic = !!options.nocase
-    , escaping = false
-    // ? => one single character
-    , patternListStack = []
-    , plType
-    , stateChar
-    , inClass = false
-    , reClassStart = -1
-    , classStart = -1
-    // . and .. never match anything that doesn't start with .,
-    // even when options.dot is set.
-    , patternStart = pattern.charAt(0) === "." ? "" // anything
-      // not (start or / followed by . or .. followed by / or end)
-      : options.dot ? "(?!(?:^|\\\/)\\.{1,2}(?:$|\\\/))"
-      : "(?!\\.)"
-    , self = this
-
-  function clearStateChar () {
-    if (stateChar) {
-      // we had some state-tracking character
-      // that wasn't consumed by this pass.
-      switch (stateChar) {
-        case "*":
-          re += star
-          hasMagic = true
-          break
-        case "?":
-          re += qmark
-          hasMagic = true
-          break
-        default:
-          re += "\\"+stateChar
-          break
-      }
-      self.debug('clearStateChar %j %j', stateChar, re)
-      stateChar = false
-    }
-  }
-
-  for ( var i = 0, len = pattern.length, c
-      ; (i < len) && (c = pattern.charAt(i))
-      ; i ++ ) {
-
-    this.debug("%s\t%s %s %j", pattern, i, re, c)
-
-    // skip over any that are escaped.
-    if (escaping && reSpecials[c]) {
-      re += "\\" + c
-      escaping = false
-      continue
-    }
-
-    SWITCH: switch (c) {
-      case "/":
-        // completely not allowed, even escaped.
-        // Should already be path-split by now.
-        return false
-
-      case "\\":
-        clearStateChar()
-        escaping = true
-        continue
-
-      // the various stateChar values
-      // for the "extglob" stuff.
-      case "?":
-      case "*":
-      case "+":
-      case "@":
-      case "!":
-        this.debug("%s\t%s %s %j <-- stateChar", pattern, i, re, c)
-
-        // all of those are literals inside a class, except that
-        // the glob [!a] means [^a] in regexp
-        if (inClass) {
-          this.debug('  in class')
-          if (c === "!" && i === classStart + 1) c = "^"
-          re += c
-          continue
-        }
-
-        // if we already have a stateChar, then it means
-        // that there was something like ** or +? in there.
-        // Handle the stateChar, then proceed with this one.
-        self.debug('call clearStateChar %j', stateChar)
-        clearStateChar()
-        stateChar = c
-        // if extglob is disabled, then +(asdf|foo) isn't a thing.
-        // just clear the statechar *now*, rather than even diving into
-        // the patternList stuff.
-        if (options.noext) clearStateChar()
-        continue
-
-      case "(":
-        if (inClass) {
-          re += "("
-          continue
-        }
-
-        if (!stateChar) {
-          re += "\\("
-          continue
-        }
-
-        plType = stateChar
-        patternListStack.push({ type: plType
-                              , start: i - 1
-                              , reStart: re.length })
-        // negation is (?:(?!js)[^/]*)
-        re += stateChar === "!" ? "(?:(?!" : "(?:"
-        this.debug('plType %j %j', stateChar, re)
-        stateChar = false
-        continue
-
-      case ")":
-        if (inClass || !patternListStack.length) {
-          re += "\\)"
-          continue
-        }
-
-        clearStateChar()
-        hasMagic = true
-        re += ")"
-        plType = patternListStack.pop().type
-        // negation is (?:(?!js)[^/]*)
-        // The others are (?:<pattern>)<type>
-        switch (plType) {
-          case "!":
-            re += "[^/]*?)"
-            break
-          case "?":
-          case "+":
-          case "*": re += plType
-          case "@": break // the default anyway
-        }
-        continue
-
-      case "|":
-        if (inClass || !patternListStack.length || escaping) {
-          re += "\\|"
-          escaping = false
-          continue
-        }
-
-        clearStateChar()
-        re += "|"
-        continue
-
-      // these are mostly the same in regexp and glob
-      case "[":
-        // swallow any state-tracking char before the [
-        clearStateChar()
-
-        if (inClass) {
-          re += "\\" + c
-          continue
-        }
-
-        inClass = true
-        classStart = i
-        reClassStart = re.length
-        re += c
-        continue
-
-      case "]":
-        //  a right bracket shall lose its special
-        //  meaning and represent itself in
-        //  a bracket expression if it occurs
-        //  first in the list.  -- POSIX.2 2.8.3.2
-        if (i === classStart + 1 || !inClass) {
-          re += "\\" + c
-          escaping = false
-          continue
-        }
-
-        // finish up the class.
-        hasMagic = true
-        inClass = false
-        re += c
-        continue
-
-      default:
-        // swallow any state char that wasn't consumed
-        clearStateChar()
-
-        if (escaping) {
-          // no need
-          escaping = false
-        } else if (reSpecials[c]
-                   && !(c === "^" && inClass)) {
-          re += "\\"
-        }
-
-        re += c
-
-    } // switch
-  } // for
-
-
-  // handle the case where we left a class open.
-  // "[abc" is valid, equivalent to "\[abc"
-  if (inClass) {
-    // split where the last [ was, and escape it
-    // this is a huge pita.  We now have to re-walk
-    // the contents of the would-be class to re-translate
-    // any characters that were passed through as-is
-    var cs = pattern.substr(classStart + 1)
-      , sp = this.parse(cs, SUBPARSE)
-    re = re.substr(0, reClassStart) + "\\[" + sp[0]
-    hasMagic = hasMagic || sp[1]
-  }
-
-  // handle the case where we had a +( thing at the *end*
-  // of the pattern.
-  // each pattern list stack adds 3 chars, and we need to go through
-  // and escape any | chars that were passed through as-is for the regexp.
-  // Go through and escape them, taking care not to double-escape any
-  // | chars that were already escaped.
-  var pl
-  while (pl = patternListStack.pop()) {
-    var tail = re.slice(pl.reStart + 3)
-    // maybe some even number of \, then maybe 1 \, followed by a |
-    tail = tail.replace(/((?:\\{2})*)(\\?)\|/g, function (_, $1, $2) {
-      if (!$2) {
-        // the | isn't already escaped, so escape it.
-        $2 = "\\"
-      }
-
-      // need to escape all those slashes *again*, without escaping the
-      // one that we need for escaping the | character.  As it works out,
-      // escaping an even number of slashes can be done by simply repeating
-      // it exactly after itself.  That's why this trick works.
-      //
-      // I am sorry that you have to see this.
-      return $1 + $1 + $2 + "|"
-    })
-
-    this.debug("tail=%j\n   %s", tail, tail)
-    var t = pl.type === "*" ? star
-          : pl.type === "?" ? qmark
-          : "\\" + pl.type
-
-    hasMagic = true
-    re = re.slice(0, pl.reStart)
-       + t + "\\("
-       + tail
-  }
-
-  // handle trailing things that only matter at the very end.
-  clearStateChar()
-  if (escaping) {
-    // trailing \\
-    re += "\\\\"
-  }
-
-  // only need to apply the nodot start if the re starts with
-  // something that could conceivably capture a dot
-  var addPatternStart = false
-  switch (re.charAt(0)) {
-    case ".":
-    case "[":
-    case "(": addPatternStart = true
-  }
-
-  // if the re is not "" at this point, then we need to make sure
-  // it doesn't match against an empty path part.
-  // Otherwise a/* will match a/, which it should not.
-  if (re !== "" && hasMagic) re = "(?=.)" + re
-
-  if (addPatternStart) re = patternStart + re
-
-  // parsing just a piece of a larger pattern.
-  if (isSub === SUBPARSE) {
-    return [ re, hasMagic ]
-  }
-
-  // skip the regexp for non-magical patterns
-  // unescape anything in it, though, so that it'll be
-  // an exact match against a file etc.
-  if (!hasMagic) {
-    return globUnescape(pattern)
-  }
-
-  var flags = options.nocase ? "i" : ""
-    , regExp = new RegExp("^" + re + "$", flags)
-
-  regExp._glob = pattern
-  regExp._src = re
-
-  return regExp
+function defaultClearTimeout() {
+    throw new Error('clearTimeout has not been defined');
 }
-
-minimatch.makeRe = function (pattern, options) {
-  return new Minimatch(pattern, options || {}).makeRe()
-}
-
-Minimatch.prototype.makeRe = makeRe
-function makeRe () {
-  if (this.regexp || this.regexp === false) return this.regexp
-
-  // at this point, this.set is a 2d array of partial
-  // pattern strings, or "**".
-  //
-  // It's better to use .match().  This function shouldn't
-  // be used, really, but it's pretty convenient sometimes,
-  // when you just want to work with a regex.
-  var set = this.set
-
-  if (!set.length) return this.regexp = false
-  var options = this.options
-
-  var twoStar = options.noglobstar ? star
-      : options.dot ? twoStarDot
-      : twoStarNoDot
-    , flags = options.nocase ? "i" : ""
-
-  var re = set.map(function (pattern) {
-    return pattern.map(function (p) {
-      return (p === GLOBSTAR) ? twoStar
-           : (typeof p === "string") ? regExpEscape(p)
-           : p._src
-    }).join("\\\/")
-  }).join("|")
-
-  // must match entire pattern
-  // ending in a * or ** will make it less strict.
-  re = "^(?:" + re + ")$"
-
-  // can match anything, as long as it's not this.
-  if (this.negate) re = "^(?!" + re + ").*$"
-
-  try {
-    return this.regexp = new RegExp(re, flags)
-  } catch (ex) {
-    return this.regexp = false
-  }
-}
-
-minimatch.match = function (list, pattern, options) {
-  options = options || {}
-  var mm = new Minimatch(pattern, options)
-  list = list.filter(function (f) {
-    return mm.match(f)
-  })
-  if (mm.options.nonull && !list.length) {
-    list.push(pattern)
-  }
-  return list
-}
-
-Minimatch.prototype.match = match
-function match (f, partial) {
-  this.debug("match", f, this.pattern)
-  // short-circuit in the case of busted things.
-  // comments, etc.
-  if (this.comment) return false
-  if (this.empty) return f === ""
-
-  if (f === "/" && partial) return true
-
-  var options = this.options
-
-  // windows: need to use /, not \
-  // On other platforms, \ is a valid (albeit bad) filename char.
-  if (platform === "win32") {
-    f = f.split("\\").join("/")
-  }
-
-  // treat the test path as a set of pathparts.
-  f = f.split(slashSplit)
-  this.debug(this.pattern, "split", f)
-
-  // just ONE of the pattern sets in this.set needs to match
-  // in order for it to be valid.  If negating, then just one
-  // match means that we have failed.
-  // Either way, return on the first hit.
-
-  var set = this.set
-  this.debug(this.pattern, "set", set)
-
-  // Find the basename of the path by looking for the last non-empty segment
-  var filename;
-  for (var i = f.length - 1; i >= 0; i--) {
-    filename = f[i]
-    if (filename) break
-  }
-
-  for (var i = 0, l = set.length; i < l; i ++) {
-    var pattern = set[i], file = f
-    if (options.matchBase && pattern.length === 1) {
-      file = [filename]
-    }
-    var hit = this.matchOne(file, pattern, partial)
-    if (hit) {
-      if (options.flipNegate) return true
-      return !this.negate
-    }
-  }
-
-  // didn't get any hits.  this is success if it's a negative
-  // pattern, failure otherwise.
-  if (options.flipNegate) return false
-  return this.negate
-}
-
-// set partial to true to test if, for example,
-// "/a/b" matches the start of "/*/b/*/d"
-// Partial means, if you run out of file before you run
-// out of pattern, then that's fine, as long as all
-// the parts match.
-Minimatch.prototype.matchOne = function (file, pattern, partial) {
-  var options = this.options
-
-  this.debug("matchOne",
-              { "this": this
-              , file: file
-              , pattern: pattern })
-
-  this.debug("matchOne", file.length, pattern.length)
-
-  for ( var fi = 0
-          , pi = 0
-          , fl = file.length
-          , pl = pattern.length
-      ; (fi < fl) && (pi < pl)
-      ; fi ++, pi ++ ) {
-
-    this.debug("matchOne loop")
-    var p = pattern[pi]
-      , f = file[fi]
-
-    this.debug(pattern, p, f)
-
-    // should be impossible.
-    // some invalid regexp stuff in the set.
-    if (p === false) return false
-
-    if (p === GLOBSTAR) {
-      this.debug('GLOBSTAR', [pattern, p, f])
-
-      // "**"
-      // a/**/b/**/c would match the following:
-      // a/b/x/y/z/c
-      // a/x/y/z/b/c
-      // a/b/x/b/x/c
-      // a/b/c
-      // To do this, take the rest of the pattern after
-      // the **, and see if it would match the file remainder.
-      // If so, return success.
-      // If not, the ** "swallows" a segment, and try again.
-      // This is recursively awful.
-      //
-      // a/**/b/**/c matching a/b/x/y/z/c
-      // - a matches a
-      // - doublestar
-      //   - matchOne(b/x/y/z/c, b/**/c)
-      //     - b matches b
-      //     - doublestar
-      //       - matchOne(x/y/z/c, c) -> no
-      //       - matchOne(y/z/c, c) -> no
-      //       - matchOne(z/c, c) -> no
-      //       - matchOne(c, c) yes, hit
-      var fr = fi
-        , pr = pi + 1
-      if (pr === pl) {
-        this.debug('** at the end')
-        // a ** at the end will just swallow the rest.
-        // We have found a match.
-        // however, it will not swallow /.x, unless
-        // options.dot is set.
-        // . and .. are *never* matched by **, for explosively
-        // exponential reasons.
-        for ( ; fi < fl; fi ++) {
-          if (file[fi] === "." || file[fi] === ".." ||
-              (!options.dot && file[fi].charAt(0) === ".")) return false
-        }
-        return true
-      }
-
-      // ok, let's see if we can swallow whatever we can.
-      WHILE: while (fr < fl) {
-        var swallowee = file[fr]
-
-        this.debug('\nglobstar while',
-                    file, fr, pattern, pr, swallowee)
-
-        // XXX remove this slice.  Just pass the start index.
-        if (this.matchOne(file.slice(fr), pattern.slice(pr), partial)) {
-          this.debug('globstar found match!', fr, fl, swallowee)
-          // found a match.
-          return true
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
         } else {
-          // can't swallow "." or ".." ever.
-          // can only swallow ".foo" when explicitly asked.
-          if (swallowee === "." || swallowee === ".." ||
-              (!options.dot && swallowee.charAt(0) === ".")) {
-            this.debug("dot detected!", file, fr, pattern, pr)
-            break WHILE
-          }
-
-          // ** swallows a segment, and continue.
-          this.debug('globstar swallow a segment, and continue')
-          fr ++
+            cachedSetTimeout = defaultSetTimout;
         }
-      }
-      // no match was found.
-      // However, in partial mode, we can't say this is necessarily over.
-      // If there's more *pattern* left, then
-      if (partial) {
-        // ran out of file
-        this.debug("\n>>> no match, partial?", file, fr, pattern, pr)
-        if (fr === fl) return true
-      }
-      return false
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
     }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+})();
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch (e) {
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch (e) {
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e) {
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e) {
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
 
-    // something other than **
-    // non-magic patterns just have to match exactly
-    // patterns with magic have been turned into regexps.
-    var hit
-    if (typeof p === "string") {
-      if (options.nocase) {
-        hit = f.toLowerCase() === p.toLowerCase()
-      } else {
-        hit = f === p
-      }
-      this.debug("string match", p, f, hit)
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
     } else {
-      hit = f.match(p)
-      this.debug("pattern match", p, f, hit)
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while (len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) {
+    return [];
+};
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () {
+    return '/';
+};
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function () {
+    return 0;
+};
+},{}],19:[function(require,module,exports) {
+var process = require("process");
+var define;
+/*global setImmediate: false, setTimeout: false, console: false */
+
+/**
+ * async.js shim, based on https://raw.github.com/caolan/async/master/lib/async.js Feb 18, 2014
+ * Used under MIT - https://github.com/caolan/async/blob/master/LICENSE
+ */
+
+(function () {
+
+    var async = {};
+
+    // async.js functions used in Filer
+
+    //// nextTick implementation with browser-compatible fallback ////
+    if (typeof process === 'undefined' || !process.nextTick) {
+        if (typeof setImmediate === 'function') {
+            async.nextTick = function (fn) {
+                // not a direct alias for IE10 compatibility
+                setImmediate(fn);
+            };
+            async.setImmediate = async.nextTick;
+        } else {
+            async.nextTick = function (fn) {
+                setTimeout(fn, 0);
+            };
+            async.setImmediate = async.nextTick;
+        }
+    } else {
+        async.nextTick = process.nextTick;
+        if (typeof setImmediate !== 'undefined') {
+            async.setImmediate = function (fn) {
+                // not a direct alias for IE10 compatibility
+                setImmediate(fn);
+            };
+        } else {
+            async.setImmediate = async.nextTick;
+        }
     }
 
-    if (!hit) return false
+    async.eachSeries = function (arr, iterator, callback) {
+        callback = callback || function () {};
+        if (!arr.length) {
+            return callback();
+        }
+        var completed = 0;
+        var iterate = function iterate() {
+            iterator(arr[completed], function (err) {
+                if (err) {
+                    callback(err);
+                    callback = function callback() {};
+                } else {
+                    completed += 1;
+                    if (completed >= arr.length) {
+                        callback();
+                    } else {
+                        iterate();
+                    }
+                }
+            });
+        };
+        iterate();
+    };
+    async.forEachSeries = async.eachSeries;
+
+    // AMD / RequireJS
+    if (typeof define !== 'undefined' && define.amd) {
+        define([], function () {
+            return async;
+        });
+    }
+    // Node.js
+    else if (typeof module !== 'undefined' && module.exports) {
+            module.exports = async;
+        }
+        // included directly via <script> tag
+        else {
+                root.async = async;
+            }
+})();
+},{"process":42}],55:[function(require,module,exports) {
+var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
+// NOTE: prefer setImmediate to nextTick for proper recursion yielding.
+// see https://github.com/js-platform/filer/pull/24
+var asyncCallback = require('../../lib/async.js').setImmediate;
+
+/**
+ * Make shared in-memory DBs possible when using the same name.
+ */
+var createDB = function () {
+  var pool = {};
+  return function getOrCreate(name) {
+    if (!pool.hasOwnProperty(name)) {
+      pool[name] = {};
+    }
+    return pool[name];
+  };
+}();
+
+function MemoryContext(db, readOnly) {
+  this.readOnly = readOnly;
+  this.objectStore = db;
+}
+
+MemoryContext.prototype.clear = function (callback) {
+  if (this.readOnly) {
+    asyncCallback(function () {
+      callback("[MemoryContext] Error: write operation on read only context");
+    });
+    return;
   }
+  var objectStore = this.objectStore;
+  Object.keys(objectStore).forEach(function (key) {
+    delete objectStore[key];
+  });
+  asyncCallback(callback);
+};
 
-  // Note: ending in / means that we'll get a final ""
-  // at the end of the pattern.  This can only match a
-  // corresponding "" at the end of the file.
-  // If the file ends in /, then it can only match a
-  // a pattern that ends in /, unless the pattern just
-  // doesn't have any more for it. But, a/b/ should *not*
-  // match "a/b/*", even though "" matches against the
-  // [^/]*? pattern, except in partial mode, where it might
-  // simply not be reached yet.
-  // However, a/b/ should still satisfy a/*
-
-  // now either we fell off the end of the pattern, or we're done.
-  if (fi === fl && pi === pl) {
-    // ran out of pattern and filename at the same time.
-    // an exact hit!
-    return true
-  } else if (fi === fl) {
-    // ran out of file, but still had pattern left.
-    // this is ok if we're doing the match as part of
-    // a glob fs traversal.
-    return partial
-  } else if (pi === pl) {
-    // ran out of pattern, still have file left.
-    // this is only acceptable if we're on the very last
-    // empty segment of a file with a trailing slash.
-    // a/* should match a/b/
-    var emptyFileEnd = (fi === fl - 1) && (file[fi] === "")
-    return emptyFileEnd
+// Memory context doesn't care about differences between Object and Buffer
+MemoryContext.prototype.getObject = MemoryContext.prototype.getBuffer = function (key, callback) {
+  var that = this;
+  asyncCallback(function () {
+    callback(null, that.objectStore[key]);
+  });
+};
+MemoryContext.prototype.putObject = MemoryContext.prototype.putBuffer = function (key, value, callback) {
+  if (this.readOnly) {
+    asyncCallback(function () {
+      callback("[MemoryContext] Error: write operation on read only context");
+    });
+    return;
   }
+  this.objectStore[key] = value;
+  asyncCallback(callback);
+};
 
-  // should be unreachable.
-  throw new Error("wtf?")
+MemoryContext.prototype.delete = function (key, callback) {
+  if (this.readOnly) {
+    asyncCallback(function () {
+      callback("[MemoryContext] Error: write operation on read only context");
+    });
+    return;
+  }
+  delete this.objectStore[key];
+  asyncCallback(callback);
+};
+
+function Memory(name) {
+  this.name = name || FILE_SYSTEM_NAME;
+}
+Memory.isSupported = function () {
+  return true;
+};
+
+Memory.prototype.open = function (callback) {
+  this.db = createDB(this.name);
+  asyncCallback(callback);
+};
+Memory.prototype.getReadOnlyContext = function () {
+  return new MemoryContext(this.db, true);
+};
+Memory.prototype.getReadWriteContext = function () {
+  return new MemoryContext(this.db, false);
+};
+
+module.exports = Memory;
+},{"../constants.js":16,"../../lib/async.js":19}],21:[function(require,module,exports) {
+var IndexedDB = require('./indexeddb.js');
+var WebSQL = require('./websql.js');
+var Memory = require('./memory.js');
+
+module.exports = {
+  IndexedDB: IndexedDB,
+  WebSQL: WebSQL,
+  Memory: Memory,
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+
+  /**
+   * Convenience Provider references
+   */
+
+  // The default provider to use when none is specified
+  Default: IndexedDB,
+
+  // The Fallback provider does automatic fallback checks
+  Fallback: function () {
+    if (IndexedDB.isSupported()) {
+      return IndexedDB;
+    }
+
+    if (WebSQL.isSupported()) {
+      return WebSQL;
+    }
+
+    function NotSupported() {
+      throw "[Filer Error] Your browser doesn't support IndexedDB or WebSQL.";
+    }
+    NotSupported.isSupported = function () {
+      return false;
+    };
+    return NotSupported;
+  }()
+};
+},{"./indexeddb.js":53,"./websql.js":54,"./memory.js":55}],23:[function(require,module,exports) {
+var defaults = require('../constants.js').ENVIRONMENT;
+
+module.exports = function Environment(env) {
+  env = env || {};
+  env.TMP = env.TMP || defaults.TMP;
+  env.PATH = env.PATH || defaults.PATH;
+
+  this.get = function (name) {
+    return env[name];
+  };
+
+  this.set = function (name, value) {
+    env[name] = value;
+  };
+};
+},{"../constants.js":16}],20:[function(require,module,exports) {
+var Buffer = require("buffer").Buffer;
+// Adapt encodings to work with Buffer or Uint8Array, they expect the latter
+function decode(buf) {
+  return buf.toString('utf8');
 }
 
-
-// replace stuff like \* with *
-function globUnescape (s) {
-  return s.replace(/\\(.)/g, "$1")
+function encode(string) {
+  return new Buffer(string, 'utf8');
 }
 
-
-function regExpEscape (s) {
-  return s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
-}
-
-})( typeof require === "function" ? require : null,
-    this,
-    typeof module === "object" ? module : null,
-    typeof process === "object" ? process.platform : "win32"
-  )
-
-},{"lru-cache":10,"path":12,"sigmund":13}],12:[function(require,module,exports){
+module.exports = {
+  encode: encode,
+  decode: decode
+};
+},{"buffer":13}],45:[function(require,module,exports) {
+var process = require("process");
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5325,71 +5120,1213 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-},{}],13:[function(require,module,exports){
-module.exports = sigmund
-function sigmund (subject, maxSessions) {
-    maxSessions = maxSessions || 10;
-    var notes = [];
-    var analysis = '';
-    var RE = RegExp;
-
-    function psychoAnalyze (subject, session) {
-        if (session > maxSessions) return;
-
-        if (typeof subject === 'function' ||
-            typeof subject === 'undefined') {
-            return;
-        }
-
-        if (typeof subject !== 'object' || !subject ||
-            (subject instanceof RE)) {
-            analysis += subject;
-            return;
-        }
-
-        if (notes.indexOf(subject) !== -1 || session === maxSessions) return;
-
-        notes.push(subject);
-        analysis += '{';
-        Object.keys(subject).forEach(function (issue, _, __) {
-            // pseudo-private values.  skip those.
-            if (issue.charAt(0) === '_') return;
-            var to = typeof subject[issue];
-            if (to === 'function' || to === 'undefined') return;
-            analysis += issue;
-            psychoAnalyze(subject[issue], session + 1);
-        });
+},{"process":42}],68:[function(require,module,exports) {
+module.exports = function (xs, fn) {
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        var x = fn(xs[i], i);
+        if (isArray(x)) res.push.apply(res, x);
+        else res.push(x);
     }
-    psychoAnalyze(subject, 0);
-    return analysis;
+    return res;
+};
+
+var isArray = Array.isArray || function (xs) {
+    return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+},{}],67:[function(require,module,exports) {
+'use strict';
+module.exports = balanced;
+function balanced(a, b, str) {
+  if (a instanceof RegExp) a = maybeMatch(a, str);
+  if (b instanceof RegExp) b = maybeMatch(b, str);
+
+  var r = range(a, b, str);
+
+  return r && {
+    start: r[0],
+    end: r[1],
+    pre: str.slice(0, r[0]),
+    body: str.slice(r[0] + a.length, r[1]),
+    post: str.slice(r[1] + b.length)
+  };
 }
 
-// vim: set softtabstop=4 shiftwidth=4:
+function maybeMatch(reg, str) {
+  var m = str.match(reg);
+  return m ? m[0] : null;
+}
 
-},{}],14:[function(require,module,exports){
-(function (Buffer){
-function FilerBuffer (subject, encoding, nonZero) {
+balanced.range = range;
+function range(a, b, str) {
+  var begs, beg, left, right, result;
+  var ai = str.indexOf(a);
+  var bi = str.indexOf(b, ai + 1);
+  var i = ai;
+
+  if (ai >= 0 && bi > 0) {
+    begs = [];
+    left = str.length;
+
+    while (i >= 0 && !result) {
+      if (i == ai) {
+        begs.push(i);
+        ai = str.indexOf(a, i + 1);
+      } else if (begs.length == 1) {
+        result = [ begs.pop(), bi ];
+      } else {
+        beg = begs.pop();
+        if (beg < left) {
+          left = beg;
+          right = bi;
+        }
+
+        bi = str.indexOf(b, i + 1);
+      }
+
+      i = ai < bi && ai >= 0 ? ai : bi;
+    }
+
+    if (begs.length) {
+      result = [ left, right ];
+    }
+  }
+
+  return result;
+}
+
+},{}],46:[function(require,module,exports) {
+var concatMap = require('concat-map');
+var balanced = require('balanced-match');
+
+module.exports = expandTop;
+
+var escSlash = '\0SLASH'+Math.random()+'\0';
+var escOpen = '\0OPEN'+Math.random()+'\0';
+var escClose = '\0CLOSE'+Math.random()+'\0';
+var escComma = '\0COMMA'+Math.random()+'\0';
+var escPeriod = '\0PERIOD'+Math.random()+'\0';
+
+function numeric(str) {
+  return parseInt(str, 10) == str
+    ? parseInt(str, 10)
+    : str.charCodeAt(0);
+}
+
+function escapeBraces(str) {
+  return str.split('\\\\').join(escSlash)
+            .split('\\{').join(escOpen)
+            .split('\\}').join(escClose)
+            .split('\\,').join(escComma)
+            .split('\\.').join(escPeriod);
+}
+
+function unescapeBraces(str) {
+  return str.split(escSlash).join('\\')
+            .split(escOpen).join('{')
+            .split(escClose).join('}')
+            .split(escComma).join(',')
+            .split(escPeriod).join('.');
+}
+
+
+// Basically just str.split(","), but handling cases
+// where we have nested braced sections, which should be
+// treated as individual members, like {a,{b,c},d}
+function parseCommaParts(str) {
+  if (!str)
+    return [''];
+
+  var parts = [];
+  var m = balanced('{', '}', str);
+
+  if (!m)
+    return str.split(',');
+
+  var pre = m.pre;
+  var body = m.body;
+  var post = m.post;
+  var p = pre.split(',');
+
+  p[p.length-1] += '{' + body + '}';
+  var postParts = parseCommaParts(post);
+  if (post.length) {
+    p[p.length-1] += postParts.shift();
+    p.push.apply(p, postParts);
+  }
+
+  parts.push.apply(parts, p);
+
+  return parts;
+}
+
+function expandTop(str) {
+  if (!str)
+    return [];
+
+  // I don't know why Bash 4.3 does this, but it does.
+  // Anything starting with {} will have the first two bytes preserved
+  // but *only* at the top level, so {},a}b will not expand to anything,
+  // but a{},b}c will be expanded to [a}c,abc].
+  // One could argue that this is a bug in Bash, but since the goal of
+  // this module is to match Bash's rules, we escape a leading {}
+  if (str.substr(0, 2) === '{}') {
+    str = '\\{\\}' + str.substr(2);
+  }
+
+  return expand(escapeBraces(str), true).map(unescapeBraces);
+}
+
+function identity(e) {
+  return e;
+}
+
+function embrace(str) {
+  return '{' + str + '}';
+}
+function isPadded(el) {
+  return /^-?0\d/.test(el);
+}
+
+function lte(i, y) {
+  return i <= y;
+}
+function gte(i, y) {
+  return i >= y;
+}
+
+function expand(str, isTop) {
+  var expansions = [];
+
+  var m = balanced('{', '}', str);
+  if (!m || /\$$/.test(m.pre)) return [str];
+
+  var isNumericSequence = /^-?\d+\.\.-?\d+(?:\.\.-?\d+)?$/.test(m.body);
+  var isAlphaSequence = /^[a-zA-Z]\.\.[a-zA-Z](?:\.\.-?\d+)?$/.test(m.body);
+  var isSequence = isNumericSequence || isAlphaSequence;
+  var isOptions = m.body.indexOf(',') >= 0;
+  if (!isSequence && !isOptions) {
+    // {a},b}
+    if (m.post.match(/,.*\}/)) {
+      str = m.pre + '{' + m.body + escClose + m.post;
+      return expand(str);
+    }
+    return [str];
+  }
+
+  var n;
+  if (isSequence) {
+    n = m.body.split(/\.\./);
+  } else {
+    n = parseCommaParts(m.body);
+    if (n.length === 1) {
+      // x{{a,b}}y ==> x{a}y x{b}y
+      n = expand(n[0], false).map(embrace);
+      if (n.length === 1) {
+        var post = m.post.length
+          ? expand(m.post, false)
+          : [''];
+        return post.map(function(p) {
+          return m.pre + n[0] + p;
+        });
+      }
+    }
+  }
+
+  // at this point, n is the parts, and we know it's not a comma set
+  // with a single entry.
+
+  // no need to expand pre, since it is guaranteed to be free of brace-sets
+  var pre = m.pre;
+  var post = m.post.length
+    ? expand(m.post, false)
+    : [''];
+
+  var N;
+
+  if (isSequence) {
+    var x = numeric(n[0]);
+    var y = numeric(n[1]);
+    var width = Math.max(n[0].length, n[1].length)
+    var incr = n.length == 3
+      ? Math.abs(numeric(n[2]))
+      : 1;
+    var test = lte;
+    var reverse = y < x;
+    if (reverse) {
+      incr *= -1;
+      test = gte;
+    }
+    var pad = n.some(isPadded);
+
+    N = [];
+
+    for (var i = x; test(i, y); i += incr) {
+      var c;
+      if (isAlphaSequence) {
+        c = String.fromCharCode(i);
+        if (c === '\\')
+          c = '';
+      } else {
+        c = String(i);
+        if (pad) {
+          var need = width - c.length;
+          if (need > 0) {
+            var z = new Array(need + 1).join('0');
+            if (i < 0)
+              c = '-' + z + c.slice(1);
+            else
+              c = z + c;
+          }
+        }
+      }
+      N.push(c);
+    }
+  } else {
+    N = concatMap(n, function(el) { return expand(el, false) });
+  }
+
+  for (var j = 0; j < N.length; j++) {
+    for (var k = 0; k < post.length; k++) {
+      var expansion = pre + N[j] + post[k];
+      if (!isTop || isSequence || expansion)
+        expansions.push(expansion);
+    }
+  }
+
+  return expansions;
+}
+
+
+},{"concat-map":68,"balanced-match":67}],25:[function(require,module,exports) {
+module.exports = minimatch
+minimatch.Minimatch = Minimatch
+
+var path = { sep: '/' }
+try {
+  path = require('path')
+} catch (er) {}
+
+var GLOBSTAR = minimatch.GLOBSTAR = Minimatch.GLOBSTAR = {}
+var expand = require('brace-expansion')
+
+var plTypes = {
+  '!': { open: '(?:(?!(?:', close: '))[^/]*?)'},
+  '?': { open: '(?:', close: ')?' },
+  '+': { open: '(?:', close: ')+' },
+  '*': { open: '(?:', close: ')*' },
+  '@': { open: '(?:', close: ')' }
+}
+
+// any single thing other than /
+// don't need to escape / when using new RegExp()
+var qmark = '[^/]'
+
+// * => any number of characters
+var star = qmark + '*?'
+
+// ** when dots are allowed.  Anything goes, except .. and .
+// not (^ or / followed by one or two dots followed by $ or /),
+// followed by anything, any number of times.
+var twoStarDot = '(?:(?!(?:\\\/|^)(?:\\.{1,2})($|\\\/)).)*?'
+
+// not a ^ or / followed by a dot,
+// followed by anything, any number of times.
+var twoStarNoDot = '(?:(?!(?:\\\/|^)\\.).)*?'
+
+// characters that need to be escaped in RegExp.
+var reSpecials = charSet('().*{}+?[]^$\\!')
+
+// "abc" -> { a:true, b:true, c:true }
+function charSet (s) {
+  return s.split('').reduce(function (set, c) {
+    set[c] = true
+    return set
+  }, {})
+}
+
+// normalizes slashes.
+var slashSplit = /\/+/
+
+minimatch.filter = filter
+function filter (pattern, options) {
+  options = options || {}
+  return function (p, i, list) {
+    return minimatch(p, pattern, options)
+  }
+}
+
+function ext (a, b) {
+  a = a || {}
+  b = b || {}
+  var t = {}
+  Object.keys(b).forEach(function (k) {
+    t[k] = b[k]
+  })
+  Object.keys(a).forEach(function (k) {
+    t[k] = a[k]
+  })
+  return t
+}
+
+minimatch.defaults = function (def) {
+  if (!def || !Object.keys(def).length) return minimatch
+
+  var orig = minimatch
+
+  var m = function minimatch (p, pattern, options) {
+    return orig.minimatch(p, pattern, ext(def, options))
+  }
+
+  m.Minimatch = function Minimatch (pattern, options) {
+    return new orig.Minimatch(pattern, ext(def, options))
+  }
+
+  return m
+}
+
+Minimatch.defaults = function (def) {
+  if (!def || !Object.keys(def).length) return Minimatch
+  return minimatch.defaults(def).Minimatch
+}
+
+function minimatch (p, pattern, options) {
+  if (typeof pattern !== 'string') {
+    throw new TypeError('glob pattern string required')
+  }
+
+  if (!options) options = {}
+
+  // shortcut: comments match nothing.
+  if (!options.nocomment && pattern.charAt(0) === '#') {
+    return false
+  }
+
+  // "" only matches ""
+  if (pattern.trim() === '') return p === ''
+
+  return new Minimatch(pattern, options).match(p)
+}
+
+function Minimatch (pattern, options) {
+  if (!(this instanceof Minimatch)) {
+    return new Minimatch(pattern, options)
+  }
+
+  if (typeof pattern !== 'string') {
+    throw new TypeError('glob pattern string required')
+  }
+
+  if (!options) options = {}
+  pattern = pattern.trim()
+
+  // windows support: need to use /, not \
+  if (path.sep !== '/') {
+    pattern = pattern.split(path.sep).join('/')
+  }
+
+  this.options = options
+  this.set = []
+  this.pattern = pattern
+  this.regexp = null
+  this.negate = false
+  this.comment = false
+  this.empty = false
+
+  // make the set of regexps etc.
+  this.make()
+}
+
+Minimatch.prototype.debug = function () {}
+
+Minimatch.prototype.make = make
+function make () {
+  // don't do it more than once.
+  if (this._made) return
+
+  var pattern = this.pattern
+  var options = this.options
+
+  // empty patterns and comments match nothing.
+  if (!options.nocomment && pattern.charAt(0) === '#') {
+    this.comment = true
+    return
+  }
+  if (!pattern) {
+    this.empty = true
+    return
+  }
+
+  // step 1: figure out negation, etc.
+  this.parseNegate()
+
+  // step 2: expand braces
+  var set = this.globSet = this.braceExpand()
+
+  if (options.debug) this.debug = console.error
+
+  this.debug(this.pattern, set)
+
+  // step 3: now we have a set, so turn each one into a series of path-portion
+  // matching patterns.
+  // These will be regexps, except in the case of "**", which is
+  // set to the GLOBSTAR object for globstar behavior,
+  // and will not contain any / characters
+  set = this.globParts = set.map(function (s) {
+    return s.split(slashSplit)
+  })
+
+  this.debug(this.pattern, set)
+
+  // glob --> regexps
+  set = set.map(function (s, si, set) {
+    return s.map(this.parse, this)
+  }, this)
+
+  this.debug(this.pattern, set)
+
+  // filter out everything that didn't compile properly.
+  set = set.filter(function (s) {
+    return s.indexOf(false) === -1
+  })
+
+  this.debug(this.pattern, set)
+
+  this.set = set
+}
+
+Minimatch.prototype.parseNegate = parseNegate
+function parseNegate () {
+  var pattern = this.pattern
+  var negate = false
+  var options = this.options
+  var negateOffset = 0
+
+  if (options.nonegate) return
+
+  for (var i = 0, l = pattern.length
+    ; i < l && pattern.charAt(i) === '!'
+    ; i++) {
+    negate = !negate
+    negateOffset++
+  }
+
+  if (negateOffset) this.pattern = pattern.substr(negateOffset)
+  this.negate = negate
+}
+
+// Brace expansion:
+// a{b,c}d -> abd acd
+// a{b,}c -> abc ac
+// a{0..3}d -> a0d a1d a2d a3d
+// a{b,c{d,e}f}g -> abg acdfg acefg
+// a{b,c}d{e,f}g -> abdeg acdeg abdeg abdfg
+//
+// Invalid sets are not expanded.
+// a{2..}b -> a{2..}b
+// a{b}c -> a{b}c
+minimatch.braceExpand = function (pattern, options) {
+  return braceExpand(pattern, options)
+}
+
+Minimatch.prototype.braceExpand = braceExpand
+
+function braceExpand (pattern, options) {
+  if (!options) {
+    if (this instanceof Minimatch) {
+      options = this.options
+    } else {
+      options = {}
+    }
+  }
+
+  pattern = typeof pattern === 'undefined'
+    ? this.pattern : pattern
+
+  if (typeof pattern === 'undefined') {
+    throw new TypeError('undefined pattern')
+  }
+
+  if (options.nobrace ||
+    !pattern.match(/\{.*\}/)) {
+    // shortcut. no need to expand.
+    return [pattern]
+  }
+
+  return expand(pattern)
+}
+
+// parse a component of the expanded set.
+// At this point, no pattern may contain "/" in it
+// so we're going to return a 2d array, where each entry is the full
+// pattern, split on '/', and then turned into a regular expression.
+// A regexp is made at the end which joins each array with an
+// escaped /, and another full one which joins each regexp with |.
+//
+// Following the lead of Bash 4.1, note that "**" only has special meaning
+// when it is the *only* thing in a path portion.  Otherwise, any series
+// of * is equivalent to a single *.  Globstar behavior is enabled by
+// default, and can be disabled by setting options.noglobstar.
+Minimatch.prototype.parse = parse
+var SUBPARSE = {}
+function parse (pattern, isSub) {
+  if (pattern.length > 1024 * 64) {
+    throw new TypeError('pattern is too long')
+  }
+
+  var options = this.options
+
+  // shortcuts
+  if (!options.noglobstar && pattern === '**') return GLOBSTAR
+  if (pattern === '') return ''
+
+  var re = ''
+  var hasMagic = !!options.nocase
+  var escaping = false
+  // ? => one single character
+  var patternListStack = []
+  var negativeLists = []
+  var stateChar
+  var inClass = false
+  var reClassStart = -1
+  var classStart = -1
+  // . and .. never match anything that doesn't start with .,
+  // even when options.dot is set.
+  var patternStart = pattern.charAt(0) === '.' ? '' // anything
+  // not (start or / followed by . or .. followed by / or end)
+  : options.dot ? '(?!(?:^|\\\/)\\.{1,2}(?:$|\\\/))'
+  : '(?!\\.)'
+  var self = this
+
+  function clearStateChar () {
+    if (stateChar) {
+      // we had some state-tracking character
+      // that wasn't consumed by this pass.
+      switch (stateChar) {
+        case '*':
+          re += star
+          hasMagic = true
+        break
+        case '?':
+          re += qmark
+          hasMagic = true
+        break
+        default:
+          re += '\\' + stateChar
+        break
+      }
+      self.debug('clearStateChar %j %j', stateChar, re)
+      stateChar = false
+    }
+  }
+
+  for (var i = 0, len = pattern.length, c
+    ; (i < len) && (c = pattern.charAt(i))
+    ; i++) {
+    this.debug('%s\t%s %s %j', pattern, i, re, c)
+
+    // skip over any that are escaped.
+    if (escaping && reSpecials[c]) {
+      re += '\\' + c
+      escaping = false
+      continue
+    }
+
+    switch (c) {
+      case '/':
+        // completely not allowed, even escaped.
+        // Should already be path-split by now.
+        return false
+
+      case '\\':
+        clearStateChar()
+        escaping = true
+      continue
+
+      // the various stateChar values
+      // for the "extglob" stuff.
+      case '?':
+      case '*':
+      case '+':
+      case '@':
+      case '!':
+        this.debug('%s\t%s %s %j <-- stateChar', pattern, i, re, c)
+
+        // all of those are literals inside a class, except that
+        // the glob [!a] means [^a] in regexp
+        if (inClass) {
+          this.debug('  in class')
+          if (c === '!' && i === classStart + 1) c = '^'
+          re += c
+          continue
+        }
+
+<<<<<<< HEAD
+},{"lru-cache":10,"path":12,"sigmund":13}],12:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// resolves . and .. elements in a path array with directory names there
+// must be no slashes, empty elements, or device names (c:\) in the array
+// (so also no leading and trailing slashes - it does not distinguish
+// relative and absolute paths)
+function normalizeArray(parts, allowAboveRoot) {
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var last = parts[i];
+    if (last === '.') {
+      parts.splice(i, 1);
+    } else if (last === '..') {
+      parts.splice(i, 1);
+      up++;
+    } else if (up) {
+      parts.splice(i, 1);
+      up--;
+    }
+  }
+
+  // if the path is allowed to go above the root, restore leading ..s
+  if (allowAboveRoot) {
+    for (; up--; up) {
+      parts.unshift('..');
+    }
+  }
+
+  return parts;
+}
+
+// Split a filename into [root, dir, basename, ext], unix version
+// 'root' is just a slash, or nothing.
+var splitPathRe =
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+var splitPath = function(filename) {
+  return splitPathRe.exec(filename).slice(1);
+};
+
+// path.resolve([from ...], to)
+// posix version
+exports.resolve = function() {
+  var resolvedPath = '',
+      resolvedAbsolute = false;
+
+  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+    var path = (i >= 0) ? arguments[i] : process.cwd();
+
+    // Skip empty and invalid entries
+    if (typeof path !== 'string') {
+      throw new TypeError('Arguments to path.resolve must be strings');
+    } else if (!path) {
+      continue;
+    }
+
+    resolvedPath = path + '/' + resolvedPath;
+    resolvedAbsolute = path.charAt(0) === '/';
+  }
+
+  // At this point the path should be resolved to a full absolute path, but
+  // handle relative paths to be safe (might happen when process.cwd() fails)
+
+  // Normalize the path
+  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
+    return !!p;
+  }), !resolvedAbsolute).join('/');
+
+  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+};
+
+// path.normalize(path)
+// posix version
+exports.normalize = function(path) {
+  var isAbsolute = exports.isAbsolute(path),
+      trailingSlash = substr(path, -1) === '/';
+
+  // Normalize the path
+  path = normalizeArray(filter(path.split('/'), function(p) {
+    return !!p;
+  }), !isAbsolute).join('/');
+
+  if (!path && !isAbsolute) {
+    path = '.';
+  }
+  if (path && trailingSlash) {
+    path += '/';
+  }
+
+  return (isAbsolute ? '/' : '') + path;
+};
+
+// posix version
+exports.isAbsolute = function(path) {
+  return path.charAt(0) === '/';
+};
+
+// posix version
+exports.join = function() {
+  var paths = Array.prototype.slice.call(arguments, 0);
+  return exports.normalize(filter(paths, function(p, index) {
+    if (typeof p !== 'string') {
+      throw new TypeError('Arguments to path.join must be strings');
+    }
+    return p;
+  }).join('/'));
+};
+
+
+// path.relative(from, to)
+// posix version
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
+
+  function trim(arr) {
+    var start = 0;
+    for (; start < arr.length; start++) {
+      if (arr[start] !== '') break;
+    }
+
+    var end = arr.length - 1;
+    for (; end >= 0; end--) {
+      if (arr[end] !== '') break;
+    }
+
+    if (start > end) return [];
+    return arr.slice(start, end - start + 1);
+  }
+
+  var fromParts = trim(from.split('/'));
+  var toParts = trim(to.split('/'));
+
+  var length = Math.min(fromParts.length, toParts.length);
+  var samePartsLength = length;
+  for (var i = 0; i < length; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      samePartsLength = i;
+      break;
+    }
+  }
+
+  var outputParts = [];
+  for (var i = samePartsLength; i < fromParts.length; i++) {
+    outputParts.push('..');
+  }
+
+  outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+  return outputParts.join('/');
+};
+
+exports.sep = '/';
+exports.delimiter = ':';
+
+exports.dirname = function(path) {
+  var result = splitPath(path),
+      root = result[0],
+      dir = result[1];
+
+  if (!root && !dir) {
+    // No dirname whatsoever
+    return '.';
+  }
+
+  if (dir) {
+    // It has a dirname, strip trailing slash
+    dir = dir.substr(0, dir.length - 1);
+  }
+
+  return root + dir;
+};
+
+
+exports.basename = function(path, ext) {
+  var f = splitPath(path)[2];
+  // TODO: make this comparison case-insensitive on windows?
+  if (ext && f.substr(-1 * ext.length) === ext) {
+    f = f.substr(0, f.length - ext.length);
+  }
+  return f;
+};
+
+
+exports.extname = function(path) {
+  return splitPath(path)[3];
+};
+
+function filter (xs, f) {
+    if (xs.filter) return xs.filter(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i], i, xs)) res.push(xs[i]);
+    }
+    return res;
+}
+
+// String.prototype.substr - negative index don't work in IE8
+var substr = 'ab'.substr(-1) === 'b'
+    ? function (str, start, len) { return str.substr(start, len) }
+    : function (str, start, len) {
+        if (start < 0) start = str.length + start;
+        return str.substr(start, len);
+    }
+;
 =======
-function asciiSlice (buf, start, end) {
-  var ret = ''
-  end = Math.min(buf.length, end)
+        // if we already have a stateChar, then it means
+        // that there was something like ** or +? in there.
+        // Handle the stateChar, then proceed with this one.
+        self.debug('call clearStateChar %j', stateChar)
+        clearStateChar()
+        stateChar = c
+        // if extglob is disabled, then +(asdf|foo) isn't a thing.
+        // just clear the statechar *now*, rather than even diving into
+        // the patternList stuff.
+        if (options.noext) clearStateChar()
+      continue
 
-  for (var i = start; i < end; ++i) {
-    ret += String.fromCharCode(buf[i] & 0x7F)
+      case '(':
+        if (inClass) {
+          re += '('
+          continue
+        }
+
+        if (!stateChar) {
+          re += '\\('
+          continue
+        }
+
+        patternListStack.push({
+          type: stateChar,
+          start: i - 1,
+          reStart: re.length,
+          open: plTypes[stateChar].open,
+          close: plTypes[stateChar].close
+        })
+        // negation is (?:(?!js)[^/]*)
+        re += stateChar === '!' ? '(?:(?!(?:' : '(?:'
+        this.debug('plType %j %j', stateChar, re)
+        stateChar = false
+      continue
+
+      case ')':
+        if (inClass || !patternListStack.length) {
+          re += '\\)'
+          continue
+        }
+
+        clearStateChar()
+        hasMagic = true
+        var pl = patternListStack.pop()
+        // negation is (?:(?!js)[^/]*)
+        // The others are (?:<pattern>)<type>
+        re += pl.close
+        if (pl.type === '!') {
+          negativeLists.push(pl)
+        }
+        pl.reEnd = re.length
+      continue
+
+      case '|':
+        if (inClass || !patternListStack.length || escaping) {
+          re += '\\|'
+          escaping = false
+          continue
+        }
+
+        clearStateChar()
+        re += '|'
+      continue
+
+      // these are mostly the same in regexp and glob
+      case '[':
+        // swallow any state-tracking char before the [
+        clearStateChar()
+
+        if (inClass) {
+          re += '\\' + c
+          continue
+        }
+
+        inClass = true
+        classStart = i
+        reClassStart = re.length
+        re += c
+      continue
+
+      case ']':
+        //  a right bracket shall lose its special
+        //  meaning and represent itself in
+        //  a bracket expression if it occurs
+        //  first in the list.  -- POSIX.2 2.8.3.2
+        if (i === classStart + 1 || !inClass) {
+          re += '\\' + c
+          escaping = false
+          continue
+        }
+
+        // handle the case where we left a class open.
+        // "[z-a]" is valid, equivalent to "\[z-a\]"
+        if (inClass) {
+          // split where the last [ was, make sure we don't have
+          // an invalid re. if so, re-walk the contents of the
+          // would-be class to re-translate any characters that
+          // were passed through as-is
+          // TODO: It would probably be faster to determine this
+          // without a try/catch and a new RegExp, but it's tricky
+          // to do safely.  For now, this is safe and works.
+          var cs = pattern.substring(classStart + 1, i)
+          try {
+            RegExp('[' + cs + ']')
+          } catch (er) {
+            // not a valid class!
+            var sp = this.parse(cs, SUBPARSE)
+            re = re.substr(0, reClassStart) + '\\[' + sp[0] + '\\]'
+            hasMagic = hasMagic || sp[1]
+            inClass = false
+            continue
+          }
+        }
+
+        // finish up the class.
+        hasMagic = true
+        inClass = false
+        re += c
+      continue
+
+      default:
+        // swallow any state char that wasn't consumed
+        clearStateChar()
+
+        if (escaping) {
+          // no need
+          escaping = false
+        } else if (reSpecials[c]
+          && !(c === '^' && inClass)) {
+          re += '\\'
+        }
+
+        re += c
+
+    } // switch
+  } // for
+
+  // handle the case where we left a class open.
+  // "[abc" is valid, equivalent to "\[abc"
+  if (inClass) {
+    // split where the last [ was, and escape it
+    // this is a huge pita.  We now have to re-walk
+    // the contents of the would-be class to re-translate
+    // any characters that were passed through as-is
+    cs = pattern.substr(classStart + 1)
+    sp = this.parse(cs, SUBPARSE)
+    re = re.substr(0, reClassStart) + '\\[' + sp[0]
+    hasMagic = hasMagic || sp[1]
   }
-  return ret
+
+  // handle the case where we had a +( thing at the *end*
+  // of the pattern.
+  // each pattern list stack adds 3 chars, and we need to go through
+  // and escape any | chars that were passed through as-is for the regexp.
+  // Go through and escape them, taking care not to double-escape any
+  // | chars that were already escaped.
+  for (pl = patternListStack.pop(); pl; pl = patternListStack.pop()) {
+    var tail = re.slice(pl.reStart + pl.open.length)
+    this.debug('setting tail', re, pl)
+    // maybe some even number of \, then maybe 1 \, followed by a |
+    tail = tail.replace(/((?:\\{2}){0,64})(\\?)\|/g, function (_, $1, $2) {
+      if (!$2) {
+        // the | isn't already escaped, so escape it.
+        $2 = '\\'
+      }
+
+      // need to escape all those slashes *again*, without escaping the
+      // one that we need for escaping the | character.  As it works out,
+      // escaping an even number of slashes can be done by simply repeating
+      // it exactly after itself.  That's why this trick works.
+      //
+      // I am sorry that you have to see this.
+      return $1 + $1 + $2 + '|'
+    })
+
+    this.debug('tail=%j\n   %s', tail, tail, pl, re)
+    var t = pl.type === '*' ? star
+      : pl.type === '?' ? qmark
+      : '\\' + pl.type
+
+    hasMagic = true
+    re = re.slice(0, pl.reStart) + t + '\\(' + tail
+  }
+
+  // handle trailing things that only matter at the very end.
+  clearStateChar()
+  if (escaping) {
+    // trailing \\
+    re += '\\\\'
+  }
+
+  // only need to apply the nodot start if the re starts with
+  // something that could conceivably capture a dot
+  var addPatternStart = false
+  switch (re.charAt(0)) {
+    case '.':
+    case '[':
+    case '(': addPatternStart = true
+  }
+
+  // Hack to work around lack of negative lookbehind in JS
+  // A pattern like: *.!(x).!(y|z) needs to ensure that a name
+  // like 'a.xyz.yz' doesn't match.  So, the first negative
+  // lookahead, has to look ALL the way ahead, to the end of
+  // the pattern.
+  for (var n = negativeLists.length - 1; n > -1; n--) {
+    var nl = negativeLists[n]
+
+    var nlBefore = re.slice(0, nl.reStart)
+    var nlFirst = re.slice(nl.reStart, nl.reEnd - 8)
+    var nlLast = re.slice(nl.reEnd - 8, nl.reEnd)
+    var nlAfter = re.slice(nl.reEnd)
+
+    nlLast += nlAfter
+
+    // Handle nested stuff like *(*.js|!(*.json)), where open parens
+    // mean that we should *not* include the ) in the bit that is considered
+    // "after" the negated section.
+    var openParensBefore = nlBefore.split('(').length - 1
+    var cleanAfter = nlAfter
+    for (i = 0; i < openParensBefore; i++) {
+      cleanAfter = cleanAfter.replace(/\)[+*?]?/, '')
+    }
+    nlAfter = cleanAfter
+
+    var dollar = ''
+    if (nlAfter === '' && isSub !== SUBPARSE) {
+      dollar = '$'
+    }
+    var newRe = nlBefore + nlFirst + nlAfter + dollar + nlLast
+    re = newRe
+  }
+
+  // if the re is not "" at this point, then we need to make sure
+  // it doesn't match against an empty path part.
+  // Otherwise a/* will match a/, which it should not.
+  if (re !== '' && hasMagic) {
+    re = '(?=.)' + re
+  }
+
+  if (addPatternStart) {
+    re = patternStart + re
+  }
+
+  // parsing just a piece of a larger pattern.
+  if (isSub === SUBPARSE) {
+    return [re, hasMagic]
+  }
+
+  // skip the regexp for non-magical patterns
+  // unescape anything in it, though, so that it'll be
+  // an exact match against a file etc.
+  if (!hasMagic) {
+    return globUnescape(pattern)
+  }
+
+  var flags = options.nocase ? 'i' : ''
+  try {
+    var regExp = new RegExp('^' + re + '$', flags)
+  } catch (er) {
+    // If it was an invalid regular expression, then it can't match
+    // anything.  This trick looks for a character after the end of
+    // the string, which is of course impossible, except in multi-line
+    // mode, but it's not a /m regex.
+    return new RegExp('$.')
+  }
+
+  regExp._glob = pattern
+  regExp._src = re
+
+  return regExp
 }
 
-function latin1Slice (buf, start, end) {
-  var ret = ''
-  end = Math.min(buf.length, end)
+minimatch.makeRe = function (pattern, options) {
+  return new Minimatch(pattern, options || {}).makeRe()
+}
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
-  for (var i = start; i < end; ++i) {
-    ret += String.fromCharCode(buf[i])
+Minimatch.prototype.makeRe = makeRe
+function makeRe () {
+  if (this.regexp || this.regexp === false) return this.regexp
+
+  // at this point, this.set is a 2d array of partial
+  // pattern strings, or "**".
+  //
+  // It's better to use .match().  This function shouldn't
+  // be used, really, but it's pretty convenient sometimes,
+  // when you just want to work with a regex.
+  var set = this.set
+
+  if (!set.length) {
+    this.regexp = false
+    return this.regexp
   }
-  return ret
+  var options = this.options
+
+  var twoStar = options.noglobstar ? star
+    : options.dot ? twoStarDot
+    : twoStarNoDot
+  var flags = options.nocase ? 'i' : ''
+
+  var re = set.map(function (pattern) {
+    return pattern.map(function (p) {
+      return (p === GLOBSTAR) ? twoStar
+      : (typeof p === 'string') ? regExpEscape(p)
+      : p._src
+    }).join('\\\/')
+  }).join('|')
+
+  // must match entire pattern
+  // ending in a * or ** will make it less strict.
+  re = '^(?:' + re + ')$'
+
+  // can match anything, as long as it's not this.
+  if (this.negate) re = '^(?!' + re + ').*$'
+
+  try {
+    this.regexp = new RegExp(re, flags)
+  } catch (ex) {
+    this.regexp = false
+  }
+  return this.regexp
 }
 
+minimatch.match = function (list, pattern, options) {
+  options = options || {}
+  var mm = new Minimatch(pattern, options)
+  list = list.filter(function (f) {
+    return mm.match(f)
+  })
+  if (mm.options.nonull && !list.length) {
+    list.push(pattern)
+  }
+  return list
+}
+
+<<<<<<< HEAD
 <<<<<<< HEAD
 }).call(this,require("buffer").Buffer)
 },{"buffer":7}],15:[function(require,module,exports){
@@ -5405,26 +6342,26 @@ var XATTR_REPLACE = 'REPLACE';
 function hexSlice (buf, start, end) {
   var len = buf.length
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+=======
+Minimatch.prototype.match = match
+function match (f, partial) {
+  this.debug('match', f, this.pattern)
+  // short-circuit in the case of busted things.
+  // comments, etc.
+  if (this.comment) return false
+  if (this.empty) return f === ''
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
-  if (!start || start < 0) start = 0
-  if (!end || end < 0 || end > len) end = len
+  if (f === '/' && partial) return true
 
-  var out = ''
-  for (var i = start; i < end; ++i) {
-    out += toHex(buf[i])
+  var options = this.options
+
+  // windows: need to use /, not \
+  if (path.sep !== '/') {
+    f = f.split(path.sep).join('/')
   }
-  return out
-}
 
-function utf16leSlice (buf, start, end) {
-  var bytes = buf.slice(start, end)
-  var res = ''
-  for (var i = 0; i < bytes.length; i += 2) {
-    res += String.fromCharCode(bytes[i] + bytes[i + 1] * 256)
-  }
-  return res
-}
-
+<<<<<<< HEAD
 <<<<<<< HEAD
   WSQL_VERSION: "1",
   WSQL_SIZE: 5 * 1024 * 1024,
@@ -5458,61 +6395,71 @@ Buffer.prototype.slice = function slice (start, end) {
     start = len
   }
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+=======
+  // treat the test path as a set of pathparts.
+  f = f.split(slashSplit)
+  this.debug(this.pattern, 'split', f)
 
-  if (end < 0) {
-    end += len
-    if (end < 0) end = 0
-  } else if (end > len) {
-    end = len
+  // just ONE of the pattern sets in this.set needs to match
+  // in order for it to be valid.  If negating, then just one
+  // match means that we have failed.
+  // Either way, return on the first hit.
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+
+  var set = this.set
+  this.debug(this.pattern, 'set', set)
+
+  // Find the basename of the path by looking for the last non-empty segment
+  var filename
+  var i
+  for (i = f.length - 1; i >= 0; i--) {
+    filename = f[i]
+    if (filename) break
   }
 
-  if (end < start) end = start
-
-  var newBuf
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    newBuf = this.subarray(start, end)
-    newBuf.__proto__ = Buffer.prototype
-  } else {
-    var sliceLen = end - start
-    newBuf = new Buffer(sliceLen, undefined)
-    for (var i = 0; i < sliceLen; ++i) {
-      newBuf[i] = this[i + start]
+  for (i = 0; i < set.length; i++) {
+    var pattern = set[i]
+    var file = f
+    if (options.matchBase && pattern.length === 1) {
+      file = [filename]
+    }
+    var hit = this.matchOne(file, pattern, partial)
+    if (hit) {
+      if (options.flipNegate) return true
+      return !this.negate
     }
   }
 
-  return newBuf
+  // didn't get any hits.  this is success if it's a negative
+  // pattern, failure otherwise.
+  if (options.flipNegate) return false
+  return this.negate
 }
 
-/*
- * Need to make sure that buffer isn't trying to write out of bounds.
- */
-function checkOffset (offset, ext, length) {
-  if ((offset % 1) !== 0 || offset < 0) throw new RangeError('offset is not uint')
-  if (offset + ext > length) throw new RangeError('Trying to access beyond buffer length')
-}
+// set partial to true to test if, for example,
+// "/a/b" matches the start of "/*/b/*/d"
+// Partial means, if you run out of file before you run
+// out of pattern, then that's fine, as long as all
+// the parts match.
+Minimatch.prototype.matchOne = function (file, pattern, partial) {
+  var options = this.options
 
-Buffer.prototype.readUIntLE = function readUIntLE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) checkOffset(offset, byteLength, this.length)
+  this.debug('matchOne',
+    { 'this': this, file: file, pattern: pattern })
 
-  var val = this[offset]
-  var mul = 1
-  var i = 0
-  while (++i < byteLength && (mul *= 0x100)) {
-    val += this[offset + i] * mul
-  }
+  this.debug('matchOne', file.length, pattern.length)
 
-  return val
-}
+  for (var fi = 0,
+      pi = 0,
+      fl = file.length,
+      pl = pattern.length
+      ; (fi < fl) && (pi < pl)
+      ; fi++, pi++) {
+    this.debug('matchOne loop')
+    var p = pattern[pi]
+    var f = file[fi]
 
-Buffer.prototype.readUIntBE = function readUIntBE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) {
-    checkOffset(offset, byteLength, this.length)
-  }
-
+<<<<<<< HEAD
 <<<<<<< HEAD
   ENVIRONMENT: {
     TMP: '/tmp',
@@ -7209,200 +8156,83 @@ var define;
 =======
     var async = {};
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-    // async.js functions used in Filer
-
-    //// nextTick implementation with browser-compatible fallback ////
-    if (typeof process === 'undefined' || !process.nextTick) {
-        if (typeof setImmediate === 'function') {
-            async.nextTick = function (fn) {
-                // not a direct alias for IE10 compatibility
-                setImmediate(fn);
-            };
-            async.setImmediate = async.nextTick;
-        } else {
-            async.nextTick = function (fn) {
-                setTimeout(fn, 0);
-            };
-            async.setImmediate = async.nextTick;
-        }
-    } else {
-<<<<<<< HEAD
-      directoryData = result;
-      if(!_(directoryData).has(name)) {
-        callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
-      } else {
-        context.getObject(directoryData[name].id, callback);
-      }
 =======
-        async.nextTick = process.nextTick;
-        if (typeof setImmediate !== 'undefined') {
-            async.setImmediate = function (fn) {
-                // not a direct alias for IE10 compatibility
-                setImmediate(fn);
-            };
+    this.debug(pattern, p, f)
+
+    // should be impossible.
+    // some invalid regexp stuff in the set.
+    if (p === false) return false
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+
+    if (p === GLOBSTAR) {
+      this.debug('GLOBSTAR', [pattern, p, f])
+
+      // "**"
+      // a/**/b/**/c would match the following:
+      // a/b/x/y/z/c
+      // a/x/y/z/b/c
+      // a/b/x/b/x/c
+      // a/b/c
+      // To do this, take the rest of the pattern after
+      // the **, and see if it would match the file remainder.
+      // If so, return success.
+      // If not, the ** "swallows" a segment, and try again.
+      // This is recursively awful.
+      //
+      // a/**/b/**/c matching a/b/x/y/z/c
+      // - a matches a
+      // - doublestar
+      //   - matchOne(b/x/y/z/c, b/**/c)
+      //     - b matches b
+      //     - doublestar
+      //       - matchOne(x/y/z/c, c) -> no
+      //       - matchOne(y/z/c, c) -> no
+      //       - matchOne(z/c, c) -> no
+      //       - matchOne(c, c) yes, hit
+      var fr = fi
+      var pr = pi + 1
+      if (pr === pl) {
+        this.debug('** at the end')
+        // a ** at the end will just swallow the rest.
+        // We have found a match.
+        // however, it will not swallow /.x, unless
+        // options.dot is set.
+        // . and .. are *never* matched by **, for explosively
+        // exponential reasons.
+        for (; fi < fl; fi++) {
+          if (file[fi] === '.' || file[fi] === '..' ||
+            (!options.dot && file[fi].charAt(0) === '.')) return false
+        }
+        return true
+      }
+
+      // ok, let's see if we can swallow whatever we can.
+      while (fr < fl) {
+        var swallowee = file[fr]
+
+        this.debug('\nglobstar while', file, fr, pattern, pr, swallowee)
+
+        // XXX remove this slice.  Just pass the start index.
+        if (this.matchOne(file.slice(fr), pattern.slice(pr), partial)) {
+          this.debug('globstar found match!', fr, fl, swallowee)
+          // found a match.
+          return true
         } else {
-            async.setImmediate = async.nextTick;
+          // can't swallow "." or ".." ever.
+          // can only swallow ".foo" when explicitly asked.
+          if (swallowee === '.' || swallowee === '..' ||
+            (!options.dot && swallowee.charAt(0) === '.')) {
+            this.debug('dot detected!', file, fr, pattern, pr)
+            break
+          }
+
+          // ** swallows a segment, and continue.
+          this.debug('globstar swallow a segment, and continue')
+          fr++
         }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-    }
-
-    async.eachSeries = function (arr, iterator, callback) {
-        callback = callback || function () {};
-        if (!arr.length) {
-            return callback();
-        }
-        var completed = 0;
-        var iterate = function iterate() {
-            iterator(arr[completed], function (err) {
-                if (err) {
-                    callback(err);
-                    callback = function callback() {};
-                } else {
-                    completed += 1;
-                    if (completed >= arr.length) {
-                        callback();
-                    } else {
-                        iterate();
-                    }
-                }
-            });
-        };
-        iterate();
-    };
-    async.forEachSeries = async.eachSeries;
-
-    // AMD / RequireJS
-    if (typeof define !== 'undefined' && define.amd) {
-        define([], function () {
-            return async;
-        });
-    }
-    // Node.js
-    else if (typeof module !== 'undefined' && module.exports) {
-            module.exports = async;
-        }
-        // included directly via <script> tag
-        else {
-                root.async = async;
-            }
-})();
-},{"process":59}],52:[function(require,module,exports) {
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-// NOTE: prefer setImmediate to nextTick for proper recursion yielding.
-// see https://github.com/js-platform/filer/pull/24
-var asyncCallback = require('../../lib/async.js').setImmediate;
-
-/**
- * Make shared in-memory DBs possible when using the same name.
- */
-var createDB = function () {
-  var pool = {};
-  return function getOrCreate(name) {
-    if (!pool.hasOwnProperty(name)) {
-      pool[name] = {};
-    }
-    return pool[name];
-  };
-}();
-
-function MemoryContext(db, readOnly) {
-  this.readOnly = readOnly;
-  this.objectStore = db;
-}
-
-MemoryContext.prototype.clear = function (callback) {
-  if (this.readOnly) {
-    asyncCallback(function () {
-      callback("[MemoryContext] Error: write operation on read only context");
-    });
-    return;
-  }
-  var objectStore = this.objectStore;
-  Object.keys(objectStore).forEach(function (key) {
-    delete objectStore[key];
-  });
-  asyncCallback(callback);
-};
+      }
 
 <<<<<<< HEAD
-  function check_if_old_file_exists(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      oldDirectoryData = result;
-      if(!_(oldDirectoryData).has(oldname)) {
-        callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
-      } else if(oldDirectoryData[oldname].type === 'DIRECTORY') {
-        callback(new Errors.EPERM('oldpath refers to a directory'));
-      } else {
-        find_node(context, newParentPath, read_new_directory_data);
-      }
-    }
-=======
-// Memory context doesn't care about differences between Object and Buffer
-MemoryContext.prototype.getObject = MemoryContext.prototype.getBuffer = function (key, callback) {
-  var that = this;
-  asyncCallback(function () {
-    callback(null, that.objectStore[key]);
-  });
-};
-MemoryContext.prototype.putObject = MemoryContext.prototype.putBuffer = function (key, value, callback) {
-  if (this.readOnly) {
-    asyncCallback(function () {
-      callback("[MemoryContext] Error: write operation on read only context");
-    });
-    return;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-  this.objectStore[key] = value;
-  asyncCallback(callback);
-};
-
-MemoryContext.prototype.delete = function (key, callback) {
-  if (this.readOnly) {
-    asyncCallback(function () {
-      callback("[MemoryContext] Error: write operation on read only context");
-    });
-    return;
-  }
-  delete this.objectStore[key];
-  asyncCallback(callback);
-};
-
-function Memory(name) {
-  this.name = name || FILE_SYSTEM_NAME;
-}
-Memory.isSupported = function () {
-  return true;
-};
-
-Memory.prototype.open = function (callback) {
-  this.db = createDB(this.name);
-  asyncCallback(callback);
-};
-Memory.prototype.getReadOnlyContext = function () {
-  return new MemoryContext(this.db, true);
-};
-Memory.prototype.getReadWriteContext = function () {
-  return new MemoryContext(this.db, false);
-};
-
-module.exports = Memory;
-},{"../constants.js":15,"../../lib/async.js":49}],18:[function(require,module,exports) {
-var IndexedDB = require('./indexeddb.js');
-var WebSQL = require('./websql.js');
-var Memory = require('./memory.js');
-
-module.exports = {
-  IndexedDB: IndexedDB,
-  WebSQL: WebSQL,
-  Memory: Memory,
-
-  /**
-   * Convenience Provider references
-   */
-
 <<<<<<< HEAD
   function check_if_node_is_directory(error, result) {
     if(error) {
@@ -7416,82 +8246,88 @@ module.exports = {
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     } else {
       update_file_node(null, result);
-    }
-  }
-
-  function check_if_file_exists(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      directoryData = result;
-      if(!_(directoryData).has(name)) {
-        callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
-      } else {
-        context.getObject(directoryData[name].id, check_if_node_is_directory);
-      }
-    }
-  }
 =======
-  // The default provider to use when none is specified
-  Default: IndexedDB,
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-  // The Fallback provider does automatic fallback checks
-  Fallback: function () {
-    if (IndexedDB.isSupported()) {
-      return IndexedDB;
+      // no match was found.
+      // However, in partial mode, we can't say this is necessarily over.
+      // If there's more *pattern* left, then
+      if (partial) {
+        // ran out of file
+        this.debug('\n>>> no match, partial?', file, fr, pattern, pr)
+        if (fr === fl) return true
+      }
+      return false
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     }
 
-    if (WebSQL.isSupported()) {
-      return WebSQL;
+    // something other than **
+    // non-magic patterns just have to match exactly
+    // patterns with magic have been turned into regexps.
+    var hit
+    if (typeof p === 'string') {
+      if (options.nocase) {
+        hit = f.toLowerCase() === p.toLowerCase()
+      } else {
+        hit = f === p
+      }
+      this.debug('string match', p, f, hit)
+    } else {
+      hit = f.match(p)
+      this.debug('pattern match', p, f, hit)
     }
 
-    function NotSupported() {
-      throw "[Filer Error] Your browser doesn't support IndexedDB or WebSQL.";
-    }
-    NotSupported.isSupported = function () {
-      return false;
-    };
-    return NotSupported;
-  }()
-};
-},{"./indexeddb.js":50,"./websql.js":51,"./memory.js":52}],53:[function(require,module,exports) {
-var defaults = require('../constants.js').ENVIRONMENT;
+    if (!hit) return false
+  }
 
-module.exports = function Environment(env) {
-  env = env || {};
-  env.TMP = env.TMP || defaults.TMP;
-  env.PATH = env.PATH || defaults.PATH;
+  // Note: ending in / means that we'll get a final ""
+  // at the end of the pattern.  This can only match a
+  // corresponding "" at the end of the file.
+  // If the file ends in /, then it can only match a
+  // a pattern that ends in /, unless the pattern just
+  // doesn't have any more for it. But, a/b/ should *not*
+  // match "a/b/*", even though "" matches against the
+  // [^/]*? pattern, except in partial mode, where it might
+  // simply not be reached yet.
+  // However, a/b/ should still satisfy a/*
 
-  this.get = function (name) {
-    return env[name];
-  };
+  // now either we fell off the end of the pattern, or we're done.
+  if (fi === fl && pi === pl) {
+    // ran out of pattern and filename at the same time.
+    // an exact hit!
+    return true
+  } else if (fi === fl) {
+    // ran out of file, but still had pattern left.
+    // this is ok if we're doing the match as part of
+    // a glob fs traversal.
+    return partial
+  } else if (pi === pl) {
+    // ran out of pattern, still have file left.
+    // this is only acceptable if we're on the very last
+    // empty segment of a file with a trailing slash.
+    // a/* should match a/b/
+    var emptyFileEnd = (fi === fl - 1) && (file[fi] === '')
+    return emptyFileEnd
+  }
 
-  this.set = function (name, value) {
-    env[name] = value;
-  };
-};
-},{"../constants.js":15}],37:[function(require,module,exports) {
-var Buffer = require("buffer").Buffer;
-// Adapt encodings to work with Buffer or Uint8Array, they expect the latter
-function decode(buf) {
-  return buf.toString('utf8');
+  // should be unreachable.
+  throw new Error('wtf?')
 }
 
-function encode(string) {
-  return new Buffer(string, 'utf8');
+// replace stuff like \* with *
+function globUnescape (s) {
+  return s.replace(/\\(.)/g, '$1')
 }
 
-module.exports = {
-  encode: encode,
-  decode: decode
-};
-},{"buffer":11}],19:[function(require,module,exports) {
+function regExpEscape (s) {
+  return s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+}
+
+},{"path":45,"brace-expansion":46}],7:[function(require,module,exports) {
 var Path = require('../path.js');
 var Errors = require('../errors.js');
 var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
 var Encoding = require('../encoding.js');
+var minimatch = require('minimatch');
 
 function Shell(fs, options) {
   options = options || {};
@@ -7777,17 +8613,19 @@ Shell.prototype.ls = function (dir, options, callback) {
       }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   if(length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   } else {
     ofd.getNode(context, read_file_data);
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       async.eachSeries(entries, getDirEntry, function (error) {
         callback(error, result);
       });
     });
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
   list(dir, callback);
@@ -7823,24 +8661,11 @@ Shell.prototype.rm = function (path, options, callback) {
         return;
       }
 
-<<<<<<< HEAD
-  if (typeof atime != 'number' || typeof mtime != 'number') {
-    callback(new Errors.EINVAL('atime and mtime must be a number'));
-  }
-  else if (atime < 0 || mtime < 0) {
-    callback(new Errors.EINVAL('atime and mtime must be positive integers'));
-  }
-  else {
-    ofd.getNode(context, update_times);
-  }
-}
-=======
       // If this is a file, delete it and we're done
       if (stats.type === 'FILE') {
         fs.unlink(pathname, callback);
         return;
       }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
       // If it's a dir, check if it's empty
       fs.readdir(pathname, function (error, entries) {
@@ -7849,6 +8674,7 @@ Shell.prototype.rm = function (path, options, callback) {
           return;
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   function setxattr(error, node) {
     if(error) {
@@ -7904,6 +8730,8 @@ function fsetxattr_file (context, ofd, name, value, flag, callback) {
   else {
     ofd.getNode(context, setxattr);
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
         // If dir is empty, delete it and we're done
         if (entries.length === 0) {
           fs.rmdir(pathname, callback);
@@ -7931,28 +8759,11 @@ function fsetxattr_file (context, ofd, name, value, flag, callback) {
         });
       });
     });
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
   remove(path, callback);
 };
 
-<<<<<<< HEAD
-  function get_xattr(error, node) {
-    if(error) {
-      return callback(error);
-    }
-
-    var xattrs = node.xattrs;
-
-    if (!xattrs.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR(null, path));
-    }
-    else {
-      callback(null, xattrs[name]);
-    }
-  }
-=======
 /**
  * Gets the path to the temporary directory, creating it if not
  * present. The directory used is the one specified in
@@ -7970,7 +8781,6 @@ Shell.prototype.tempDir = function (callback) {
     callback(null, tmp);
   });
 };
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 /**
  * Recursively creates the directory at `path`. If the parent
@@ -8035,22 +8845,38 @@ Shell.prototype.mkdirp = function (path, callback) {
   _mkdirp(path, callback);
 };
 
-<<<<<<< HEAD
-  function get_xattr (error, node) {
-    if (error) {
-      return callback(error);
-    }
+/**
+ * Recursively walk a directory tree, reporting back all paths
+ * that were found along the way. The `path` must be a dir.
+ * Valid options include a `regex` for pattern matching paths
+ * and an `exec` function of the form `function(path, next)` where
+ * `path` is the current path that was found (dir paths have an '/'
+ * appended) and `next` is a callback to call when done processing
+ * the current path, passing any error object back as the first argument.
+ * `find` returns a flat array of absolute paths for all matching/found
+ * paths as the final argument to the callback.
+ */
+Shell.prototype.find = function (path, options, callback) {
+  var sh = this;
+  var fs = sh.fs;
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  options = options || {};
+  callback = callback || function () {};
 
-    var xattrs = node.xattrs;
+  var exec = options.exec || function (path, next) {
+    next();
+  };
+  var found = [];
 
-    if (!xattrs.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR());
-    }
-    else {
-      callback(null, xattrs[name]);
-    }
+  if (!path) {
+    callback(new Errors.EINVAL('Missing path argument'));
+    return;
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   function write_directory_node(error, result) {
     if(error) {
@@ -8074,16 +8900,97 @@ Shell.prototype.mkdirp = function (path, callback) {
   if (typeof name != 'string') {
     callback(new Errors.EINVAL());
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-  else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string'));
-  }
-  else {
-    ofd.getNode(context, get_xattr);
-  }
 =======
+  function processPath(path, callback) {
+    exec(path, function (err) {
+      if (err) {
+        callback(err);
+        return;
+      }
+
+      found.push(path);
+      callback();
+    });
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+  }
+
+  function maybeProcessPath(path, callback) {
+    // Test the path against the user's regex, name, path primaries (if any)
+    // and remove any trailing slashes added previously.
+    var rawPath = Path.removeTrailing(path);
+
+    // Check entire path against provided regex, if any
+    if (options.regex && !options.regex.test(rawPath)) {
+      callback();
+      return;
+    }
+
+    // Check basename for matches against name primary, if any
+    if (options.name && !minimatch(Path.basename(rawPath), options.name)) {
+      callback();
+      return;
+    }
+
+    // Check dirname for matches against path primary, if any
+    if (options.path && !minimatch(Path.dirname(rawPath), options.path)) {
+      callback();
+      return;
+    }
+
+    processPath(path, callback);
+  }
+
+  function walk(path, callback) {
+    path = Path.resolve(sh.pwd(), path);
+
+    // The path is either a file or dir, and instead of doing
+    // a stat() to determine it first, we just try to readdir()
+    // and it will either work or not, and we handle the non-dir error.
+    fs.readdir(path, function (err, entries) {
+      if (err) {
+        if (err.code === 'ENOTDIR' /* file case, ignore error */) {
+            maybeProcessPath(path, callback);
+          } else {
+          callback(err);
+        }
+        return;
+      }
+
+      // Path is really a dir, add a trailing / and report it found
+      maybeProcessPath(Path.addTrailing(path), function (err) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        entries = entries.map(function (entry) {
+          return Path.join(path, entry);
+        });
+
+        async.eachSeries(entries, walk, function (err) {
+          callback(err, found);
+        });
+      });
+    });
+  }
+
+  // Make sure we are starting with a dir path
+  fs.stat(path, function (err, stats) {
+    if (err) {
+      callback(err);
+      return;
+    }
+    if (!stats.isDirectory()) {
+      callback(new Errors.ENOTDIR(null, path));
+      return;
+    }
+
+    walk(path, callback);
+  });
+};
+
 module.exports = Shell;
-},{"../path.js":4,"../errors.js":5,"./environment.js":53,"../../lib/async.js":49,"../encoding.js":37}],35:[function(require,module,exports) {
+},{"../path.js":4,"../errors.js":5,"./environment.js":23,"../../lib/async.js":19,"../encoding.js":20,"minimatch":25}],40:[function(require,module,exports) {
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -8095,7 +9002,6 @@ function removeItem(item, array) {
     }
   }
   return array;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 }
 
 <<<<<<< HEAD
@@ -8109,31 +9015,22 @@ function removeItem(item, array) {
 var EventEmitter = function EventEmitter() {};
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   function remove_xattr (error, node) {
     if (error) {
       return callback(error);
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 EventEmitter.createInterface = function (space) {
   var methods = {};
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   methods.on = function (name, fn) {
     if (typeof this[space] === 'undefined') {
       this[space] = {};
     }
-<<<<<<< HEAD
-
-    var xattrs = node.xattrs;
-
-    if (!xattrs.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR(null, path));
-    }
-    else {
-      delete xattrs[name];
-      context.putObject(node.id, node, update_time);
-=======
     if (!this[space].hasOwnProperty(name)) {
       this[space][name] = [];
     }
@@ -8166,23 +9063,14 @@ EventEmitter.createInterface = function (space) {
       for (var i = 0; i < this[space][name].length; i++) {
         this[space][name][i].apply(this[space][name][i], args);
       }
+<<<<<<< HEAD
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     }
   };
 
-<<<<<<< HEAD
-  if (typeof name !== 'string') {
-    callback(new Errors.EINVAL('attribute name must be a string', path));
-  }
-  else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
-  }
-  else {
-    find_node(context, path, remove_xattr);
-  }
-}
-=======
   methods.removeAllListeners = function (name) {
     if (typeof this[space] === 'undefined') return;
     var self = this;
@@ -8190,7 +9078,6 @@ EventEmitter.createInterface = function (space) {
       self.off(name, fn);
     });
   };
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 <<<<<<< HEAD
   function check_if_node_is_directory(error, result) {
@@ -8205,6 +9092,7 @@ EventEmitter.createInterface = function (space) {
   return methods;
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   function remove_xattr (error, node) {
     if (error) {
@@ -8229,6 +9117,8 @@ EventEmitter.createInterface = function (space) {
       delete xattrs[name];
       context.putObject(node.id, node, update_time);
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 var pvt = EventEmitter.createInterface('_handlers');
 EventEmitter.prototype._on = pvt.on;
 EventEmitter.prototype._off = pvt.off;
@@ -8245,7 +9135,7 @@ EventEmitter.prototype.trigger = pub.trigger;
 EventEmitter.prototype.removeAllListeners = pub.removeAllListeners;
 
 module.exports = EventEmitter;
-},{}],16:[function(require,module,exports) {
+},{}],17:[function(require,module,exports) {
 var global = arguments[3];
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -8263,7 +9153,6 @@ function throttle(delay, fn) {
     if (now - last > delay) {
       last = now;
       fn.apply(this, arguments);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
   };
 }
@@ -8272,17 +9161,12 @@ function extend(a, b) {
   if (typeof a === 'undefined' || !a) {
     a = {};
   }
-<<<<<<< HEAD
-  else {
-    ofd.getNode(context, remove_xattr);
-=======
   if ((typeof b === 'undefined' ? 'undefined' : _typeof(b)) === 'object') {
     for (var key in b) {
       if (b.hasOwnProperty(key)) {
         a[key] = b[key];
       }
     }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
   return a;
 }
@@ -8449,19 +9333,6 @@ Intercom.prototype._cleanup_emit = throttle(100, function () {
     var changed = 0;
     var messages;
 
-<<<<<<< HEAD
-function mkdir(fs, context, path, mode, callback) {
-  // NOTE: we support passing a mode arg, but we ignore it internally for now.
-  callback = arguments[arguments.length - 1];
-  if(!pathCheck(path, callback)) return;
-  make_directory(context, path, callback);
-}
-
-function rmdir(fs, context, path, callback) {
-  if(!pathCheck(path, callback)) return;
-  remove_directory(context, path, callback);
-}
-=======
     try {
       messages = JSON.parse(localStorage.getItem(INDEX_EMIT) || '[]');
     } catch (e) {
@@ -8482,7 +9353,6 @@ function rmdir(fs, context, path, callback) {
 
 Intercom.prototype._cleanup_once = throttle(100, function () {
   var self = this;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   self._transaction(function () {
     var timestamp, ttl, key;
@@ -8554,18 +9424,6 @@ Intercom.prototype._localStorageChanged = function (event, field) {
   return true;
 };
 
-<<<<<<< HEAD
-function link(fs, context, oldpath, newpath, callback) {
-  if(!pathCheck(oldpath, callback)) return;
-  if(!pathCheck(newpath, callback)) return;
-  link_node(context, oldpath, newpath, callback);
-}
-
-function unlink(fs, context, path, callback) {
-  if(!pathCheck(path, callback)) return;
-  unlink_node(context, path, callback);
-}
-=======
 Intercom.prototype._onStorageEvent = function (event) {
   event = event || global.event;
   var self = this;
@@ -8575,7 +9433,6 @@ Intercom.prototype._onStorageEvent = function (event) {
       var now = Date.now();
       var data = localStorage.getItem(INDEX_EMIT);
       var messages;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
       try {
         messages = JSON.parse(data || '[]');
@@ -8609,21 +9466,11 @@ Intercom.prototype._onStorageEvent = function (event) {
 };
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
-<<<<<<< HEAD
-  var ofd = fs.openFiles[fd];
-  if(!ofd) {
-    callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_READ)) {
-    callback(new Errors.EBADF('descriptor does not permit reading'));
-  } else {
-    read_data(context, ofd, buffer, offset, length, position, wrapped_cb);
-=======
 Intercom.prototype._emit = function (name, message, id) {
   id = typeof id === 'string' || typeof id === 'number' ? String(id) : null;
   if (id && id.length) {
     if (this.receivedIDs.hasOwnProperty(id)) return;
     this.receivedIDs[id] = true;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
   var packet = {
@@ -8702,19 +9549,6 @@ Intercom.destroy = function () {
   localStorage.removeItem(INDEX_ONCE);
 };
 
-<<<<<<< HEAD
-  var ofd = fs.openFiles[fd];
-  if(!ofd) {
-    callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_WRITE)) {
-    callback(new Errors.EBADF('descriptor does not permit writing'));
-  } else if(buffer.length - offset < length) {
-    callback(new Errors.EIO('intput buffer is too small'));
-  } else {
-    write_data(context, ofd, buffer, offset, length, position, callback);
-  }
-}
-=======
 Intercom.getInstance = function () {
   var intercom;
   return function () {
@@ -8724,10 +9558,9 @@ Intercom.getInstance = function () {
     return intercom;
   };
 }();
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 module.exports = Intercom;
-},{"./eventemitter.js":35,"../src/shared.js":14}],17:[function(require,module,exports) {
+},{"./eventemitter.js":40,"../src/shared.js":15}],18:[function(require,module,exports) {
 var EventEmitter = require('../lib/eventemitter.js');
 var Path = require('./path.js');
 var Intercom = require('../lib/intercom.js');
@@ -8801,21 +9634,46 @@ FSWatcher.prototype = new EventEmitter();
 FSWatcher.prototype.constructor = FSWatcher;
 
 module.exports = FSWatcher;
-},{"../lib/eventemitter.js":35,"./path.js":4,"../lib/intercom.js":16}],38:[function(require,module,exports) {
+},{"../lib/eventemitter.js":40,"./path.js":4,"../lib/intercom.js":17}],48:[function(require,module,exports) {
 var MODE_FILE = require('./constants.js').MODE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
   this.id = id;
   this.type = type || MODE_FILE;
 };
-},{"./constants.js":15}],39:[function(require,module,exports) {
-module.exports = function OpenFileDescription(path, id, flags, position) {
+},{"./constants.js":16}],49:[function(require,module,exports) {
+var Errors = require('./errors.js');
+
+function OpenFileDescription(path, id, flags, position) {
   this.path = path;
   this.id = id;
   this.flags = flags;
   this.position = position;
+}
+
+// Tries to find the node associated with an ofd's `id`.
+// If not found, an error is returned on the callback.
+OpenFileDescription.prototype.getNode = function (context, callback) {
+  var id = this.id;
+  var path = this.path;
+
+  function check_if_node_exists(error, node) {
+    if (error) {
+      return callback(error);
+    }
+
+    if (!node) {
+      return callback(new Errors.EBADF('file descriptor refers to unknown node', path));
+    }
+
+    callback(null, node);
+  }
+
+  context.getObject(id, check_if_node_exists);
 };
-},{}],40:[function(require,module,exports) {
+
+module.exports = OpenFileDescription;
+},{"./errors.js":5}],50:[function(require,module,exports) {
 var Constants = require('./constants.js');
 
 <<<<<<< HEAD
@@ -8850,7 +9708,7 @@ SuperNode.create = function (options, callback) {
 };
 
 module.exports = SuperNode;
-},{"./constants.js":15}],41:[function(require,module,exports) {
+},{"./constants.js":16}],51:[function(require,module,exports) {
 var MODE_FILE = require('./constants.js').MODE_FILE;
 
 <<<<<<< HEAD
@@ -8906,6 +9764,7 @@ function ensureID(options, prop, callback) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 function getxattr(fs, context, path, name, callback) {
   if (!pathCheck(path, callback)) return;
   getxattr_file(context, path, name, callback);
@@ -8945,6 +9804,8 @@ function fgetxattr(fs, context, fd, name, callback) {
   }
 }
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 Node.create = function (options, callback) {
   // We expect both options.id and options.data to be provided/generated.
   ensureID(options, 'id', function (err) {
@@ -8972,19 +9833,14 @@ Node.create = function (options, callback) {
         return;
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
       }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
       callback(null, new Node(options));
     });
   });
 };
 
-<<<<<<< HEAD
-  if (!pathCheck(path, callback)) return;
-  setxattr_file(context, path, name, value, flag, callback);
-=======
 module.exports = Node;
-},{"./constants.js":15}],42:[function(require,module,exports) {
+},{"./constants.js":16}],52:[function(require,module,exports) {
 var Constants = require('./constants.js');
 
 function Stats(fileNode, devName) {
@@ -8996,13 +9852,13 @@ function Stats(fileNode, devName) {
   this.mtime = fileNode.mtime;
   this.ctime = fileNode.ctime;
   this.type = fileNode.mode;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 }
 
 Stats.prototype.isFile = function () {
   return this.type === Constants.MODE_FILE;
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   var ofd = fs.openFiles[fd];
   if (!ofd) {
@@ -9046,6 +9902,8 @@ function fremovexattr(fs, context, fd, name, callback) {
   }
 }
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 Stats.prototype.isDirectory = function () {
   return this.type === Constants.MODE_DIRECTORY;
 };
@@ -9058,12 +9916,9 @@ Stats.prototype.isSymbolicLink = function () {
 Stats.prototype.isSocket = Stats.prototype.isFIFO = Stats.prototype.isCharacterDevice = Stats.prototype.isBlockDevice = function () {
   return false;
 };
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 module.exports = Stats;
-},{"./constants.js":15}],20:[function(require,module,exports) {
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+},{"./constants.js":16}],22:[function(require,module,exports) {
 
 var _ = require('../../lib/nodash.js');
 
@@ -9126,24 +9981,6 @@ var Node = require('../node.js');
 var Stats = require('../stats.js');
 var Buffer = require('../buffer.js');
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-/**
- * Many functions below use this callback pattern. If it's not
- * re-defined, we use this to generate a callback. NOTE: this
- * can be use for callbacks of both forms without problem (i.e.,
- * since result will be undefined if not returned):
- *  - callback(error)
- *  - callback(error, result)
- */
-function standard_check_result_cb(callback) {
-  return function (error, result) {
-    if (error) {
-      callback(error);
-    } else {
-      callback(null, result);
-    }
-  };
-}
 
 /**
  * Update node times. Only passed times are modified (undefined times are ignored)
@@ -9229,12 +10066,6 @@ function update_node_times(context, path, node, times, callback) {
   }
 }
 
-<<<<<<< HEAD
-function readdir(fs, context, path, callback) {
-  if(!pathCheck(path, callback)) return;
-  read_directory(context, path, callback);
-}
-=======
 /**
  * make_node()
  */
@@ -9244,7 +10075,6 @@ function make_node(context, path, mode, callback) {
   if (mode !== MODE_DIRECTORY && mode !== MODE_FILE) {
     return callback(new Errors.EINVAL('mode must be a directory or file', path));
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   path = normalize(path);
 
@@ -9254,10 +10084,6 @@ function make_node(context, path, mode, callback) {
   var parentNodeData;
   var node;
 
-<<<<<<< HEAD
-  utimes_file(context, path, atime, mtime, callback);
-}
-=======
   // Check if the parent node exists
   function create_node_in_parent(error, parentDirectoryNode) {
     if (error) {
@@ -9269,13 +10095,13 @@ function make_node(context, path, mode, callback) {
       find_node(context, path, check_if_node_exists);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   // Check if the node to be created already exists
   function check_if_node_exists(error, result) {
     if (!error && result) {
       callback(new Errors.EEXIST('path name already exists', path));
     } else if (error && !(error instanceof Errors.ENOENT)) {
+<<<<<<< HEAD
       callback(error);
     } else {
       context.getObject(parentNode.data, create_node);
@@ -9428,22 +10254,33 @@ function make_node(context, path, mode, callback) {
 
   function get_new_parent_directory(error, result) {
     if(error) {
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       callback(error);
     } else {
-      oldParentData = result;
-      find_node(context, newParentPath, read_new_parent_directory_data);
+      context.getObject(parentNode.data, create_node);
     }
   }
 
-  function read_parent_directory_data(error, result) {
-    if(error) {
+  // Create the new node
+  function create_node(error, result) {
+    if (error) {
       callback(error);
     } else {
-      oldParentDirectory = result;
-      context.getObject(result.data, get_new_parent_directory);
+      parentNodeData = result;
+      Node.create({ guid: context.guid, mode: mode }, function (error, result) {
+        if (error) {
+          callback(error);
+          return;
+        }
+        node = result;
+        node.nlinks += 1;
+        context.putObject(node.id, node, update_parent_node_data);
+      });
     }
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   if (typeof atime !== 'number' || typeof mtime !== 'number') {
     callback(new Errors.EINVAL('atime and mtime must be number', path));
@@ -9456,9 +10293,15 @@ function make_node(context, path, mode, callback) {
 =======
   function unlink_old_file(error) {
     if(error) {
+=======
+  // Update parent node time
+  function update_time(error) {
+    if (error) {
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       callback(error);
     } else {
-      unlink_node(context, oldpath, callback);
+      var now = Date.now();
+      update_node_times(context, parentPath, node, { mtime: now, ctime: now }, callback);
     }
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
@@ -9491,6 +10334,7 @@ function make_node(context, path, mode, callback) {
   }
 }
 
+<<<<<<< HEAD
 function setxattr_file(context, path, name, value, flag, callback) {
   path = normalize(path);
 
@@ -9532,6 +10376,13 @@ function readlink(fs, context, path, callback) {
   read_link(context, path, callback);
 }
 =======
+=======
+  // Update the parent nodes data
+  function update_parent_node_data(error) {
+    if (error) {
+      callback(error);
+    } else {
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       parentNodeData[name] = new DirectoryEntry(node.id, mode);
       context.putObject(parentNode.data, parentNodeData, update_time);
     }
@@ -9564,7 +10415,6 @@ function find_node(context, path, callback) {
       context.getObject(superNode.rnode, check_root_directory_node);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function check_root_directory_node(error, rootDirectoryNode) {
     if (error) {
@@ -9614,16 +10464,6 @@ function find_node(context, path, callback) {
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
-<<<<<<< HEAD
-function truncate(fs, context, path, length, callback) {
-  // NOTE: length is optional
-  callback = arguments[arguments.length - 1];
-  length = length || 0;
-
-  if(!pathCheck(path, callback)) return;
-  truncate_file(context, path, length, callback);
-}
-=======
   function is_symbolic_link(error, node) {
     if (error) {
       callback(error);
@@ -9640,7 +10480,6 @@ function truncate(fs, context, path, length, callback) {
       }
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function follow_symbolic_link(data) {
     data = normalize(data);
@@ -9666,6 +10505,7 @@ function truncate(fs, context, path, length, callback) {
   if (ROOT_DIRECTORY_NAME == name) {
     context.getObject(SUPER_NODE_ID, read_root_directory_node);
   } else {
+<<<<<<< HEAD
 <<<<<<< HEAD
     ftruncate_file(context, ofd, length, callback);
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
@@ -9729,6 +10569,8 @@ var FSWatcher = require('../fs-watcher.js');
 var Errors = require('../errors.js');
 var defaultGuidFn = require('../shared.js').guid;
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     find_node(context, parentPath, read_parent_directory_data);
   }
 }
@@ -9736,38 +10578,16 @@ var defaultGuidFn = require('../shared.js').guid;
 /**
  * set extended attribute (refactor)
  */
-function set_extended_attribute(context, path_or_fd, name, value, flag, callback) {
-  var path;
-
-  function set_xattr(error, node) {
-    var xattr = node ? node.xattrs[name] : null;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-    function update_time(error) {
-      if (error) {
-        callback(error);
-      } else {
-        update_node_times(context, path, node, { ctime: Date.now() }, callback);
-      }
-    }
-
-<<<<<<< HEAD
-// The core fs operations live on impl
-var impl = require('./implementation.js');
-=======
+function set_extended_attribute(context, path, node, name, value, flag, callback) {
+  function update_time(error) {
     if (error) {
       callback(error);
-    } else if (flag === XATTR_CREATE && node.xattrs.hasOwnProperty(name)) {
-      callback(new Errors.EEXIST('attribute already exists', path_or_fd));
-    } else if (flag === XATTR_REPLACE && !node.xattrs.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR(null, path_or_fd));
     } else {
-      node.xattrs[name] = value;
-      context.putObject(node.id, node, update_time);
+      update_node_times(context, path, node, { ctime: Date.now() }, callback);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string'));
@@ -9830,6 +10650,17 @@ function defaultCallback(err) {
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   if(err) {
     console.error('Filer error: ', err);
+=======
+  var xattrs = node.xattrs;
+
+  if (flag === XATTR_CREATE && xattrs.hasOwnProperty(name)) {
+    callback(new Errors.EEXIST('attribute already exists', path));
+  } else if (flag === XATTR_REPLACE && !xattrs.hasOwnProperty(name)) {
+    callback(new Errors.ENOATTR(null, path));
+  } else {
+    xattrs[name] = value;
+    context.putObject(node.id, node, update_time);
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 }
 
@@ -9840,16 +10671,10 @@ function defaultCallback(err) {
  * Multiple invocations of this by separate instances will still result
  * in only a single super node.
  */
-<<<<<<< HEAD
-function FileSystem(options, callback) {
-  options = options || {};
-  callback = callback || defaultCallback;
-=======
 function ensure_root_directory(context, callback) {
   var superNode;
   var directoryNode;
   var directoryData;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 <<<<<<< HEAD
 function open(fs, context, path, flags, mode, callback) {
@@ -9917,6 +10742,7 @@ function open(fs, context, path, flags, mode, callback) {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 function mknod(fs, context, path, type, callback) {
   if(!pathCheck(path, callback)) return;
   make_node(context, path, type, callback);
@@ -9954,10 +10780,11 @@ function mkdir(fs, context, path, mode, callback) {
     delete openFiles[fd];
   };
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   context.getObject(SUPER_NODE_ID, ensure_super_node);
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 /**
  * make_directory
@@ -10129,30 +10956,7 @@ function remove_directory(context, path, callback) {
       var now = Date.now();
       update_node_times(context, parentPath, parentDirectoryNode, { mtime: now, ctime: now }, remove_directory_node);
     }
-<<<<<<< HEAD
-  };
-});
-
-module.exports = FileSystem;
-
-},{"../../lib/intercom.js":3,"../../lib/nodash.js":4,"../constants.js":15,"../errors.js":18,"../fs-watcher.js":21,"../path.js":25,"../providers/index.js":26,"../shared.js":30,"../shell/shell.js":32,"./implementation.js":19}],21:[function(require,module,exports){
-var EventEmitter = require('../lib/eventemitter.js');
-var Path = require('./path.js');
-var Intercom = require('../lib/intercom.js');
-
-/**
- * FSWatcher based on node.js' FSWatcher
- * see https://github.com/joyent/node/blob/master/lib/fs.js
- */
-function FSWatcher() {
-  EventEmitter.call(this);
-  var self = this;
-  var recursive = false;
-  var recursivePathPrefix;
-  var filename;
-=======
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function remove_directory_entry_from_parent_directory_node() {
     delete parentDirectoryData[name];
@@ -10191,19 +10995,6 @@ function open_file(context, path, flags, callback) {
 
   var followedCount = 0;
 
-<<<<<<< HEAD
-},{"../lib/eventemitter.js":2,"../lib/intercom.js":3,"./path.js":25}],22:[function(require,module,exports){
-module.exports = {
-  FileSystem: require('./filesystem/interface.js'),
-  Buffer: require('./buffer.js'),
-  Path: require('./path.js'),
-  Errors: require('./errors.js'),
-  Shell: require('./shell/shell.js')
-};
-
-},{"./buffer.js":14,"./errors.js":18,"./filesystem/interface.js":20,"./path.js":25,"./shell/shell.js":32}],23:[function(require,module,exports){
-var MODE_FILE = require('./constants.js').MODE_FILE;
-=======
   if (ROOT_DIRECTORY_NAME == name) {
     if (_(flags).contains(O_WRITE)) {
       callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
@@ -10224,7 +11015,6 @@ var MODE_FILE = require('./constants.js').MODE_FILE;
       context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function check_if_file_exists(error, result) {
     if (error) {
@@ -10428,69 +11218,7 @@ function getxattr(fs, context, path, name, callback) {
       fileNode.nlinks += 1;
       context.putObject(fileNode.id, fileNode, write_file_data);
     });
-<<<<<<< HEAD
-  });
-};
-
-module.exports = Node;
-
-},{"./constants.js":15}],24:[function(require,module,exports){
-var Errors = require('./errors.js');
-
-function OpenFileDescription(path, id, flags, position) {
-  this.path = path;
-  this.id = id;
-  this.flags = flags;
-  this.position = position;
-}
-
-// Tries to find the node associated with an ofd's `id`.
-// If not found, an error is returned on the callback.
-OpenFileDescription.prototype.getNode = function(context, callback) {
-  var id = this.id;
-  var path = this.path;
-
-  function check_if_node_exists(error, node) {
-    if(error) {
-      return callback(error);
-    }
-
-    if(!node) {
-      return callback(new Errors.EBADF('file descriptor refers to unknown node', path));
-    }
-
-    callback(null, node);
   }
-
-  context.getObject(id, check_if_node_exists);
-};
-
-module.exports = OpenFileDescription;
-
-},{"./errors.js":18}],25:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-=======
-  }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function write_file_data(error) {
     if (error) {
@@ -10611,11 +11339,6 @@ function rename(fs, context, oldpath, newpath, callback) {
 function replace_data(context, ofd, buffer, offset, length, callback) {
   var fileNode;
 
-<<<<<<< HEAD
-  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    // XXXfiler: we don't have process.cwd() so we use '/' as a fallback
-    var path = (i >= 0) ? arguments[i] : '/';
-=======
   function return_nbytes(error) {
     if (error) {
       callback(error);
@@ -10623,7 +11346,6 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
       callback(null, length);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function update_time(error) {
     if (error) {
@@ -10662,16 +11384,9 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
   context.getObject(ofd.id, write_file_data);
 }
 
-<<<<<<< HEAD
-// path.relative(from, to)
-function relative(from, to) {
-  from = resolve(from).substr(1);
-  to = resolve(to).substr(1);
-=======
 function write_data(context, ofd, buffer, offset, length, position, callback) {
   var fileNode;
   var fileData;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function return_nbytes(error) {
     if (error) {
@@ -10784,6 +11499,8 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
   function read_file_data(error, result) {
     if (error) {
       callback(error);
+    } else if (result.mode === 'DIRECTORY') {
+      callback(new Errors.EISDIR('the named file is a directory', ofd.path));
     } else {
 <<<<<<< HEAD
       var stats = new Stats(path, result, fs.name);
@@ -10795,21 +11512,7 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
     }
   }
 
-<<<<<<< HEAD
-  return root + dir;
-}
-
-function basename(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
-  if (ext && f.substr(-1 * ext.length) === ext) {
-    f = f.substr(0, f.length - ext.length);
-  }
-  // XXXfiler: node.js just does `return f`
-  return f === "" ? "/" : f;
-=======
   context.getObject(ofd.id, read_file_data);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 }
 
 <<<<<<< HEAD
@@ -10855,12 +11558,12 @@ module.exports = {
 function stat_file(context, path, callback) {
   path = normalize(path);
   var name = basename(path);
-  find_node(context, path, standard_check_result_cb(callback));
+  find_node(context, path, callback);
 }
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 function fstat_file(context, ofd, callback) {
-  context.getObject(ofd.id, standard_check_result_cb(callback));
+  ofd.getNode(context, callback);
 }
 
 function lstat_file(context, path, callback) {
@@ -10868,49 +11571,11 @@ function lstat_file(context, path, callback) {
   var name = basename(path);
   var parentPath = dirname(path);
 
-<<<<<<< HEAD
-// Make sure we don't double-add a trailing slash (e.g., '/' -> '//')
-function addTrailing(path) {
-  return path.replace(/\/*$/, '/');
-}
-
-// Deal with multiple slashes at the end, one, or none
-// and make sure we don't return the empty string.
-function removeTrailing(path) {
-  path = path.replace(/\/*$/, '');
-  return path === '' ? '/' : path;
-}
-
-// XXXfiler: we don't support path.exists() or path.existsSync(), which
-// are deprecated, and need a FileSystem instance to work. Use fs.stat().
-
-module.exports = {
-  normalize: normalize,
-  resolve: resolve,
-  join: join,
-  relative: relative,
-  sep: '/',
-  delimiter: ':',
-  dirname: dirname,
-  basename: basename,
-  extname: extname,
-  isAbsolute: isAbsolute,
-  isNull: isNull,
-  // Non-node but useful...
-  addTrailing: addTrailing,
-  removeTrailing: removeTrailing
-};
-
-},{}],26:[function(require,module,exports){
-var IndexedDB = require('./indexeddb.js');
-var WebSQL = require('./websql.js');
-var Memory = require('./memory.js');
-=======
   var directoryNode;
   var directoryData;
 
   if (ROOT_DIRECTORY_NAME == name) {
-    find_node(context, path, standard_check_result_cb(callback));
+    find_node(context, path, callback);
   } else {
     find_node(context, parentPath, read_directory_data);
   }
@@ -10923,7 +11588,6 @@ var Memory = require('./memory.js');
       context.getObject(directoryNode.data, check_if_file_exists);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function check_if_file_exists(error, result) {
     if (error) {
@@ -10933,7 +11597,7 @@ var Memory = require('./memory.js');
       if (!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
       } else {
-        context.getObject(directoryData[name].id, standard_check_result_cb(callback));
+        context.getObject(directoryData[name].id, callback);
       }
     }
   }
@@ -11026,57 +11690,6 @@ function link_node(context, oldpath, newpath, callback) {
       fileNode.nlinks += 1;
       context.putObject(fileNode.id, fileNode, update_time);
     }
-<<<<<<< HEAD
-    NotSupported.isSupported = function() {
-      return false;
-    };
-    return NotSupported;
-  }())
-};
-
-},{"./indexeddb.js":27,"./memory.js":28,"./websql.js":29}],27:[function(require,module,exports){
-(function (global,Buffer){
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
-var IDB_RW = require('../constants.js').IDB_RW;
-var IDB_RO = require('../constants.js').IDB_RO;
-var Errors = require('../errors.js');
-var FilerBuffer = require('../buffer.js');
-
-var indexedDB = global.indexedDB       ||
-                global.mozIndexedDB    ||
-                global.webkitIndexedDB ||
-                global.msIndexedDB;
-
-function IndexedDBContext(db, mode) {
-  this.db = db;
-  this.mode = mode;
-}
-
-IndexedDBContext.prototype._getObjectStore = function() {
-  if(this.objectStore) {
-    return this.objectStore;
-  }
-
-  var transaction = this.db.transaction(FILE_STORE_NAME, this.mode);
-  this.objectStore = transaction.objectStore(FILE_STORE_NAME);
-  return this.objectStore;
-};
-
-IndexedDBContext.prototype.clear = function(callback) {
-  try {
-    var objectStore = this._getObjectStore();
-    var request = objectStore.clear();
-    request.onsuccess = function() {
-      callback();
-    };
-    request.onerror = function(event) {
-      event.preventDefault();
-      callback(event.error);
-    };
-  } catch(err) {
-    callback(err);
-=======
   }
 
   function read_directory_entry(error, result) {
@@ -11085,34 +11698,8 @@ IndexedDBContext.prototype.clear = function(callback) {
     } else {
       context.getObject(newDirectoryData[newname].id, update_file_node);
     }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
-<<<<<<< HEAD
-IndexedDBContext.prototype._get = function(key, callback) {
-  try {
-    var objectStore = this._getObjectStore();
-    var request = objectStore.get(key);
-    request.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(null, result);
-    };
-    request.onerror = function(event) {
-      event.preventDefault();
-      callback(event.error);
-    };
-  } catch(err) {
-    callback(err);
-  }
-};
-IndexedDBContext.prototype.getObject = function(key, callback) {
-  this._get(key, callback);
-};
-IndexedDBContext.prototype.getBuffer = function(key, callback) {
-  this._get(key, function(err, arrayBuffer) {
-    if(err) {
-      return callback(err);
-=======
   function check_if_new_file_exists(error, result) {
     if (error) {
       callback(error);
@@ -11124,55 +11711,9 @@ IndexedDBContext.prototype.getBuffer = function(key, callback) {
         newDirectoryData[newname] = oldDirectoryData[oldname];
         context.putObject(newDirectoryNode.data, newDirectoryData, read_directory_entry);
       }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
   }
 
-<<<<<<< HEAD
-IndexedDBContext.prototype._put = function(key, value, callback) {
-  try {
-    var objectStore = this._getObjectStore();
-    var request = objectStore.put(value, key);
-    request.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(null, result);
-    };
-    request.onerror = function(event) {
-      event.preventDefault();
-      callback(event.error);
-    };
-  } catch(err) {
-    callback(err);
-  }
-};
-IndexedDBContext.prototype.putObject = function(key, value, callback) {
-  this._put(key, value, callback);
-};
-IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
-  var buf;
-  if(!Buffer._useTypedArrays) { // workaround for fxos 1.3
-    buf = uint8BackedBuffer.toArrayBuffer();
-  } else {
-    buf = uint8BackedBuffer.buffer;
-  }
-  this._put(key, buf, callback);
-};
-
-IndexedDBContext.prototype.delete = function(key, callback) {
-  try {
-    var objectStore = this._getObjectStore();
-    var request = objectStore.delete(key);
-    request.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(null, result);
-    };
-    request.onerror = function(event) {
-      event.preventDefault();
-      callback(event.error);
-    };
-  } catch(err) {
-    callback(err);
-=======
   function read_new_directory_data(error, result) {
     if (error) {
       callback(error);
@@ -11189,11 +11730,12 @@ IndexedDBContext.prototype.delete = function(key, callback) {
       oldDirectoryData = result;
       if (!_(oldDirectoryData).has(oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
+      } else if (oldDirectoryData[oldname].type === 'DIRECTORY') {
+        callback(new Errors.EPERM('oldpath refers to a directory'));
       } else {
         find_node(context, newParentPath, read_new_directory_data);
       }
     }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
 <<<<<<< HEAD
@@ -11255,50 +11797,6 @@ IndexedDBContext.prototype.delete = function(key, callback) {
   find_node(context, oldParentPath, read_old_directory_data);
 }
 
-<<<<<<< HEAD
-  try {
-    // NOTE: we're not using versioned databases.
-    var openRequest = indexedDB.open(that.name);
-
-    // If the db doesn't exist, we'll create it
-    openRequest.onupgradeneeded = function onupgradeneeded(event) {
-      var db = event.target.result;
-
-      if(db.objectStoreNames.contains(FILE_STORE_NAME)) {
-        db.deleteObjectStore(FILE_STORE_NAME);
-      }
-      db.createObjectStore(FILE_STORE_NAME);
-    };
-
-    openRequest.onsuccess = function onsuccess(event) {
-      that.db = event.target.result;
-      callback();
-    };
-    openRequest.onerror = function onerror(event) {
-      event.preventDefault();
-      callback(event.error);
-    };
-  } catch(err) {
-    callback(err);
-  }
-};
-
-IndexedDB.prototype.getReadOnlyContext = function() {
-  return new IndexedDBContext(this.db, IDB_RO);
-};
-IndexedDB.prototype.getReadWriteContext = function() {
-  return new IndexedDBContext(this.db, IDB_RW);
-};
-
-module.exports = IndexedDB;
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"../buffer.js":14,"../constants.js":15,"../errors.js":18,"buffer":6}],28:[function(require,module,exports){
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-// NOTE: prefer setImmediate to nextTick for proper recursion yielding.
-// see https://github.com/js-platform/filer/pull/24
-var asyncCallback = require('../../lib/async.js').setImmediate;
-=======
 function unlink_node(context, path, callback) {
   path = normalize(path);
   var name = basename(path);
@@ -11319,7 +11817,6 @@ function unlink_node(context, path, callback) {
       });
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function delete_file_data(error) {
     if (error) {
@@ -11345,6 +11842,16 @@ function unlink_node(context, path, callback) {
     }
   }
 
+  function check_if_node_is_directory(error, result) {
+    if (error) {
+      callback(error);
+    } else if (result.mode === 'DIRECTORY') {
+      callback(new Errors.EPERM('unlink not permitted on directories', name));
+    } else {
+      update_file_node(null, result);
+    }
+  }
+
   function check_if_file_exists(error, result) {
     if (error) {
       callback(error);
@@ -11353,7 +11860,7 @@ function unlink_node(context, path, callback) {
       if (!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
-        context.getObject(directoryData[name].id, update_file_node);
+        context.getObject(directoryData[name].id, check_if_node_is_directory);
       }
     }
   }
@@ -11377,6 +11884,7 @@ function read_directory(context, path, callback) {
   var directoryNode;
   var directoryData;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 },{"./buffer.js":14,"./errors.js":18,"./filesystem/interface.js":20,"./path.js":25,"./shell/shell.js":32}],23:[function(require,module,exports){
 var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
@@ -11419,6 +11927,8 @@ var Errors = require('../errors.js');
 var FilerBuffer = require('../buffer.js');
 var base64ArrayBuffer = require('base64-arraybuffer');
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   function handle_directory_data(error, result) {
     if (error) {
       callback(error);
@@ -11428,8 +11938,11 @@ var base64ArrayBuffer = require('base64-arraybuffer');
       callback(null, files);
     }
   }
+<<<<<<< HEAD
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   function read_directory_data(error, result) {
     if (error) {
@@ -11658,21 +12171,11 @@ function truncate_file(context, path, length, callback) {
     }
   }
 
-<<<<<<< HEAD
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../buffer.js":14,"../constants.js":15,"../errors.js":18,"base64-arraybuffer":5}],30:[function(require,module,exports){
-function guid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-    return v.toString(16);
-  }).toUpperCase();
-=======
   if (length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
   } else {
     find_node(context, path, read_file_data);
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 }
 
 function ftruncate_file(context, ofd, length, callback) {
@@ -11707,10 +12210,6 @@ function ftruncate_file(context, ofd, length, callback) {
     }
   }
 
-<<<<<<< HEAD
-},{}],31:[function(require,module,exports){
-var defaults = require('../constants.js').ENVIRONMENT;
-=======
   function update_time(error) {
     if (error) {
       callback(error);
@@ -11719,7 +12218,6 @@ var defaults = require('../constants.js').ENVIRONMENT;
       update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, callback);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function update_file_node(error) {
     if (error) {
@@ -11734,22 +12232,13 @@ var defaults = require('../constants.js').ENVIRONMENT;
   if (length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
   } else {
-    context.getObject(ofd.id, read_file_data);
+    ofd.getNode(context, read_file_data);
   }
 }
 
 function utimes_file(context, path, atime, mtime, callback) {
   path = normalize(path);
 
-<<<<<<< HEAD
-},{"../constants.js":15}],32:[function(require,module,exports){
-var Path = require('../path.js');
-var Errors = require('../errors.js');
-var Environment = require('./environment.js');
-var async = require('../../lib/async.js');
-var Encoding = require('../encoding.js');
-var minimatch = require('minimatch');
-=======
   function update_times(error, node) {
     if (error) {
       callback(error);
@@ -11757,7 +12246,6 @@ var minimatch = require('minimatch');
       update_node_times(context, path, node, { atime: atime, ctime: mtime, mtime: mtime }, callback);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   if (typeof atime != 'number' || typeof mtime != 'number') {
     callback(new Errors.EINVAL('atime and mtime must be number', path));
@@ -11783,12 +12271,19 @@ function futimes_file(context, ofd, atime, mtime, callback) {
   } else if (atime < 0 || mtime < 0) {
     callback(new Errors.EINVAL('atime and mtime must be positive integers'));
   } else {
-    context.getObject(ofd.id, update_times);
+    ofd.getNode(context, update_times);
   }
 }
 
 function setxattr_file(context, path, name, value, flag, callback) {
   path = normalize(path);
+
+  function setxattr(error, node) {
+    if (error) {
+      return callback(error);
+    }
+    set_extended_attribute(context, path, node, name, value, flag, callback);
+  }
 
   if (typeof name != 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
@@ -11797,19 +12292,26 @@ function setxattr_file(context, path, name, value, flag, callback) {
   } else if (flag !== null && flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
     callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE', path));
   } else {
-    set_extended_attribute(context, path, name, value, flag, callback);
+    find_node(context, path, setxattr);
   }
 }
 
 function fsetxattr_file(context, ofd, name, value, flag, callback) {
-  if (typeof name != 'string') {
+  function setxattr(error, node) {
+    if (error) {
+      return callback(error);
+    }
+    set_extended_attribute(context, ofd.path, node, name, value, flag, callback);
+  }
+
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string'));
   } else if (!name) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   } else if (flag !== null && flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
     callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
   } else {
-    set_extended_attribute(context, ofd, name, value, flag, callback);
+    ofd.getNode(context, setxattr);
   }
 }
 
@@ -11817,14 +12319,16 @@ function getxattr_file(context, path, name, callback) {
   path = normalize(path);
 
   function get_xattr(error, node) {
-    var xattr = node ? node.xattrs[name] : null;
-
     if (error) {
-      callback(error);
-    } else if (!node.xattrs.hasOwnProperty(name)) {
+      return callback(error);
+    }
+
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR(null, path));
     } else {
-      callback(null, node.xattrs[name]);
+      callback(null, xattrs[name]);
     }
   }
 
@@ -11840,14 +12344,16 @@ function getxattr_file(context, path, name, callback) {
 function fgetxattr_file(context, ofd, name, callback) {
 
   function get_xattr(error, node) {
-    var xattr = node ? node.xattrs[name] : null;
-
     if (error) {
-      callback(error);
-    } else if (!node.xattrs.hasOwnProperty(name)) {
+      return callback(error);
+    }
+
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR());
     } else {
-      callback(null, node.xattrs[name]);
+      callback(null, xattrs[name]);
     }
   }
 
@@ -11856,7 +12362,7 @@ function fgetxattr_file(context, ofd, name, callback) {
   } else if (!name) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   } else {
-    context.getObject(ofd.id, get_xattr);
+    ofd.getNode(context, get_xattr);
   }
 }
 
@@ -11864,7 +12370,9 @@ function removexattr_file(context, path, name, callback) {
   path = normalize(path);
 
   function remove_xattr(error, node) {
-    var xattr = node ? node.xattrs : null;
+    if (error) {
+      return callback(error);
+    }
 
     function update_time(error) {
       if (error) {
@@ -11874,17 +12382,17 @@ function removexattr_file(context, path, name, callback) {
       }
     }
 
-    if (error) {
-      callback(error);
-    } else if (!xattr.hasOwnProperty(name)) {
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
       callback(new Errors.ENOATTR(null, path));
     } else {
-      delete node.xattrs[name];
+      delete xattrs[name];
       context.putObject(node.id, node, update_time);
     }
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
   } else if (!name) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
@@ -11896,6 +12404,10 @@ function removexattr_file(context, path, name, callback) {
 function fremovexattr_file(context, ofd, name, callback) {
 
   function remove_xattr(error, node) {
+    if (error) {
+      return callback(error);
+    }
+
     function update_time(error) {
       if (error) {
         callback(error);
@@ -11904,6 +12416,7 @@ function fremovexattr_file(context, ofd, name, callback) {
       }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 },{"./indexeddb.js":27,"./memory.js":28,"./websql.js":29}],27:[function(require,module,exports){
 (function (global){
@@ -11917,9 +12430,14 @@ var FilerBuffer = require('../buffer.js');
     if (error) {
       callback(error);
     } else if (!node.xattrs.hasOwnProperty(name)) {
+=======
+    var xattrs = node.xattrs;
+
+    if (!xattrs.hasOwnProperty(name)) {
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       callback(new Errors.ENOATTR());
     } else {
-      delete node.xattrs[name];
+      delete xattrs[name];
       context.putObject(node.id, node, update_time);
     }
   }
@@ -11930,7 +12448,7 @@ var FilerBuffer = require('../buffer.js');
   } else if (!name) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   } else {
-    context.getObject(ofd.id, remove_xattr);
+    ofd.getNode(context, remove_xattr);
   }
 }
 
@@ -12029,12 +12547,12 @@ function mkdir(fs, context, path, mode, callback) {
   // NOTE: we support passing a mode arg, but we ignore it internally for now.
   callback = arguments[arguments.length - 1];
   if (!pathCheck(path, callback)) return;
-  make_directory(context, path, standard_check_result_cb(callback));
+  make_directory(context, path, callback);
 }
 
 function rmdir(fs, context, path, callback) {
   if (!pathCheck(path, callback)) return;
-  remove_directory(context, path, standard_check_result_cb(callback));
+  remove_directory(context, path, callback);
 }
 
 function stat(fs, context, path, callback) {
@@ -12073,12 +12591,12 @@ function fstat(fs, context, fd, callback) {
 function link(fs, context, oldpath, newpath, callback) {
   if (!pathCheck(oldpath, callback)) return;
   if (!pathCheck(newpath, callback)) return;
-  link_node(context, oldpath, newpath, standard_check_result_cb(callback));
+  link_node(context, oldpath, newpath, callback);
 }
 
 function unlink(fs, context, path, callback) {
   if (!pathCheck(path, callback)) return;
-  unlink_node(context, path, standard_check_result_cb(callback));
+  unlink_node(context, path, callback);
 }
 
 function read(fs, context, fd, buffer, offset, length, position, callback) {
@@ -12098,7 +12616,7 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   } else if (!_(ofd.flags).contains(O_READ)) {
     callback(new Errors.EBADF('descriptor does not permit reading'));
   } else {
-    read_data(context, ofd, buffer, offset, length, position, standard_check_result_cb(wrapped_cb));
+    read_data(context, ofd, buffer, offset, length, position, wrapped_cb);
   }
 }
 
@@ -12182,7 +12700,7 @@ function write(fs, context, fd, buffer, offset, length, position, callback) {
   } else if (buffer.length - offset < length) {
     callback(new Errors.EIO('intput buffer is too small'));
   } else {
-    write_data(context, ofd, buffer, offset, length, position, standard_check_result_cb(callback));
+    write_data(context, ofd, buffer, offset, length, position, callback);
   }
 }
 
@@ -12269,7 +12787,7 @@ function exists(fs, context, path, callback) {
 
 function getxattr(fs, context, path, name, callback) {
   if (!pathCheck(path, callback)) return;
-  getxattr_file(context, path, name, standard_check_result_cb(callback));
+  getxattr_file(context, path, name, callback);
 }
 
 function fgetxattr(fs, context, fd, name, callback) {
@@ -12277,7 +12795,7 @@ function fgetxattr(fs, context, fd, name, callback) {
   if (!ofd) {
     callback(new Errors.EBADF());
   } else {
-    fgetxattr_file(context, ofd, name, standard_check_result_cb(callback));
+    fgetxattr_file(context, ofd, name, callback);
   }
 }
 
@@ -12288,7 +12806,7 @@ function setxattr(fs, context, path, name, value, flag, callback) {
   }
 
   if (!pathCheck(path, callback)) return;
-  setxattr_file(context, path, name, value, flag, standard_check_result_cb(callback));
+  setxattr_file(context, path, name, value, flag, callback);
 }
 
 function fsetxattr(fs, context, fd, name, value, flag, callback) {
@@ -12303,13 +12821,13 @@ function fsetxattr(fs, context, fd, name, value, flag, callback) {
   } else if (!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
-    fsetxattr_file(context, ofd, name, value, flag, standard_check_result_cb(callback));
+    fsetxattr_file(context, ofd, name, value, flag, callback);
   }
 }
 
 function removexattr(fs, context, path, name, callback) {
   if (!pathCheck(path, callback)) return;
-  removexattr_file(context, path, name, standard_check_result_cb(callback));
+  removexattr_file(context, path, name, callback);
 }
 
 function fremovexattr(fs, context, fd, name, callback) {
@@ -12319,7 +12837,7 @@ function fremovexattr(fs, context, fd, name, callback) {
   } else if (!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
-    fremovexattr_file(context, ofd, name, standard_check_result_cb(callback));
+    fremovexattr_file(context, ofd, name, callback);
   }
 }
 
@@ -12365,7 +12883,7 @@ function lseek(fs, context, fd, offset, whence, callback) {
 
 function readdir(fs, context, path, callback) {
   if (!pathCheck(path, callback)) return;
-  read_directory(context, path, standard_check_result_cb(callback));
+  read_directory(context, path, callback);
 }
 
 function utimes(fs, context, path, atime, mtime, callback) {
@@ -12375,7 +12893,7 @@ function utimes(fs, context, path, atime, mtime, callback) {
   atime = atime ? atime : currentTime;
   mtime = mtime ? mtime : currentTime;
 
-  utimes_file(context, path, atime, mtime, standard_check_result_cb(callback));
+  utimes_file(context, path, atime, mtime, callback);
 }
 
 function futimes(fs, context, fd, atime, mtime, callback) {
@@ -12389,7 +12907,7 @@ function futimes(fs, context, fd, atime, mtime, callback) {
   } else if (!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
-    futimes_file(context, ofd, atime, mtime, standard_check_result_cb(callback));
+    futimes_file(context, ofd, atime, mtime, callback);
   }
 }
 
@@ -12397,15 +12915,112 @@ function rename(fs, context, oldpath, newpath, callback) {
   if (!pathCheck(oldpath, callback)) return;
   if (!pathCheck(newpath, callback)) return;
 
-  function unlink_old_node(error) {
+  oldpath = normalize(oldpath);
+  newpath = normalize(newpath);
+
+  var oldParentPath = Path.dirname(oldpath);
+  var newParentPath = Path.dirname(oldpath);
+  var oldName = Path.basename(oldpath);
+  var newName = Path.basename(newpath);
+  var oldParentDirectory, oldParentData;
+  var newParentDirectory, newParentData;
+
+  function update_times(error, newNode) {
     if (error) {
       callback(error);
     } else {
-      unlink_node(context, oldpath, standard_check_result_cb(callback));
+      update_node_times(context, newpath, newNode, { ctime: Date.now() }, callback);
     }
   }
 
-  link_node(context, oldpath, newpath, unlink_old_node);
+  function read_new_directory(error) {
+    if (error) {
+      callback(error);
+    } else {
+      context.getObject(newParentData[newName].id, update_times);
+    }
+  }
+
+  function update_old_parent_directory_data(error) {
+    if (error) {
+      callback(error);
+    } else {
+      if (oldParentDirectory.id === newParentDirectory.id) {
+        oldParentData = newParentData;
+      }
+      delete oldParentData[oldName];
+      context.putObject(oldParentDirectory.data, oldParentData, read_new_directory);
+    }
+  }
+
+  function update_new_parent_directory_data(error) {
+    if (error) {
+      callback(error);
+    } else {
+      newParentData[newName] = oldParentData[oldName];
+      context.putObject(newParentDirectory.data, newParentData, update_old_parent_directory_data);
+    }
+  }
+
+  function check_if_new_directory_exists(error, result) {
+    if (error) {
+      callback(error);
+    } else {
+      newParentData = result;
+      if (_(newParentData).has(newName)) {
+        remove_directory(context, newpath, update_new_parent_directory_data);
+      } else {
+        update_new_parent_directory_data();
+      }
+    }
+  }
+
+  function read_new_parent_directory_data(error, result) {
+    if (error) {
+      callback(error);
+    } else {
+      newParentDirectory = result;
+      context.getObject(newParentDirectory.data, check_if_new_directory_exists);
+    }
+  }
+
+  function get_new_parent_directory(error, result) {
+    if (error) {
+      callback(error);
+    } else {
+      oldParentData = result;
+      find_node(context, newParentPath, read_new_parent_directory_data);
+    }
+  }
+
+  function read_parent_directory_data(error, result) {
+    if (error) {
+      callback(error);
+    } else {
+      oldParentDirectory = result;
+      context.getObject(result.data, get_new_parent_directory);
+    }
+  }
+
+  function unlink_old_file(error) {
+    if (error) {
+      callback(error);
+    } else {
+      unlink_node(context, oldpath, callback);
+    }
+  }
+
+  function check_node_type(error, node) {
+    if (error) {
+      callback(error);
+    } else if (node.mode === 'DIRECTORY') {
+      find_node(context, oldParentPath, read_parent_directory_data);
+    } else {
+      link_node(context, oldpath, newpath, unlink_old_file);
+    }
+  }
+
+  find_node(context, oldpath, check_node_type);
 }
 
 function symlink(fs, context, srcpath, dstpath, type, callback) {
@@ -12413,12 +13028,12 @@ function symlink(fs, context, srcpath, dstpath, type, callback) {
   callback = arguments[arguments.length - 1];
   if (!pathCheck(srcpath, callback)) return;
   if (!pathCheck(dstpath, callback)) return;
-  make_symbolic_link(context, srcpath, dstpath, standard_check_result_cb(callback));
+  make_symbolic_link(context, srcpath, dstpath, callback);
 }
 
 function readlink(fs, context, path, callback) {
   if (!pathCheck(path, callback)) return;
-  read_link(context, path, standard_check_result_cb(callback));
+  read_link(context, path, callback);
 }
 
 function lstat(fs, context, path, callback) {
@@ -12442,7 +13057,7 @@ function truncate(fs, context, path, length, callback) {
   length = length || 0;
 
   if (!pathCheck(path, callback)) return;
-  truncate_file(context, path, length, standard_check_result_cb(callback));
+  truncate_file(context, path, length, callback);
 }
 
 function ftruncate(fs, context, fd, length, callback) {
@@ -12456,7 +13071,7 @@ function ftruncate(fs, context, fd, length, callback) {
   } else if (!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
-    ftruncate_file(context, ofd, length, standard_check_result_cb(callback));
+    ftruncate_file(context, ofd, length, callback);
   }
 }
 
@@ -12494,7 +13109,7 @@ module.exports = {
   truncate: truncate,
   ftruncate: ftruncate
 };
-},{"../../lib/nodash.js":13,"../path.js":4,"../constants.js":15,"../encoding.js":37,"../errors.js":5,"../directory-entry.js":38,"../open-file-description.js":39,"../super-node.js":40,"../node.js":41,"../stats.js":42,"../buffer.js":3}],6:[function(require,module,exports) {
+},{"../../lib/nodash.js":14,"../path.js":4,"../constants.js":16,"../encoding.js":20,"../errors.js":5,"../directory-entry.js":48,"../open-file-description.js":49,"../super-node.js":50,"../node.js":51,"../stats.js":52,"../buffer.js":3}],6:[function(require,module,exports) {
 var _ = require('../../lib/nodash.js');
 
 var isNullPath = require('../path.js').isNull;
@@ -12536,6 +13151,13 @@ function maybeCallback(callback) {
   };
 }
 
+// Default callback that logs an error if passed in
+function defaultCallback(err) {
+  if (err) {
+    console.error('Filer error: ', err);
+  }
+}
+
 /**
  * FileSystem
  *
@@ -12566,7 +13188,7 @@ function maybeCallback(callback) {
  */
 function FileSystem(options, callback) {
   options = options || {};
-  callback = callback || nop;
+  callback = callback || defaultCallback;
 
   var flags = options.flags;
   var guid = options.guid ? options.guid : defaultGuidFn;
@@ -12611,6 +13233,9 @@ function FileSystem(options, callback) {
   fs.stdout = STDOUT;
   fs.stderr = STDERR;
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+
+  // Expose Shell constructor
+  this.Shell = Shell.bind(undefined, this);
 
   // Safely expose the list of open files and file
   // descriptor management functions
@@ -12754,6 +13379,7 @@ function FileSystem(options, callback) {
       callback(error, fs);
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 /**
  * Recursively walk a directory tree, reporting back all paths
@@ -12907,13 +13533,14 @@ Stats.prototype.isSymbolicLink = function() {
 };
 =======
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     if (err) {
       return complete(err);
     }
 
     var context = provider.getReadWriteContext();
     context.guid = wrappedGuidFn(context);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
     // Mount the filesystem, formatting if necessary
     if (forceFormatting) {
@@ -12953,6 +13580,7 @@ FileSystem.providers = providers;
       var context = fs.provider.openReadWriteContext();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 },{"./constants.js":15,"./path.js":25}],34:[function(require,module,exports){
 =======
 <<<<<<< HEAD
@@ -12960,13 +13588,14 @@ FileSystem.providers = providers;
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 var Constants = require('./constants.js');
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       // Fail early if the filesystem is in an error state (e.g.,
       // provider failed to open.
       if (FS_ERROR === fs.readyState) {
         var err = new Errors.EFILESYSTEMERROR('filesystem unavailable, operation canceled');
         return callback.call(fs, err);
       }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
       // Wrap the callback so we can explicitly close the context
       function complete() {
@@ -13004,6 +13633,7 @@ var Constants = require('./constants.js');
   };
 });
 
+<<<<<<< HEAD
 FileSystem.prototype.Shell = function (options) {
   return new Shell(this, options);
 };
@@ -13014,15 +13644,23 @@ FileSystem.prototype.Shell = function (options) {
 <<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 module.exports = FileSystem;
-},{"../../lib/nodash.js":13,"../path.js":4,"../shared.js":14,"../constants.js":15,"../providers/index.js":18,"../shell/shell.js":19,"../../lib/intercom.js":16,"../fs-watcher.js":17,"../errors.js":5,"./implementation.js":20}],1:[function(require,module,exports) {
+},{"../../lib/nodash.js":14,"../path.js":4,"../shared.js":15,"../constants.js":16,"../providers/index.js":21,"../shell/shell.js":7,"../../lib/intercom.js":17,"../fs-watcher.js":18,"../errors.js":5,"./implementation.js":22}],1:[function(require,module,exports) {
 module.exports = {
   FileSystem: require('./filesystem/interface.js'),
   Buffer: require('./buffer.js'),
   Path: require('./path.js'),
-  Errors: require('./errors.js')
+  Errors: require('./errors.js'),
+  Shell: require('./shell/shell.js')
 };
+<<<<<<< HEAD
 },{"./filesystem/interface.js":6,"./buffer.js":3,"./path.js":4,"./errors.js":5}]},{},[1], "Filer")
 //# sourceMappingURL=/filer.map
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 >>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+=======
+},{"./filesystem/interface.js":6,"./buffer.js":3,"./path.js":4,"./errors.js":5,"./shell/shell.js":7}]},{},[1], "Filer")
+//# sourceMappingURL=/filer.map
+>>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
