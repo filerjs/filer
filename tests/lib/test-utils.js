@@ -1,4 +1,4 @@
-var Filer = require('../..');
+var Filer = require('../../src');
 var IndexedDBTestProvider = require('./indexeddb.js');
 var WebSQLTestProvider = require('./websql.js');
 var MemoryTestProvider = require('./memory.js');

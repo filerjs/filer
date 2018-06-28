@@ -34,7 +34,9 @@
     "chai": "^4.1.2",
     "eslint": "^5.0.1",
     "mocha": "^5.2.0",
-    "parcel-bundler": "^1.9.3"
+    "parcel-bundler": "^1.9.3",
+    "requirejs": "^2.3.5"
   },
-  "main": "./src/index.js"
+  "main": "./src/index.js",
+  "browser": "./dist/filer.min.js"
 }

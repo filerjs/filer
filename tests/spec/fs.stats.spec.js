@@ -1,5 +1,4 @@
-var Filer = require('../..');
-var Path = Filer.Path;
+var Path = require('../../src').Path;
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 

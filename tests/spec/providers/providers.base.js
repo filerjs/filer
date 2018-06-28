@@ -1,4 +1,4 @@
-var Buffer = require('../../..').Buffer;
+var Buffer = require('../../../src').Buffer;
 var util = require('../../lib/test-utils.js');
 var expect = require('chai').expect;
 
