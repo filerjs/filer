@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	</head>
+	<script>
+		const log = (text) => {
+			let pNode = document.createElement("p");
+			let textNode = document.createTextNode(text);
+			pNode.appendChild(textNode);
+			document.getElementById("log-container").appendChild(pNode);
+		}
+	</script>
+	<script src="../dist/filer.js"></script>
+	<script>
+		let vfs = new Filer.VFS();
+
+		(async () => {
+			let rootDirContents = await vfs.readdir("/");
+			log(`root directory contents: ${JSON.stringify(rootDirContents)}`);
+
+			await vfs.mount(`filer+memfs:///${Filer.UUID.v4()}`, "/");
+			rootDirContents = await vfs.readdir("/");
+			log(`root directory contents: ${JSON.stringify(rootDirContents)}`);
+
+			await vfs.mkdir("/test1");
+			rootDirContents = await vfs.readdir("/");
+			log(`root directory contents: ${JSON.stringify(rootDirContents)}`);
+
+			await vfs.mkdir("/test2");
+			rootDirContents = await vfs.readdir("/");
+			log(`root directory contents: ${JSON.stringify(rootDirContents)}`);
+		})();
+	</script>
+	<body>
+		<div id="log-container">
+		</div>
+	</body>
+</html>
