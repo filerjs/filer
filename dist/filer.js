@@ -103,7 +103,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({14:[function(require,module,exports) {
+})({"96cB":[function(require,module,exports) {
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 // Cherry-picked bits of underscore.js, lodash.js
@@ -202,7 +202,7 @@ function nodash(value) {
 }
 
 module.exports = nodash;
-},{}],4:[function(require,module,exports) {
+},{}],"UzoP":[function(require,module,exports) {
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -441,7 +441,7 @@ module.exports = {
   addTrailing: addTrailing,
   removeTrailing: removeTrailing
 };
-},{}],15:[function(require,module,exports) {
+},{}],"3zBM":[function(require,module,exports) {
 function guid() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0,
@@ -469,7 +469,7 @@ module.exports = {
   u8toArray: u8toArray,
   nop: nop
 };
-},{}],16:[function(require,module,exports) {
+},{}],"iJA9":[function(require,module,exports) {
 var O_READ = 'READ';
 var O_WRITE = 'WRITE';
 var O_CREATE = 'CREATE';
@@ -479,39 +479,10 @@ var O_APPEND = 'APPEND';
 var XATTR_CREATE = 'CREATE';
 var XATTR_REPLACE = 'REPLACE';
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-},{}],5:[function(require,module,exports){
-/*
- * base64-arraybuffer
- * https://github.com/niklasvh/base64-arraybuffer
- *
- * Copyright (c) 2012 Niklas von Hertzen
- * Licensed under the MIT license.
- */
-(function(){
-  "use strict";
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 module.exports = {
   FILE_SYSTEM_NAME: 'local',
 
-<<<<<<< HEAD
-  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-  // Use a lookup table to find the index.
-  var lookup = new Uint8Array(256);
-  for (var i = 0; i < chars.length; i++) {
-    lookup[chars.charCodeAt(i)] = i;
-  }
-
-  exports.encode = function(arraybuffer) {
-    var bytes = new Uint8Array(arraybuffer),
-    i, len = bytes.length, base64 = "";
-=======
   FILE_STORE_NAME: 'files',
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   IDB_RO: 'readonly',
   IDB_RW: 'readwrite',
@@ -520,10 +491,19 @@ module.exports = {
   WSQL_SIZE: 5 * 1024 * 1024,
   WSQL_DESC: "FileSystem Storage",
 
-  MODE_FILE: 'FILE',
-  MODE_DIRECTORY: 'DIRECTORY',
-  MODE_SYMBOLIC_LINK: 'SYMLINK',
-  MODE_META: 'META',
+  NODE_TYPE_FILE: 'FILE',
+  NODE_TYPE_DIRECTORY: 'DIRECTORY',
+  NODE_TYPE_SYMBOLIC_LINK: 'SYMLINK',
+  NODE_TYPE_META: 'META',
+
+  S_IFREG: 0x8000,
+  S_IFDIR: 0x4000,
+  S_IFLNK: 0xA000,
+
+  DEFAULT_DIR_PERMISSIONS: 0x1ED, // 755
+  DEFAULT_FILE_PERMISSIONS: 0x1A4, // 644
+  FULL_READ_WRITE_EXEC_PERMISSIONS: 0x1FF, // 777
+  READ_WRITE_PERMISSIONS: 0x1B6, /// 666
 
   SYMLOOP_MAX: 10,
 
@@ -532,19 +512,11 @@ module.exports = {
 
   ROOT_DIRECTORY_NAME: '/', // basename(normalize(path))
 
-<<<<<<< HEAD
-    for (i = 0; i < len; i+=4) {
-      encoded1 = lookup[base64.charCodeAt(i)];
-      encoded2 = lookup[base64.charCodeAt(i+1)];
-      encoded3 = lookup[base64.charCodeAt(i+2)];
-      encoded4 = lookup[base64.charCodeAt(i+3)];
-=======
   // FS Mount Flags
   FS_FORMAT: 'FORMAT',
   FS_NOCTIME: 'NOCTIME',
   FS_NOMTIME: 'NOMTIME',
   FS_NODUPEIDCHECK: 'FS_NODUPEIDCHECK',
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   // FS File Open Flags
   O_READ: O_READ,
@@ -554,11 +526,6 @@ module.exports = {
   O_TRUNCATE: O_TRUNCATE,
   O_APPEND: O_APPEND,
 
-<<<<<<< HEAD
-    return arraybuffer;
-  };
-})();
-=======
   O_FLAGS: {
     'r': [O_READ],
     'r+': [O_READ, O_WRITE],
@@ -571,161 +538,7 @@ module.exports = {
     'ax': [O_WRITE, O_CREATE, O_EXCLUSIVE, O_APPEND],
     'ax+': [O_WRITE, O_READ, O_CREATE, O_EXCLUSIVE, O_APPEND]
   },
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-},{}],6:[function(require,module,exports){
-var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-
-;(function (exports) {
-	'use strict';
-
-  var Arr = (typeof Uint8Array !== 'undefined')
-    ? Uint8Array
-    : Array
-
-	var PLUS   = '+'.charCodeAt(0)
-	var SLASH  = '/'.charCodeAt(0)
-	var NUMBER = '0'.charCodeAt(0)
-	var LOWER  = 'a'.charCodeAt(0)
-	var UPPER  = 'A'.charCodeAt(0)
-	var PLUS_URL_SAFE = '-'.charCodeAt(0)
-	var SLASH_URL_SAFE = '_'.charCodeAt(0)
-
-	function decode (elt) {
-		var code = elt.charCodeAt(0)
-		if (code === PLUS ||
-		    code === PLUS_URL_SAFE)
-			return 62 // '+'
-		if (code === SLASH ||
-		    code === SLASH_URL_SAFE)
-			return 63 // '/'
-		if (code < NUMBER)
-			return -1 //no match
-		if (code < NUMBER + 10)
-			return code - NUMBER + 26 + 26
-		if (code < UPPER + 26)
-			return code - UPPER
-		if (code < LOWER + 26)
-			return code - LOWER + 26
-	}
-
-	function b64ToByteArray (b64) {
-		var i, j, l, tmp, placeHolders, arr
-
-		if (b64.length % 4 > 0) {
-			throw new Error('Invalid string. Length must be a multiple of 4')
-		}
-
-		// the number of equal signs (place holders)
-		// if there are two placeholders, than the two characters before it
-		// represent one byte
-		// if there is only one, then the three characters before it represent 2 bytes
-		// this is just a cheap hack to not do indexOf twice
-		var len = b64.length
-		placeHolders = '=' === b64.charAt(len - 2) ? 2 : '=' === b64.charAt(len - 1) ? 1 : 0
-
-		// base64 is 4/3 + up to two characters of the original data
-		arr = new Arr(b64.length * 3 / 4 - placeHolders)
-
-		// if there are placeholders, only get up to the last complete 4 chars
-		l = placeHolders > 0 ? b64.length - 4 : b64.length
-
-		var L = 0
-
-		function push (v) {
-			arr[L++] = v
-		}
-
-		for (i = 0, j = 0; i < l; i += 4, j += 3) {
-			tmp = (decode(b64.charAt(i)) << 18) | (decode(b64.charAt(i + 1)) << 12) | (decode(b64.charAt(i + 2)) << 6) | decode(b64.charAt(i + 3))
-			push((tmp & 0xFF0000) >> 16)
-			push((tmp & 0xFF00) >> 8)
-			push(tmp & 0xFF)
-		}
-
-		if (placeHolders === 2) {
-			tmp = (decode(b64.charAt(i)) << 2) | (decode(b64.charAt(i + 1)) >> 4)
-			push(tmp & 0xFF)
-		} else if (placeHolders === 1) {
-			tmp = (decode(b64.charAt(i)) << 10) | (decode(b64.charAt(i + 1)) << 4) | (decode(b64.charAt(i + 2)) >> 2)
-			push((tmp >> 8) & 0xFF)
-			push(tmp & 0xFF)
-		}
-
-		return arr
-	}
-
-	function uint8ToBase64 (uint8) {
-		var i,
-			extraBytes = uint8.length % 3, // if we have 1 byte left, pad 2 bytes
-			output = "",
-			temp, length
-
-		function encode (num) {
-			return lookup.charAt(num)
-		}
-
-		function tripletToBase64 (num) {
-			return encode(num >> 18 & 0x3F) + encode(num >> 12 & 0x3F) + encode(num >> 6 & 0x3F) + encode(num & 0x3F)
-		}
-
-		// go through the array every three bytes, we'll deal with trailing stuff later
-		for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
-			temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
-			output += tripletToBase64(temp)
-		}
-
-		// pad the end with zeros, but make sure to not forget the extra bytes
-		switch (extraBytes) {
-			case 1:
-				temp = uint8[uint8.length - 1]
-				output += encode(temp >> 2)
-				output += encode((temp << 4) & 0x3F)
-				output += '=='
-				break
-			case 2:
-				temp = (uint8[uint8.length - 2] << 8) + (uint8[uint8.length - 1])
-				output += encode(temp >> 10)
-				output += encode((temp >> 4) & 0x3F)
-				output += encode((temp << 2) & 0x3F)
-				output += '='
-				break
-		}
-
-		return output
-	}
-
-	exports.toByteArray = b64ToByteArray
-	exports.fromByteArray = uint8ToBase64
-}(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
-
-},{}],7:[function(require,module,exports){
-(function (global){
-/*!
- * The buffer module from node.js, for the browser.
- *
- * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
- * @license  MIT
- */
-/* eslint-disable no-proto */
-
-'use strict'
-
-var base64 = require('base64-js')
-var ieee754 = require('ieee754')
-var isArray = require('isarray')
-
-exports.Buffer = Buffer
-exports.SlowBuffer = SlowBuffer
-exports.INSPECT_MAX_BYTES = 50
-Buffer.poolSize = 8192 // not used by this implementation
-
-var rootParent = {}
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   XATTR_CREATE: XATTR_CREATE,
   XATTR_REPLACE: XATTR_REPLACE,
 
@@ -744,70 +557,56 @@ var rootParent = {}
   ENVIRONMENT: {
     TMP: '/tmp',
     PATH: ''
+  },
+
+  // Duplicate Node's fs.constants
+  fsConstants: {
+    O_RDONLY: 0,
+    O_WRONLY: 1,
+    O_RDWR: 2,
+    S_IFMT: 61440,
+    S_IFREG: 32768,
+    S_IFDIR: 16384,
+    S_IFCHR: 8192,
+    S_IFBLK: 24576,
+    S_IFIFO: 4096,
+    S_IFLNK: 40960,
+    S_IFSOCK: 49152,
+    O_CREAT: 512,
+    O_EXCL: 2048,
+    O_NOCTTY: 131072,
+    O_TRUNC: 1024,
+    O_APPEND: 8,
+    O_DIRECTORY: 1048576,
+    O_NOFOLLOW: 256,
+    O_SYNC: 128,
+    O_DSYNC: 4194304,
+    O_SYMLINK: 2097152,
+    O_NONBLOCK: 4,
+    S_IRWXU: 448,
+    S_IRUSR: 256,
+    S_IWUSR: 128,
+    S_IXUSR: 64,
+    S_IRWXG: 56,
+    S_IRGRP: 32,
+    S_IWGRP: 16,
+    S_IXGRP: 8,
+    S_IRWXO: 7,
+    S_IROTH: 4,
+    S_IWOTH: 2,
+    S_IXOTH: 1,
+    F_OK: 0,
+    R_OK: 4,
+    W_OK: 2,
+    X_OK: 1,
+    UV_FS_COPYFILE_EXCL: 1,
+    COPYFILE_EXCL: 1
   }
 };
-},{}],5:[function(require,module,exports) {
+},{}],"p8GN":[function(require,module,exports) {
 var errors = {};
 [
 /**
-<<<<<<< HEAD
-<<<<<<< HEAD
- * If `Buffer.TYPED_ARRAY_SUPPORT`:
- *   === true    Use Uint8Array implementation (fastest)
- *   === false   Use Object implementation (most compatible, even IE6)
- *
- * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
- * Opera 11.6+, iOS 4.2+.
- *
- * Due to various browser bugs, sometimes the Object implementation will be used even
- * when the browser supports typed arrays.
- *
- * Note:
- *
- *   - Firefox 4-29 lacks support for adding new properties to `Uint8Array` instances,
- *     See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
- *
- *   - Safari 5-7 lacks support for changing the `Object.prototype.constructor` property
- *     on objects.
- *
- *   - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
- *
- *   - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
- *     incorrect length in some situations.
-
- * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
- * get the Object implementation, which is slower but behaves correctly.
- */
-Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined
-  ? global.TYPED_ARRAY_SUPPORT
-  : typedArraySupport()
-
-function typedArraySupport () {
-  function Bar () {}
-  try {
-    var arr = new Uint8Array(1)
-    arr.foo = function () { return 42 }
-    arr.constructor = Bar
-    return arr.foo() === 42 && // typed array instances can be augmented
-        arr.constructor === Bar && // constructor can be set
-        typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
-        arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
-  } catch (e) {
-    return false
-  }
-<<<<<<< HEAD
-}
-
-function kMaxLength () {
-  return Buffer.TYPED_ARRAY_SUPPORT
-    ? 0x7fffffff
-    : 0x3fffffff
-}
-=======
-})()
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
  * node.js errors - we only use some of these, add as needed.
  */
 //'-1:UNKNOWN:unknown error',
@@ -868,51 +667,10 @@ function kMaxLength () {
 //'57:ENODEV:no such device',
 //'58:ESPIPE:invalid seek',
 //'59:ECANCELED:operation canceled',
-<<<<<<< HEAD
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
 /**
  * Filer specific errors
  */
-<<<<<<< HEAD
-<<<<<<< HEAD
-function Buffer (arg) {
-  if (!(this instanceof Buffer)) {
-    // Avoid going through an ArgumentsAdaptorTrampoline in the common case.
-    if (arguments.length > 1) return new Buffer(arg, arguments[1])
-    return new Buffer(arg)
-  }
-
-  if (!Buffer.TYPED_ARRAY_SUPPORT) {
-    this.length = 0
-    this.parent = undefined
-  }
-
-  // Common case.
-  if (typeof arg === 'number') {
-    return fromNumber(this, arg)
-  }
-
-  // Slightly less common case.
-  if (typeof arg === 'string') {
-    return fromString(this, arg, arguments.length > 1 ? arguments[1] : 'utf8')
-  }
-
-  // Unusual.
-  return fromObject(this, arg)
-}
-
-function fromNumber (that, length) {
-  that = allocate(that, length < 0 ? 0 : checked(length) | 0)
-  if (!Buffer.TYPED_ARRAY_SUPPORT) {
-    for (var i = 0; i < length; i++) {
-      that[i] = 0
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 '1000:ENOTMOUNTED:not mounted', '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.', '1002:ENOATTR:attribute does not exist'].forEach(function (e) {
   e = e.split(':');
   var errno = +e[0];
@@ -943,7 +701,7 @@ function fromNumber (that, length) {
 });
 
 module.exports = errors;
-},{}],37:[function(require,module,exports) {
+},{}],"yh9p":[function(require,module,exports) {
 'use strict'
 
 exports.byteLength = byteLength
@@ -972,21 +730,10 @@ function getLens (b64) {
     throw new Error('Invalid string. Length must be a multiple of 4')
   }
 
-<<<<<<< HEAD
-  if (typeof ArrayBuffer !== 'undefined') {
-    if (object.buffer instanceof ArrayBuffer) {
-      return fromTypedArray(that, object)
-    }
-    if (object instanceof ArrayBuffer) {
-      return fromArrayBuffer(that, object)
-    }
-  }
-=======
   // Trim off extra bytes after placeholder bytes are found
   // See: https://github.com/beatgammit/base64-js/issues/42
   var validLen = b64.indexOf('=')
   if (validLen === -1) validLen = len
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   var placeHoldersLen = validLen === len
     ? 0
@@ -1013,30 +760,7 @@ function toByteArray (b64) {
   var validLen = lens[0]
   var placeHoldersLen = lens[1]
 
-<<<<<<< HEAD
-function fromArrayBuffer (that, array) {
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    // Return an augmented `Uint8Array` instance, for best performance
-    array.byteLength
-    that = Buffer._augment(new Uint8Array(array))
-  } else {
-    // Fallback: Return an object instance of the Buffer class
-    that = fromTypedArray(that, new Uint8Array(array))
-  }
-  return that
-}
-
-function fromArrayLike (that, array) {
-  var length = checked(array.length) | 0
-  that = allocate(that, length)
-  for (var i = 0; i < length; i += 1) {
-    that[i] = array[i] & 255
-  }
-  return that
-}
-=======
   var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen))
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   var curByte = 0
 
@@ -1056,40 +780,6 @@ function fromArrayLike (that, array) {
     arr[curByte++] = tmp & 0xFF
   }
 
-<<<<<<< HEAD
-if (Buffer.TYPED_ARRAY_SUPPORT) {
-  Buffer.prototype.__proto__ = Uint8Array.prototype
-  Buffer.__proto__ = Uint8Array
-} else {
-  // pre-set for values that may exist in the future
-  Buffer.prototype.length = undefined
-  Buffer.prototype.parent = undefined
-}
-
-function allocate (that, length) {
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    // Return an augmented `Uint8Array` instance, for best performance
-    that = Buffer._augment(new Uint8Array(length))
-    that.__proto__ = Buffer.prototype
-  } else {
-    // Fallback: Return an object instance of the Buffer class
-    that.length = length
-    that._isBuffer = true
-  }
-
-  var fromPool = length !== 0 && length <= Buffer.poolSize >>> 1
-  if (fromPool) that.parent = rootParent
-
-  return that
-}
-
-function checked (length) {
-  // Note: cannot use `length < kMaxLength` here because that fails when
-  // length is NaN (which is otherwise coerced to zero.)
-  if (length >= kMaxLength()) {
-    throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
-                         'size: 0x' + kMaxLength().toString(16) + ' bytes')
-=======
   if (placeHoldersLen === 2) {
     tmp =
       (revLookup[b64.charCodeAt(i)] << 2) |
@@ -1104,7 +794,6 @@ function checked (length) {
       (revLookup[b64.charCodeAt(i + 2)] >> 2)
     arr[curByte++] = (tmp >> 8) & 0xFF
     arr[curByte++] = tmp & 0xFF
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 
   return arr
@@ -1165,7 +854,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],38:[function(require,module,exports) {
+},{}],"JgNJ":[function(require,module,exports) {
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -1209,13 +898,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var d = isLE ? 1 : -1
   var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
 
-<<<<<<< HEAD
-  if (list.length === 0) {
-    return new Buffer(0)
-  }
-=======
   value = Math.abs(value)
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   if (isNaN(value) || value === Infinity) {
     m = isNaN(value) ? 1 : 0
@@ -1248,49 +931,6 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
     }
   }
 
-<<<<<<< HEAD
-function byteLength (string, encoding) {
-  if (typeof string !== 'string') string = '' + string
-
-  var len = string.length
-  if (len === 0) return 0
-
-  // Use a for loop to avoid recursion
-  var loweredCase = false
-  for (;;) {
-    switch (encoding) {
-      case 'ascii':
-      case 'binary':
-      // Deprecated
-      case 'raw':
-      case 'raws':
-        return len
-      case 'utf8':
-      case 'utf-8':
-        return utf8ToBytes(string).length
-      case 'ucs2':
-      case 'ucs-2':
-      case 'utf16le':
-      case 'utf-16le':
-        return len * 2
-      case 'hex':
-        return len >>> 1
-      case 'base64':
-        return base64ToBytes(string).length
-      default:
-        if (loweredCase) return utf8ToBytes(string).length // assume utf8
-        encoding = ('' + encoding).toLowerCase()
-        loweredCase = true
-    }
-  }
-=======
-// base64 is 4/3 + up to two characters of the original data
-function byteLength (b64) {
-  var lens = getLens(b64)
-  var validLen = lens[0]
-  var placeHoldersLen = lens[1]
-  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
-=======
   for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
 
   e = (e << mLen) | m
@@ -1298,32 +938,16 @@ function byteLength (b64) {
   for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
 
   buffer[offset + i - d] |= s * 128
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 }
 
-},{}],39:[function(require,module,exports) {
+},{}],"REa7":[function(require,module,exports) {
 var toString = {}.toString;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-function slowToString (encoding, start, end) {
-=======
-<<<<<<< HEAD
-// pre-set for values that may exist in the future
-Buffer.prototype.length = undefined
-Buffer.prototype.parent = undefined
-
-// toString(encoding, start=0, end=buffer.length)
-Buffer.prototype.toString = function toString (encoding, start, end) {
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  var loweredCase = false
-=======
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],13:[function(require,module,exports) {
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
+},{}],"dskh":[function(require,module,exports) {
 
 var global = arguments[3];
 /*!
@@ -1411,25 +1035,7 @@ function createBuffer (that, length) {
     that.length = length
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-Buffer.prototype.toString = function toString () {
-  var length = this.length | 0
-  if (length === 0) return ''
-  if (arguments.length === 0) return utf8Slice(this, 0, length)
-  return slowToString.apply(this, arguments)
-}
-
-=======
-<<<<<<< HEAD
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-Buffer.prototype.equals = function equals (b) {
-  if (!Buffer.isBuffer(b)) throw new TypeError('Argument must be a Buffer')
-  if (this === b) return true
-  return Buffer.compare(this, b) === 0
-=======
   return that
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 }
 
 /**
@@ -1483,27 +1089,6 @@ function from (that, value, encodingOrOffset, length) {
   return fromObject(that, value)
 }
 
-<<<<<<< HEAD
-// `get` is deprecated
-Buffer.prototype.get = function get (offset) {
-  console.log('.get() is deprecated. Access using array indexes instead.')
-  return this.readUInt8(offset)
-}
-
-// `set` is deprecated
-Buffer.prototype.set = function set (v, offset) {
-  console.log('.set() is deprecated. Access using array indexes instead.')
-  return this.writeUInt8(v, offset)
-}
-=======
-  if (placeHoldersLen === 1) {
-    tmp =
-      (revLookup[b64.charCodeAt(i)] << 10) |
-      (revLookup[b64.charCodeAt(i + 1)] << 4) |
-      (revLookup[b64.charCodeAt(i + 2)] >> 2)
-    arr[curByte++] = (tmp >> 8) & 0xFF
-    arr[curByte++] = tmp & 0xFF
-=======
 /**
  * Functionally equivalent to Buffer(arg, encoding) but throws a TypeError
  * if value is a number.
@@ -1526,7 +1111,6 @@ if (Buffer.TYPED_ARRAY_SUPPORT) {
       value: null,
       configurable: true
     })
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 }
 
@@ -1975,82 +1559,8 @@ Buffer.prototype.compare = function compare (target, start, end, thisStart, this
     thisEnd = this.length
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-function utf8Slice (buf, start, end) {
-  end = Math.min(buf.length, end)
-  var res = []
-
-  var i = start
-  while (i < end) {
-    var firstByte = buf[i]
-    var codePoint = null
-    var bytesPerSequence = (firstByte > 0xEF) ? 4
-      : (firstByte > 0xDF) ? 3
-      : (firstByte > 0xBF) ? 2
-      : 1
-
-    if (i + bytesPerSequence <= end) {
-      var secondByte, thirdByte, fourthByte, tempCodePoint
-
-      switch (bytesPerSequence) {
-        case 1:
-          if (firstByte < 0x80) {
-            codePoint = firstByte
-          }
-          break
-        case 2:
-          secondByte = buf[i + 1]
-          if ((secondByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
-            if (tempCodePoint > 0x7F) {
-              codePoint = tempCodePoint
-            }
-          }
-          break
-        case 3:
-          secondByte = buf[i + 1]
-          thirdByte = buf[i + 2]
-          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
-            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
-              codePoint = tempCodePoint
-            }
-          }
-          break
-        case 4:
-          secondByte = buf[i + 1]
-          thirdByte = buf[i + 2]
-          fourthByte = buf[i + 3]
-          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
-            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
-              codePoint = tempCodePoint
-            }
-          }
-      }
-    }
-
-    if (codePoint === null) {
-      // we did not generate a valid codePoint so insert a
-      // replacement char (U+FFFD) and advance only 1 byte
-      codePoint = 0xFFFD
-      bytesPerSequence = 1
-    } else if (codePoint > 0xFFFF) {
-      // encode to utf16 (surrogate pair dance)
-      codePoint -= 0x10000
-      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
-      codePoint = 0xDC00 | codePoint & 0x3FF
-=======
-function assertSize (size) {
-  if (typeof size !== 'number') {
-    throw new TypeError('"size" argument must be a number')
-  } else if (size < 0) {
-    throw new RangeError('"size" argument must not be negative')
-=======
   if (start < 0 || end > target.length || thisStart < 0 || thisEnd > this.length) {
     throw new RangeError('out of range index')
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 
   if (thisStart >= thisEnd && start >= end) {
@@ -2059,81 +1569,14 @@ function assertSize (size) {
   if (thisStart >= thisEnd) {
     return -1
   }
-<<<<<<< HEAD
-  return createBuffer(that, size)
-}
-
-/**
- * Creates a new filled Buffer instance.
- * alloc(size[, fill[, encoding]])
- **/
-Buffer.alloc = function (size, fill, encoding) {
-  return alloc(null, size, fill, encoding)
-}
-
-function allocUnsafe (that, size) {
-  assertSize(size)
-  that = createBuffer(that, size < 0 ? 0 : checked(size) | 0)
-  if (!Buffer.TYPED_ARRAY_SUPPORT) {
-    for (var i = 0; i < size; ++i) {
-      that[i] = 0
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-    }
-
-    res.push(codePoint)
-    i += bytesPerSequence
-  }
-
-  return decodeCodePointsArray(res)
-}
-
-// Based on http://stackoverflow.com/a/22747272/680742, the browser with
-// the lowest limit is Chrome, with 0x10000 args.
-// We go 1 magnitude less, for safety
-var MAX_ARGUMENTS_LENGTH = 0x1000
-
-function decodeCodePointsArray (codePoints) {
-  var len = codePoints.length
-  if (len <= MAX_ARGUMENTS_LENGTH) {
-    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
-=======
   if (start >= end) {
     return 1
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  // Decode in chunks to avoid "call stack size exceeded".
-  var res = ''
-  var i = 0
-  while (i < len) {
-    res += String.fromCharCode.apply(
-      String,
-      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
-    )
-  }
-  return res
-=======
-/**
- * Equivalent to Buffer(num), by default creates a non-zero-filled Buffer instance.
- * */
-Buffer.allocUnsafe = function (size) {
-  return allocUnsafe(null, size)
-}
-/**
- * Equivalent to SlowBuffer(num), by default creates a non-zero-filled Buffer instance.
- */
-Buffer.allocUnsafeSlow = function (size) {
-  return allocUnsafe(null, size)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-}
-=======
   start >>>= 0
   end >>>= 0
   thisStart >>>= 0
   thisEnd >>>= 0
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   if (this === target) return 0
 
@@ -2984,107 +2427,7 @@ Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) 
   return offset + 4
 }
 
-<<<<<<< HEAD
-  var thisCopy = this.slice(thisStart, thisEnd)
-  var targetCopy = target.slice(start, end)
-
-  for (var i = 0; i < len; ++i) {
-    if (thisCopy[i] !== targetCopy[i]) {
-      x = thisCopy[i]
-      y = targetCopy[i]
-      break
-    }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-}
-
-<<<<<<< HEAD
-Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset + 3] = (value >>> 24)
-    this[offset + 2] = (value >>> 16)
-    this[offset + 1] = (value >>> 8)
-    this[offset] = (value & 0xff)
-  } else {
-    objectWriteUInt32(this, value, offset, true)
-=======
-  if (x < y) return -1
-  if (y < x) return 1
-  return 0
-}
-
-// Finds either the first index of `val` in `buffer` at offset >= `byteOffset`,
-// OR the last index of `val` in `buffer` at offset <= `byteOffset`.
-//
-// Arguments:
-// - buffer - a Buffer to search
-// - val - a string, Buffer, or number
-// - byteOffset - an index into `buffer`; will be clamped to an int32
-// - encoding - an optional encoding, relevant is val is a string
-// - dir - true for indexOf, false for lastIndexOf
-function bidirectionalIndexOf (buffer, val, byteOffset, encoding, dir) {
-  // Empty buffer means no match
-  if (buffer.length === 0) return -1
-
-  // Normalize byteOffset
-  if (typeof byteOffset === 'string') {
-    encoding = byteOffset
-    byteOffset = 0
-  } else if (byteOffset > 0x7fffffff) {
-    byteOffset = 0x7fffffff
-  } else if (byteOffset < -0x80000000) {
-    byteOffset = -0x80000000
-  }
-  byteOffset = +byteOffset  // Coerce to Number.
-  if (isNaN(byteOffset)) {
-    // byteOffset: it it's undefined, null, NaN, "foo", etc, search whole buffer
-    byteOffset = dir ? 0 : (buffer.length - 1)
-  }
-
-  // Normalize byteOffset: negative offsets start from the end of the buffer
-  if (byteOffset < 0) byteOffset = buffer.length + byteOffset
-  if (byteOffset >= buffer.length) {
-    if (dir) return -1
-    else byteOffset = buffer.length - 1
-  } else if (byteOffset < 0) {
-    if (dir) byteOffset = 0
-    else return -1
-  }
-
-  // Normalize val
-  if (typeof val === 'string') {
-    val = Buffer.from(val, encoding)
-  }
-
-  // Finally, search either indexOf (if dir is true) or lastIndexOf
-  if (Buffer.isBuffer(val)) {
-    // Special case: looking for empty string/buffer always fails
-    if (val.length === 0) {
-      return -1
-    }
-    return arrayIndexOf(buffer, val, byteOffset, encoding, dir)
-  } else if (typeof val === 'number') {
-    val = val & 0xFF // Search for a byte value [0-255]
-    if (Buffer.TYPED_ARRAY_SUPPORT &&
-        typeof Uint8Array.prototype.indexOf === 'function') {
-      if (dir) {
-        return Uint8Array.prototype.indexOf.call(buffer, val, byteOffset)
-      } else {
-        return Uint8Array.prototype.lastIndexOf.call(buffer, val, byteOffset)
-      }
-    }
-    return arrayIndexOf(buffer, [ val ], byteOffset, encoding, dir)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-
-<<<<<<< HEAD
-Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
-=======
 Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   value = +value
   offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
@@ -3129,50 +2472,6 @@ function writeDouble (buf, value, offset, littleEndian, noAssert) {
   return offset + 8
 }
 
-<<<<<<< HEAD
-Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
-  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
-  if (value < 0) value = 0xff + value + 1
-  this[offset] = (value & 0xff)
-  return offset + 1
-}
-
-Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff)
-    this[offset + 1] = (value >>> 8)
-  } else {
-    objectWriteUInt16(this, value, offset, true)
-  }
-  return offset + 2
-}
-
-Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 8)
-    this[offset + 1] = (value & 0xff)
-  } else {
-    objectWriteUInt16(this, value, offset, false)
-=======
-  throw new TypeError('val must be string, number or Buffer')
-}
-
-<<<<<<< HEAD
-=======
-function arrayIndexOf (arr, val, byteOffset, encoding, dir) {
-  var indexSize = 1
-  var arrLength = arr.length
-  var valLength = val.length
-=======
 Buffer.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
   return writeDouble(this, value, offset, true, noAssert)
 }
@@ -3192,7 +2491,6 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
   // Copy 0 bytes; we're done
   if (end === start) return 0
   if (target.length === 0 || this.length === 0) return 0
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   // Fatal error conditions
   if (targetStart < 0) {
@@ -3291,50 +2589,11 @@ Buffer.prototype.fill = function fill (val, start, end, encoding) {
     }
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-<<<<<<< HEAD
-    this[offset] = (value & 0xff)
-=======
-    this[offset] = value
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-    this[offset + 1] = (value >>> 8)
-    this[offset + 2] = (value >>> 16)
-    this[offset + 3] = (value >>> 24)
-  } else {
-    objectWriteUInt32(this, value, offset, true)
-  }
-  return offset + 4
-}
-
-Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
-  if (value < 0) value = 0xffffffff + value + 1
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 24)
-    this[offset + 1] = (value >>> 16)
-    this[offset + 2] = (value >>> 8)
-    this[offset + 3] = (value & 0xff)
-  } else {
-    objectWriteUInt32(this, value, offset, false)
-  }
-  return offset + 4
-}
-=======
   return this
 }
 
 // HELPER FUNCTIONS
 // ================
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
 var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
 
@@ -3405,20 +2664,6 @@ function utf8ToBytes (string, units) {
       if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
     }
 
-<<<<<<< HEAD
-  var len = end - start
-  var i
-
-  if (this === target && start < targetStart && targetStart < end) {
-    // descending copy from end
-    for (i = len - 1; i >= 0; i--) {
-      target[i + targetStart] = this[i + start]
-    }
-  } else if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
-    // ascending copy from start
-    for (i = 0; i < len; i++) {
-      target[i + targetStart] = this[i + start]
-=======
     leadSurrogate = null
 
     // encode utf8
@@ -3448,7 +2693,6 @@ function utf8ToBytes (string, units) {
       )
     } else {
       throw new Error('Invalid code point')
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     }
   }
 
@@ -3496,7 +2740,7 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":37,"ieee754":38,"isarray":39,"buffer":13}],3:[function(require,module,exports) {
+},{"base64-js":"yh9p","ieee754":"JgNJ","isarray":"REa7","buffer":"dskh"}],"xfwq":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
 function FilerBuffer(subject, encoding, nonZero) {
 
@@ -3521,7 +2765,7 @@ Object.keys(Buffer).forEach(function (p) {
 });
 
 module.exports = FilerBuffer;
-},{"buffer":13}],53:[function(require,module,exports) {
+},{"buffer":"dskh"}],"QO4x":[function(require,module,exports) {
 var global = arguments[3];
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
@@ -3662,124 +2906,6 @@ IndexedDB.prototype.open = function (callback) {
       db.createObjectStore(FILE_STORE_NAME);
     };
 
-<<<<<<< HEAD
-      switch (bytesPerSequence) {
-        case 1:
-          if (firstByte < 0x80) {
-            codePoint = firstByte
-          }
-          break
-        case 2:
-          secondByte = buf[i + 1]
-          if ((secondByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
-            if (tempCodePoint > 0x7F) {
-              codePoint = tempCodePoint
-            }
-          }
-          break
-        case 3:
-          secondByte = buf[i + 1]
-          thirdByte = buf[i + 2]
-          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
-            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
-              codePoint = tempCodePoint
-            }
-          }
-          break
-        case 4:
-          secondByte = buf[i + 1]
-          thirdByte = buf[i + 2]
-          fourthByte = buf[i + 3]
-          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
-            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
-            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
-              codePoint = tempCodePoint
-            }
-          }
-      }
-    }
-
-    if (codePoint === null) {
-      // we did not generate a valid codePoint so insert a
-      // replacement char (U+FFFD) and advance only 1 byte
-      codePoint = 0xFFFD
-      bytesPerSequence = 1
-    } else if (codePoint > 0xFFFF) {
-      // encode to utf16 (surrogate pair dance)
-      codePoint -= 0x10000
-      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
-      codePoint = 0xDC00 | codePoint & 0x3FF
-    }
-
-<<<<<<< HEAD
-/**
- * Augment a Uint8Array *instance* (not the Uint8Array class!) with Buffer methods
- */
-Buffer._augment = function _augment (arr) {
-  arr.constructor = Buffer
-  arr._isBuffer = true
-
-  // save reference to original Uint8Array set method before overwriting
-  arr._set = arr.set
-
-  // deprecated
-  arr.get = BP.get
-  arr.set = BP.set
-
-  arr.write = BP.write
-  arr.toString = BP.toString
-  arr.toLocaleString = BP.toString
-  arr.toJSON = BP.toJSON
-  arr.equals = BP.equals
-  arr.compare = BP.compare
-  arr.indexOf = BP.indexOf
-  arr.copy = BP.copy
-  arr.slice = BP.slice
-  arr.readUIntLE = BP.readUIntLE
-  arr.readUIntBE = BP.readUIntBE
-  arr.readUInt8 = BP.readUInt8
-  arr.readUInt16LE = BP.readUInt16LE
-  arr.readUInt16BE = BP.readUInt16BE
-  arr.readUInt32LE = BP.readUInt32LE
-  arr.readUInt32BE = BP.readUInt32BE
-  arr.readIntLE = BP.readIntLE
-  arr.readIntBE = BP.readIntBE
-  arr.readInt8 = BP.readInt8
-  arr.readInt16LE = BP.readInt16LE
-  arr.readInt16BE = BP.readInt16BE
-  arr.readInt32LE = BP.readInt32LE
-  arr.readInt32BE = BP.readInt32BE
-  arr.readFloatLE = BP.readFloatLE
-  arr.readFloatBE = BP.readFloatBE
-  arr.readDoubleLE = BP.readDoubleLE
-  arr.readDoubleBE = BP.readDoubleBE
-  arr.writeUInt8 = BP.writeUInt8
-  arr.writeUIntLE = BP.writeUIntLE
-  arr.writeUIntBE = BP.writeUIntBE
-  arr.writeUInt16LE = BP.writeUInt16LE
-  arr.writeUInt16BE = BP.writeUInt16BE
-  arr.writeUInt32LE = BP.writeUInt32LE
-  arr.writeUInt32BE = BP.writeUInt32BE
-  arr.writeIntLE = BP.writeIntLE
-  arr.writeIntBE = BP.writeIntBE
-  arr.writeInt8 = BP.writeInt8
-  arr.writeInt16LE = BP.writeInt16LE
-  arr.writeInt16BE = BP.writeInt16BE
-  arr.writeInt32LE = BP.writeInt32LE
-  arr.writeInt32BE = BP.writeInt32BE
-  arr.writeFloatLE = BP.writeFloatLE
-  arr.writeFloatBE = BP.writeFloatBE
-  arr.writeDoubleLE = BP.writeDoubleLE
-  arr.writeDoubleBE = BP.writeDoubleBE
-  arr.fill = BP.fill
-  arr.inspect = BP.inspect
-  arr.toArrayBuffer = BP.toArrayBuffer
-=======
-    res.push(codePoint)
-    i += bytesPerSequence
-=======
     openRequest.onsuccess = function onsuccess(event) {
       that.db = event.target.result;
       callback();
@@ -3790,7 +2916,6 @@ Buffer._augment = function _augment (arr) {
     };
   } catch (err) {
     callback(err);
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 };
 
@@ -3801,16 +2926,8 @@ IndexedDB.prototype.getReadWriteContext = function () {
   return new IndexedDBContext(this.db, IDB_RW);
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
-=======
-<<<<<<< HEAD
-var INVALID_BASE64_RE = /[^+\/0-9A-z\-]/g
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-=======
 module.exports = IndexedDB;
-},{"../constants.js":16,"../errors.js":5,"../buffer.js":3}],69:[function(require,module,exports) {
+},{"../constants.js":"iJA9","../errors.js":"p8GN","../buffer.js":"xfwq"}],"vLJO":[function(require,module,exports) {
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -3820,7 +2937,6 @@ module.exports = IndexedDB;
  */
 (function () {
   "use strict";
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -3843,82 +2959,6 @@ module.exports = IndexedDB;
       base64 += chars[bytes[i + 2] & 63];
     }
 
-<<<<<<< HEAD
-function utf8ToBytes (string, units) {
-  units = units || Infinity
-  var codePoint
-  var length = string.length
-  var leadSurrogate = null
-  var bytes = []
-
-  for (var i = 0; i < length; i++) {
-    codePoint = string.charCodeAt(i)
-
-    // is surrogate component
-    if (codePoint > 0xD7FF && codePoint < 0xE000) {
-      // last char was a lead
-      if (!leadSurrogate) {
-        // no lead yet
-        if (codePoint > 0xDBFF) {
-          // unexpected trail
-          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-          continue
-        } else if (i + 1 === length) {
-          // unpaired lead
-          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-          continue
-        }
-
-        // valid lead
-        leadSurrogate = codePoint
-
-        continue
-      }
-
-      // 2 leads in a row
-      if (codePoint < 0xDC00) {
-        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-        leadSurrogate = codePoint
-        continue
-      }
-
-      // valid surrogate pair
-      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
-    } else if (leadSurrogate) {
-      // valid bmp char, but last char was a lead
-      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-    }
-
-    leadSurrogate = null
-
-    // encode utf8
-    if (codePoint < 0x80) {
-      if ((units -= 1) < 0) break
-      bytes.push(codePoint)
-    } else if (codePoint < 0x800) {
-      if ((units -= 2) < 0) break
-      bytes.push(
-        codePoint >> 0x6 | 0xC0,
-        codePoint & 0x3F | 0x80
-      )
-    } else if (codePoint < 0x10000) {
-      if ((units -= 3) < 0) break
-      bytes.push(
-        codePoint >> 0xC | 0xE0,
-        codePoint >> 0x6 & 0x3F | 0x80,
-        codePoint & 0x3F | 0x80
-      )
-    } else if (codePoint < 0x110000) {
-      if ((units -= 4) < 0) break
-      bytes.push(
-        codePoint >> 0x12 | 0xF0,
-        codePoint >> 0xC & 0x3F | 0x80,
-        codePoint >> 0x6 & 0x3F | 0x80,
-        codePoint & 0x3F | 0x80
-      )
-    } else {
-      throw new Error('Invalid code point')
-=======
     if (len % 3 === 2) {
       base64 = base64.substring(0, base64.length - 1) + "=";
     } else if (len % 3 === 1) {
@@ -3957,13 +2997,12 @@ function utf8ToBytes (string, units) {
       bytes[p++] = encoded1 << 2 | encoded2 >> 4;
       bytes[p++] = (encoded2 & 15) << 4 | encoded3 >> 2;
       bytes[p++] = (encoded3 & 3) << 6 | encoded4 & 63;
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     }
 
     return arraybuffer;
   };
 })();
-},{}],54:[function(require,module,exports) {
+},{}],"hW+K":[function(require,module,exports) {
 var global = arguments[3];
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
@@ -4020,91 +3059,6 @@ WebSQLContext.prototype.getObject = function (key, callback) {
       return callback(err);
     }
 
-<<<<<<< HEAD
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":6,"ieee754":9,"isarray":8}],8:[function(require,module,exports){
-var toString = {}.toString;
-
-module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
-};
-
-},{}],9:[function(require,module,exports){
-exports.read = function (buffer, offset, isLE, mLen, nBytes) {
-  var e, m
-  var eLen = (nBytes * 8) - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var nBits = -7
-  var i = isLE ? (nBytes - 1) : 0
-  var d = isLE ? -1 : 1
-  var s = buffer[offset + i]
-
-  i += d
-
-  e = s & ((1 << (-nBits)) - 1)
-  s >>= (-nBits)
-  nBits += eLen
-  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
-
-  m = e & ((1 << (-nBits)) - 1)
-  e >>= (-nBits)
-  nBits += mLen
-  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
-
-  if (e === 0) {
-    e = 1 - eBias
-  } else if (e === eMax) {
-    return m ? NaN : ((s ? -1 : 1) * Infinity)
-  } else {
-    m = m + Math.pow(2, mLen)
-    e = e - eBias
-  }
-  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
-}
-
-exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
-  var e, m, c
-  var eLen = (nBytes * 8) - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
-  var i = isLE ? 0 : (nBytes - 1)
-  var d = isLE ? 1 : -1
-  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
-
-  value = Math.abs(value)
-
-  if (isNaN(value) || value === Infinity) {
-    m = isNaN(value) ? 1 : 0
-    e = eMax
-  } else {
-    e = Math.floor(Math.log(value) / Math.LN2)
-    if (value * (c = Math.pow(2, -e)) < 1) {
-      e--
-      c *= 2
-    }
-    if (e + eBias >= 1) {
-      value += rt / c
-    } else {
-      value += rt * Math.pow(2, 1 - eBias)
-    }
-    if (value * c >= 2) {
-      e++
-      c /= 2
-    }
-
-    if (e + eBias >= eMax) {
-      m = 0
-      e = eMax
-    } else if (e + eBias >= 1) {
-      m = ((value * c) - 1) * Math.pow(2, mLen)
-      e = e + eBias
-    } else {
-      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
-      e = 0
-    }
-=======
     try {
       if (result) {
         result = JSON.parse(result);
@@ -4155,7 +3109,6 @@ WebSQLContext.prototype.putBuffer = function (key, uint8BackedBuffer, callback) 
 WebSQLContext.prototype.delete = function (key, callback) {
   function onSuccess(transaction, result) {
     callback(null);
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
   function onError(transaction, error) {
     callback(error);
@@ -4173,262 +3126,6 @@ WebSQL.isSupported = function () {
   return !!global.openDatabase;
 };
 
-<<<<<<< HEAD
-},{}],10:[function(require,module,exports){
-;(function () { // closure for web browsers
-
-if (typeof module === 'object' && module.exports) {
-  module.exports = LRUCache
-} else {
-  // just set the global for non-node platforms.
-  this.LRUCache = LRUCache
-}
-
-function hOP (obj, key) {
-  return Object.prototype.hasOwnProperty.call(obj, key)
-}
-
-function naiveLength () { return 1 }
-
-function LRUCache (options) {
-  if (!(this instanceof LRUCache))
-    return new LRUCache(options)
-
-  if (typeof options === 'number')
-    options = { max: options }
-
-  if (!options)
-    options = {}
-
-  this._max = options.max
-  // Kind of weird to have a default max of Infinity, but oh well.
-  if (!this._max || !(typeof this._max === "number") || this._max <= 0 )
-    this._max = Infinity
-
-  this._lengthCalculator = options.length || naiveLength
-  if (typeof this._lengthCalculator !== "function")
-    this._lengthCalculator = naiveLength
-
-  this._allowStale = options.stale || false
-  this._maxAge = options.maxAge || null
-  this._dispose = options.dispose
-  this.reset()
-}
-
-// resize the cache when the max changes.
-Object.defineProperty(LRUCache.prototype, "max",
-  { set : function (mL) {
-      if (!mL || !(typeof mL === "number") || mL <= 0 ) mL = Infinity
-      this._max = mL
-      if (this._length > this._max) trim(this)
-    }
-  , get : function () { return this._max }
-  , enumerable : true
-  })
-
-// resize the cache when the lengthCalculator changes.
-Object.defineProperty(LRUCache.prototype, "lengthCalculator",
-  { set : function (lC) {
-      if (typeof lC !== "function") {
-        this._lengthCalculator = naiveLength
-        this._length = this._itemCount
-        for (var key in this._cache) {
-          this._cache[key].length = 1
-        }
-      } else {
-        this._lengthCalculator = lC
-        this._length = 0
-        for (var key in this._cache) {
-          this._cache[key].length = this._lengthCalculator(this._cache[key].value)
-          this._length += this._cache[key].length
-        }
-      }
-
-      if (this._length > this._max) trim(this)
-    }
-  , get : function () { return this._lengthCalculator }
-  , enumerable : true
-  })
-
-Object.defineProperty(LRUCache.prototype, "length",
-  { get : function () { return this._length }
-  , enumerable : true
-  })
-
-
-Object.defineProperty(LRUCache.prototype, "itemCount",
-  { get : function () { return this._itemCount }
-  , enumerable : true
-  })
-
-LRUCache.prototype.forEach = function (fn, thisp) {
-  thisp = thisp || this
-  var i = 0;
-  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
-    i++
-    var hit = this._lruList[k]
-    if (this._maxAge && (Date.now() - hit.now > this._maxAge)) {
-      del(this, hit)
-      if (!this._allowStale) hit = undefined
-    }
-    if (hit) {
-      fn.call(thisp, hit.value, hit.key, this)
-    }
-  }
-}
-
-LRUCache.prototype.keys = function () {
-  var keys = new Array(this._itemCount)
-  var i = 0
-  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
-    var hit = this._lruList[k]
-    keys[i++] = hit.key
-  }
-  return keys
-}
-
-LRUCache.prototype.values = function () {
-  var values = new Array(this._itemCount)
-  var i = 0
-  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
-    var hit = this._lruList[k]
-    values[i++] = hit.value
-  }
-  return values
-}
-
-LRUCache.prototype.reset = function () {
-  if (this._dispose && this._cache) {
-    for (var k in this._cache) {
-      this._dispose(k, this._cache[k].value)
-    }
-  }
-
-  this._cache = Object.create(null) // hash of items by key
-  this._lruList = Object.create(null) // list of items in order of use recency
-  this._mru = 0 // most recently used
-  this._lru = 0 // least recently used
-  this._length = 0 // number of items in the list
-  this._itemCount = 0
-}
-
-// Provided for debugging/dev purposes only. No promises whatsoever that
-// this API stays stable.
-LRUCache.prototype.dump = function () {
-  return this._cache
-}
-
-LRUCache.prototype.dumpLru = function () {
-  return this._lruList
-}
-
-LRUCache.prototype.set = function (key, value) {
-  if (hOP(this._cache, key)) {
-    // dispose of the old one before overwriting
-    if (this._dispose) this._dispose(key, this._cache[key].value)
-    if (this._maxAge) this._cache[key].now = Date.now()
-    this._cache[key].value = value
-    this.get(key)
-    return true
-  }
-
-  var len = this._lengthCalculator(value)
-  var age = this._maxAge ? Date.now() : 0
-  var hit = new Entry(key, value, this._mru++, len, age)
-
-  // oversized objects fall out of cache automatically.
-  if (hit.length > this._max) {
-    if (this._dispose) this._dispose(key, value)
-    return false
-  }
-
-  this._length += hit.length
-  this._lruList[hit.lu] = this._cache[key] = hit
-  this._itemCount ++
-
-  if (this._length > this._max) trim(this)
-  return true
-}
-
-LRUCache.prototype.has = function (key) {
-  if (!hOP(this._cache, key)) return false
-  var hit = this._cache[key]
-  if (this._maxAge && (Date.now() - hit.now > this._maxAge)) {
-    return false
-  }
-  return true
-}
-
-LRUCache.prototype.get = function (key) {
-  return get(this, key, true)
-}
-
-LRUCache.prototype.peek = function (key) {
-  return get(this, key, false)
-}
-
-LRUCache.prototype.pop = function () {
-  var hit = this._lruList[this._lru]
-  del(this, hit)
-  return hit || null
-}
-
-LRUCache.prototype.del = function (key) {
-  del(this, this._cache[key])
-}
-
-function get (self, key, doUse) {
-  var hit = self._cache[key]
-  if (hit) {
-    if (self._maxAge && (Date.now() - hit.now > self._maxAge)) {
-      del(self, hit)
-      if (!self._allowStale) hit = undefined
-    } else {
-      if (doUse) use(self, hit)
-    }
-    if (hit) hit = hit.value
-  }
-  return hit
-}
-
-function use (self, hit) {
-  shiftLU(self, hit)
-  hit.lu = self._mru ++
-  if (self._maxAge) hit.now = Date.now()
-  self._lruList[hit.lu] = hit
-}
-
-function trim (self) {
-  while (self._lru < self._mru && self._length > self._max)
-    del(self, self._lruList[self._lru])
-}
-
-function shiftLU (self, hit) {
-  delete self._lruList[ hit.lu ]
-  while (self._lru < self._mru && !self._lruList[self._lru]) self._lru ++
-}
-
-function del (self, hit) {
-  if (hit) {
-    if (self._dispose) self._dispose(hit.key, hit.value)
-    self._length -= hit.length
-    self._itemCount --
-    delete self._cache[ hit.key ]
-    shiftLU(self, hit)
-  }
-}
-
-// classy, since V8 prefers predictable objects.
-function Entry (key, value, lu, length, now) {
-  this.key = key
-  this.value = value
-  this.lu = lu
-  this.length = length
-  this.now = now
-}
-
-})()
-=======
 WebSQL.prototype.open = function (callback) {
   var that = this;
 
@@ -4470,7 +3167,7 @@ WebSQL.prototype.getReadWriteContext = function () {
 };
 
 module.exports = WebSQL;
-},{"../constants.js":16,"../errors.js":5,"../buffer.js":3,"base64-arraybuffer":69}],42:[function(require,module,exports) {
+},{"../constants.js":"iJA9","../errors.js":"p8GN","../buffer.js":"xfwq","base64-arraybuffer":"vLJO"}],"pBGv":[function(require,module,exports) {
 
 // shim for using process in browser
 var process = module.exports = {};
@@ -4657,7 +3354,7 @@ process.chdir = function (dir) {
 process.umask = function () {
     return 0;
 };
-},{}],19:[function(require,module,exports) {
+},{}],"u4Zs":[function(require,module,exports) {
 var process = require("process");
 var define;
 /*global setImmediate: false, setTimeout: false, console: false */
@@ -4739,7 +3436,7 @@ var define;
                 root.async = async;
             }
 })();
-},{"process":42}],55:[function(require,module,exports) {
+},{"process":"pBGv"}],"3OWy":[function(require,module,exports) {
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 // NOTE: prefer setImmediate to nextTick for proper recursion yielding.
 // see https://github.com/js-platform/filer/pull/24
@@ -4825,7 +3522,7 @@ Memory.prototype.getReadWriteContext = function () {
 };
 
 module.exports = Memory;
-},{"../constants.js":16,"../../lib/async.js":19}],21:[function(require,module,exports) {
+},{"../constants.js":"iJA9","../../lib/async.js":"u4Zs"}],"AiW7":[function(require,module,exports) {
 var IndexedDB = require('./indexeddb.js');
 var WebSQL = require('./websql.js');
 var Memory = require('./memory.js');
@@ -4834,7 +3531,6 @@ module.exports = {
   IndexedDB: IndexedDB,
   WebSQL: WebSQL,
   Memory: Memory,
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   /**
    * Convenience Provider references
@@ -4862,7 +3558,7 @@ module.exports = {
     return NotSupported;
   }()
 };
-},{"./indexeddb.js":53,"./websql.js":54,"./memory.js":55}],23:[function(require,module,exports) {
+},{"./indexeddb.js":"QO4x","./websql.js":"hW+K","./memory.js":"3OWy"}],"QMiB":[function(require,module,exports) {
 var defaults = require('../constants.js').ENVIRONMENT;
 
 module.exports = function Environment(env) {
@@ -4878,7 +3574,7 @@ module.exports = function Environment(env) {
     env[name] = value;
   };
 };
-},{"../constants.js":16}],20:[function(require,module,exports) {
+},{"../constants.js":"iJA9"}],"03yF":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
 // Adapt encodings to work with Buffer or Uint8Array, they expect the latter
 function decode(buf) {
@@ -4893,7 +3589,7 @@ module.exports = {
   encode: encode,
   decode: decode
 };
-},{"buffer":13}],45:[function(require,module,exports) {
+},{"buffer":"dskh"}],"UUq2":[function(require,module,exports) {
 var process = require("process");
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5120,7 +3816,7 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-},{"process":42}],68:[function(require,module,exports) {
+},{"process":"pBGv"}],"bQx9":[function(require,module,exports) {
 module.exports = function (xs, fn) {
     var res = [];
     for (var i = 0; i < xs.length; i++) {
@@ -5135,7 +3831,7 @@ var isArray = Array.isArray || function (xs) {
     return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],67:[function(require,module,exports) {
+},{}],"6D9y":[function(require,module,exports) {
 'use strict';
 module.exports = balanced;
 function balanced(a, b, str) {
@@ -5196,7 +3892,7 @@ function range(a, b, str) {
   return result;
 }
 
-},{}],46:[function(require,module,exports) {
+},{}],"dwX/":[function(require,module,exports) {
 var concatMap = require('concat-map');
 var balanced = require('balanced-match');
 
@@ -5399,7 +4095,7 @@ function expand(str, isTop) {
 }
 
 
-},{"concat-map":68,"balanced-match":67}],25:[function(require,module,exports) {
+},{"concat-map":"bQx9","balanced-match":"6D9y"}],"Nt/K":[function(require,module,exports) {
 module.exports = minimatch
 minimatch.Minimatch = Minimatch
 
@@ -5762,233 +4458,6 @@ function parse (pattern, isSub) {
           continue
         }
 
-<<<<<<< HEAD
-},{"lru-cache":10,"path":12,"sigmund":13}],12:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// resolves . and .. elements in a path array with directory names there
-// must be no slashes, empty elements, or device names (c:\) in the array
-// (so also no leading and trailing slashes - it does not distinguish
-// relative and absolute paths)
-function normalizeArray(parts, allowAboveRoot) {
-  // if the path tries to go above the root, `up` ends up > 0
-  var up = 0;
-  for (var i = parts.length - 1; i >= 0; i--) {
-    var last = parts[i];
-    if (last === '.') {
-      parts.splice(i, 1);
-    } else if (last === '..') {
-      parts.splice(i, 1);
-      up++;
-    } else if (up) {
-      parts.splice(i, 1);
-      up--;
-    }
-  }
-
-  // if the path is allowed to go above the root, restore leading ..s
-  if (allowAboveRoot) {
-    for (; up--; up) {
-      parts.unshift('..');
-    }
-  }
-
-  return parts;
-}
-
-// Split a filename into [root, dir, basename, ext], unix version
-// 'root' is just a slash, or nothing.
-var splitPathRe =
-    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-var splitPath = function(filename) {
-  return splitPathRe.exec(filename).slice(1);
-};
-
-// path.resolve([from ...], to)
-// posix version
-exports.resolve = function() {
-  var resolvedPath = '',
-      resolvedAbsolute = false;
-
-  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    var path = (i >= 0) ? arguments[i] : process.cwd();
-
-    // Skip empty and invalid entries
-    if (typeof path !== 'string') {
-      throw new TypeError('Arguments to path.resolve must be strings');
-    } else if (!path) {
-      continue;
-    }
-
-    resolvedPath = path + '/' + resolvedPath;
-    resolvedAbsolute = path.charAt(0) === '/';
-  }
-
-  // At this point the path should be resolved to a full absolute path, but
-  // handle relative paths to be safe (might happen when process.cwd() fails)
-
-  // Normalize the path
-  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
-    return !!p;
-  }), !resolvedAbsolute).join('/');
-
-  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-};
-
-// path.normalize(path)
-// posix version
-exports.normalize = function(path) {
-  var isAbsolute = exports.isAbsolute(path),
-      trailingSlash = substr(path, -1) === '/';
-
-  // Normalize the path
-  path = normalizeArray(filter(path.split('/'), function(p) {
-    return !!p;
-  }), !isAbsolute).join('/');
-
-  if (!path && !isAbsolute) {
-    path = '.';
-  }
-  if (path && trailingSlash) {
-    path += '/';
-  }
-
-  return (isAbsolute ? '/' : '') + path;
-};
-
-// posix version
-exports.isAbsolute = function(path) {
-  return path.charAt(0) === '/';
-};
-
-// posix version
-exports.join = function() {
-  var paths = Array.prototype.slice.call(arguments, 0);
-  return exports.normalize(filter(paths, function(p, index) {
-    if (typeof p !== 'string') {
-      throw new TypeError('Arguments to path.join must be strings');
-    }
-    return p;
-  }).join('/'));
-};
-
-
-// path.relative(from, to)
-// posix version
-exports.relative = function(from, to) {
-  from = exports.resolve(from).substr(1);
-  to = exports.resolve(to).substr(1);
-
-  function trim(arr) {
-    var start = 0;
-    for (; start < arr.length; start++) {
-      if (arr[start] !== '') break;
-    }
-
-    var end = arr.length - 1;
-    for (; end >= 0; end--) {
-      if (arr[end] !== '') break;
-    }
-
-    if (start > end) return [];
-    return arr.slice(start, end - start + 1);
-  }
-
-  var fromParts = trim(from.split('/'));
-  var toParts = trim(to.split('/'));
-
-  var length = Math.min(fromParts.length, toParts.length);
-  var samePartsLength = length;
-  for (var i = 0; i < length; i++) {
-    if (fromParts[i] !== toParts[i]) {
-      samePartsLength = i;
-      break;
-    }
-  }
-
-  var outputParts = [];
-  for (var i = samePartsLength; i < fromParts.length; i++) {
-    outputParts.push('..');
-  }
-
-  outputParts = outputParts.concat(toParts.slice(samePartsLength));
-
-  return outputParts.join('/');
-};
-
-exports.sep = '/';
-exports.delimiter = ':';
-
-exports.dirname = function(path) {
-  var result = splitPath(path),
-      root = result[0],
-      dir = result[1];
-
-  if (!root && !dir) {
-    // No dirname whatsoever
-    return '.';
-  }
-
-  if (dir) {
-    // It has a dirname, strip trailing slash
-    dir = dir.substr(0, dir.length - 1);
-  }
-
-  return root + dir;
-};
-
-
-exports.basename = function(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
-  if (ext && f.substr(-1 * ext.length) === ext) {
-    f = f.substr(0, f.length - ext.length);
-  }
-  return f;
-};
-
-
-exports.extname = function(path) {
-  return splitPath(path)[3];
-};
-
-function filter (xs, f) {
-    if (xs.filter) return xs.filter(f);
-    var res = [];
-    for (var i = 0; i < xs.length; i++) {
-        if (f(xs[i], i, xs)) res.push(xs[i]);
-    }
-    return res;
-}
-
-// String.prototype.substr - negative index don't work in IE8
-var substr = 'ab'.substr(-1) === 'b'
-    ? function (str, start, len) { return str.substr(start, len) }
-    : function (str, start, len) {
-        if (start < 0) start = str.length + start;
-        return str.substr(start, len);
-    }
-;
-=======
         // if we already have a stateChar, then it means
         // that there was something like ** or +? in there.
         // Handle the stateChar, then proceed with this one.
@@ -6266,7 +4735,6 @@ var substr = 'ab'.substr(-1) === 'b'
 minimatch.makeRe = function (pattern, options) {
   return new Minimatch(pattern, options || {}).makeRe()
 }
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
 Minimatch.prototype.makeRe = makeRe
 function makeRe () {
@@ -6326,23 +4794,6 @@ minimatch.match = function (list, pattern, options) {
   return list
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-}).call(this,require("buffer").Buffer)
-},{"buffer":7}],15:[function(require,module,exports){
-var O_READ = 'READ';
-var O_WRITE = 'WRITE';
-var O_CREATE = 'CREATE';
-var O_EXCLUSIVE = 'EXCLUSIVE';
-var O_TRUNCATE = 'TRUNCATE';
-var O_APPEND = 'APPEND';
-var XATTR_CREATE = 'CREATE';
-var XATTR_REPLACE = 'REPLACE';
-=======
-function hexSlice (buf, start, end) {
-  var len = buf.length
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-=======
 Minimatch.prototype.match = match
 function match (f, partial) {
   this.debug('match', f, this.pattern)
@@ -6350,7 +4801,6 @@ function match (f, partial) {
   // comments, etc.
   if (this.comment) return false
   if (this.empty) return f === ''
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   if (f === '/' && partial) return true
 
@@ -6361,41 +4811,6 @@ function match (f, partial) {
     f = f.split(path.sep).join('/')
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  WSQL_VERSION: "1",
-  WSQL_SIZE: 5 * 1024 * 1024,
-  WSQL_DESC: "FileSystem Storage",
-
-  NODE_TYPE_FILE: 'FILE',
-  NODE_TYPE_DIRECTORY: 'DIRECTORY',
-  NODE_TYPE_SYMBOLIC_LINK: 'SYMLINK',
-  NODE_TYPE_META: 'META',
-
-  S_IFREG: 0x8000,
-  S_IFDIR: 0x4000,
-  S_IFLNK: 0xA000,
-
-  DEFAULT_DIR_PERMISSIONS: 0x1ED, // 755
-  DEFAULT_FILE_PERMISSIONS: 0x1A4, // 644
-  FULL_READ_WRITE_EXEC_PERMISSIONS: 0x1FF, // 777
-  READ_WRITE_PERMISSIONS: 0x1B6, /// 666
-  
-  SYMLOOP_MAX: 10,
-=======
-Buffer.prototype.slice = function slice (start, end) {
-  var len = this.length
-  start = ~~start
-  end = end === undefined ? len : ~~end
-
-  if (start < 0) {
-    start += len
-    if (start < 0) start = 0
-  } else if (start > len) {
-    start = len
-  }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-=======
   // treat the test path as a set of pathparts.
   f = f.split(slashSplit)
   this.debug(this.pattern, 'split', f)
@@ -6404,7 +4819,6 @@ Buffer.prototype.slice = function slice (start, end) {
   // in order for it to be valid.  If negating, then just one
   // match means that we have failed.
   // Either way, return on the first hit.
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   var set = this.set
   this.debug(this.pattern, 'set', set)
@@ -6459,1710 +4873,11 @@ Minimatch.prototype.matchOne = function (file, pattern, partial) {
     var p = pattern[pi]
     var f = file[fi]
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  ENVIRONMENT: {
-    TMP: '/tmp',
-    PATH: ''
-  },
-
-  // Duplicate Node's fs.constants
-  fsConstants: {
-    O_RDONLY: 0,
-    O_WRONLY: 1,
-    O_RDWR: 2,
-    S_IFMT: 61440,
-    S_IFREG: 32768,
-    S_IFDIR: 16384,
-    S_IFCHR: 8192,
-    S_IFBLK: 24576,
-    S_IFIFO: 4096,
-    S_IFLNK: 40960,
-    S_IFSOCK: 49152,
-    O_CREAT: 512,
-    O_EXCL: 2048,
-    O_NOCTTY: 131072,
-    O_TRUNC: 1024,
-    O_APPEND: 8,
-    O_DIRECTORY: 1048576,
-    O_NOFOLLOW: 256,
-    O_SYNC: 128,
-    O_DSYNC: 4194304,
-    O_SYMLINK: 2097152,
-    O_NONBLOCK: 4,
-    S_IRWXU: 448,
-    S_IRUSR: 256,
-    S_IWUSR: 128,
-    S_IXUSR: 64,
-    S_IRWXG: 56,
-    S_IRGRP: 32,
-    S_IWGRP: 16,
-    S_IXGRP: 8,
-    S_IRWXO: 7,
-    S_IROTH: 4,
-    S_IWOTH: 2,
-    S_IXOTH: 1,
-    F_OK: 0,
-    R_OK: 4,
-    W_OK: 2,
-    X_OK: 1,
-    UV_FS_COPYFILE_EXCL: 1,
-    COPYFILE_EXCL: 1
-=======
-  var val = this[offset + --byteLength]
-  var mul = 1
-  while (byteLength > 0 && (mul *= 0x100)) {
-    val += this[offset + --byteLength] * mul
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-
-<<<<<<< HEAD
-},{}],16:[function(require,module,exports){
-var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
-
-module.exports = function DirectoryEntry(id, type) {
-  this.id = id;
-  this.type = type || NODE_TYPE_FILE;
-};
-=======
-  return val
-}
-
-Buffer.prototype.readUInt8 = function readUInt8 (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 1, this.length)
-  return this[offset]
-}
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-Buffer.prototype.readUInt16LE = function readUInt16LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length)
-  return this[offset] | (this[offset + 1] << 8)
-}
-
-Buffer.prototype.readUInt16BE = function readUInt16BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length)
-  return (this[offset] << 8) | this[offset + 1]
-}
-
-Buffer.prototype.readUInt32LE = function readUInt32LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-
-<<<<<<< HEAD
-}).call(this,require("buffer").Buffer)
-},{"buffer":7}],18:[function(require,module,exports){
-var errors = {};
-[
-  /**
-   * node.js errors - we only use some of these, add as needed.
-   */
-  //'-1:UNKNOWN:unknown error',
-  //'0:OK:success',
-  //'1:EOF:end of file',
-  //'2:EADDRINFO:getaddrinfo error',
-  //'3:EACCES:permission denied',
-  //'4:EAGAIN:resource temporarily unavailable',
-  //'5:EADDRINUSE:address already in use',
-  //'6:EADDRNOTAVAIL:address not available',
-  //'7:EAFNOSUPPORT:address family not supported',
-  //'8:EALREADY:connection already in progress',
-  '9:EBADF:bad file descriptor',
-  '10:EBUSY:resource busy or locked',
-  //'11:ECONNABORTED:software caused connection abort',
-  //'12:ECONNREFUSED:connection refused',
-  //'13:ECONNRESET:connection reset by peer',
-  //'14:EDESTADDRREQ:destination address required',
-  //'15:EFAULT:bad address in system call argument',
-  //'16:EHOSTUNREACH:host is unreachable',
-  //'17:EINTR:interrupted system call',
-  '18:EINVAL:invalid argument',
-  //'19:EISCONN:socket is already connected',
-  //'20:EMFILE:too many open files',
-  //'21:EMSGSIZE:message too long',
-  //'22:ENETDOWN:network is down',
-  //'23:ENETUNREACH:network is unreachable',
-  //'24:ENFILE:file table overflow',
-  //'25:ENOBUFS:no buffer space available',
-  //'26:ENOMEM:not enough memory',
-  '27:ENOTDIR:not a directory',
-  '28:EISDIR:illegal operation on a directory',
-  //'29:ENONET:machine is not on the network',
-  // errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-  //'31:ENOTCONN:socket is not connected',
-  //'32:ENOTSOCK:socket operation on non-socket',
-  //'33:ENOTSUP:operation not supported on socket',
-  '34:ENOENT:no such file or directory',
-  //'35:ENOSYS:function not implemented',
-  //'36:EPIPE:broken pipe',
-  //'37:EPROTO:protocol error',
-  //'38:EPROTONOSUPPORT:protocol not supported',
-  //'39:EPROTOTYPE:protocol wrong type for socket',
-  //'40:ETIMEDOUT:connection timed out',
-  //'41:ECHARSET:invalid Unicode character',
-  //'42:EAIFAMNOSUPPORT:address family for hostname not supported',
-  // errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-  //'44:EAISERVICE:servname not supported for ai_socktype',
-  //'45:EAISOCKTYPE:ai_socktype not supported',
-  //'46:ESHUTDOWN:cannot send after transport endpoint shutdown',
-  '47:EEXIST:file already exists',
-  //'48:ESRCH:no such process',
-  //'49:ENAMETOOLONG:name too long',
-  '50:EPERM:operation not permitted',
-  '51:ELOOP:too many symbolic links encountered',
-  //'52:EXDEV:cross-device link not permitted',
-  '53:ENOTEMPTY:directory not empty',
-  //'54:ENOSPC:no space left on device',
-  '55:EIO:i/o error',
-  //'56:EROFS:read-only file system',
-  //'57:ENODEV:no such device',
-  //'58:ESPIPE:invalid seek',
-  //'59:ECANCELED:operation canceled',
-=======
-  return ((this[offset]) |
-      (this[offset + 1] << 8) |
-      (this[offset + 2] << 16)) +
-      (this[offset + 3] * 0x1000000)
-}
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-Buffer.prototype.readUInt32BE = function readUInt32BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-
-  return (this[offset] * 0x1000000) +
-    ((this[offset + 1] << 16) |
-    (this[offset + 2] << 8) |
-    this[offset + 3])
-}
-
-Buffer.prototype.readIntLE = function readIntLE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) checkOffset(offset, byteLength, this.length)
-
-  var val = this[offset]
-  var mul = 1
-  var i = 0
-  while (++i < byteLength && (mul *= 0x100)) {
-    val += this[offset + i] * mul
-  }
-  mul *= 0x80
-
-  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
-
-  return val
-}
-
-<<<<<<< HEAD
-var Path = require('../path.js');
-var normalize = Path.normalize;
-var dirname = Path.dirname;
-var basename = Path.basename;
-var isAbsolutePath = Path.isAbsolute;
-var isNullPath = Path.isNull;
-
-var Constants = require('../constants.js');
-var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
-var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
-var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
-var NODE_TYPE_META = Constants.NODE_TYPE_META;
-
-var DEFAULT_FILE_PERMISSIONS = Constants.DEFAULT_FILE_PERMISSIONS;
-var DEFAULT_DIR_PERMISSIONS = Constants.DEFAULT_DIR_PERMISSIONS;
-var FULL_READ_WRITE_EXEC_PERMISSIONS = Constants.FULL_READ_WRITE_EXEC_PERMISSIONS;
-=======
-Buffer.prototype.readIntBE = function readIntBE (offset, byteLength, noAssert) {
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) checkOffset(offset, byteLength, this.length)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-  var i = byteLength
-  var mul = 1
-  var val = this[offset + --i]
-  while (i > 0 && (mul *= 0x100)) {
-    val += this[offset + --i] * mul
-  }
-  mul *= 0x80
-
-  if (val >= mul) val -= Math.pow(2, 8 * byteLength)
-
-  return val
-}
-
-Buffer.prototype.readInt8 = function readInt8 (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 1, this.length)
-  if (!(this[offset] & 0x80)) return (this[offset])
-  return ((0xff - this[offset] + 1) * -1)
-}
-
-Buffer.prototype.readInt16LE = function readInt16LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length)
-  var val = this[offset] | (this[offset + 1] << 8)
-  return (val & 0x8000) ? val | 0xFFFF0000 : val
-}
-
-<<<<<<< HEAD
-}).call(this,require("buffer").Buffer)
-},{"buffer":6}],15:[function(require,module,exports){
-var O_READ = 'READ';
-var O_WRITE = 'WRITE';
-var O_CREATE = 'CREATE';
-var O_EXCLUSIVE = 'EXCLUSIVE';
-var O_TRUNCATE = 'TRUNCATE';
-var O_APPEND = 'APPEND';
-var XATTR_CREATE = 'CREATE';
-var XATTR_REPLACE = 'REPLACE';
-=======
-Buffer.prototype.readInt16BE = function readInt16BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 2, this.length)
-  var val = this[offset + 1] | (this[offset] << 8)
-  return (val & 0x8000) ? val | 0xFFFF0000 : val
-}
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-<<<<<<< HEAD
-  function complete(error) {
-    context.changes.push({ event: 'change', path: path });
-    callback(error);
-  }
-=======
-Buffer.prototype.readInt32LE = function readInt32LE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-  return (this[offset]) |
-    (this[offset + 1] << 8) |
-    (this[offset + 2] << 16) |
-    (this[offset + 3] << 24)
-}
-
-<<<<<<< HEAD
-/**
- * make_node()
- */
-// in: file or directory path
-// out: new node representing file/directory
-function make_node(context, path, type, callback) {
-  if(type !== NODE_TYPE_DIRECTORY && type !== NODE_TYPE_FILE) {
-    return callback(new Errors.EINVAL('type must be a directory or file', path));
-  }
-=======
-Buffer.prototype.readInt32BE = function readInt32BE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-  return (this[offset] << 24) |
-    (this[offset + 1] << 16) |
-    (this[offset + 2] << 8) |
-    (this[offset + 3])
-}
-
-Buffer.prototype.readFloatLE = function readFloatLE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-  return ieee754.read(this, offset, true, 23, 4)
-}
-
-<<<<<<< HEAD
-  // Check if the parent node exists
-  function create_node_in_parent(error, parentDirectoryNode) {
-    if(error) {
-      callback(error);
-    } else if(parentDirectoryNode.type !== NODE_TYPE_DIRECTORY) {
-      callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
-    } else {
-      parentNode = parentDirectoryNode;
-      find_node(context, path, check_if_node_exists);
-    }
-  }
-=======
-Buffer.prototype.readFloatBE = function readFloatBE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 4, this.length)
-  return ieee754.read(this, offset, false, 23, 4)
-}
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-Buffer.prototype.readDoubleLE = function readDoubleLE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 8, this.length)
-  return ieee754.read(this, offset, true, 52, 8)
-}
-
-<<<<<<< HEAD
-  // Create the new node
-  function create_node(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      parentNodeData = result;
-      Node.create({
-        guid: context.guid,
-        type: type
-      }, function(error, result) {
-        if(error) {
-          callback(error);
-          return;
-        }
-        node = result;
-        node.nlinks += 1;
-        context.putObject(node.id, node, update_parent_node_data);
-      });
-    }
-  }
-=======
-Buffer.prototype.readDoubleBE = function readDoubleBE (offset, noAssert) {
-  if (!noAssert) checkOffset(offset, 8, this.length)
-  return ieee754.read(this, offset, false, 52, 8)
-}
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-function checkInt (buf, value, offset, ext, max, min) {
-  if (!Buffer.isBuffer(buf)) throw new TypeError('"buffer" argument must be a Buffer instance')
-  if (value > max || value < min) throw new RangeError('"value" argument is out of bounds')
-  if (offset + ext > buf.length) throw new RangeError('Index out of range')
-}
-
-Buffer.prototype.writeUIntLE = function writeUIntLE (value, offset, byteLength, noAssert) {
-  value = +value
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) {
-    var maxBytes = Math.pow(2, 8 * byteLength) - 1
-    checkInt(this, value, offset, byteLength, maxBytes, 0)
-  }
-
-<<<<<<< HEAD
-  // Update the parent nodes data
-  function update_parent_node_data(error) {
-    if(error) {
-      callback(error);
-    } else {
-      parentNodeData[name] = new DirectoryEntry(node.id, type);
-      context.putObject(parentNode.data, parentNodeData, update_time);
-    }
-=======
-  var mul = 1
-  var i = 0
-  this[offset] = value & 0xFF
-  while (++i < byteLength && (mul *= 0x100)) {
-    this[offset + i] = (value / mul) & 0xFF
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-
-  return offset + byteLength
-}
-
-Buffer.prototype.writeUIntBE = function writeUIntBE (value, offset, byteLength, noAssert) {
-  value = +value
-  offset = offset | 0
-  byteLength = byteLength | 0
-  if (!noAssert) {
-    var maxBytes = Math.pow(2, 8 * byteLength) - 1
-    checkInt(this, value, offset, byteLength, maxBytes, 0)
-  }
-
-<<<<<<< HEAD
-  function read_root_directory_node(error, superNode) {
-    if(error) {
-      callback(error);
-    } else if(!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
-      callback(new Errors.EFILESYSTEMERROR());
-    } else {
-      context.getObject(superNode.rnode, check_root_directory_node);
-    }
-=======
-  var i = byteLength - 1
-  var mul = 1
-  this[offset + i] = value & 0xFF
-  while (--i >= 0 && (mul *= 0x100)) {
-    this[offset + i] = (value / mul) & 0xFF
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-
-  return offset + byteLength
-}
-
-Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
-  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
-  this[offset] = (value & 0xff)
-  return offset + 1
-}
-
-function objectWriteUInt16 (buf, value, offset, littleEndian) {
-  if (value < 0) value = 0xffff + value + 1
-  for (var i = 0, j = Math.min(buf.length - offset, 2); i < j; ++i) {
-    buf[offset + i] = (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
-      (littleEndian ? i : 1 - i) * 8
-  }
-}
-
-<<<<<<< HEAD
-},{}],16:[function(require,module,exports){
-var MODE_FILE = require('./constants.js').MODE_FILE;
-=======
-Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff)
-    this[offset + 1] = (value >>> 8)
-  } else {
-    objectWriteUInt16(this, value, offset, true)
-  }
-  return offset + 2
-}
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 8)
-    this[offset + 1] = (value & 0xff)
-  } else {
-    objectWriteUInt16(this, value, offset, false)
-  }
-  return offset + 2
-}
-
-<<<<<<< HEAD
-},{"./constants.js":15}],17:[function(require,module,exports){
-(function (Buffer){
-// Adapt encodings to work with Buffer or Uint8Array, they expect the latter
-function decode(buf) {
-  return buf.toString('utf8');
-=======
-function objectWriteUInt32 (buf, value, offset, littleEndian) {
-  if (value < 0) value = 0xffffffff + value + 1
-  for (var i = 0, j = Math.min(buf.length - offset, 4); i < j; ++i) {
-    buf[offset + i] = (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff
-  }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-}
-
-Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset + 3] = (value >>> 24)
-    this[offset + 2] = (value >>> 16)
-    this[offset + 1] = (value >>> 8)
-    this[offset] = (value & 0xff)
-  } else {
-    objectWriteUInt32(this, value, offset, true)
-  }
-  return offset + 4
-}
-
-Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 4, 0xffffffff, 0)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 24)
-    this[offset + 1] = (value >>> 16)
-    this[offset + 2] = (value >>> 8)
-    this[offset + 3] = (value & 0xff)
-  } else {
-    objectWriteUInt32(this, value, offset, false)
-  }
-  return offset + 4
-}
-
-<<<<<<< HEAD
-}).call(this,require("buffer").Buffer)
-},{"buffer":6}],18:[function(require,module,exports){
-var errors = {};
-[
-  /**
-   * node.js errors - we only use some of these, add as needed.
-   */
-  //'-1:UNKNOWN:unknown error',
-  //'0:OK:success',
-  //'1:EOF:end of file',
-  //'2:EADDRINFO:getaddrinfo error',
-  //'3:EACCES:permission denied',
-  //'4:EAGAIN:resource temporarily unavailable',
-  //'5:EADDRINUSE:address already in use',
-  //'6:EADDRNOTAVAIL:address not available',
-  //'7:EAFNOSUPPORT:address family not supported',
-  //'8:EALREADY:connection already in progress',
-  '9:EBADF:bad file descriptor',
-  '10:EBUSY:resource busy or locked',
-  //'11:ECONNABORTED:software caused connection abort',
-  //'12:ECONNREFUSED:connection refused',
-  //'13:ECONNRESET:connection reset by peer',
-  //'14:EDESTADDRREQ:destination address required',
-  //'15:EFAULT:bad address in system call argument',
-  //'16:EHOSTUNREACH:host is unreachable',
-  //'17:EINTR:interrupted system call',
-  '18:EINVAL:invalid argument',
-  //'19:EISCONN:socket is already connected',
-  //'20:EMFILE:too many open files',
-  //'21:EMSGSIZE:message too long',
-  //'22:ENETDOWN:network is down',
-  //'23:ENETUNREACH:network is unreachable',
-  //'24:ENFILE:file table overflow',
-  //'25:ENOBUFS:no buffer space available',
-  //'26:ENOMEM:not enough memory',
-  '27:ENOTDIR:not a directory',
-  '28:EISDIR:illegal operation on a directory',
-  //'29:ENONET:machine is not on the network',
-  // errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-  //'31:ENOTCONN:socket is not connected',
-  //'32:ENOTSOCK:socket operation on non-socket',
-  //'33:ENOTSUP:operation not supported on socket',
-  '34:ENOENT:no such file or directory',
-  //'35:ENOSYS:function not implemented',
-  //'36:EPIPE:broken pipe',
-  //'37:EPROTO:protocol error',
-  //'38:EPROTONOSUPPORT:protocol not supported',
-  //'39:EPROTOTYPE:protocol wrong type for socket',
-  //'40:ETIMEDOUT:connection timed out',
-  //'41:ECHARSET:invalid Unicode character',
-  //'42:EAIFAMNOSUPPORT:address family for hostname not supported',
-  // errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-  //'44:EAISERVICE:servname not supported for ai_socktype',
-  //'45:EAISOCKTYPE:ai_socktype not supported',
-  //'46:ESHUTDOWN:cannot send after transport endpoint shutdown',
-  '47:EEXIST:file already exists',
-  //'48:ESRCH:no such process',
-  //'49:ENAMETOOLONG:name too long',
-  '50:EPERM:operation not permitted',
-  '51:ELOOP:too many symbolic links encountered',
-  //'52:EXDEV:cross-device link not permitted',
-  '53:ENOTEMPTY:directory not empty',
-  //'54:ENOSPC:no space left on device',
-  '55:EIO:i/o error',
-  //'56:EROFS:read-only file system',
-  //'57:ENODEV:no such device',
-  //'58:ESPIPE:invalid seek',
-  //'59:ECANCELED:operation canceled',
-=======
-Buffer.prototype.writeIntLE = function writeIntLE (value, offset, byteLength, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) {
-    var limit = Math.pow(2, 8 * byteLength - 1)
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-    checkInt(this, value, offset, byteLength, limit - 1, -limit)
-  }
-
-  var i = 0
-  var mul = 1
-  var sub = 0
-  this[offset] = value & 0xFF
-  while (++i < byteLength && (mul *= 0x100)) {
-    if (value < 0 && sub === 0 && this[offset + i - 1] !== 0) {
-      sub = 1
-    }
-    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
-  }
-
-  return offset + byteLength
-}
-
-Buffer.prototype.writeIntBE = function writeIntBE (value, offset, byteLength, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) {
-    var limit = Math.pow(2, 8 * byteLength - 1)
-
-    checkInt(this, value, offset, byteLength, limit - 1, -limit)
-  }
-
-  var i = byteLength - 1
-  var mul = 1
-  var sub = 0
-  this[offset + i] = value & 0xFF
-  while (--i >= 0 && (mul *= 0x100)) {
-    if (value < 0 && sub === 0 && this[offset + i + 1] !== 0) {
-      sub = 1
-    }
-    this[offset + i] = ((value / mul) >> 0) - sub & 0xFF
-  }
-
-  return offset + byteLength
-}
-
-Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
-  if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
-  if (value < 0) value = 0xff + value + 1
-  this[offset] = (value & 0xff)
-  return offset + 1
-}
-
-<<<<<<< HEAD
-},{}],19:[function(require,module,exports){
-var _ = require('../../lib/nodash.js');
-
-var Path = require('../path.js');
-var normalize = Path.normalize;
-var dirname = Path.dirname;
-var basename = Path.basename;
-var isAbsolutePath = Path.isAbsolute;
-var isNullPath = Path.isNull;
-
-var Constants = require('../constants.js');
-var MODE_FILE = Constants.MODE_FILE;
-var MODE_DIRECTORY = Constants.MODE_DIRECTORY;
-var MODE_SYMBOLIC_LINK = Constants.MODE_SYMBOLIC_LINK;
-var MODE_META = Constants.MODE_META;
-=======
-Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff)
-    this[offset + 1] = (value >>> 8)
-  } else {
-    objectWriteUInt16(this, value, offset, true)
-  }
-  return offset + 2
-}
-
-Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 8)
-    this[offset + 1] = (value & 0xff)
-  } else {
-    objectWriteUInt16(this, value, offset, false)
-  }
-  return offset + 2
-}
-
-Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value & 0xff)
-    this[offset + 1] = (value >>> 8)
-    this[offset + 2] = (value >>> 16)
-    this[offset + 3] = (value >>> 24)
-  } else {
-    objectWriteUInt32(this, value, offset, true)
-  }
-  return offset + 4
-}
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) {
-  value = +value
-  offset = offset | 0
-  if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
-  if (value < 0) value = 0xffffffff + value + 1
-  if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = (value >>> 24)
-    this[offset + 1] = (value >>> 16)
-    this[offset + 2] = (value >>> 8)
-    this[offset + 3] = (value & 0xff)
-  } else {
-    objectWriteUInt32(this, value, offset, false)
-  }
-  return offset + 4
-}
-
-function checkIEEE754 (buf, value, offset, ext, max, min) {
-  if (offset + ext > buf.length) throw new RangeError('Index out of range')
-  if (offset < 0) throw new RangeError('Index out of range')
-}
-
-<<<<<<< HEAD
-var XATTR_CREATE = Constants.XATTR_CREATE;
-var XATTR_REPLACE = Constants.XATTR_REPLACE;
-var FS_NOMTIME = Constants.FS_NOMTIME;
-var FS_NOCTIME = Constants.FS_NOCTIME;
-
-var Encoding = require('../encoding.js');
-var Errors = require('../errors.js');
-var DirectoryEntry = require('../directory-entry.js');
-var OpenFileDescription = require('../open-file-description.js');
-var SuperNode = require('../super-node.js');
-var Node = require('../node.js');
-var Stats = require('../stats.js');
-var Buffer = require('../buffer.js');
-=======
-function writeFloat (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    checkIEEE754(buf, value, offset, 4, 3.4028234663852886e+38, -3.4028234663852886e+38)
-  }
-  ieee754.write(buf, value, offset, littleEndian, 23, 4)
-  return offset + 4
-}
-
-Buffer.prototype.writeFloatLE = function writeFloatLE (value, offset, noAssert) {
-  return writeFloat(this, value, offset, true, noAssert)
-}
-
-Buffer.prototype.writeFloatBE = function writeFloatBE (value, offset, noAssert) {
-  return writeFloat(this, value, offset, false, noAssert)
-}
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-function writeDouble (buf, value, offset, littleEndian, noAssert) {
-  if (!noAssert) {
-    checkIEEE754(buf, value, offset, 8, 1.7976931348623157E+308, -1.7976931348623157E+308)
-  }
-  ieee754.write(buf, value, offset, littleEndian, 52, 8)
-  return offset + 8
-}
-
-Buffer.prototype.writeDoubleLE = function writeDoubleLE (value, offset, noAssert) {
-  return writeDouble(this, value, offset, true, noAssert)
-}
-
-Buffer.prototype.writeDoubleBE = function writeDoubleBE (value, offset, noAssert) {
-  return writeDouble(this, value, offset, false, noAssert)
-}
-
-// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
-Buffer.prototype.copy = function copy (target, targetStart, start, end) {
-  if (!start) start = 0
-  if (!end && end !== 0) end = this.length
-  if (targetStart >= target.length) targetStart = target.length
-  if (!targetStart) targetStart = 0
-  if (end > 0 && end < start) end = start
-
-  // Copy 0 bytes; we're done
-  if (end === start) return 0
-  if (target.length === 0 || this.length === 0) return 0
-
-  // Fatal error conditions
-  if (targetStart < 0) {
-    throw new RangeError('targetStart out of bounds')
-  }
-  if (start < 0 || start >= this.length) throw new RangeError('sourceStart out of bounds')
-  if (end < 0) throw new RangeError('sourceEnd out of bounds')
-
-  // Are we oob?
-  if (end > this.length) end = this.length
-  if (target.length - targetStart < end - start) {
-    end = target.length - targetStart + start
-  }
-
-  var len = end - start
-  var i
-
-  if (this === target && start < targetStart && targetStart < end) {
-    // descending copy from end
-    for (i = len - 1; i >= 0; --i) {
-      target[i + targetStart] = this[i + start]
-    }
-  } else if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
-    // ascending copy from start
-    for (i = 0; i < len; ++i) {
-      target[i + targetStart] = this[i + start]
-    }
-  } else {
-    Uint8Array.prototype.set.call(
-      target,
-      this.subarray(start, start + len),
-      targetStart
-    )
-  }
-
-  return len
-}
-
-// Usage:
-//    buffer.fill(number[, offset[, end]])
-//    buffer.fill(buffer[, offset[, end]])
-//    buffer.fill(string[, offset[, end]][, encoding])
-Buffer.prototype.fill = function fill (val, start, end, encoding) {
-  // Handle string cases:
-  if (typeof val === 'string') {
-    if (typeof start === 'string') {
-      encoding = start
-      start = 0
-      end = this.length
-    } else if (typeof end === 'string') {
-      encoding = end
-      end = this.length
-    }
-    if (val.length === 1) {
-      var code = val.charCodeAt(0)
-      if (code < 256) {
-        val = code
-      }
-    }
-    if (encoding !== undefined && typeof encoding !== 'string') {
-      throw new TypeError('encoding must be a string')
-    }
-    if (typeof encoding === 'string' && !Buffer.isEncoding(encoding)) {
-      throw new TypeError('Unknown encoding: ' + encoding)
-    }
-  } else if (typeof val === 'number') {
-    val = val & 255
-  }
-
-  // Invalid ranges are not set to a default, so can range check early.
-  if (start < 0 || this.length < start || this.length < end) {
-    throw new RangeError('Out of range index')
-  }
-
-  if (end <= start) {
-    return this
-  }
-
-  start = start >>> 0
-  end = end === undefined ? this.length : end >>> 0
-
-  if (!val) val = 0
-
-  var i
-  if (typeof val === 'number') {
-    for (i = start; i < end; ++i) {
-      this[i] = val
-    }
-  } else {
-    var bytes = Buffer.isBuffer(val)
-      ? val
-      : utf8ToBytes(new Buffer(val, encoding).toString())
-    var len = bytes.length
-    for (i = 0; i < end - start; ++i) {
-      this[i + start] = bytes[i % len]
-    }
-  }
-
-  return this
-}
-
-// HELPER FUNCTIONS
-// ================
-
-var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
-
-function base64clean (str) {
-  // Node strips out invalid characters like \n and \t from the string, base64-js does not
-  str = stringtrim(str).replace(INVALID_BASE64_RE, '')
-  // Node converts strings with length < 2 to ''
-  if (str.length < 2) return ''
-  // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
-  while (str.length % 4 !== 0) {
-    str = str + '='
-  }
-  return str
-}
-
-function stringtrim (str) {
-  if (str.trim) return str.trim()
-  return str.replace(/^\s+|\s+$/g, '')
-}
-
-function toHex (n) {
-  if (n < 16) return '0' + n.toString(16)
-  return n.toString(16)
-}
-
-function utf8ToBytes (string, units) {
-  units = units || Infinity
-  var codePoint
-  var length = string.length
-  var leadSurrogate = null
-  var bytes = []
-
-  for (var i = 0; i < length; ++i) {
-    codePoint = string.charCodeAt(i)
-
-    // is surrogate component
-    if (codePoint > 0xD7FF && codePoint < 0xE000) {
-      // last char was a lead
-      if (!leadSurrogate) {
-        // no lead yet
-        if (codePoint > 0xDBFF) {
-          // unexpected trail
-          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-          continue
-        } else if (i + 1 === length) {
-          // unpaired lead
-          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-          continue
-        }
-
-        // valid lead
-        leadSurrogate = codePoint
-
-        continue
-      }
-
-      // 2 leads in a row
-      if (codePoint < 0xDC00) {
-        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-        leadSurrogate = codePoint
-        continue
-      }
-
-      // valid surrogate pair
-      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
-    } else if (leadSurrogate) {
-      // valid bmp char, but last char was a lead
-      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-    }
-
-    leadSurrogate = null
-
-    // encode utf8
-    if (codePoint < 0x80) {
-      if ((units -= 1) < 0) break
-      bytes.push(codePoint)
-    } else if (codePoint < 0x800) {
-      if ((units -= 2) < 0) break
-      bytes.push(
-        codePoint >> 0x6 | 0xC0,
-        codePoint & 0x3F | 0x80
-      )
-    } else if (codePoint < 0x10000) {
-      if ((units -= 3) < 0) break
-      bytes.push(
-        codePoint >> 0xC | 0xE0,
-        codePoint >> 0x6 & 0x3F | 0x80,
-        codePoint & 0x3F | 0x80
-      )
-    } else if (codePoint < 0x110000) {
-      if ((units -= 4) < 0) break
-      bytes.push(
-        codePoint >> 0x12 | 0xF0,
-        codePoint >> 0xC & 0x3F | 0x80,
-        codePoint >> 0x6 & 0x3F | 0x80,
-        codePoint & 0x3F | 0x80
-      )
-    } else {
-      throw new Error('Invalid code point')
-    }
-  }
-
-  return bytes
-}
-
-function asciiToBytes (str) {
-  var byteArray = []
-  for (var i = 0; i < str.length; ++i) {
-    // Node's code seems to be doing this and not & 0x7F..
-    byteArray.push(str.charCodeAt(i) & 0xFF)
-  }
-  return byteArray
-}
-
-function utf16leToBytes (str, units) {
-  var c, hi, lo
-  var byteArray = []
-  for (var i = 0; i < str.length; ++i) {
-    if ((units -= 2) < 0) break
-
-    c = str.charCodeAt(i)
-    hi = c >> 8
-    lo = c % 256
-    byteArray.push(lo)
-    byteArray.push(hi)
-  }
-
-  return byteArray
-}
-
-function base64ToBytes (str) {
-  return base64.toByteArray(base64clean(str))
-}
-
-function blitBuffer (src, dst, offset, length) {
-  for (var i = 0; i < length; ++i) {
-    if ((i + offset >= dst.length) || (i >= src.length)) break
-    dst[i + offset] = src[i]
-  }
-  return i
-}
-
-function isnan (val) {
-  return val !== val // eslint-disable-line no-self-compare
-}
-
-},{"base64-js":29,"ieee754":30,"isarray":31,"buffer":11}],3:[function(require,module,exports) {
-var Buffer = require("buffer").Buffer;
-function FilerBuffer(subject, encoding, nonZero) {
-
-  // Automatically turn ArrayBuffer into Uint8Array so that underlying
-  // Buffer code doesn't just throw away and ignore ArrayBuffer data.
-  if (subject instanceof ArrayBuffer) {
-    subject = new Uint8Array(subject);
-  }
-
-  return new Buffer(subject, encoding, nonZero);
-};
-
-// Inherit prototype from Buffer
-FilerBuffer.prototype = Object.create(Buffer.prototype);
-FilerBuffer.prototype.constructor = FilerBuffer;
-
-// Also copy static methods onto FilerBuffer ctor
-Object.keys(Buffer).forEach(function (p) {
-  if (Buffer.hasOwnProperty(p)) {
-    FilerBuffer[p] = Buffer[p];
-  }
-<<<<<<< HEAD
-}
-
-
-/**
- * set extended attribute (refactor)
- */
-function set_extended_attribute (context, path, node, name, value, flag, callback) {
-  function update_time(error) {
-    if(error) {
-      callback(error);
-    } else {
-      update_node_times(context, path, node, { ctime: Date.now() }, callback);
-    }
-  }
-
-  var xattrs = node.xattrs;
-
-  if (flag === XATTR_CREATE && xattrs.hasOwnProperty(name)) {
-    callback(new Errors.EEXIST('attribute already exists', path));
-  }
-  else if (flag === XATTR_REPLACE && !xattrs.hasOwnProperty(name)) {
-    callback(new Errors.ENOATTR(null, path));
-  }
-  else {
-    xattrs[name] = value;
-    context.putObject(node.id, node, update_time);
-  }
-=======
-});
-
-module.exports = FilerBuffer;
-},{"buffer":11}],50:[function(require,module,exports) {
-var global = arguments[3];
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
-var IDB_RW = require('../constants.js').IDB_RW;
-var IDB_RO = require('../constants.js').IDB_RO;
-var Errors = require('../errors.js');
-var FilerBuffer = require('../buffer.js');
-
-var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB;
-
-function IndexedDBContext(db, mode) {
-  var transaction = db.transaction(FILE_STORE_NAME, mode);
-  this.objectStore = transaction.objectStore(FILE_STORE_NAME);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-}
-
-IndexedDBContext.prototype.clear = function (callback) {
-  try {
-    var request = this.objectStore.clear();
-    request.onsuccess = function (event) {
-      callback();
-    };
-    request.onerror = function (error) {
-      callback(error);
-    };
-  } catch (e) {
-    callback(e);
-  }
-};
-
-function _get(objectStore, key, callback) {
-  try {
-    var request = objectStore.get(key);
-    request.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(null, result);
-    };
-    request.onerror = function onerror(error) {
-      callback(error);
-    };
-  } catch (e) {
-    callback(e);
-  }
-}
-IndexedDBContext.prototype.getObject = function (key, callback) {
-  _get(this.objectStore, key, callback);
-};
-IndexedDBContext.prototype.getBuffer = function (key, callback) {
-  _get(this.objectStore, key, function (err, arrayBuffer) {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, new FilerBuffer(arrayBuffer));
-  });
-};
-
-function _put(objectStore, key, value, callback) {
-  try {
-    var request = objectStore.put(value, key);
-    request.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(null, result);
-    };
-    request.onerror = function onerror(error) {
-      callback(error);
-    };
-  } catch (e) {
-    callback(e);
-  }
-}
-IndexedDBContext.prototype.putObject = function (key, value, callback) {
-  _put(this.objectStore, key, value, callback);
-};
-IndexedDBContext.prototype.putBuffer = function (key, uint8BackedBuffer, callback) {
-  _put(this.objectStore, key, uint8BackedBuffer.buffer, callback);
-};
-
-IndexedDBContext.prototype.delete = function (key, callback) {
-  try {
-    var request = this.objectStore.delete(key);
-    request.onsuccess = function onsuccess(event) {
-      var result = event.target.result;
-      callback(null, result);
-    };
-    request.onerror = function (error) {
-      callback(error);
-    };
-  } catch (e) {
-    callback(e);
-  }
-};
-
-function IndexedDB(name) {
-  this.name = name || FILE_SYSTEM_NAME;
-  this.db = null;
-}
-IndexedDB.isSupported = function () {
-  return !!indexedDB;
-};
-
-IndexedDB.prototype.open = function (callback) {
-  var that = this;
-
-  // Bail if we already have a db open
-  if (that.db) {
-    return callback();
-  }
-
-  // NOTE: we're not using versioned databases.
-  var openRequest = indexedDB.open(that.name);
-
-  // If the db doesn't exist, we'll create it
-  openRequest.onupgradeneeded = function onupgradeneeded(event) {
-    var db = event.target.result;
-
-    if (db.objectStoreNames.contains(FILE_STORE_NAME)) {
-      db.deleteObjectStore(FILE_STORE_NAME);
-    }
-    db.createObjectStore(FILE_STORE_NAME);
-  };
-
-  openRequest.onsuccess = function onsuccess(event) {
-    that.db = event.target.result;
-    callback();
-  };
-  openRequest.onerror = function onerror(error) {
-    callback(new Errors.EINVAL('IndexedDB cannot be accessed. If private browsing is enabled, disable it.'));
-  };
-};
-IndexedDB.prototype.getReadOnlyContext = function () {
-  // Due to timing issues in Chrome with readwrite vs. readonly indexeddb transactions
-  // always use readwrite so we can make sure pending commits finish before callbacks.
-  // See https://github.com/js-platform/filer/issues/128
-  return new IndexedDBContext(this.db, IDB_RW);
-};
-IndexedDB.prototype.getReadWriteContext = function () {
-  return new IndexedDBContext(this.db, IDB_RW);
-};
-
-module.exports = IndexedDB;
-},{"../constants.js":15,"../errors.js":5,"../buffer.js":3}],60:[function(require,module,exports) {
-/*
- * base64-arraybuffer
- * https://github.com/niklasvh/base64-arraybuffer
- *
- * Copyright (c) 2012 Niklas von Hertzen
- * Licensed under the MIT license.
- */
-(function () {
-  "use strict";
-
-  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-  // Use a lookup table to find the index.
-  var lookup = new Uint8Array(256);
-  for (var i = 0; i < chars.length; i++) {
-    lookup[chars.charCodeAt(i)] = i;
-  }
-
-  exports.encode = function (arraybuffer) {
-    var bytes = new Uint8Array(arraybuffer),
-        i,
-        len = bytes.length,
-        base64 = "";
-
-    for (i = 0; i < len; i += 3) {
-      base64 += chars[bytes[i] >> 2];
-      base64 += chars[(bytes[i] & 3) << 4 | bytes[i + 1] >> 4];
-      base64 += chars[(bytes[i + 1] & 15) << 2 | bytes[i + 2] >> 6];
-      base64 += chars[bytes[i + 2] & 63];
-    }
-
-    if (len % 3 === 2) {
-      base64 = base64.substring(0, base64.length - 1) + "=";
-    } else if (len % 3 === 1) {
-      base64 = base64.substring(0, base64.length - 2) + "==";
-    }
-
-    return base64;
-  };
-
-  exports.decode = function (base64) {
-    var bufferLength = base64.length * 0.75,
-        len = base64.length,
-        i,
-        p = 0,
-        encoded1,
-        encoded2,
-        encoded3,
-        encoded4;
-
-    if (base64[base64.length - 1] === "=") {
-      bufferLength--;
-      if (base64[base64.length - 2] === "=") {
-        bufferLength--;
-      }
-    }
-
-    var arraybuffer = new ArrayBuffer(bufferLength),
-        bytes = new Uint8Array(arraybuffer);
-
-    for (i = 0; i < len; i += 4) {
-      encoded1 = lookup[base64.charCodeAt(i)];
-      encoded2 = lookup[base64.charCodeAt(i + 1)];
-      encoded3 = lookup[base64.charCodeAt(i + 2)];
-      encoded4 = lookup[base64.charCodeAt(i + 3)];
-
-      bytes[p++] = encoded1 << 2 | encoded2 >> 4;
-      bytes[p++] = (encoded2 & 15) << 4 | encoded3 >> 2;
-      bytes[p++] = (encoded3 & 3) << 6 | encoded4 & 63;
-    }
-
-    return arraybuffer;
-  };
-})();
-},{}],51:[function(require,module,exports) {
-var global = arguments[3];
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
-var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
-var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
-var WSQL_DESC = require('../constants.js').WSQL_DESC;
-var Errors = require('../errors.js');
-var FilerBuffer = require('../buffer.js');
-var base64ArrayBuffer = require('base64-arraybuffer');
-
-function WebSQLContext(db, isReadOnly) {
-  var that = this;
-  this.getTransaction = function (callback) {
-    if (that.transaction) {
-      callback(that.transaction);
-      return;
-    }
-    // Either do readTransaction() (read-only) or transaction() (read/write)
-    db[isReadOnly ? 'readTransaction' : 'transaction'](function (transaction) {
-      that.transaction = transaction;
-      callback(transaction);
-    });
-  };
-}
-
-WebSQLContext.prototype.clear = function (callback) {
-  function onError(transaction, error) {
-    callback(error);
-  }
-  function onSuccess(transaction, result) {
-    callback(null);
-  }
-  this.getTransaction(function (transaction) {
-    transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + ";", [], onSuccess, onError);
-  });
-};
-
-function _get(getTransaction, key, callback) {
-  function onSuccess(transaction, result) {
-    // If the key isn't found, return null
-    var value = result.rows.length === 0 ? null : result.rows.item(0).data;
-    callback(null, value);
-  }
-  function onError(transaction, error) {
-    callback(error);
-  }
-  getTransaction(function (transaction) {
-    transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ? LIMIT 1;", [key], onSuccess, onError);
-  });
-}
-WebSQLContext.prototype.getObject = function (key, callback) {
-  _get(this.getTransaction, key, function (err, result) {
-    if (err) {
-      return callback(err);
-    }
-
-    try {
-      if (result) {
-        result = JSON.parse(result);
-      }
-    } catch (e) {
-      return callback(e);
-    }
-
-    callback(null, result);
-  });
-};
-WebSQLContext.prototype.getBuffer = function (key, callback) {
-  _get(this.getTransaction, key, function (err, result) {
-    if (err) {
-      return callback(err);
-    }
-
-    // Deal with zero-length ArrayBuffers, which will be encoded as ''
-    if (result || result === '') {
-      var arrayBuffer = base64ArrayBuffer.decode(result);
-      result = new FilerBuffer(arrayBuffer);
-    }
-
-    callback(null, result);
-  });
-};
-
-function _put(getTransaction, key, value, callback) {
-  function onSuccess(transaction, result) {
-    callback(null);
-  }
-  function onError(transaction, error) {
-    callback(error);
-  }
-  getTransaction(function (transaction) {
-    transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data) VALUES (?, ?);", [key, value], onSuccess, onError);
-  });
-}
-WebSQLContext.prototype.putObject = function (key, value, callback) {
-  var json = JSON.stringify(value);
-  _put(this.getTransaction, key, json, callback);
-};
-WebSQLContext.prototype.putBuffer = function (key, uint8BackedBuffer, callback) {
-  var base64 = base64ArrayBuffer.encode(uint8BackedBuffer.buffer);
-  _put(this.getTransaction, key, base64, callback);
-};
-
-WebSQLContext.prototype.delete = function (key, callback) {
-  function onSuccess(transaction, result) {
-    callback(null);
-  }
-  function onError(transaction, error) {
-    callback(error);
-  }
-  this.getTransaction(function (transaction) {
-    transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + " WHERE id = ?;", [key], onSuccess, onError);
-  });
-};
-
-function WebSQL(name) {
-  this.name = name || FILE_SYSTEM_NAME;
-  this.db = null;
-}
-WebSQL.isSupported = function () {
-  return !!global.openDatabase;
-};
-
-WebSQL.prototype.open = function (callback) {
-  var that = this;
-
-  // Bail if we already have a db open
-  if (that.db) {
-    return callback();
-  }
-
-  var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
-  if (!db) {
-    callback("[WebSQL] Unable to open database.");
-    return;
-  }
-
-  function onError(transaction, error) {
-    if (error.code === 5) {
-      callback(new Errors.EINVAL('WebSQL cannot be accessed. If private browsing is enabled, disable it.'));
-    }
-    callback(error);
-  }
-  function onSuccess(transaction, result) {
-    that.db = db;
-    callback();
-  }
-
-  // Create the table and index we'll need to store the fs data.
-  db.transaction(function (transaction) {
-    function createIndex(transaction) {
-      transaction.executeSql("CREATE INDEX IF NOT EXISTS idx_" + FILE_STORE_NAME + "_id" + " on " + FILE_STORE_NAME + " (id);", [], onSuccess, onError);
-    }
-    transaction.executeSql("CREATE TABLE IF NOT EXISTS " + FILE_STORE_NAME + " (id unique, data TEXT);", [], createIndex, onError);
-  });
-};
-WebSQL.prototype.getReadOnlyContext = function () {
-  return new WebSQLContext(this.db, true);
-};
-WebSQL.prototype.getReadWriteContext = function () {
-  return new WebSQLContext(this.db, false);
-};
-
-module.exports = WebSQL;
-},{"../constants.js":15,"../errors.js":5,"../buffer.js":3,"base64-arraybuffer":60}],59:[function(require,module,exports) {
-
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout() {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-})();
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while (len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-<<<<<<< HEAD
-  function read_file_data(error, result) {
-    if(error) {
-      callback(error);
-    } else if(result.mode === 'DIRECTORY') {
-      callback(new Errors.EISDIR('the named file is a directory', ofd.path));
-    } else {
-      fileNode = result;
-      context.getBuffer(fileNode.data, handle_file_data);
-    }
-  }
-=======
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-process.listeners = function (name) {
-    return [];
-};
-
-<<<<<<< HEAD
-function stat_file(context, path, callback) {
-  path = normalize(path);
-  var name = basename(path);
-  find_node(context, path, callback);
-}
-
-function fstat_file(context, ofd, callback) {
-  ofd.getNode(context, callback);
-}
-=======
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () {
-    return '/';
-};
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function () {
-    return 0;
-};
-},{}],49:[function(require,module,exports) {
-var process = require("process");
-var define;
-/*global setImmediate: false, setTimeout: false, console: false */
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-/**
- * async.js shim, based on https://raw.github.com/caolan/async/master/lib/async.js Feb 18, 2014
- * Used under MIT - https://github.com/caolan/async/blob/master/LICENSE
- */
-
-(function () {
-
-<<<<<<< HEAD
-  if(ROOT_DIRECTORY_NAME == name) {
-    find_node(context, path, callback);
-  } else {
-    find_node(context, parentPath, read_directory_data);
-  }
-=======
-    var async = {};
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-=======
     this.debug(pattern, p, f)
 
     // should be impossible.
     // some invalid regexp stuff in the set.
     if (p === false) return false
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
     if (p === GLOBSTAR) {
       this.debug('GLOBSTAR', [pattern, p, f])
@@ -8232,21 +4947,6 @@ var define;
         }
       }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  function check_if_node_is_directory(error, result) {
-    if(error) {
-      callback(error);
-<<<<<<< HEAD
-    } else if(parentDirectoryNode.type !== NODE_TYPE_DIRECTORY || !parentDirectoryNode.data) {
-      callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
-=======
-    } else if(result.mode === 'DIRECTORY') {
-      callback(new Errors.EPERM('unlink not permitted on directories', name));
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-    } else {
-      update_file_node(null, result);
-=======
       // no match was found.
       // However, in partial mode, we can't say this is necessarily over.
       // If there's more *pattern* left, then
@@ -8256,7 +4956,6 @@ var define;
         if (fr === fl) return true
       }
       return false
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     }
 
     // something other than **
@@ -8321,7 +5020,7 @@ function regExpEscape (s) {
   return s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
 
-},{"path":45,"brace-expansion":46}],7:[function(require,module,exports) {
+},{"path":"UUq2","brace-expansion":"dwX/"}],"D1Ra":[function(require,module,exports) {
 var Path = require('../path.js');
 var Errors = require('../errors.js');
 var Environment = require('./environment.js');
@@ -8418,16 +5117,6 @@ Shell.prototype.exec = function (path, args, callback) {
   fs.readFile(path, "utf8", function (error, data) {
     if (error) {
       callback(error);
-<<<<<<< HEAD
-    } else {
-      if(node.type === NODE_TYPE_SYMBOLIC_LINK) {
-        followedCount++;
-        if(followedCount > SYMLOOP_MAX){
-          callback(new Errors.ELOOP(null, path));
-        } else {
-          follow_symbolic_link(node.data);
-        }
-=======
       return;
     }
     try {
@@ -8473,7 +5162,6 @@ Shell.prototype.touch = function (path, options, callback) {
     if (error) {
       if (options.updateOnly === true) {
         callback();
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
       } else {
         createFile(path);
       }
@@ -8555,21 +5243,6 @@ Shell.prototype.ls = function (dir, options, callback) {
     return;
   }
 
-<<<<<<< HEAD
-  function follow_symbolic_link(data) {
-    data = normalize(data);
-    parentPath = dirname(data);
-    name = basename(data);
-    if(ROOT_DIRECTORY_NAME === name) {
-      context.getObject(SUPER_NODE_ID, read_root_directory_node);
-    } else {
-      find_node(context, parentPath, read_parent_directory_data);
-    }
-  }
-
-  if(ROOT_DIRECTORY_NAME === name) {
-    context.getObject(SUPER_NODE_ID, read_root_directory_node);
-=======
   function list(path, callback) {
     var pathname = Path.resolve(sh.pwd(), path);
     var result = [];
@@ -8587,16 +5260,10 @@ Shell.prototype.ls = function (dir, options, callback) {
             callback(error);
             return;
           }
-          var entry = {
-            path: Path.basename(name),
-            links: stats.nlinks,
-            size: stats.size,
-            modified: stats.mtime,
-            type: stats.type
-          };
+          var entry = stats;
 
           if (options.recursive && stats.type === 'DIRECTORY') {
-            list(Path.join(pathname, entry.path), function (error, items) {
+            list(Path.join(pathname, entry.name), function (error, items) {
               if (error) {
                 callback(error);
                 return;
@@ -8612,16 +5279,6 @@ Shell.prototype.ls = function (dir, options, callback) {
         });
       }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  if(length < 0) {
-    callback(new Errors.EINVAL('length cannot be negative'));
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  } else {
-    ofd.getNode(context, read_file_data);
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       async.eachSeries(entries, getDirEntry, function (error) {
         callback(error, result);
       });
@@ -8674,68 +5331,9 @@ Shell.prototype.rm = function (path, options, callback) {
           return;
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  function setxattr(error, node) {
-    if(error) {
-      return callback(error);
-    }
-    set_extended_attribute(context, path, node, name, value, flag, callback);
-  }
-
-  if (typeof name != 'string') {
-    callback(new Errors.EINVAL('attribute name must be a string', path));
-  }
-  else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
-  }
-  else if (flag !== null &&
-           flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
-    callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE', path));
-  }
-  else {
-    find_node(context, path, setxattr);
-  }
-}
-
-function fsetxattr_file (context, ofd, name, value, flag, callback) {
-  function setxattr(error, node) {
-    if(error) {
-<<<<<<< HEAD
-      callback(error);
-    } else {
-      Node.create({
-        guid: context.guid,
-        id: superNode.rnode,
-        type: NODE_TYPE_DIRECTORY
-      }, function(error, result) {
-        if(error) {
-          callback(error);
-=======
-      return callback(error);
-    }
-    set_extended_attribute(context, ofd.path, node, name, value, flag, callback);
-  }
-
-  if (typeof name !== 'string') {
-    callback(new Errors.EINVAL('attribute name must be a string'));
-  }
-  else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string'));
-  }
-  else if (flag !== null &&
-           flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
-    callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
-  }
-  else {
-    ofd.getNode(context, setxattr);
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
         // If dir is empty, delete it and we're done
         if (entries.length === 0) {
           fs.rmdir(pathname, callback);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
           return;
         }
 
@@ -8876,31 +5474,6 @@ Shell.prototype.find = function (path, options, callback) {
     return;
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  function write_directory_node(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      parentDirectoryData = result;
-      Node.create({
-        guid: context.guid,
-        type: NODE_TYPE_DIRECTORY
-      }, function(error, result) {
-        if(error) {
-          callback(error);
-          return;
-        }
-        directoryNode = result;
-        directoryNode.nlinks += 1;
-        context.putObject(directoryNode.id, directoryNode, write_directory_data);
-      });
-    }
-=======
-  if (typeof name != 'string') {
-    callback(new Errors.EINVAL());
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-=======
   function processPath(path, callback) {
     exec(path, function (err) {
       if (err) {
@@ -8911,7 +5484,6 @@ Shell.prototype.find = function (path, options, callback) {
       found.push(path);
       callback();
     });
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 
   function maybeProcessPath(path, callback) {
@@ -8990,7 +5562,7 @@ Shell.prototype.find = function (path, options, callback) {
 };
 
 module.exports = Shell;
-},{"../path.js":4,"../errors.js":5,"./environment.js":23,"../../lib/async.js":19,"../encoding.js":20,"minimatch":25}],40:[function(require,module,exports) {
+},{"../path.js":"UzoP","../errors.js":"p8GN","./environment.js":"QMiB","../../lib/async.js":"u4Zs","../encoding.js":"03yF","minimatch":"Nt/K"}],"J4Qg":[function(require,module,exports) {
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -9004,26 +5576,8 @@ function removeItem(item, array) {
   return array;
 }
 
-<<<<<<< HEAD
-  function update_parent_directory_data(error) {
-    if(error) {
-      callback(error);
-    } else {
-      parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, NODE_TYPE_DIRECTORY);
-      context.putObject(parentDirectoryNode.data, parentDirectoryData, update_time);
-=======
 var EventEmitter = function EventEmitter() {};
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  function remove_xattr (error, node) {
-    if (error) {
-      return callback(error);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-    }
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 EventEmitter.createInterface = function (space) {
   var methods = {};
 
@@ -9044,30 +5598,12 @@ EventEmitter.createInterface = function (space) {
     }
   };
 
-<<<<<<< HEAD
-  function check_if_node_exists(error, result) {
-    if(error) {
-      callback(error);
-    } else if(ROOT_DIRECTORY_NAME === name) {
-      callback(new Errors.EBUSY(null, path));
-    } else if(!_(result).has(name)) {
-      callback(new Errors.ENOENT(null, path));
-    } else {
-      parentDirectoryData = result;
-      directoryNode = parentDirectoryData[name].id;
-      context.getObject(directoryNode, check_if_node_is_directory);
-=======
   methods.trigger = function (name) {
     if (typeof this[space] !== 'undefined' && this[space].hasOwnProperty(name)) {
       var args = Array.prototype.slice.call(arguments, 1);
       for (var i = 0; i < this[space][name].length; i++) {
         this[space][name][i].apply(this[space][name][i], args);
       }
-<<<<<<< HEAD
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     }
   };
 
@@ -9079,46 +5615,9 @@ EventEmitter.createInterface = function (space) {
     });
   };
 
-<<<<<<< HEAD
-  function check_if_node_is_directory(error, result) {
-    if(error) {
-      callback(error);
-    } else if(result.type !== NODE_TYPE_DIRECTORY) {
-      callback(new Errors.ENOTDIR(null, path));
-    } else {
-      directoryNode = result;
-      context.getObject(directoryNode.data, check_if_directory_is_empty);
-=======
   return methods;
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  function remove_xattr (error, node) {
-    if (error) {
-      return callback(error);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-    }
-
-    function update_time(error) {
-      if(error) {
-        callback(error);
-      } else {
-        update_node_times(context, ofd.path, node, { ctime: Date.now() }, callback);
-      }
-    }
-
-    var xattrs = node.xattrs;
-
-    if (!xattrs.hasOwnProperty(name)) {
-      callback(new Errors.ENOATTR());
-    }
-    else {
-      delete xattrs[name];
-      context.putObject(node.id, node, update_time);
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 var pvt = EventEmitter.createInterface('_handlers');
 EventEmitter.prototype._on = pvt.on;
 EventEmitter.prototype._off = pvt.off;
@@ -9135,7 +5634,7 @@ EventEmitter.prototype.trigger = pub.trigger;
 EventEmitter.prototype.removeAllListeners = pub.removeAllListeners;
 
 module.exports = EventEmitter;
-},{}],17:[function(require,module,exports) {
+},{}],"u7Jv":[function(require,module,exports) {
 var global = arguments[3];
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -9200,32 +5699,13 @@ function Intercom() {
     return;
   }
 
-<<<<<<< HEAD
-  if(ROOT_DIRECTORY_NAME === name) {
-    if(_(flags).contains(O_WRITE)) {
-      callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
-    } else {
-      find_node(context, path, set_file_node);
-    }
-=======
   if (document.attachEvent) {
     document.attachEvent('onstorage', storageHandler);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   } else {
     global.addEventListener('storage', storageHandler, false);
   }
 }
 
-<<<<<<< HEAD
-  function read_directory_data(error, result) {
-    if(error) {
-      callback(error);
-    } else if(result.type !== NODE_TYPE_DIRECTORY) {
-      callback(new Errors.ENOENT(null, path));
-    } else {
-      directoryNode = result;
-      context.getObject(directoryNode.data, check_if_file_exists);
-=======
 Intercom.prototype._transaction = function (fn) {
   var TIMEOUT = 1000;
   var WAIT = 20;
@@ -9237,40 +5717,14 @@ Intercom.prototype._transaction = function (fn) {
   function lock() {
     if (executed) {
       return;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
 
-<<<<<<< HEAD
-  function check_if_file_exists(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      directoryData = result;
-      if(_(directoryData).has(name)) {
-        if(_(flags).contains(O_EXCLUSIVE)) {
-          callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
-        } else {
-          directoryEntry = directoryData[name];
-          if(directoryEntry.type === NODE_TYPE_DIRECTORY && _(flags).contains(O_WRITE)) {
-            callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
-          } else {
-            context.getObject(directoryEntry.id, check_if_symbolic_link);
-          }
-        }
-      } else {
-        if(!_(flags).contains(O_CREATE)) {
-          callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist', path));
-        } else {
-          write_file_node();
-        }
-=======
     var now = Date.now();
     var activeLock = localStorage.getItem(INDEX_LOCK) | 0;
     if (activeLock && now - activeLock < TIMEOUT) {
       if (!listening) {
         self._on('storage', lock);
         listening = true;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
       }
       waitTimer = setTimeout(lock, WAIT);
       return;
@@ -9282,45 +5736,16 @@ Intercom.prototype._transaction = function (fn) {
     unlock();
   }
 
-<<<<<<< HEAD
-  function check_if_symbolic_link(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      var node = result;
-      if(node.type === NODE_TYPE_SYMBOLIC_LINK) {
-        followedCount++;
-        if(followedCount > SYMLOOP_MAX){
-          callback(new Errors.ELOOP(null, path));
-        } else {
-          follow_symbolic_link(node.data);
-        }
-      } else {
-        set_file_node(undefined, node);
-      }
-=======
   function unlock() {
     if (listening) {
       self._off('storage', lock);
     }
     if (waitTimer) {
       clearTimeout(waitTimer);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
     localStorage.removeItem(INDEX_LOCK);
   }
 
-<<<<<<< HEAD
-  function follow_symbolic_link(data) {
-    data = normalize(data);
-    parentPath = dirname(data);
-    name = basename(data);
-    if(ROOT_DIRECTORY_NAME === name) {
-      if(_(flags).contains(O_WRITE)) {
-        callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
-      } else {
-        find_node(context, path, set_file_node);
-=======
   lock();
 };
 
@@ -9342,7 +5767,6 @@ Intercom.prototype._cleanup_emit = throttle(100, function () {
       if (messages[i].timestamp < threshold) {
         messages.splice(i, 1);
         changed++;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
       }
     }
     if (changed > 0) {
@@ -9389,21 +5813,6 @@ Intercom.prototype._once_expired = function (key, table) {
     return true;
   }
 
-<<<<<<< HEAD
-  function write_file_node() {
-    Node.create({
-      guid: context.guid,
-      type: NODE_TYPE_FILE
-    }, function(error, result) {
-      if(error) {
-        callback(error);
-        return;
-      }
-      fileNode = result;
-      fileNode.nlinks += 1;
-      context.putObject(fileNode.id, fileNode, write_file_data);
-    });
-=======
   var ttl = table[key].ttl || THRESHOLD_TTL_ONCE;
   var now = Date.now();
   var timestamp = table[key].timestamp;
@@ -9413,7 +5822,6 @@ Intercom.prototype._once_expired = function (key, table) {
 Intercom.prototype._localStorageChanged = function (event, field) {
   if (event && event.key) {
     return event.key === field;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
   var currentValue = localStorage.getItem(field);
@@ -9452,19 +5860,8 @@ Intercom.prototype._onStorageEvent = function (event) {
     });
   }
 
-<<<<<<< HEAD
-  function update_directory_data(error) {
-    if(error) {
-      callback(error);
-    } else {
-      directoryData[name] = new DirectoryEntry(fileNode.id, NODE_TYPE_FILE);
-      context.putObject(directoryNode.data, directoryData, update_time);
-    }
-  }
-=======
   this._trigger('storage', event);
 };
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 Intercom.prototype._emit = function (name, message, id) {
   id = typeof id === 'string' || typeof id === 'number' ? String(id) : null;
@@ -9560,7 +5957,7 @@ Intercom.getInstance = function () {
 }();
 
 module.exports = Intercom;
-},{"./eventemitter.js":40,"../src/shared.js":15}],18:[function(require,module,exports) {
+},{"./eventemitter.js":"J4Qg","../src/shared.js":"3zBM"}],"VLEe":[function(require,module,exports) {
 var EventEmitter = require('../lib/eventemitter.js');
 var Path = require('./path.js');
 var Intercom = require('../lib/intercom.js');
@@ -9600,16 +5997,6 @@ function FSWatcher() {
     // See https://github.com/js-platform/filer/issues/105
     filename = Path.normalize(filename_);
 
-<<<<<<< HEAD
-  function read_file_data(error, result) {
-    if(error) {
-      callback(error);
-    } else if(result.type === NODE_TYPE_DIRECTORY) {
-      callback(new Errors.EISDIR('the named file is a directory', ofd.path));
-    } else {
-      fileNode = result;
-      context.getBuffer(fileNode.data, handle_file_data);
-=======
     // Whether to watch beneath this path or not
     recursive = recursive_ === true;
     // If recursive, construct a path prefix portion for comparisons later
@@ -9617,7 +6004,6 @@ function FSWatcher() {
     // prefix). We also take care to allow for '/' on its own.
     if (recursive) {
       recursivePathPrefix = filename === '/' ? '/' : filename + '/';
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
 
     var intercom = Intercom.getInstance();
@@ -9634,14 +6020,14 @@ FSWatcher.prototype = new EventEmitter();
 FSWatcher.prototype.constructor = FSWatcher;
 
 module.exports = FSWatcher;
-},{"../lib/eventemitter.js":40,"./path.js":4,"../lib/intercom.js":17}],48:[function(require,module,exports) {
-var MODE_FILE = require('./constants.js').MODE_FILE;
+},{"../lib/eventemitter.js":"J4Qg","./path.js":"UzoP","../lib/intercom.js":"u7Jv"}],"ZECt":[function(require,module,exports) {
+var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
   this.id = id;
-  this.type = type || MODE_FILE;
+  this.type = type || NODE_TYPE_FILE;
 };
-},{"./constants.js":16}],49:[function(require,module,exports) {
+},{"./constants.js":"iJA9"}],"XWaV":[function(require,module,exports) {
 var Errors = require('./errors.js');
 
 function OpenFileDescription(path, id, flags, position) {
@@ -9673,22 +6059,14 @@ OpenFileDescription.prototype.getNode = function (context, callback) {
 };
 
 module.exports = OpenFileDescription;
-},{"./errors.js":5}],50:[function(require,module,exports) {
+},{"./errors.js":"p8GN"}],"33JE":[function(require,module,exports) {
 var Constants = require('./constants.js');
 
-<<<<<<< HEAD
-  if(ROOT_DIRECTORY_NAME === name) {
-    find_node(context, path, callback);
-  } else {
-    find_node(context, parentPath, read_directory_data);
-  }
-=======
 function SuperNode(options) {
   var now = Date.now();
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   this.id = Constants.SUPER_NODE_ID;
-  this.mode = Constants.MODE_META;
+  this.type = Constants.NODE_TYPE_META;
   this.atime = options.atime || now;
   this.ctime = options.ctime || now;
   this.mtime = options.mtime || now;
@@ -9708,34 +6086,40 @@ SuperNode.create = function (options, callback) {
 };
 
 module.exports = SuperNode;
-},{"./constants.js":16}],51:[function(require,module,exports) {
-var MODE_FILE = require('./constants.js').MODE_FILE;
+},{"./constants.js":"iJA9"}],"KKNo":[function(require,module,exports) {
+var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
+var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
+var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
+var NODE_TYPE_META = require('./constants.js').NODE_TYPE_META;
 
-<<<<<<< HEAD
-  newpath = normalize(newpath);
-  var newname = basename(newpath);
-  var newParentPath = dirname(newpath);
-  var ctime = Date.now();
+var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
 
-  var oldDirectoryNode;
-  var oldDirectoryData;
-  var newDirectoryNode;
-  var newDirectoryData;
-  var fileNodeID;
-  var fileNode;
+var S_IFREG = require('./constants.js').S_IFREG;
+var S_IFDIR = require('./constants.js').S_IFDIR;
+var S_IFLNK = require('./constants.js').S_IFLNK;
 
-  function update_time(error) {
-    if(error) {
-      callback(error);
-    } else {
-      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
-    }
-=======
+var DEFAULT_FILE_PERMISSIONS = require('./constants.js').DEFAULT_FILE_PERMISSIONS;
+var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
+
+function getMode(type, mode) {
+  switch (type) {
+    case NODE_TYPE_DIRECTORY:
+      return (mode || DEFAULT_DIR_PERMISSIONS) | S_IFDIR;
+    case NODE_TYPE_SYMBOLIC_LINK:
+      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFLNK;
+    /* jshint -W086 */
+    case NODE_TYPE_FILE:
+    // falls through
+    default:
+      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFREG;
+  }
+}
+
 function Node(options) {
   var now = Date.now();
 
   this.id = options.id;
-  this.mode = options.mode || MODE_FILE; // node type (file, directory, etc)
+  this.type = options.type || NODE_TYPE_FILE; // node type (file, directory, etc)
   this.size = options.size || 0; // size (bytes for files, entries for directories)
   this.atime = options.atime || now; // access time (will mirror ctime after creation)
   this.ctime = options.ctime || now; // creation/change time
@@ -9743,10 +6127,13 @@ function Node(options) {
   this.flags = options.flags || []; // file flags
   this.xattrs = options.xattrs || {}; // extended attributes
   this.nlinks = options.nlinks || 0; // links count
-  this.version = options.version || 0; // node version
-  this.blksize = undefined; // block size
-  this.nblocks = 1; // blocks count
   this.data = options.data; // id for data object
+  this.version = options.version || 1;
+
+  // permissions and flags
+  this.mode = options.mode || getMode(this.type);
+  this.uid = options.uid || 0x0; // owner name
+  this.gid = options.gid || 0x0; // group name
 }
 
 // Make sure the options object has an id on property,
@@ -9759,53 +6146,9 @@ function ensureID(options, prop, callback) {
       options[prop] = id;
       callback(err);
     });
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-function getxattr(fs, context, path, name, callback) {
-  if (!pathCheck(path, callback)) return;
-  getxattr_file(context, path, name, callback);
-}
-
-<<<<<<< HEAD
-  function read_file_node(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      context.getObject(fileNodeID, update_file_node);
-    }
-  }
-
-  function check_if_new_file_exists(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      newDirectoryData = result;
-      if(_(newDirectoryData).has(newname)) {
-        callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
-      } else {
-        newDirectoryData[newname] = oldDirectoryData[oldname];
-        fileNodeID = newDirectoryData[newname].id;
-        context.putObject(newDirectoryNode.data, newDirectoryData, read_file_node);
-      }
-    }
-=======
-function fgetxattr(fs, context, fd, name, callback) {
-  var ofd = fs.openFiles[fd];
-  if (!ofd) {
-    callback(new Errors.EBADF());
-  }
-  else {
-    fgetxattr_file(context, ofd, name, callback);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-}
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 Node.create = function (options, callback) {
   // We expect both options.id and options.data to be provided/generated.
   ensureID(options, 'id', function (err) {
@@ -9814,24 +6157,10 @@ Node.create = function (options, callback) {
       return;
     }
 
-<<<<<<< HEAD
-  function check_if_old_file_exists(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      oldDirectoryData = result;
-      if(!_(oldDirectoryData).has(oldname)) {
-        callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
-      } else if(oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
-        callback(new Errors.EPERM('oldpath refers to a directory'));
-      } else {
-        find_node(context, newParentPath, read_new_directory_data);
-=======
     ensureID(options, 'data', function (err) {
       if (err) {
         callback(err);
         return;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
       }
 
       callback(null, new Node(options));
@@ -9839,77 +6168,42 @@ Node.create = function (options, callback) {
   });
 };
 
-module.exports = Node;
-},{"./constants.js":16}],52:[function(require,module,exports) {
-var Constants = require('./constants.js');
+// Update the node's mode (permissions), taking file type bits into account.
+Node.setMode = function (mode, node) {
+  node.mode = getMode(node.type, mode);
+};
 
-function Stats(fileNode, devName) {
-  this.node = fileNode.id;
+module.exports = Node;
+},{"./constants.js":"iJA9"}],"6dsC":[function(require,module,exports) {
+var Constants = require('./constants.js');
+var Path = require('./path.js');
+
+function Stats(path, fileNode, devName) {
   this.dev = devName;
+  this.node = fileNode.id;
+  this.type = fileNode.type;
   this.size = fileNode.size;
   this.nlinks = fileNode.nlinks;
   this.atime = fileNode.atime;
   this.mtime = fileNode.mtime;
   this.ctime = fileNode.ctime;
-  this.type = fileNode.mode;
+  this.version = fileNode.version;
+  this.mode = fileNode.mode;
+  this.uid = fileNode.uid;
+  this.gid = fileNode.gid;
+  this.name = Path.basename(path);
 }
 
 Stats.prototype.isFile = function () {
-  return this.type === Constants.MODE_FILE;
+  return this.type === Constants.NODE_TYPE_FILE;
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  var ofd = fs.openFiles[fd];
-  if (!ofd) {
-    callback(new Errors.EBADF());
-  }
-  else if (!_(ofd.flags).contains(O_WRITE)) {
-    callback(new Errors.EBADF('descriptor does not permit writing'));
-  }
-  else {
-    fsetxattr_file(context, ofd, name, value, flag, callback);
-  }
-}
-
-function removexattr(fs, context, path, name, callback) {
-  if (!pathCheck(path, callback)) return;
-  removexattr_file(context, path, name, callback);
-}
-
-function fremovexattr(fs, context, fd, name, callback) {
-  var ofd = fs.openFiles[fd];
-  if (!ofd) {
-    callback(new Errors.EBADF());
-  }
-  else if (!_(ofd.flags).contains(O_WRITE)) {
-    callback(new Errors.EBADF('descriptor does not permit writing'));
-  }
-<<<<<<< HEAD
-
-  function check_if_node_is_directory(error, result) {
-    if(error) {
-      callback(error);
-    } else if(result.type === NODE_TYPE_DIRECTORY) {
-      callback(new Errors.EPERM('unlink not permitted on directories', name));
-    } else {
-      update_file_node(null, result);
-    }
-=======
-  else {
-    fremovexattr_file(context, ofd, name, callback);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-}
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 Stats.prototype.isDirectory = function () {
-  return this.type === Constants.MODE_DIRECTORY;
+  return this.type === Constants.NODE_TYPE_DIRECTORY;
 };
 
 Stats.prototype.isSymbolicLink = function () {
-  return this.type === Constants.MODE_SYMBOLIC_LINK;
+  return this.type === Constants.NODE_TYPE_SYMBOLIC_LINK;
 };
 
 // These will always be false in Filer.
@@ -9918,7 +6212,7 @@ Stats.prototype.isSocket = Stats.prototype.isFIFO = Stats.prototype.isCharacterD
 };
 
 module.exports = Stats;
-},{"./constants.js":16}],22:[function(require,module,exports) {
+},{"./constants.js":"iJA9","./path.js":"UzoP"}],"bsBG":[function(require,module,exports) {
 
 var _ = require('../../lib/nodash.js');
 
@@ -9929,24 +6223,15 @@ var basename = Path.basename;
 var isAbsolutePath = Path.isAbsolute;
 var isNullPath = Path.isNull;
 
-<<<<<<< HEAD
-  function read_directory_data(error, result) {
-    if(error) {
-      callback(error);
-    } else if(result.type !== NODE_TYPE_DIRECTORY) {
-      callback(new Errors.ENOTDIR(null, path));
-    } else {
-      directoryNode = result;
-      context.getObject(directoryNode.data, handle_directory_data);
-    }
-  }
-=======
 var Constants = require('../constants.js');
-var MODE_FILE = Constants.MODE_FILE;
-var MODE_DIRECTORY = Constants.MODE_DIRECTORY;
-var MODE_SYMBOLIC_LINK = Constants.MODE_SYMBOLIC_LINK;
-var MODE_META = Constants.MODE_META;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
+var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
+var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
+var NODE_TYPE_META = Constants.NODE_TYPE_META;
+
+var DEFAULT_FILE_PERMISSIONS = Constants.DEFAULT_FILE_PERMISSIONS;
+var DEFAULT_DIR_PERMISSIONS = Constants.DEFAULT_DIR_PERMISSIONS;
+var FULL_READ_WRITE_EXEC_PERMISSIONS = Constants.FULL_READ_WRITE_EXEC_PERMISSIONS;
 
 var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
 var SUPER_NODE_ID = Constants.SUPER_NODE_ID;
@@ -9965,13 +6250,6 @@ var XATTR_REPLACE = Constants.XATTR_REPLACE;
 var FS_NOMTIME = Constants.FS_NOMTIME;
 var FS_NOCTIME = Constants.FS_NOCTIME;
 
-<<<<<<< HEAD
-  if(ROOT_DIRECTORY_NAME === name) {
-    callback(new Errors.EEXIST(null, name));
-  } else {
-    find_node(context, parentPath, read_directory_data);
-  }
-=======
 var Encoding = require('../encoding.js');
 var Errors = require('../errors.js');
 var DirectoryEntry = require('../directory-entry.js');
@@ -9980,7 +6258,6 @@ var SuperNode = require('../super-node.js');
 var Node = require('../node.js');
 var Stats = require('../stats.js');
 var Buffer = require('../buffer.js');
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 /**
  * Update node times. Only passed times are modified (undefined times are ignored)
@@ -9996,32 +6273,6 @@ function update_node_times(context, path, node, times, callback) {
     delete times.mtime;
   }
 
-<<<<<<< HEAD
-  function write_file_node() {
-    Node.create({
-      guid: context.guid,
-      type: NODE_TYPE_SYMBOLIC_LINK
-    }, function(error, result) {
-      if(error) {
-        callback(error);
-        return;
-      }
-      fileNode = result;
-      fileNode.nlinks += 1;
-
-      // If the srcpath isn't absolute, resolve it relative to the dstpath
-      // but store both versions, since we'll use the relative one in readlink().
-      if(!isAbsolutePath(srcpath)) {
-        fileNode.symlink_relpath = srcpath;
-        srcpath = Path.resolve(parentPath, srcpath); 
-      }
-
-      fileNode.size = srcpath.length;
-      fileNode.data = srcpath;
-      
-      context.putObject(fileNode.id, fileNode, update_directory_data);
-    });
-=======
   // Only do the update if required (i.e., times are still present)
   var update = false;
   if (times.ctime) {
@@ -10039,7 +6290,6 @@ function update_node_times(context, path, node, times, callback) {
   if (times.mtime) {
     node.mtime = times.mtime;
     update = true;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
   function complete(error) {
@@ -10049,20 +6299,10 @@ function update_node_times(context, path, node, times, callback) {
     callback(error);
   }
 
-<<<<<<< HEAD
-  function update_directory_data(error) {
-    if(error) {
-      callback(error);
-    } else {
-      directoryData[name] = new DirectoryEntry(fileNode.id, NODE_TYPE_SYMBOLIC_LINK);
-      context.putObject(directoryNode.data, directoryData, update_time);
-    }
-=======
   if (update) {
     context.putObject(node.id, node, complete);
   } else {
     complete();
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 }
 
@@ -10071,9 +6311,9 @@ function update_node_times(context, path, node, times, callback) {
  */
 // in: file or directory path
 // out: new node representing file/directory
-function make_node(context, path, mode, callback) {
-  if (mode !== MODE_DIRECTORY && mode !== MODE_FILE) {
-    return callback(new Errors.EINVAL('mode must be a directory or file', path));
+function make_node(context, path, type, callback) {
+  if (type !== NODE_TYPE_DIRECTORY && type !== NODE_TYPE_FILE) {
+    return callback(new Errors.EINVAL('type must be a directory or file', path));
   }
 
   path = normalize(path);
@@ -10088,7 +6328,7 @@ function make_node(context, path, mode, callback) {
   function create_node_in_parent(error, parentDirectoryNode) {
     if (error) {
       callback(error);
-    } else if (parentDirectoryNode.mode !== MODE_DIRECTORY) {
+    } else if (parentDirectoryNode.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       parentNode = parentDirectoryNode;
@@ -10101,161 +6341,6 @@ function make_node(context, path, mode, callback) {
     if (!error && result) {
       callback(new Errors.EEXIST('path name already exists', path));
     } else if (error && !(error instanceof Errors.ENOENT)) {
-<<<<<<< HEAD
-      callback(error);
-    } else {
-      context.getObject(parentNode.data, create_node);
-    }
-  }
-
-<<<<<<< HEAD
-  var ofd = fs.openFiles[fd];
-  if(!ofd) {
-    callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_WRITE)) {
-    callback(new Errors.EBADF('descriptor does not permit writing'));
-  } else {
-    futimes_file(context, ofd, atime, mtime, callback);
-=======
-  // Create the new node
-  function create_node(error, result) {
-    if (error) {
-      callback(error);
-    } else {
-      parentNodeData = result;
-      Node.create({ guid: context.guid, mode: mode }, function (error, result) {
-        if (error) {
-          callback(error);
-          return;
-        }
-        node = result;
-        node.nlinks += 1;
-        context.putObject(node.id, node, update_parent_node_data);
-      });
-    }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-
-<<<<<<< HEAD
-  function check_if_symbolic(error, fileNode) {
-    if(error) {
-      callback(error);
-    } else {
-      if(fileNode.type !== NODE_TYPE_SYMBOLIC_LINK) {
-        callback(new Errors.EINVAL('path not a symbolic link', path));
-      } else {
-        // If we were originally given a relative path, return that now vs. the
-        // absolute path we've generated and use elsewhere internally.
-        var target = fileNode.symlink_relpath ? fileNode.symlink_relpath : fileNode.data;
-        callback(null, target);
-      }
-=======
-  // Update parent node time
-  function update_time(error) {
-    if (error) {
-      callback(error);
-    } else {
-      var now = Date.now();
-      update_node_times(context, parentPath, node, { mtime: now, ctime: now }, callback);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-    }
-  }
-
-<<<<<<< HEAD
-  oldpath = normalize(oldpath);
-  newpath = normalize(newpath);
-
-<<<<<<< HEAD
-  function read_file_data (error, node) {
-    if (error) {
-      callback(error);
-    } else if(node.type === NODE_TYPE_DIRECTORY ) {
-      callback(new Errors.EISDIR(null, path));
-    } else{
-      fileNode = node;
-      context.getBuffer(fileNode.data, truncate_file_data);
-    }
-  }
-=======
-  var oldParentPath = Path.dirname(oldpath);
-  var newParentPath = Path.dirname(oldpath);
-  var oldName = Path.basename(oldpath);
-  var newName = Path.basename(newpath);
-  var oldParentDirectory, oldParentData;
-  var newParentDirectory, newParentData;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-
-  function update_times(error, newNode) {
-    if(error) {
-      callback(error);
-    } else {
-      update_node_times(context, newpath,  newNode, { ctime: Date.now() }, callback);
-    }
-  }
-
-  function read_new_directory(error) {
-    if(error) {
-      callback(error);
-    } else {
-      context.getObject(newParentData[newName].id, update_times);
-    }
-  }
-
-  function update_old_parent_directory_data(error) {
-    if(error) {
-      callback(error);
-    } else {
-      if(oldParentDirectory.id === newParentDirectory.id) {
-        oldParentData = newParentData;
-      }
-      delete oldParentData[oldName];
-      context.putObject(oldParentDirectory.data, oldParentData, read_new_directory);
-    }
-  }
-
-  function update_new_parent_directory_data(error) {
-    if(error) {
-      callback(error);
-<<<<<<< HEAD
-    } else if(node.type === NODE_TYPE_DIRECTORY ) {
-      callback(new Errors.EISDIR());
-    } else{
-      fileNode = node;
-      context.getBuffer(fileNode.data, truncate_file_data);
-=======
-    } else {
-      newParentData[newName] = oldParentData[oldName];
-      context.putObject(newParentDirectory.data, newParentData, update_old_parent_directory_data);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-    }
-  }
-
-  function check_if_new_directory_exists(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      newParentData = result;
-      if(_(newParentData).has(newName)) {
-        remove_directory(context, newpath, update_new_parent_directory_data);
-      } else {
-        update_new_parent_directory_data();
-      }
-    }
-  }
-
-  function read_new_parent_directory_data(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      newParentDirectory = result;
-      context.getObject(newParentDirectory.data, check_if_new_directory_exists);
-    }
-  }
-
-  function get_new_parent_directory(error, result) {
-    if(error) {
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       callback(error);
     } else {
       context.getObject(parentNode.data, create_node);
@@ -10268,7 +6353,10 @@ function make_node(context, path, mode, callback) {
       callback(error);
     } else {
       parentNodeData = result;
-      Node.create({ guid: context.guid, mode: mode }, function (error, result) {
+      Node.create({
+        guid: context.guid,
+        type: type
+      }, function (error, result) {
         if (error) {
           callback(error);
           return;
@@ -10280,110 +6368,22 @@ function make_node(context, path, mode, callback) {
     }
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  if (typeof atime !== 'number' || typeof mtime !== 'number') {
-    callback(new Errors.EINVAL('atime and mtime must be number', path));
-  }
-  else if (atime < 0 || mtime < 0) {
-    callback(new Errors.EINVAL('atime and mtime must be positive integers', path));
-  }
-  else {
-    find_node(context, path, update_times);
-=======
-  function unlink_old_file(error) {
-    if(error) {
-=======
   // Update parent node time
   function update_time(error) {
     if (error) {
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       callback(error);
     } else {
       var now = Date.now();
       update_node_times(context, parentPath, node, { mtime: now, ctime: now }, callback);
     }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
-  function check_node_type(error, node) {
-    if(error) {
-=======
-  // Update the parent nodes data
-  function update_parent_node_data(error) {
-    if (error) {
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-      callback(error);
-    } else if(node.mode === 'DIRECTORY') {
-      find_node(context, oldParentPath, read_parent_directory_data);
-    } else {
-<<<<<<< HEAD
-      link_node(context, oldpath, newpath, unlink_old_file);
-    }
-  }
-
-<<<<<<< HEAD
-  if (typeof atime !== 'number' || typeof mtime !== 'number') {
-    callback(new Errors.EINVAL('atime and mtime must be a number'));
-  }
-  else if (atime < 0 || mtime < 0) {
-    callback(new Errors.EINVAL('atime and mtime must be positive integers'));
-  }
-  else {
-    ofd.getNode(context, update_times);
-  }
-}
-
-<<<<<<< HEAD
-function setxattr_file(context, path, name, value, flag, callback) {
-  path = normalize(path);
-
-  function setxattr(error, node) {
-    if(error) {
-      return callback(error);
-    }
-    set_extended_attribute(context, path, node, name, value, flag, callback);
-  }
-
-  if (typeof name !== 'string') {
-    callback(new Errors.EINVAL('attribute name must be a string', path));
-  }
-  else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
-  }
-  else if (flag !== null &&
-           flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
-    callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE', path));
-  }
-  else {
-    find_node(context, path, setxattr);
-  }
-=======
-  find_node(context, oldpath, check_node_type);
-}
-
-function symlink(fs, context, srcpath, dstpath, type, callback) {
-  // NOTE: we support passing the `type` arg, but ignore it.
-  callback = arguments[arguments.length - 1];
-  if(!pathCheck(srcpath, callback)) return;
-  if(!pathCheck(dstpath, callback)) return;
-  make_symbolic_link(context, srcpath, dstpath, callback);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-}
-
-function readlink(fs, context, path, callback) {
-  if(!pathCheck(path, callback)) return;
-  read_link(context, path, callback);
-}
-=======
-=======
   // Update the parent nodes data
   function update_parent_node_data(error) {
     if (error) {
       callback(error);
     } else {
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
-      parentNodeData[name] = new DirectoryEntry(node.id, mode);
+      parentNodeData[name] = new DirectoryEntry(node.id, type);
       context.putObject(parentNode.data, parentNodeData, update_time);
     }
   }
@@ -10409,7 +6409,7 @@ function find_node(context, path, callback) {
   function read_root_directory_node(error, superNode) {
     if (error) {
       callback(error);
-    } else if (!superNode || superNode.mode !== MODE_META || !superNode.rnode) {
+    } else if (!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
       callback(new Errors.EFILESYSTEMERROR());
     } else {
       context.getObject(superNode.rnode, check_root_directory_node);
@@ -10431,23 +6431,13 @@ function find_node(context, path, callback) {
   function read_parent_directory_data(error, parentDirectoryNode) {
     if (error) {
       callback(error);
-    } else if (parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
+    } else if (parentDirectoryNode.type !== NODE_TYPE_DIRECTORY || !parentDirectoryNode.data) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       context.getObject(parentDirectoryNode.data, get_node_from_parent_directory_data);
     }
   }
 
-<<<<<<< HEAD
-  if (typeof name !== 'string') {
-    callback(new Errors.EINVAL('attribute name must be a string', path));
-  }
-  else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
-  }
-  else {
-    find_node(context, path, get_xattr);
-=======
   // in: parent directory data
   // out: searched node
   function get_node_from_parent_directory_data(error, parentDirectoryData) {
@@ -10461,14 +6451,13 @@ function find_node(context, path, callback) {
         context.getObject(nodeId, is_symbolic_link);
       }
     }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
   }
 
   function is_symbolic_link(error, node) {
     if (error) {
       callback(error);
     } else {
-      if (node.mode == MODE_SYMBOLIC_LINK) {
+      if (node.type === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
         if (followedCount > SYMLOOP_MAX) {
           callback(new Errors.ELOOP(null, path));
@@ -10485,92 +6474,16 @@ function find_node(context, path, callback) {
     data = normalize(data);
     parentPath = dirname(data);
     name = basename(data);
-    if (ROOT_DIRECTORY_NAME == name) {
+    if (ROOT_DIRECTORY_NAME === name) {
       context.getObject(SUPER_NODE_ID, read_root_directory_node);
     } else {
       find_node(context, parentPath, read_parent_directory_data);
     }
   }
 
-<<<<<<< HEAD
-  if (typeof name !== 'string') {
-    callback(new Errors.EINVAL());
-  }
-  else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string'));
-  }
-  else {
-    ofd.getNode(context, get_xattr);
-=======
-  if (ROOT_DIRECTORY_NAME == name) {
+  if (ROOT_DIRECTORY_NAME === name) {
     context.getObject(SUPER_NODE_ID, read_root_directory_node);
   } else {
-<<<<<<< HEAD
-<<<<<<< HEAD
-    ftruncate_file(context, ofd, length, callback);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-}
-
-module.exports = {
-  ensureRootDirectory: ensure_root_directory,
-  open: open,
-  close: close,
-  mknod: mknod,
-  mkdir: mkdir,
-  rmdir: rmdir,
-  unlink: unlink,
-  stat: stat,
-  fstat: fstat,
-  link: link,
-  read: read,
-  readFile: readFile,
-  write: write,
-  writeFile: writeFile,
-  appendFile: appendFile,
-  exists: exists,
-  getxattr: getxattr,
-  fgetxattr: fgetxattr,
-  setxattr: setxattr,
-  fsetxattr: fsetxattr,
-  removexattr: removexattr,
-  fremovexattr: fremovexattr,
-  lseek: lseek,
-  readdir: readdir,
-  utimes: utimes,
-  futimes: futimes,
-  rename: rename,
-  symlink: symlink,
-  readlink: readlink,
-  lstat: lstat,
-  truncate: truncate,
-  ftruncate: ftruncate
-};
-
-},{"../../lib/nodash.js":4,"../buffer.js":14,"../constants.js":15,"../directory-entry.js":16,"../encoding.js":17,"../errors.js":18,"../node.js":23,"../open-file-description.js":24,"../path.js":25,"../stats.js":33,"../super-node.js":34}],20:[function(require,module,exports){
-var _ = require('../../lib/nodash.js');
-
-var isNullPath = require('../path.js').isNull;
-var nop = require('../shared.js').nop;
-
-var Constants = require('../constants.js');
-var FILE_SYSTEM_NAME = Constants.FILE_SYSTEM_NAME;
-var FS_FORMAT = Constants.FS_FORMAT;
-var FS_READY = Constants.FS_READY;
-var FS_PENDING = Constants.FS_PENDING;
-var FS_ERROR = Constants.FS_ERROR;
-var FS_NODUPEIDCHECK = Constants.FS_NODUPEIDCHECK;
-
-var providers = require('../providers/index.js');
-
-var Shell = require('../shell/shell.js');
-var Intercom = require('../../lib/intercom.js');
-var FSWatcher = require('../fs-watcher.js');
-var Errors = require('../errors.js');
-var defaultGuidFn = require('../shared.js').guid;
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     find_node(context, parentPath, read_parent_directory_data);
   }
 }
@@ -10587,70 +6500,6 @@ function set_extended_attribute(context, path, node, name, value, flag, callback
     }
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  if (typeof name !== 'string') {
-    callback(new Errors.EINVAL('attribute name must be a string'));
-  }
-  else if (!name) {
-    callback(new Errors.EINVAL('attribute name cannot be an empty string'));
-  }
-  else {
-    ofd.getNode(context, remove_xattr);
-  }
-}
-
-function validate_flags(flags) {
-  if(!_(O_FLAGS).has(flags)) {
-    return null;
-  }
-  return O_FLAGS[flags];
-}
-
-function validate_file_options(options, enc, fileMode){
-  if(!options) {
-    options = { encoding: enc, flag: fileMode };
-  } else if(typeof options === "function") {
-    options = { encoding: enc, flag: fileMode };
-  } else if(typeof options === "string") {
-    options = { encoding: options, flag: fileMode };
-=======
-  if (typeof path_or_fd == 'string') {
-    path = path_or_fd;
-    find_node(context, path_or_fd, set_xattr);
-  } else if ((typeof path_or_fd === 'undefined' ? 'undefined' : _typeof(path_or_fd)) == 'object' && typeof path_or_fd.id == 'string') {
-    path = path_or_fd.path;
-    context.getObject(path_or_fd.id, set_xattr);
-  } else {
-    callback(new Errors.EINVAL('path or file descriptor of wrong type', path_or_fd));
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  }
-}
-
-<<<<<<< HEAD
-function pathCheck(path, allowRelative, callback) {
-  var err;
-
-  if(typeof allowRelative === 'function') {
-    callback = allowRelative;
-    allowRelative = false;
-  }
-
-  if(!path) {
-    err = new Errors.EINVAL('Path must be a string', path);
-  } else if(isNullPath(path)) {
-    err = new Errors.EINVAL('Path must be a string without null bytes.', path);
-  } else if(!allowRelative && !isAbsolutePath(path)) {
-    err = new Errors.EINVAL('Path must be absolute.', path);
-  }
-
-=======
-// Default callback that logs an error if passed in
-function defaultCallback(err) {
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-  if(err) {
-    console.error('Filer error: ', err);
-=======
   var xattrs = node.xattrs;
 
   if (flag === XATTR_CREATE && xattrs.hasOwnProperty(name)) {
@@ -10660,7 +6509,6 @@ function defaultCallback(err) {
   } else {
     xattrs[name] = value;
     context.putObject(node.id, node, update_time);
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   }
 }
 
@@ -10676,27 +6524,6 @@ function ensure_root_directory(context, callback) {
   var directoryNode;
   var directoryData;
 
-<<<<<<< HEAD
-function open(fs, context, path, flags, mode, callback) {
-  /**
-   * NOTE: we support the same signature as node with a `mode` arg,
-   * but ignore it. We need to add it.  Here is what node.js does:
-   * function open(path, flags, mode, callback) {
-   *    path = getPathFromURL(path);
-   *  validatePath(path);
-   *  const flagsNumber = stringToFlags(flags);
-   *  if (arguments.length < 4) {
-   *    callback = makeCallback(mode);
-   *    mode = 0o666;
-   *  } else {
-   *    mode = validateAndMaskMode(mode, 'mode', 0o666);
-   *    callback = makeCallback(callback);
-   * }
-  */
-
-  callback = arguments[arguments.length - 1];
-  if(!pathCheck(path, callback)) return;
-=======
   function ensure_super_node(error, existingNode) {
     if (!error && existingNode) {
       // Another instance has beat us and already created the super node.
@@ -10714,13 +6541,16 @@ function open(fs, context, path, flags, mode, callback) {
       });
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function write_directory_node(error) {
     if (error) {
       callback(error);
     } else {
-      Node.create({ guid: context.guid, id: superNode.rnode, mode: MODE_DIRECTORY }, function (error, result) {
+      Node.create({
+        guid: context.guid,
+        id: superNode.rnode,
+        type: NODE_TYPE_DIRECTORY
+      }, function (error, result) {
         if (error) {
           callback(error);
           return;
@@ -10741,49 +6571,7 @@ function open(fs, context, path, flags, mode, callback) {
     }
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-function mknod(fs, context, path, type, callback) {
-  if(!pathCheck(path, callback)) return;
-  make_node(context, path, type, callback);
-}
-
-function mkdir(fs, context, path, mode, callback) {
-  if (arguments.length < 5) {
-    callback = mode;
-    mode = FULL_READ_WRITE_EXEC_PERMISSIONS;
-  } else {
-    mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
-    if(!mode) return;
-  }
- 
-  if(!pathCheck(path, callback)) return;
-  make_directory(context, path, callback);
-=======
-<<<<<<< HEAD
-  // Expose Shell constructor
-  this.Shell = Shell.bind(undefined, this);
-
-  // Safely expose the list of open files and file
-  // descriptor management functions
-  var openFiles = {};
-  var nextDescriptor = FIRST_DESCRIPTOR;
-  Object.defineProperty(this, "openFiles", {
-    get: function() { return openFiles; }
-  });
-  this.allocDescriptor = function(openFileDescription) {
-    var fd = nextDescriptor ++;
-    openFiles[fd] = openFileDescription;
-    return fd;
-  };
-  this.releaseDescriptor = function(fd) {
-    delete openFiles[fd];
-  };
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   context.getObject(SUPER_NODE_ID, ensure_super_node);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 }
 
 /**
@@ -10805,12 +6593,7 @@ function make_directory(context, path, callback) {
     } else if (error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
-<<<<<<< HEAD
-      var stats = new Stats(path, result, fs.name);
-      callback(null, stats);
-=======
       find_node(context, parentPath, read_parent_directory_data);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
   }
 
@@ -10818,13 +6601,8 @@ function make_directory(context, path, callback) {
     if (error) {
       callback(error);
     } else {
-<<<<<<< HEAD
-      var stats = new Stats(ofd.path, result, fs.name);
-      callback(null, stats);
-=======
       parentDirectoryNode = result;
       context.getObject(parentDirectoryNode.data, write_directory_node);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
   }
 
@@ -10833,7 +6611,10 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryData = result;
-      Node.create({ guid: context.guid, mode: MODE_DIRECTORY }, function (error, result) {
+      Node.create({
+        guid: context.guid,
+        type: NODE_TYPE_DIRECTORY
+      }, function (error, result) {
         if (error) {
           callback(error);
           return;
@@ -10867,7 +6648,7 @@ function make_directory(context, path, callback) {
     if (error) {
       callback(error);
     } else {
-      parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, MODE_DIRECTORY);
+      parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, NODE_TYPE_DIRECTORY);
       context.putObject(parentDirectoryNode.data, parentDirectoryData, update_time);
     }
   }
@@ -10900,7 +6681,7 @@ function remove_directory(context, path, callback) {
   function check_if_node_exists(error, result) {
     if (error) {
       callback(error);
-    } else if (ROOT_DIRECTORY_NAME == name) {
+    } else if (ROOT_DIRECTORY_NAME === name) {
       callback(new Errors.EBUSY(null, path));
     } else if (!_(result).has(name)) {
       callback(new Errors.ENOENT(null, path));
@@ -10914,7 +6695,7 @@ function remove_directory(context, path, callback) {
   function check_if_node_is_directory(error, result) {
     if (error) {
       callback(error);
-    } else if (result.mode != MODE_DIRECTORY) {
+    } else if (result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
@@ -10922,19 +6703,6 @@ function remove_directory(context, path, callback) {
     }
   }
 
-<<<<<<< HEAD
-    fstat_file(context, ofd, function(err, fstatResult) {
-      if(err) {
-        cleanup();
-        return callback(err);
-      }
-
-      var stats = new Stats(ofd.path, fstatResult, fs.name);
-
-      if(stats.isDirectory()) {
-        cleanup();
-        return callback(new Errors.EISDIR('illegal operation on directory', path));
-=======
   function check_if_directory_is_empty(error, result) {
     if (error) {
       callback(error);
@@ -10944,7 +6712,6 @@ function remove_directory(context, path, callback) {
         callback(new Errors.ENOTEMPTY(null, path));
       } else {
         remove_directory_entry_from_parent_directory_node();
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
       }
     }
   }
@@ -10995,7 +6762,7 @@ function open_file(context, path, flags, callback) {
 
   var followedCount = 0;
 
-  if (ROOT_DIRECTORY_NAME == name) {
+  if (ROOT_DIRECTORY_NAME === name) {
     if (_(flags).contains(O_WRITE)) {
       callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
     } else {
@@ -11008,7 +6775,7 @@ function open_file(context, path, flags, callback) {
   function read_directory_data(error, result) {
     if (error) {
       callback(error);
-    } else if (result.mode !== MODE_DIRECTORY) {
+    } else if (result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOENT(null, path));
     } else {
       directoryNode = result;
@@ -11026,7 +6793,7 @@ function open_file(context, path, flags, callback) {
           callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
-          if (directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
+          if (directoryEntry.type === NODE_TYPE_DIRECTORY && _(flags).contains(O_WRITE)) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
@@ -11041,138 +6808,13 @@ function open_file(context, path, flags, callback) {
       }
     }
   }
-<<<<<<< HEAD
-  stat(fs, context, path, cb);
-}
-
-// Based on https://github.com/nodejs/node/blob/c700cc42da9cf73af9fec2098520a6c0a631d901/lib/internal/validators.js#L21
-var octalReg = /^[0-7]+$/;
-var modeDesc = 'must be a 32-bit unsigned integer or an octal string';
-function isUint32(value) {
-  return value === (value >>> 0);
-}
-// Validator for mode_t (the S_* constants). Valid numbers or octal strings
-// will be masked with 0o777 to be consistent with the behavior in POSIX APIs.
-function validateAndMaskMode(value, def, callback) {
-  if(typeof def === 'function') {
-    callback = def;
-    def = undefined;
-  }
-
-  if (isUint32(value)) {
-    return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
-  }
-
-  if (typeof value === 'number') {
-    if (!Number.isInteger(value)) {
-      callback(new Errors.EINVAL('mode not a valid an integer value', value));
-      return false;
-    } else {
-      // 2 ** 32 === 4294967296
-      callback(new Errors.EINVAL('mode not a valid an integer value', value));
-      return false;
-    }
-  }
-
-  if (typeof value === 'string') {
-    if (!octalReg.test(value)) {
-      callback(new Errors.EINVAL('mode not a valid octal string', value));
-      return false;
-    }
-    var parsed = parseInt(value, 8);
-    return parsed & FULL_READ_WRITE_EXEC_PERMISSIONS;
-  }
-
-  // TODO(BridgeAR): Only return `def` in case `value === null`
-  if (def !== undefined) {
-    return def;
-  }
-
-  callback(new Errors.EINVAL('mode not valid', value));
-  return false;
-}
-
-function chmod_file(context, path, mode, callback) {
-  path = normalize(path);
-
-  function update_mode(error, node) {
-    if (error) {
-      callback(error);
-    } else {
-      Node.setMode(mode, node);
-      update_node_times(context, path, node, { mtime: Date.now() }, callback);
-    }
-  }
-
-  if (typeof mode !== 'number') {
-    callback(new Errors.EINVAL('mode must be number', path));
-  }
-  else {
-    find_node(context, path, update_mode);
-  }
-}
-
-function fchmod_file(context, ofd, mode, callback) {
-  function update_mode(error, node) {
-    if (error) {
-      callback(error);
-    } else {
-      node.mode = mode;
-      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
-    }
-  }
-
-  if (typeof mode !== 'number') {
-    callback(new Errors.EINVAL('mode must be a number'));
-  }
-  else {
-    ofd.getNode(context, update_mode);
-  }
-}
-
-function chown_file(context, path, uid, gid, callback) {
-  path = normalize(path);
-
-  function update_owner(error, node) {
-    if (error) {
-      callback(error);
-    } else {
-      node.uid = uid;
-      node.gid = gid;
-      update_node_times(context, path, node, { mtime: Date.now() }, callback);
-    }
-  }
-
-  find_node(context, path, update_owner);
-}
-
-function fchown_file(context, ofd, uid, gid, callback) {
-  function update_owner(error, node) {
-    if (error) {
-      callback(error);
-    } else {
-      node.uid = uid;
-      node.gid = gid;
-      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
-    }
-  }
-
-  ofd.getNode(context, update_owner);
-}
-
-function getxattr(fs, context, path, name, callback) {
-  if (!pathCheck(path, callback)) return;
-  getxattr_file(context, path, name, callback);
-}
-=======
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function check_if_symbolic_link(error, result) {
     if (error) {
       callback(error);
     } else {
       var node = result;
-      if (node.mode == MODE_SYMBOLIC_LINK) {
+      if (node.type === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
         if (followedCount > SYMLOOP_MAX) {
           callback(new Errors.ELOOP(null, path));
@@ -11189,7 +6831,7 @@ function getxattr(fs, context, path, name, callback) {
     data = normalize(data);
     parentPath = dirname(data);
     name = basename(data);
-    if (ROOT_DIRECTORY_NAME == name) {
+    if (ROOT_DIRECTORY_NAME === name) {
       if (_(flags).contains(O_WRITE)) {
         callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
       } else {
@@ -11209,7 +6851,10 @@ function getxattr(fs, context, path, name, callback) {
   }
 
   function write_file_node() {
-    Node.create({ guid: context.guid, mode: MODE_FILE }, function (error, result) {
+    Node.create({
+      guid: context.guid,
+      type: NODE_TYPE_FILE
+    }, function (error, result) {
       if (error) {
         callback(error);
         return;
@@ -11243,95 +6888,16 @@ function getxattr(fs, context, path, name, callback) {
     if (error) {
       callback(error);
     } else {
-      directoryData[name] = new DirectoryEntry(fileNode.id, MODE_FILE);
+      directoryData[name] = new DirectoryEntry(fileNode.id, NODE_TYPE_FILE);
       context.putObject(directoryNode.data, directoryData, update_time);
     }
   }
-<<<<<<< HEAD
-}
-
-function chmod(fs, context, path, mode, callback) {
-  if(!pathCheck(path, callback)) return;
-  mode = validateAndMaskMode(mode, 'mode');
-  if(!mode) return;
-
-  chmod_file(context, path, mode, callback);
-}
-
-function fchmod(fs, context, fd, mode, callback) {
-  mode = validateAndMaskMode(mode, 'mode');
-  if(!mode) return;
-
-  var ofd = fs.openFiles[fd];
-  if(!ofd) {
-    callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_WRITE)) {
-    callback(new Errors.EBADF('descriptor does not permit writing'));
-  } else {
-    fchmod_file(context, ofd, mode, callback);
-  }
-}
-
-function chown(fs, context, path, uid, gid, callback) {
-  if(!pathCheck(path, callback)) return;
-  if(!isUint32(uid)) {
-    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
-  }
-  if(!isUint32(gid)) {
-    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
-  }
-
-  chown_file(context, path, uid, gid, callback);
-}
-
-function fchown(fs, context, fd, uid, gid, callback) {
-  if(!isUint32(uid)) {
-    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
-  }
-  if(!isUint32(gid)) {
-    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
-  }
-
-  var ofd = fs.openFiles[fd];
-  if(!ofd) {
-    callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_WRITE)) {
-    callback(new Errors.EBADF('descriptor does not permit writing'));
-  } else {
-    fchown_file(context, ofd, uid, gid, callback);
-  }
-}
-
-function rename(fs, context, oldpath, newpath, callback) {
-  if(!pathCheck(oldpath, callback)) return;
-  if(!pathCheck(newpath, callback)) return;
-
-  oldpath = normalize(oldpath);
-  newpath = normalize(newpath);
-
-  var oldParentPath = Path.dirname(oldpath);
-  var newParentPath = Path.dirname(oldpath);
-  var oldName = Path.basename(oldpath);
-  var newName = Path.basename(newpath);
-  var oldParentDirectory, oldParentData;
-  var newParentDirectory, newParentData;
-  var ctime = Date.now();
-  var fileNode;
-
-  function update_times(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      fileNode = result;
-      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
-=======
 
   function handle_update_result(error) {
     if (error) {
       callback(error);
     } else {
       callback(null, fileNode);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
   }
 }
@@ -11443,35 +7009,13 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
   function read_file_data(error, result) {
     if (error) {
       callback(error);
-<<<<<<< HEAD
-    } else if(node.type === NODE_TYPE_DIRECTORY) {
-      find_node(context, oldParentPath, read_parent_directory_data);
-=======
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     } else {
       fileNode = result;
       context.getBuffer(fileNode.data, update_file_data);
     }
   }
 
-<<<<<<< HEAD
-  find_node(context, oldpath, check_node_type);
-}
-
-function symlink(fs, context, srcpath, dstpath, type, callback) {
-  // NOTE: we support passing the `type` arg, but ignore it.
-  callback = arguments[arguments.length - 1];
-
-  // Special Case: allow srcpath to be relative, which we normally don't permit.
-  // If the srcpath is relative, we assume it's relative to the dirpath of 
-  // dstpath.
-  if(!pathCheck(srcpath, true, callback)) return;
-  if(!pathCheck(dstpath, callback)) return;
-
-  make_symbolic_link(context, srcpath, dstpath, callback);
-=======
   context.getObject(ofd.id, read_file_data);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 }
 
 function read_data(context, ofd, buffer, offset, length, position, callback) {
@@ -11499,68 +7043,22 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
   function read_file_data(error, result) {
     if (error) {
       callback(error);
-    } else if (result.mode === 'DIRECTORY') {
+    } else if (result.type === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EISDIR('the named file is a directory', ofd.path));
     } else {
-<<<<<<< HEAD
-      var stats = new Stats(path, result, fs.name);
-      callback(null, stats);
-=======
       fileNode = result;
       context.getBuffer(fileNode.data, handle_file_data);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
     }
   }
 
   context.getObject(ofd.id, read_file_data);
 }
 
-<<<<<<< HEAD
-module.exports = {
-  ensureRootDirectory: ensure_root_directory,
-  open: open,
-  chmod: chmod,
-  fchmod: fchmod,
-  chown: chown,
-  fchown: fchown,
-  close: close,
-  mknod: mknod,
-  mkdir: mkdir,
-  rmdir: rmdir,
-  unlink: unlink,
-  stat: stat,
-  fstat: fstat,
-  link: link,
-  read: read,
-  readFile: readFile,
-  write: write,
-  writeFile: writeFile,
-  appendFile: appendFile,
-  exists: exists,
-  getxattr: getxattr,
-  fgetxattr: fgetxattr,
-  setxattr: setxattr,
-  fsetxattr: fsetxattr,
-  removexattr: removexattr,
-  fremovexattr: fremovexattr,
-  lseek: lseek,
-  readdir: readdir,
-  utimes: utimes,
-  futimes: futimes,
-  rename: rename,
-  symlink: symlink,
-  readlink: readlink,
-  lstat: lstat,
-  truncate: truncate,
-  ftruncate: ftruncate
-};
-=======
 function stat_file(context, path, callback) {
   path = normalize(path);
   var name = basename(path);
   find_node(context, path, callback);
 }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
 function fstat_file(context, ofd, callback) {
   ofd.getNode(context, callback);
@@ -11574,7 +7072,7 @@ function lstat_file(context, path, callback) {
   var directoryNode;
   var directoryData;
 
-  if (ROOT_DIRECTORY_NAME == name) {
+  if (ROOT_DIRECTORY_NAME === name) {
     find_node(context, path, callback);
   } else {
     find_node(context, parentPath, read_directory_data);
@@ -11603,82 +7101,28 @@ function lstat_file(context, path, callback) {
   }
 }
 
-<<<<<<< HEAD
-/**
- * FileSystem
- *
- * A FileSystem takes an `options` object, which can specify a number of,
- * options.  All options are optional, and include:
- *
- * name: the name of the file system, defaults to "local"
- *
- * flags: one or more flags to use when creating/opening the file system.
- *        For example: "FORMAT" will cause the file system to be formatted.
- *        No explicit flags are set by default.
- *
- * provider: an explicit storage provider to use for the file
- *           system's database context provider.  A number of context
- *           providers are included (see /src/providers), and users
- *           can write one of their own and pass it in to be used.
- *           By default an IndexedDB provider is used.
- *
- * guid: a function for generating unique IDs for nodes in the filesystem.
- *       Use this to override the built-in UUID generation. (Used mainly for tests).
- *
- * callback: a callback function to be executed when the file system becomes
- *           ready for use. Depending on the context provider used, this might
- *           be right away, or could take some time. The callback should expect
- *           an `error` argument, which will be null if everything worked.  Also
- *           users should check the file system's `readyState` and `error`
- *           properties to make sure it is usable.
- */
-function FileSystem(options, callback) {
-  options = options || {};
-  callback = callback || defaultCallback;
-
-  var flags = options.flags;
-  var guid = options.guid ? options.guid : defaultGuidFn;
-  var provider = options.provider || new providers.Default(options.name || FILE_SYSTEM_NAME);
-  // If we're given a provider, match its name unless we get an explicit name
-  var name = options.name || provider.name;
-  var forceFormatting = _(flags).contains(FS_FORMAT);
-
-  var fs = this;
-  fs.readyState = FS_PENDING;
-  fs.name = name;
-  fs.error = null;
-
-  fs.stdin = STDIN;
-  fs.stdout = STDOUT;
-  fs.stderr = STDERR;
-
-  // Expose Node's fs.constants to users
-  fs.constants = Constants.fsConstants;
-
-  // Expose Shell constructor
-  this.Shell = Shell.bind(undefined, this);
-=======
 function link_node(context, oldpath, newpath, callback) {
   oldpath = normalize(oldpath);
   var oldname = basename(oldpath);
   var oldParentPath = dirname(oldpath);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   newpath = normalize(newpath);
   var newname = basename(newpath);
   var newParentPath = dirname(newpath);
+  var ctime = Date.now();
 
   var oldDirectoryNode;
   var oldDirectoryData;
   var newDirectoryNode;
   var newDirectoryData;
+  var fileNodeID;
   var fileNode;
 
   function update_time(error) {
     if (error) {
       callback(error);
     } else {
-      update_node_times(context, newpath, fileNode, { ctime: Date.now() }, callback);
+      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
     }
   }
 
@@ -11692,11 +7136,11 @@ function link_node(context, oldpath, newpath, callback) {
     }
   }
 
-  function read_directory_entry(error, result) {
+  function read_file_node(error, result) {
     if (error) {
       callback(error);
     } else {
-      context.getObject(newDirectoryData[newname].id, update_file_node);
+      context.getObject(fileNodeID, update_file_node);
     }
   }
 
@@ -11709,7 +7153,8 @@ function link_node(context, oldpath, newpath, callback) {
         callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
-        context.putObject(newDirectoryNode.data, newDirectoryData, read_directory_entry);
+        fileNodeID = newDirectoryData[newname].id;
+        context.putObject(newDirectoryNode.data, newDirectoryData, read_file_node);
       }
     }
   }
@@ -11730,7 +7175,7 @@ function link_node(context, oldpath, newpath, callback) {
       oldDirectoryData = result;
       if (!_(oldDirectoryData).has(oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
-      } else if (oldDirectoryData[oldname].type === 'DIRECTORY') {
+      } else if (oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
         callback(new Errors.EPERM('oldpath refers to a directory'));
       } else {
         find_node(context, newParentPath, read_new_directory_data);
@@ -11738,52 +7183,6 @@ function link_node(context, oldpath, newpath, callback) {
     }
   }
 
-<<<<<<< HEAD
-/**
- * Public API for FileSystem
- */
-[
-  'open',
-  'chmod',
-  'fchmod',
-  'chown',
-  'fchown',
-  'close',
-  'mknod',
-  'mkdir',
-  'rmdir',
-  'stat',
-  'fstat',
-  'link',
-  'unlink',
-  'read',
-  'readFile',
-  'write',
-  'writeFile',
-  'appendFile',
-  'exists',
-  'lseek',
-  'readdir',
-  'rename',
-  'readlink',
-  'symlink',
-  'lstat',
-  'truncate',
-  'ftruncate',
-  'utimes',
-  'futimes',
-  'setxattr',
-  'getxattr',
-  'fsetxattr',
-  'fgetxattr',
-  'removexattr',
-  'fremovexattr'
-].forEach(function(methodName) {
-  FileSystem.prototype[methodName] = function() {
-    var fs = this;
-    var args = Array.prototype.slice.call(arguments, 0);
-    var lastArgIndex = args.length - 1;
-=======
   function read_old_directory_data(error, result) {
     if (error) {
       callback(error);
@@ -11792,7 +7191,6 @@ function link_node(context, oldpath, newpath, callback) {
       context.getObject(oldDirectoryNode.data, check_if_old_file_exists);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   find_node(context, oldParentPath, read_old_directory_data);
 }
@@ -11845,7 +7243,7 @@ function unlink_node(context, path, callback) {
   function check_if_node_is_directory(error, result) {
     if (error) {
       callback(error);
-    } else if (result.mode === 'DIRECTORY') {
+    } else if (result.type === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EPERM('unlink not permitted on directories', name));
     } else {
       update_file_node(null, result);
@@ -11884,51 +7282,6 @@ function read_directory(context, path, callback) {
   var directoryNode;
   var directoryData;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-},{"./buffer.js":14,"./errors.js":18,"./filesystem/interface.js":20,"./path.js":25,"./shell/shell.js":32}],23:[function(require,module,exports){
-var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
-var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
-var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
-var NODE_TYPE_META = require('./constants.js').NODE_TYPE_META;
-
-var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
-
-var S_IFREG = require('./constants.js').S_IFREG;
-var S_IFDIR = require('./constants.js').S_IFDIR;
-var S_IFLNK = require('./constants.js').S_IFLNK;
-
-var DEFAULT_FILE_PERMISSIONS = require('./constants.js').DEFAULT_FILE_PERMISSIONS;
-var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
-
-function getMode(type, mode) {
-  switch(type) {
-    case NODE_TYPE_DIRECTORY:
-      return (mode || DEFAULT_DIR_PERMISSIONS) | S_IFDIR;
-    case NODE_TYPE_SYMBOLIC_LINK:
-      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFLNK;
-    /* jshint -W086 */
-    case NODE_TYPE_FILE:
-      // falls through
-    default:
-      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFREG;
-  }
-}
-=======
-<<<<<<< HEAD
-},{"../../lib/async.js":1,"../constants.js":15}],29:[function(require,module,exports){
-(function (global){
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
-var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
-var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
-var WSQL_DESC = require('../constants.js').WSQL_DESC;
-var Errors = require('../errors.js');
-var FilerBuffer = require('../buffer.js');
-var base64ArrayBuffer = require('base64-arraybuffer');
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
   function handle_directory_data(error, result) {
     if (error) {
       callback(error);
@@ -11938,16 +7291,11 @@ var base64ArrayBuffer = require('base64-arraybuffer');
       callback(null, files);
     }
   }
-<<<<<<< HEAD
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 
   function read_directory_data(error, result) {
     if (error) {
       callback(error);
-    } else if (result.mode !== MODE_DIRECTORY) {
+    } else if (result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
@@ -11955,26 +7303,7 @@ var base64ArrayBuffer = require('base64-arraybuffer');
     }
   }
 
-<<<<<<< HEAD
-  this.id = options.id;
-  this.type = options.type || NODE_TYPE_FILE;  // node type (file, directory, etc)
-  this.size = options.size || 0; // size (bytes for files, entries for directories)
-  this.atime = options.atime || now; // access time (will mirror ctime after creation)
-  this.ctime = options.ctime || now; // creation/change time
-  this.mtime = options.mtime || now; // modified time
-  this.flags = options.flags || []; // file flags
-  this.xattrs = options.xattrs || {}; // extended attributes
-  this.nlinks = options.nlinks || 0; // links count
-  this.data = options.data; // id for data object
-  this.version = options.version || 1;
-
-  // permissions and flags
-  this.mode = options.mode || (getMode(this.type));
-  this.uid = options.uid || 0x0; // owner name
-  this.gid = options.gid || 0x0; // group name
-=======
   find_node(context, path, read_directory_data);
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 }
 
 function make_symbolic_link(context, srcpath, dstpath, callback) {
@@ -11986,7 +7315,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   var directoryData;
   var fileNode;
 
-  if (ROOT_DIRECTORY_NAME == name) {
+  if (ROOT_DIRECTORY_NAME === name) {
     callback(new Errors.EEXIST(null, name));
   } else {
     find_node(context, parentPath, read_directory_data);
@@ -12015,46 +7344,30 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   }
 
   function write_file_node() {
-    Node.create({ guid: context.guid, mode: MODE_SYMBOLIC_LINK }, function (error, result) {
+    Node.create({
+      guid: context.guid,
+      type: NODE_TYPE_SYMBOLIC_LINK
+    }, function (error, result) {
       if (error) {
         callback(error);
         return;
       }
       fileNode = result;
       fileNode.nlinks += 1;
+
+      // If the srcpath isn't absolute, resolve it relative to the dstpath
+      // but store both versions, since we'll use the relative one in readlink().
+      if (!isAbsolutePath(srcpath)) {
+        fileNode.symlink_relpath = srcpath;
+        srcpath = Path.resolve(parentPath, srcpath);
+      }
+
       fileNode.size = srcpath.length;
       fileNode.data = srcpath;
+
       context.putObject(fileNode.id, fileNode, update_directory_data);
     });
-<<<<<<< HEAD
-  });
-};
-
-// Update the node's mode (permissions), taking file type bits into account.
-Node.setMode = function(mode, node) {
-  node.mode = getMode(node.type, mode);
-};
-
-module.exports = Node;
-
-},{"./constants.js":15}],24:[function(require,module,exports){
-var Errors = require('./errors.js');
-
-function OpenFileDescription(path, id, flags, position) {
-  this.path = path;
-  this.id = id;
-  this.flags = flags;
-  this.position = position;
-}
-
-// Tries to find the node associated with an ofd's `id`.
-// If not found, an error is returned on the callback.
-OpenFileDescription.prototype.getNode = function(context, callback) {
-  var id = this.id;
-  var path = this.path;
-=======
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
   function update_time(error) {
     if (error) {
@@ -12069,7 +7382,7 @@ OpenFileDescription.prototype.getNode = function(context, callback) {
     if (error) {
       callback(error);
     } else {
-      directoryData[name] = new DirectoryEntry(fileNode.id, MODE_SYMBOLIC_LINK);
+      directoryData[name] = new DirectoryEntry(fileNode.id, NODE_TYPE_SYMBOLIC_LINK);
       context.putObject(directoryNode.data, directoryData, update_time);
     }
   }
@@ -12107,14 +7420,17 @@ function read_link(context, path, callback) {
     }
   }
 
-  function check_if_symbolic(error, result) {
+  function check_if_symbolic(error, fileNode) {
     if (error) {
       callback(error);
     } else {
-      if (result.mode != MODE_SYMBOLIC_LINK) {
+      if (fileNode.type !== NODE_TYPE_SYMBOLIC_LINK) {
         callback(new Errors.EINVAL('path not a symbolic link', path));
       } else {
-        callback(null, result.data);
+        // If we were originally given a relative path, return that now vs. the
+        // absolute path we've generated and use elsewhere internally.
+        var target = fileNode.symlink_relpath ? fileNode.symlink_relpath : fileNode.data;
+        callback(null, target);
       }
     }
   }
@@ -12128,7 +7444,7 @@ function truncate_file(context, path, length, callback) {
   function read_file_data(error, node) {
     if (error) {
       callback(error);
-    } else if (node.mode == MODE_DIRECTORY) {
+    } else if (node.type === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EISDIR(null, path));
     } else {
       fileNode = node;
@@ -12184,7 +7500,7 @@ function ftruncate_file(context, ofd, length, callback) {
   function read_file_data(error, node) {
     if (error) {
       callback(error);
-    } else if (node.mode == MODE_DIRECTORY) {
+    } else if (node.type === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EISDIR());
     } else {
       fileNode = node;
@@ -12247,7 +7563,7 @@ function utimes_file(context, path, atime, mtime, callback) {
     }
   }
 
-  if (typeof atime != 'number' || typeof mtime != 'number') {
+  if (typeof atime !== 'number' || typeof mtime !== 'number') {
     callback(new Errors.EINVAL('atime and mtime must be number', path));
   } else if (atime < 0 || mtime < 0) {
     callback(new Errors.EINVAL('atime and mtime must be positive integers', path));
@@ -12266,7 +7582,7 @@ function futimes_file(context, ofd, atime, mtime, callback) {
     }
   }
 
-  if (typeof atime != 'number' || typeof mtime != 'number') {
+  if (typeof atime !== 'number' || typeof mtime !== 'number') {
     callback(new Errors.EINVAL('atime and mtime must be a number'));
   } else if (atime < 0 || mtime < 0) {
     callback(new Errors.EINVAL('atime and mtime must be positive integers'));
@@ -12285,7 +7601,7 @@ function setxattr_file(context, path, name, value, flag, callback) {
     set_extended_attribute(context, path, node, name, value, flag, callback);
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
   } else if (!name) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
@@ -12332,7 +7648,7 @@ function getxattr_file(context, path, name, callback) {
     }
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
   } else if (!name) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
@@ -12357,7 +7673,7 @@ function fgetxattr_file(context, ofd, name, callback) {
     }
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL());
   } else if (!name) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
@@ -12416,34 +7732,17 @@ function fremovexattr_file(context, ofd, name, callback) {
       }
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-},{"./indexeddb.js":27,"./memory.js":28,"./websql.js":29}],27:[function(require,module,exports){
-(function (global){
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
-var IDB_RW = require('../constants.js').IDB_RW;
-var IDB_RO = require('../constants.js').IDB_RO;
-var Errors = require('../errors.js');
-var FilerBuffer = require('../buffer.js');
-=======
-    if (error) {
-      callback(error);
-    } else if (!node.xattrs.hasOwnProperty(name)) {
-=======
     var xattrs = node.xattrs;
 
     if (!xattrs.hasOwnProperty(name)) {
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       callback(new Errors.ENOATTR());
     } else {
       delete xattrs[name];
       context.putObject(node.id, node, update_time);
     }
   }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string'));
   } else if (!name) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
@@ -12470,14 +7769,19 @@ function validate_file_options(options, enc, fileMode) {
   return options;
 }
 
-function pathCheck(path, callback) {
+function pathCheck(path, allowRelative, callback) {
   var err;
+
+  if (typeof allowRelative === 'function') {
+    callback = allowRelative;
+    allowRelative = false;
+  }
 
   if (!path) {
     err = new Errors.EINVAL('Path must be a string', path);
   } else if (isNullPath(path)) {
     err = new Errors.EINVAL('Path must be a string without null bytes.', path);
-  } else if (!isAbsolutePath(path)) {
+  } else if (!allowRelative && !isAbsolutePath(path)) {
     err = new Errors.EINVAL('Path must be absolute.', path);
   }
 
@@ -12489,8 +7793,22 @@ function pathCheck(path, callback) {
 }
 
 function open(fs, context, path, flags, mode, callback) {
-  // NOTE: we support the same signature as node with a `mode` arg,
-  // but ignore it.
+  /**
+   * NOTE: we support the same signature as node with a `mode` arg,
+   * but ignore it. We need to add it.  Here is what node.js does:
+   * function open(path, flags, mode, callback) {
+   *    path = getPathFromURL(path);
+   *  validatePath(path);
+   *  const flagsNumber = stringToFlags(flags);
+   *  if (arguments.length < 4) {
+   *    callback = makeCallback(mode);
+   *    mode = 0o666;
+   *  } else {
+   *    mode = validateAndMaskMode(mode, 'mode', 0o666);
+   *    callback = makeCallback(callback);
+   * }
+  */
+
   callback = arguments[arguments.length - 1];
   if (!pathCheck(path, callback)) return;
 
@@ -12514,16 +7832,6 @@ function open(fs, context, path, flags, mode, callback) {
   if (!flags) {
     callback(new Errors.EINVAL('flags is not valid'), path);
   }
-<<<<<<< HEAD
-};
-IndexedDBContext.prototype.putObject = function(key, value, callback) {
-  this._put(key, value, callback);
-};
-IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
-  var buf = uint8BackedBuffer.buffer;
-  this._put(key, buf, callback);
-};
-=======
 
   open_file(context, path, flags, check_result);
 }
@@ -12536,16 +7844,21 @@ function close(fs, context, fd, callback) {
     callback(null);
   }
 }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
-function mknod(fs, context, path, mode, callback) {
+function mknod(fs, context, path, type, callback) {
   if (!pathCheck(path, callback)) return;
-  make_node(context, path, mode, callback);
+  make_node(context, path, type, callback);
 }
 
 function mkdir(fs, context, path, mode, callback) {
-  // NOTE: we support passing a mode arg, but we ignore it internally for now.
-  callback = arguments[arguments.length - 1];
+  if (arguments.length < 5) {
+    callback = mode;
+    mode = FULL_READ_WRITE_EXEC_PERMISSIONS;
+  } else {
+    mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
+    if (!mode) return;
+  }
+
   if (!pathCheck(path, callback)) return;
   make_directory(context, path, callback);
 }
@@ -12562,7 +7875,7 @@ function stat(fs, context, path, callback) {
     if (error) {
       callback(error);
     } else {
-      var stats = new Stats(result, fs.name);
+      var stats = new Stats(path, result, fs.name);
       callback(null, stats);
     }
   }
@@ -12575,7 +7888,7 @@ function fstat(fs, context, fd, callback) {
     if (error) {
       callback(error);
     } else {
-      var stats = new Stats(result, fs.name);
+      var stats = new Stats(ofd.path, result, fs.name);
       callback(null, stats);
     }
   }
@@ -12648,21 +7961,12 @@ function readFile(fs, context, path, options, callback) {
         return callback(err);
       }
 
-      var stats = new Stats(fstatResult, fs.name);
+      var stats = new Stats(ofd.path, fstatResult, fs.name);
 
-<<<<<<< HEAD
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../buffer.js":14,"../constants.js":15,"../errors.js":18}],28:[function(require,module,exports){
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-// NOTE: prefer setImmediate to nextTick for proper recursion yielding.
-// see https://github.com/js-platform/filer/pull/24
-var asyncCallback = require('../../lib/async.js').setImmediate;
-=======
       if (stats.isDirectory()) {
         cleanup();
         return callback(new Errors.EISDIR('illegal operation on directory', path));
       }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
       var size = stats.size;
       var buffer = new Buffer(size);
@@ -12783,6 +8087,119 @@ function exists(fs, context, path, callback) {
     callback(err ? false : true);
   }
   stat(fs, context, path, cb);
+}
+
+// Based on https://github.com/nodejs/node/blob/c700cc42da9cf73af9fec2098520a6c0a631d901/lib/internal/validators.js#L21
+var octalReg = /^[0-7]+$/;
+var modeDesc = 'must be a 32-bit unsigned integer or an octal string';
+function isUint32(value) {
+  return value === value >>> 0;
+}
+// Validator for mode_t (the S_* constants). Valid numbers or octal strings
+// will be masked with 0o777 to be consistent with the behavior in POSIX APIs.
+function validateAndMaskMode(value, def, callback) {
+  if (typeof def === 'function') {
+    callback = def;
+    def = undefined;
+  }
+
+  if (isUint32(value)) {
+    return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isInteger(value)) {
+      callback(new Errors.EINVAL('mode not a valid an integer value', value));
+      return false;
+    } else {
+      // 2 ** 32 === 4294967296
+      callback(new Errors.EINVAL('mode not a valid an integer value', value));
+      return false;
+    }
+  }
+
+  if (typeof value === 'string') {
+    if (!octalReg.test(value)) {
+      callback(new Errors.EINVAL('mode not a valid octal string', value));
+      return false;
+    }
+    var parsed = parseInt(value, 8);
+    return parsed & FULL_READ_WRITE_EXEC_PERMISSIONS;
+  }
+
+  // TODO(BridgeAR): Only return `def` in case `value === null`
+  if (def !== undefined) {
+    return def;
+  }
+
+  callback(new Errors.EINVAL('mode not valid', value));
+  return false;
+}
+
+function chmod_file(context, path, mode, callback) {
+  path = normalize(path);
+
+  function update_mode(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      Node.setMode(mode, node);
+      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  if (typeof mode !== 'number') {
+    callback(new Errors.EINVAL('mode must be number', path));
+  } else {
+    find_node(context, path, update_mode);
+  }
+}
+
+function fchmod_file(context, ofd, mode, callback) {
+  function update_mode(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.mode = mode;
+      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  if (typeof mode !== 'number') {
+    callback(new Errors.EINVAL('mode must be a number'));
+  } else {
+    ofd.getNode(context, update_mode);
+  }
+}
+
+function chown_file(context, path, uid, gid, callback) {
+  path = normalize(path);
+
+  function update_owner(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.uid = uid;
+      node.gid = gid;
+      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  find_node(context, path, update_owner);
+}
+
+function fchown_file(context, ofd, uid, gid, callback) {
+  function update_owner(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.uid = uid;
+      node.gid = gid;
+      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  ofd.getNode(context, update_owner);
 }
 
 function getxattr(fs, context, path, name, callback) {
@@ -12911,6 +8328,58 @@ function futimes(fs, context, fd, atime, mtime, callback) {
   }
 }
 
+function chmod(fs, context, path, mode, callback) {
+  if (!pathCheck(path, callback)) return;
+  mode = validateAndMaskMode(mode, 'mode');
+  if (!mode) return;
+
+  chmod_file(context, path, mode, callback);
+}
+
+function fchmod(fs, context, fd, mode, callback) {
+  mode = validateAndMaskMode(mode, 'mode');
+  if (!mode) return;
+
+  var ofd = fs.openFiles[fd];
+  if (!ofd) {
+    callback(new Errors.EBADF());
+  } else if (!_(ofd.flags).contains(O_WRITE)) {
+    callback(new Errors.EBADF('descriptor does not permit writing'));
+  } else {
+    fchmod_file(context, ofd, mode, callback);
+  }
+}
+
+function chown(fs, context, path, uid, gid, callback) {
+  if (!pathCheck(path, callback)) return;
+  if (!isUint32(uid)) {
+    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
+  }
+  if (!isUint32(gid)) {
+    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
+  }
+
+  chown_file(context, path, uid, gid, callback);
+}
+
+function fchown(fs, context, fd, uid, gid, callback) {
+  if (!isUint32(uid)) {
+    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
+  }
+  if (!isUint32(gid)) {
+    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
+  }
+
+  var ofd = fs.openFiles[fd];
+  if (!ofd) {
+    callback(new Errors.EBADF());
+  } else if (!_(ofd.flags).contains(O_WRITE)) {
+    callback(new Errors.EBADF('descriptor does not permit writing'));
+  } else {
+    fchown_file(context, ofd, uid, gid, callback);
+  }
+}
+
 function rename(fs, context, oldpath, newpath, callback) {
   if (!pathCheck(oldpath, callback)) return;
   if (!pathCheck(newpath, callback)) return;
@@ -12924,12 +8393,15 @@ function rename(fs, context, oldpath, newpath, callback) {
   var newName = Path.basename(newpath);
   var oldParentDirectory, oldParentData;
   var newParentDirectory, newParentData;
+  var ctime = Date.now();
+  var fileNode;
 
-  function update_times(error, newNode) {
+  function update_times(error, result) {
     if (error) {
       callback(error);
     } else {
-      update_node_times(context, newpath, newNode, { ctime: Date.now() }, callback);
+      fileNode = result;
+      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
     }
   }
 
@@ -13013,7 +8485,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   function check_node_type(error, node) {
     if (error) {
       callback(error);
-    } else if (node.mode === 'DIRECTORY') {
+    } else if (node.type === NODE_TYPE_DIRECTORY) {
       find_node(context, oldParentPath, read_parent_directory_data);
     } else {
       link_node(context, oldpath, newpath, unlink_old_file);
@@ -13026,8 +8498,13 @@ function rename(fs, context, oldpath, newpath, callback) {
 function symlink(fs, context, srcpath, dstpath, type, callback) {
   // NOTE: we support passing the `type` arg, but ignore it.
   callback = arguments[arguments.length - 1];
-  if (!pathCheck(srcpath, callback)) return;
+
+  // Special Case: allow srcpath to be relative, which we normally don't permit.
+  // If the srcpath is relative, we assume it's relative to the dirpath of 
+  // dstpath.
+  if (!pathCheck(srcpath, true, callback)) return;
   if (!pathCheck(dstpath, callback)) return;
+
   make_symbolic_link(context, srcpath, dstpath, callback);
 }
 
@@ -13043,7 +8520,7 @@ function lstat(fs, context, path, callback) {
     if (error) {
       callback(error);
     } else {
-      var stats = new Stats(result, fs.name);
+      var stats = new Stats(path, result, fs.name);
       callback(null, stats);
     }
   }
@@ -13078,6 +8555,10 @@ function ftruncate(fs, context, fd, length, callback) {
 module.exports = {
   ensureRootDirectory: ensure_root_directory,
   open: open,
+  chmod: chmod,
+  fchmod: fchmod,
+  chown: chown,
+  fchown: fchown,
   close: close,
   mknod: mknod,
   mkdir: mkdir,
@@ -13109,7 +8590,7 @@ module.exports = {
   truncate: truncate,
   ftruncate: ftruncate
 };
-},{"../../lib/nodash.js":14,"../path.js":4,"../constants.js":16,"../encoding.js":20,"../errors.js":5,"../directory-entry.js":48,"../open-file-description.js":49,"../super-node.js":50,"../node.js":51,"../stats.js":52,"../buffer.js":3}],6:[function(require,module,exports) {
+},{"../../lib/nodash.js":"96cB","../path.js":"UzoP","../constants.js":"iJA9","../encoding.js":"03yF","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","../buffer.js":"xfwq"}],"GMi4":[function(require,module,exports) {
 var _ = require('../../lib/nodash.js');
 
 var isNullPath = require('../path.js').isNull;
@@ -13197,33 +8678,6 @@ function FileSystem(options, callback) {
   var name = options.name || provider.name;
   var forceFormatting = _(flags).contains(FS_FORMAT);
 
-<<<<<<< HEAD
-      function getDirEntry(name, callback) {
-        name = Path.join(pathname, name);
-        fs.stat(name, function(error, stats) {
-          if(error) {
-            callback(error);
-            return;
-          }
-          var entry = stats;
-
-          if(options.recursive && stats.type === 'DIRECTORY') {
-            list(Path.join(pathname, entry.name), function(error, items) {
-              if(error) {
-                callback(error);
-                return;
-              }
-              entry.contents = items;
-              result.push(entry);
-              callback();
-            });
-          } else {
-            result.push(entry);
-            callback();
-          }
-        });
-      }
-=======
   var fs = this;
   fs.readyState = FS_PENDING;
   fs.name = name;
@@ -13232,7 +8686,9 @@ function FileSystem(options, callback) {
   fs.stdin = STDIN;
   fs.stdout = STDOUT;
   fs.stderr = STDERR;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
+
+  // Expose Node's fs.constants to users
+  fs.constants = Constants.fsConstants;
 
   // Expose Shell constructor
   this.Shell = Shell.bind(undefined, this);
@@ -13379,162 +8835,6 @@ function FileSystem(options, callback) {
       callback(error, fs);
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-/**
- * Recursively walk a directory tree, reporting back all paths
- * that were found along the way. The `path` must be a dir.
- * Valid options include a `regex` for pattern matching paths
- * and an `exec` function of the form `function(path, next)` where
- * `path` is the current path that was found (dir paths have an '/'
- * appended) and `next` is a callback to call when done processing
- * the current path, passing any error object back as the first argument.
- * `find` returns a flat array of absolute paths for all matching/found
- * paths as the final argument to the callback.
- */
- Shell.prototype.find = function(path, options, callback) {
-  var sh = this;
-  var fs = sh.fs;
-  if(typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-  options = options || {};
-  callback = callback || function(){};
-
-  var exec = options.exec || function(path, next) { next(); };
-  var found = [];
-
-  if(!path) {
-    callback(new Errors.EINVAL('Missing path argument'));
-    return;
-  }
-
-  function processPath(path, callback) {
-    exec(path, function(err) {
-      if(err) {
-        callback(err);
-        return;
-      }
-
-      found.push(path);
-      callback();
-    });
-  }
-
-  function maybeProcessPath(path, callback) {
-    // Test the path against the user's regex, name, path primaries (if any)
-    // and remove any trailing slashes added previously.
-    var rawPath = Path.removeTrailing(path);
-
-    // Check entire path against provided regex, if any
-    if(options.regex && !options.regex.test(rawPath)) {
-      callback();
-      return;
-    }
-
-    // Check basename for matches against name primary, if any
-    if(options.name && !minimatch(Path.basename(rawPath), options.name)) {
-      callback();
-      return;
-    }
-
-    // Check dirname for matches against path primary, if any
-    if(options.path && !minimatch(Path.dirname(rawPath), options.path)) {
-      callback();
-      return;
-    }
-
-    processPath(path, callback);
-  }
-
-  function walk(path, callback) {
-    path = Path.resolve(sh.pwd(), path);
-
-    // The path is either a file or dir, and instead of doing
-    // a stat() to determine it first, we just try to readdir()
-    // and it will either work or not, and we handle the non-dir error.
-    fs.readdir(path, function(err, entries) {
-      if(err) {
-        if(err.code === 'ENOTDIR' /* file case, ignore error */) {
-          maybeProcessPath(path, callback);
-        } else {
-          callback(err);
-        }
-        return;
-      }
-
-      // Path is really a dir, add a trailing / and report it found
-      maybeProcessPath(Path.addTrailing(path), function(err) {
-        if(err) {
-          callback(err);
-          return;
-        }
-
-        entries = entries.map(function(entry) {
-          return Path.join(path, entry);
-        });
-
-        async.eachSeries(entries, walk, function(err) {
-          callback(err, found);
-        });
-      });
-    });
-  }
-
-  // Make sure we are starting with a dir path
-  fs.stat(path, function(err, stats) {
-    if(err) {
-      callback(err);
-      return;
-    }
-    if(!stats.isDirectory()) {
-      callback(new Errors.ENOTDIR(null, path));
-      return;
-    }
-
-    walk(path, callback);
-  });
-};
-
-module.exports = Shell;
-
-},{"../../lib/async.js":1,"../encoding.js":17,"../errors.js":18,"../path.js":25,"./environment.js":31,"minimatch":11}],33:[function(require,module,exports){
-var Constants = require('./constants.js');
-<<<<<<< HEAD
-var Path = require('./path.js');
-
-function Stats(path, fileNode, devName) {
-  this.dev = devName;
-  this.node = fileNode.id;
-  this.type = fileNode.type;
-  this.size = fileNode.size;
-  this.nlinks = fileNode.nlinks;
-  this.atime = fileNode.atime;
-  this.mtime = fileNode.mtime;
-  this.ctime = fileNode.ctime;
-  this.version = fileNode.version;
-  this.mode = fileNode.mode;
-  this.uid = fileNode.uid;
-  this.gid = fileNode.gid;
-  this.name = Path.basename(path);
-}
-
-Stats.prototype.isFile = function() {
-  return this.type === Constants.NODE_TYPE_FILE;
-};
-
-Stats.prototype.isDirectory = function() {
-  return this.type === Constants.NODE_TYPE_DIRECTORY;
-};
-
-Stats.prototype.isSymbolicLink = function() {
-  return this.type === Constants.NODE_TYPE_SYMBOLIC_LINK;
-};
-=======
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
     if (err) {
       return complete(err);
     }
@@ -13564,12 +8864,11 @@ FileSystem.providers = providers;
 /**
  * Public API for FileSystem
  */
-['open', 'close', 'mknod', 'mkdir', 'rmdir', 'stat', 'fstat', 'link', 'unlink', 'read', 'readFile', 'write', 'writeFile', 'appendFile', 'exists', 'lseek', 'readdir', 'rename', 'readlink', 'symlink', 'lstat', 'truncate', 'ftruncate', 'utimes', 'futimes', 'setxattr', 'getxattr', 'fsetxattr', 'fgetxattr', 'removexattr', 'fremovexattr'].forEach(function (methodName) {
+['open', 'chmod', 'fchmod', 'chown', 'fchown', 'close', 'mknod', 'mkdir', 'rmdir', 'stat', 'fstat', 'link', 'unlink', 'read', 'readFile', 'write', 'writeFile', 'appendFile', 'exists', 'lseek', 'readdir', 'rename', 'readlink', 'symlink', 'lstat', 'truncate', 'ftruncate', 'utimes', 'futimes', 'setxattr', 'getxattr', 'fsetxattr', 'fgetxattr', 'removexattr', 'fremovexattr'].forEach(function (methodName) {
   FileSystem.prototype[methodName] = function () {
     var fs = this;
     var args = Array.prototype.slice.call(arguments, 0);
     var lastArgIndex = args.length - 1;
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
     // We may or may not get a callback, and since node.js supports
     // fire-and-forget style fs operations, we have to dance a bit here.
@@ -13579,17 +8878,6 @@ FileSystem.providers = providers;
     var error = fs.queueOrRun(function () {
       var context = fs.provider.openReadWriteContext();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-},{"./constants.js":15,"./path.js":25}],34:[function(require,module,exports){
-=======
-<<<<<<< HEAD
-},{"./constants.js":15}],34:[function(require,module,exports){
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-var Constants = require('./constants.js');
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
       // Fail early if the filesystem is in an error state (e.g.,
       // provider failed to open.
       if (FS_ERROR === fs.readyState) {
@@ -13603,23 +8891,12 @@ var Constants = require('./constants.js');
         callback.apply(fs, arguments);
       }
 
-<<<<<<< HEAD
-  this.id = Constants.SUPER_NODE_ID;
-  this.type = Constants.NODE_TYPE_META;
-  this.atime = options.atime || now;
-  this.ctime = options.ctime || now;
-  this.mtime = options.mtime || now;
-  // root node id (randomly generated)
-  this.rnode = options.rnode;
-}
-=======
       // Either add or replace the callback with our wrapper complete()
       if (missingCallback) {
         args.push(complete);
       } else {
         args[lastArgIndex] = complete;
       }
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
 
       // Forward this call to the impl's version, using the following
       // call signature, with complete() as the callback/last-arg now:
@@ -13633,21 +8910,8 @@ var Constants = require('./constants.js');
   };
 });
 
-<<<<<<< HEAD
-FileSystem.prototype.Shell = function (options) {
-  return new Shell(this, options);
-};
-
-<<<<<<< HEAD
-},{"./constants.js":15}]},{},[22])(22)
-});
-<<<<<<< HEAD
-=======
-=======
-=======
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc
 module.exports = FileSystem;
-},{"../../lib/nodash.js":14,"../path.js":4,"../shared.js":15,"../constants.js":16,"../providers/index.js":21,"../shell/shell.js":7,"../../lib/intercom.js":17,"../fs-watcher.js":18,"../errors.js":5,"./implementation.js":22}],1:[function(require,module,exports) {
+},{"../../lib/nodash.js":"96cB","../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","./implementation.js":"bsBG"}],"Focm":[function(require,module,exports) {
 module.exports = {
   FileSystem: require('./filesystem/interface.js'),
   Buffer: require('./buffer.js'),
@@ -13655,12 +8919,5 @@ module.exports = {
   Errors: require('./errors.js'),
   Shell: require('./shell/shell.js')
 };
-<<<<<<< HEAD
-},{"./filesystem/interface.js":6,"./buffer.js":3,"./path.js":4,"./errors.js":5}]},{},[1], "Filer")
+},{"./filesystem/interface.js":"GMi4","./buffer.js":"xfwq","./path.js":"UzoP","./errors.js":"p8GN","./shell/shell.js":"D1Ra"}]},{},["Focm"], "Filer")
 //# sourceMappingURL=/filer.map
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
->>>>>>> Switch to parceljs for bundling, eslint for linting, drop grunt
-=======
-},{"./filesystem/interface.js":6,"./buffer.js":3,"./path.js":4,"./errors.js":5,"./shell/shell.js":7}]},{},[1], "Filer")
-//# sourceMappingURL=/filer.map
->>>>>>> Fix tests so they work and pass with Parcel.js, updated outdated, remove .babelrc

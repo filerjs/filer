@@ -8,12 +8,11 @@
  </head>
 <body>
   <div id="mocha"></div>
-
   <script src="../node_modules/chai/chai.js"></script>
   <script src="../node_modules/mocha/mocha.js"></script>
 
   <script>
-    mocha.setup('bdd').timeout(5000).slow(250);;
+    mocha.setup('bdd').timeout(5000).slow(250);
 
     window.onload = function() {
       mocha.checkLeaks();
