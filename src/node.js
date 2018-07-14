@@ -1,10 +1,36 @@
-var MODE_FILE = require('./constants.js').MODE_FILE;
+var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
+var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
+var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
+var NODE_TYPE_META = require('./constants.js').NODE_TYPE_META;
+
+var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
+
+var S_IFREG = require('./constants.js').S_IFREG;
+var S_IFDIR = require('./constants.js').S_IFDIR;
+var S_IFLNK = require('./constants.js').S_IFLNK;
+
+var DEFAULT_FILE_PERMISSIONS = require('./constants.js').DEFAULT_FILE_PERMISSIONS;
+var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
+
+function getMode(type, mode) {
+  switch(type) {
+    case NODE_TYPE_DIRECTORY:
+      return (mode || DEFAULT_DIR_PERMISSIONS) | S_IFDIR;
+    case NODE_TYPE_SYMBOLIC_LINK:
+      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFLNK;
+    /* jshint -W086 */
+    case NODE_TYPE_FILE:
+      // falls through
+    default:
+      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFREG;
+  }
+}
 
 function Node(options) {
   var now = Date.now();
 
   this.id = options.id;
-  this.mode = options.mode || MODE_FILE;  // node type (file, directory, etc)
+  this.type = options.type || NODE_TYPE_FILE;  // node type (file, directory, etc)
   this.size = options.size || 0; // size (bytes for files, entries for directories)
   this.atime = options.atime || now; // access time (will mirror ctime after creation)
   this.ctime = options.ctime || now; // creation/change time
@@ -12,10 +38,13 @@ function Node(options) {
   this.flags = options.flags || []; // file flags
   this.xattrs = options.xattrs || {}; // extended attributes
   this.nlinks = options.nlinks || 0; // links count
-  this.version = options.version || 0; // node version
-  this.blksize = undefined; // block size
-  this.nblocks = 1; // blocks count
   this.data = options.data; // id for data object
+  this.version = options.version || 1;
+
+  // permissions and flags
+  this.mode = options.mode || (getMode(this.type));
+  this.uid = options.uid || 0x0; // owner name
+  this.gid = options.gid || 0x0; // group name
 }
 
 // Make sure the options object has an id on property,
@@ -48,6 +77,11 @@ Node.create = function(options, callback) {
       callback(null, new Node(options));
     });
   });
+};
+
+// Update the node's mode (permissions), taking file type bits into account.
+Node.setMode = function(mode, node) {
+  node.mode = getMode(node.type, mode);
 };
 
 module.exports = Node;

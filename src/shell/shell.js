@@ -233,16 +233,10 @@ Shell.prototype.ls = function(dir, options, callback) {
             callback(error);
             return;
           }
-          var entry = {
-            path: Path.basename(name),
-            links: stats.nlinks,
-            size: stats.size,
-            modified: stats.mtime,
-            type: stats.type
-          };
+          var entry = stats;
 
           if(options.recursive && stats.type === 'DIRECTORY') {
-            list(Path.join(pathname, entry.path), function(error, items) {
+            list(Path.join(pathname, entry.name), function(error, items) {
               if(error) {
                 callback(error);
                 return;

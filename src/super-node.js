@@ -4,7 +4,7 @@ function SuperNode(options) {
   var now = Date.now();
 
   this.id = Constants.SUPER_NODE_ID;
-  this.mode = Constants.MODE_META;
+  this.type = Constants.NODE_TYPE_META;
   this.atime = options.atime || now;
   this.ctime = options.ctime || now;
   this.mtime = options.mtime || now;

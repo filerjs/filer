@@ -587,8 +587,16 @@ module.exports = nodash;
  * Copyright (c) 2012 Niklas von Hertzen
  * Licensed under the MIT license.
  */
-(function(chars){
+(function(){
   "use strict";
+
+  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+  // Use a lookup table to find the index.
+  var lookup = new Uint8Array(256);
+  for (var i = 0; i < chars.length; i++) {
+    lookup[chars.charCodeAt(i)] = i;
+  }
 
   exports.encode = function(arraybuffer) {
     var bytes = new Uint8Array(arraybuffer),
@@ -626,10 +634,10 @@ module.exports = nodash;
     bytes = new Uint8Array(arraybuffer);
 
     for (i = 0; i < len; i+=4) {
-      encoded1 = chars.indexOf(base64[i]);
-      encoded2 = chars.indexOf(base64[i+1]);
-      encoded3 = chars.indexOf(base64[i+2]);
-      encoded4 = chars.indexOf(base64[i+3]);
+      encoded1 = lookup[base64.charCodeAt(i)];
+      encoded2 = lookup[base64.charCodeAt(i+1)];
+      encoded3 = lookup[base64.charCodeAt(i+2)];
+      encoded4 = lookup[base64.charCodeAt(i+3)];
 
       bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
       bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
@@ -638,26 +646,155 @@ module.exports = nodash;
 
     return arraybuffer;
   };
-})("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+})();
 
 },{}],6:[function(require,module,exports){
+var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+;(function (exports) {
+	'use strict';
+
+  var Arr = (typeof Uint8Array !== 'undefined')
+    ? Uint8Array
+    : Array
+
+	var PLUS   = '+'.charCodeAt(0)
+	var SLASH  = '/'.charCodeAt(0)
+	var NUMBER = '0'.charCodeAt(0)
+	var LOWER  = 'a'.charCodeAt(0)
+	var UPPER  = 'A'.charCodeAt(0)
+	var PLUS_URL_SAFE = '-'.charCodeAt(0)
+	var SLASH_URL_SAFE = '_'.charCodeAt(0)
+
+	function decode (elt) {
+		var code = elt.charCodeAt(0)
+		if (code === PLUS ||
+		    code === PLUS_URL_SAFE)
+			return 62 // '+'
+		if (code === SLASH ||
+		    code === SLASH_URL_SAFE)
+			return 63 // '/'
+		if (code < NUMBER)
+			return -1 //no match
+		if (code < NUMBER + 10)
+			return code - NUMBER + 26 + 26
+		if (code < UPPER + 26)
+			return code - UPPER
+		if (code < LOWER + 26)
+			return code - LOWER + 26
+	}
+
+	function b64ToByteArray (b64) {
+		var i, j, l, tmp, placeHolders, arr
+
+		if (b64.length % 4 > 0) {
+			throw new Error('Invalid string. Length must be a multiple of 4')
+		}
+
+		// the number of equal signs (place holders)
+		// if there are two placeholders, than the two characters before it
+		// represent one byte
+		// if there is only one, then the three characters before it represent 2 bytes
+		// this is just a cheap hack to not do indexOf twice
+		var len = b64.length
+		placeHolders = '=' === b64.charAt(len - 2) ? 2 : '=' === b64.charAt(len - 1) ? 1 : 0
+
+		// base64 is 4/3 + up to two characters of the original data
+		arr = new Arr(b64.length * 3 / 4 - placeHolders)
+
+		// if there are placeholders, only get up to the last complete 4 chars
+		l = placeHolders > 0 ? b64.length - 4 : b64.length
+
+		var L = 0
+
+		function push (v) {
+			arr[L++] = v
+		}
+
+		for (i = 0, j = 0; i < l; i += 4, j += 3) {
+			tmp = (decode(b64.charAt(i)) << 18) | (decode(b64.charAt(i + 1)) << 12) | (decode(b64.charAt(i + 2)) << 6) | decode(b64.charAt(i + 3))
+			push((tmp & 0xFF0000) >> 16)
+			push((tmp & 0xFF00) >> 8)
+			push(tmp & 0xFF)
+		}
+
+		if (placeHolders === 2) {
+			tmp = (decode(b64.charAt(i)) << 2) | (decode(b64.charAt(i + 1)) >> 4)
+			push(tmp & 0xFF)
+		} else if (placeHolders === 1) {
+			tmp = (decode(b64.charAt(i)) << 10) | (decode(b64.charAt(i + 1)) << 4) | (decode(b64.charAt(i + 2)) >> 2)
+			push((tmp >> 8) & 0xFF)
+			push(tmp & 0xFF)
+		}
+
+		return arr
+	}
+
+	function uint8ToBase64 (uint8) {
+		var i,
+			extraBytes = uint8.length % 3, // if we have 1 byte left, pad 2 bytes
+			output = "",
+			temp, length
+
+		function encode (num) {
+			return lookup.charAt(num)
+		}
+
+		function tripletToBase64 (num) {
+			return encode(num >> 18 & 0x3F) + encode(num >> 12 & 0x3F) + encode(num >> 6 & 0x3F) + encode(num & 0x3F)
+		}
+
+		// go through the array every three bytes, we'll deal with trailing stuff later
+		for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
+			temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+			output += tripletToBase64(temp)
+		}
+
+		// pad the end with zeros, but make sure to not forget the extra bytes
+		switch (extraBytes) {
+			case 1:
+				temp = uint8[uint8.length - 1]
+				output += encode(temp >> 2)
+				output += encode((temp << 4) & 0x3F)
+				output += '=='
+				break
+			case 2:
+				temp = (uint8[uint8.length - 2] << 8) + (uint8[uint8.length - 1])
+				output += encode(temp >> 10)
+				output += encode((temp >> 4) & 0x3F)
+				output += encode((temp << 2) & 0x3F)
+				output += '='
+				break
+		}
+
+		return output
+	}
+
+	exports.toByteArray = b64ToByteArray
+	exports.fromByteArray = uint8ToBase64
+}(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
+
+},{}],7:[function(require,module,exports){
+(function (global){
 /*!
  * The buffer module from node.js, for the browser.
  *
  * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
  * @license  MIT
  */
+/* eslint-disable no-proto */
+
+'use strict'
 
 var base64 = require('base64-js')
 var ieee754 = require('ieee754')
-var isArray = require('is-array')
+var isArray = require('isarray')
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
 exports.INSPECT_MAX_BYTES = 50
 Buffer.poolSize = 8192 // not used by this implementation
 
-var kMaxLength = 0x3fffffff
 var rootParent = {}
 
 /**
@@ -668,32 +805,49 @@ var rootParent = {}
  * Browsers that support typed arrays are IE 10+, Firefox 4+, Chrome 7+, Safari 5.1+,
  * Opera 11.6+, iOS 4.2+.
  *
+ * Due to various browser bugs, sometimes the Object implementation will be used even
+ * when the browser supports typed arrays.
+ *
  * Note:
  *
- * - Implementation must support adding new properties to `Uint8Array` instances.
- *   Firefox 4-29 lacked support, fixed in Firefox 30+.
- *   See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
+ *   - Firefox 4-29 lacks support for adding new properties to `Uint8Array` instances,
+ *     See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
  *
- *  - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
+ *   - Safari 5-7 lacks support for changing the `Object.prototype.constructor` property
+ *     on objects.
  *
- *  - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
- *    incorrect length in some situations.
+ *   - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
  *
- * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they will
- * get the Object implementation, which is slower but will work correctly.
+ *   - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
+ *     incorrect length in some situations.
+
+ * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
+ * get the Object implementation, which is slower but behaves correctly.
  */
-Buffer.TYPED_ARRAY_SUPPORT = (function () {
+Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined
+  ? global.TYPED_ARRAY_SUPPORT
+  : typedArraySupport()
+
+function typedArraySupport () {
+  function Bar () {}
   try {
-    var buf = new ArrayBuffer(0)
-    var arr = new Uint8Array(buf)
+    var arr = new Uint8Array(1)
     arr.foo = function () { return 42 }
+    arr.constructor = Bar
     return arr.foo() === 42 && // typed array instances can be augmented
+        arr.constructor === Bar && // constructor can be set
         typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
-        new Uint8Array(1).subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
+        arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
   } catch (e) {
     return false
   }
-})()
+}
+
+function kMaxLength () {
+  return Buffer.TYPED_ARRAY_SUPPORT
+    ? 0x7fffffff
+    : 0x3fffffff
+}
 
 /**
  * Class: Buffer
@@ -714,8 +868,10 @@ function Buffer (arg) {
     return new Buffer(arg)
   }
 
-  this.length = 0
-  this.parent = undefined
+  if (!Buffer.TYPED_ARRAY_SUPPORT) {
+    this.length = 0
+    this.parent = undefined
+  }
 
   // Common case.
   if (typeof arg === 'number') {
@@ -761,8 +917,13 @@ function fromObject (that, object) {
     throw new TypeError('must start with number, buffer, array or string')
   }
 
-  if (typeof ArrayBuffer !== 'undefined' && object.buffer instanceof ArrayBuffer) {
-    return fromTypedArray(that, object)
+  if (typeof ArrayBuffer !== 'undefined') {
+    if (object.buffer instanceof ArrayBuffer) {
+      return fromTypedArray(that, object)
+    }
+    if (object instanceof ArrayBuffer) {
+      return fromArrayBuffer(that, object)
+    }
   }
 
   if (object.length) return fromArrayLike(that, object)
@@ -799,6 +960,18 @@ function fromTypedArray (that, array) {
   return that
 }
 
+function fromArrayBuffer (that, array) {
+  if (Buffer.TYPED_ARRAY_SUPPORT) {
+    // Return an augmented `Uint8Array` instance, for best performance
+    array.byteLength
+    that = Buffer._augment(new Uint8Array(array))
+  } else {
+    // Fallback: Return an object instance of the Buffer class
+    that = fromTypedArray(that, new Uint8Array(array))
+  }
+  return that
+}
+
 function fromArrayLike (that, array) {
   var length = checked(array.length) | 0
   that = allocate(that, length)
@@ -826,10 +999,20 @@ function fromJsonObject (that, object) {
   return that
 }
 
+if (Buffer.TYPED_ARRAY_SUPPORT) {
+  Buffer.prototype.__proto__ = Uint8Array.prototype
+  Buffer.__proto__ = Uint8Array
+} else {
+  // pre-set for values that may exist in the future
+  Buffer.prototype.length = undefined
+  Buffer.prototype.parent = undefined
+}
+
 function allocate (that, length) {
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     // Return an augmented `Uint8Array` instance, for best performance
     that = Buffer._augment(new Uint8Array(length))
+    that.__proto__ = Buffer.prototype
   } else {
     // Fallback: Return an object instance of the Buffer class
     that.length = length
@@ -845,9 +1028,9 @@ function allocate (that, length) {
 function checked (length) {
   // Note: cannot use `length < kMaxLength` here because that fails when
   // length is NaN (which is otherwise coerced to zero.)
-  if (length >= kMaxLength) {
+  if (length >= kMaxLength()) {
     throw new RangeError('Attempt to allocate Buffer larger than maximum ' +
-                         'size: 0x' + kMaxLength.toString(16) + ' bytes')
+                         'size: 0x' + kMaxLength().toString(16) + ' bytes')
   }
   return length | 0
 }
@@ -916,8 +1099,6 @@ Buffer.concat = function concat (list, length) {
 
   if (list.length === 0) {
     return new Buffer(0)
-  } else if (list.length === 1) {
-    return list[0]
   }
 
   var i
@@ -939,39 +1120,43 @@ Buffer.concat = function concat (list, length) {
 }
 
 function byteLength (string, encoding) {
-  if (typeof string !== 'string') string = String(string)
+  if (typeof string !== 'string') string = '' + string
 
-  if (string.length === 0) return 0
+  var len = string.length
+  if (len === 0) return 0
 
-  switch (encoding || 'utf8') {
-    case 'ascii':
-    case 'binary':
-    case 'raw':
-      return string.length
-    case 'ucs2':
-    case 'ucs-2':
-    case 'utf16le':
-    case 'utf-16le':
-      return string.length * 2
-    case 'hex':
-      return string.length >>> 1
-    case 'utf8':
-    case 'utf-8':
-      return utf8ToBytes(string).length
-    case 'base64':
-      return base64ToBytes(string).length
-    default:
-      return string.length
+  // Use a for loop to avoid recursion
+  var loweredCase = false
+  for (;;) {
+    switch (encoding) {
+      case 'ascii':
+      case 'binary':
+      // Deprecated
+      case 'raw':
+      case 'raws':
+        return len
+      case 'utf8':
+      case 'utf-8':
+        return utf8ToBytes(string).length
+      case 'ucs2':
+      case 'ucs-2':
+      case 'utf16le':
+      case 'utf-16le':
+        return len * 2
+      case 'hex':
+        return len >>> 1
+      case 'base64':
+        return base64ToBytes(string).length
+      default:
+        if (loweredCase) return utf8ToBytes(string).length // assume utf8
+        encoding = ('' + encoding).toLowerCase()
+        loweredCase = true
+    }
   }
 }
 Buffer.byteLength = byteLength
 
-// pre-set for values that may exist in the future
-Buffer.prototype.length = undefined
-Buffer.prototype.parent = undefined
-
-// toString(encoding, start=0, end=buffer.length)
-Buffer.prototype.toString = function toString (encoding, start, end) {
+function slowToString (encoding, start, end) {
   var loweredCase = false
 
   start = start | 0
@@ -1012,6 +1197,13 @@ Buffer.prototype.toString = function toString (encoding, start, end) {
         loweredCase = true
     }
   }
+}
+
+Buffer.prototype.toString = function toString () {
+  var length = this.length | 0
+  if (length === 0) return ''
+  if (arguments.length === 0) return utf8Slice(this, 0, length)
+  return slowToString.apply(this, arguments)
 }
 
 Buffer.prototype.equals = function equals (b) {
@@ -1077,13 +1269,13 @@ Buffer.prototype.indexOf = function indexOf (val, byteOffset) {
   throw new TypeError('val must be string, number or Buffer')
 }
 
-// `get` will be removed in Node 0.13+
+// `get` is deprecated
 Buffer.prototype.get = function get (offset) {
   console.log('.get() is deprecated. Access using array indexes instead.')
   return this.readUInt8(offset)
 }
 
-// `set` will be removed in Node 0.13+
+// `set` is deprecated
 Buffer.prototype.set = function set (v, offset) {
   console.log('.set() is deprecated. Access using array indexes instead.')
   return this.writeUInt8(v, offset)
@@ -1224,20 +1416,99 @@ function base64Slice (buf, start, end) {
 }
 
 function utf8Slice (buf, start, end) {
-  var res = ''
-  var tmp = ''
   end = Math.min(buf.length, end)
+  var res = []
 
-  for (var i = start; i < end; i++) {
-    if (buf[i] <= 0x7F) {
-      res += decodeUtf8Char(tmp) + String.fromCharCode(buf[i])
-      tmp = ''
-    } else {
-      tmp += '%' + buf[i].toString(16)
+  var i = start
+  while (i < end) {
+    var firstByte = buf[i]
+    var codePoint = null
+    var bytesPerSequence = (firstByte > 0xEF) ? 4
+      : (firstByte > 0xDF) ? 3
+      : (firstByte > 0xBF) ? 2
+      : 1
+
+    if (i + bytesPerSequence <= end) {
+      var secondByte, thirdByte, fourthByte, tempCodePoint
+
+      switch (bytesPerSequence) {
+        case 1:
+          if (firstByte < 0x80) {
+            codePoint = firstByte
+          }
+          break
+        case 2:
+          secondByte = buf[i + 1]
+          if ((secondByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
+            if (tempCodePoint > 0x7F) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 3:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
+            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 4:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          fourthByte = buf[i + 3]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
+            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
+              codePoint = tempCodePoint
+            }
+          }
+      }
     }
+
+    if (codePoint === null) {
+      // we did not generate a valid codePoint so insert a
+      // replacement char (U+FFFD) and advance only 1 byte
+      codePoint = 0xFFFD
+      bytesPerSequence = 1
+    } else if (codePoint > 0xFFFF) {
+      // encode to utf16 (surrogate pair dance)
+      codePoint -= 0x10000
+      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
+      codePoint = 0xDC00 | codePoint & 0x3FF
+    }
+
+    res.push(codePoint)
+    i += bytesPerSequence
   }
 
-  return res + decodeUtf8Char(tmp)
+  return decodeCodePointsArray(res)
+}
+
+// Based on http://stackoverflow.com/a/22747272/680742, the browser with
+// the lowest limit is Chrome, with 0x10000 args.
+// We go 1 magnitude less, for safety
+var MAX_ARGUMENTS_LENGTH = 0x1000
+
+function decodeCodePointsArray (codePoints) {
+  var len = codePoints.length
+  if (len <= MAX_ARGUMENTS_LENGTH) {
+    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
+  }
+
+  // Decode in chunks to avoid "call stack size exceeded".
+  var res = ''
+  var i = 0
+  while (i < len) {
+    res += String.fromCharCode.apply(
+      String,
+      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+    )
+  }
+  return res
 }
 
 function asciiSlice (buf, start, end) {
@@ -1526,7 +1797,7 @@ Buffer.prototype.writeUInt8 = function writeUInt8 (value, offset, noAssert) {
   offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 1, 0xff, 0)
   if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
-  this[offset] = value
+  this[offset] = (value & 0xff)
   return offset + 1
 }
 
@@ -1543,7 +1814,7 @@ Buffer.prototype.writeUInt16LE = function writeUInt16LE (value, offset, noAssert
   offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = value
+    this[offset] = (value & 0xff)
     this[offset + 1] = (value >>> 8)
   } else {
     objectWriteUInt16(this, value, offset, true)
@@ -1557,7 +1828,7 @@ Buffer.prototype.writeUInt16BE = function writeUInt16BE (value, offset, noAssert
   if (!noAssert) checkInt(this, value, offset, 2, 0xffff, 0)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 8)
-    this[offset + 1] = value
+    this[offset + 1] = (value & 0xff)
   } else {
     objectWriteUInt16(this, value, offset, false)
   }
@@ -1579,7 +1850,7 @@ Buffer.prototype.writeUInt32LE = function writeUInt32LE (value, offset, noAssert
     this[offset + 3] = (value >>> 24)
     this[offset + 2] = (value >>> 16)
     this[offset + 1] = (value >>> 8)
-    this[offset] = value
+    this[offset] = (value & 0xff)
   } else {
     objectWriteUInt32(this, value, offset, true)
   }
@@ -1594,7 +1865,7 @@ Buffer.prototype.writeUInt32BE = function writeUInt32BE (value, offset, noAssert
     this[offset] = (value >>> 24)
     this[offset + 1] = (value >>> 16)
     this[offset + 2] = (value >>> 8)
-    this[offset + 3] = value
+    this[offset + 3] = (value & 0xff)
   } else {
     objectWriteUInt32(this, value, offset, false)
   }
@@ -1647,7 +1918,7 @@ Buffer.prototype.writeInt8 = function writeInt8 (value, offset, noAssert) {
   if (!noAssert) checkInt(this, value, offset, 1, 0x7f, -0x80)
   if (!Buffer.TYPED_ARRAY_SUPPORT) value = Math.floor(value)
   if (value < 0) value = 0xff + value + 1
-  this[offset] = value
+  this[offset] = (value & 0xff)
   return offset + 1
 }
 
@@ -1656,7 +1927,7 @@ Buffer.prototype.writeInt16LE = function writeInt16LE (value, offset, noAssert) 
   offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = value
+    this[offset] = (value & 0xff)
     this[offset + 1] = (value >>> 8)
   } else {
     objectWriteUInt16(this, value, offset, true)
@@ -1670,7 +1941,7 @@ Buffer.prototype.writeInt16BE = function writeInt16BE (value, offset, noAssert) 
   if (!noAssert) checkInt(this, value, offset, 2, 0x7fff, -0x8000)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     this[offset] = (value >>> 8)
-    this[offset + 1] = value
+    this[offset + 1] = (value & 0xff)
   } else {
     objectWriteUInt16(this, value, offset, false)
   }
@@ -1682,7 +1953,7 @@ Buffer.prototype.writeInt32LE = function writeInt32LE (value, offset, noAssert) 
   offset = offset | 0
   if (!noAssert) checkInt(this, value, offset, 4, 0x7fffffff, -0x80000000)
   if (Buffer.TYPED_ARRAY_SUPPORT) {
-    this[offset] = value
+    this[offset] = (value & 0xff)
     this[offset + 1] = (value >>> 8)
     this[offset + 2] = (value >>> 16)
     this[offset + 3] = (value >>> 24)
@@ -1701,7 +1972,7 @@ Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) 
     this[offset] = (value >>> 24)
     this[offset + 1] = (value >>> 16)
     this[offset + 2] = (value >>> 8)
-    this[offset + 3] = value
+    this[offset + 3] = (value & 0xff)
   } else {
     objectWriteUInt32(this, value, offset, false)
   }
@@ -1772,9 +2043,16 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
   }
 
   var len = end - start
+  var i
 
-  if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
-    for (var i = 0; i < len; i++) {
+  if (this === target && start < targetStart && targetStart < end) {
+    // descending copy from end
+    for (i = len - 1; i >= 0; i--) {
+      target[i + targetStart] = this[i + start]
+    }
+  } else if (len < 1000 || !Buffer.TYPED_ARRAY_SUPPORT) {
+    // ascending copy from start
+    for (i = 0; i < len; i++) {
       target[i + targetStart] = this[i + start]
     }
   } else {
@@ -1850,7 +2128,7 @@ Buffer._augment = function _augment (arr) {
   // save reference to original Uint8Array set method before overwriting
   arr._set = arr.set
 
-  // deprecated, will be removed in node 0.13+
+  // deprecated
   arr.get = BP.get
   arr.set = BP.set
 
@@ -1906,7 +2184,7 @@ Buffer._augment = function _augment (arr) {
   return arr
 }
 
-var INVALID_BASE64_RE = /[^+\/0-9A-z\-]/g
+var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
 
 function base64clean (str) {
   // Node strips out invalid characters like \n and \t from the string, base64-js does not
@@ -1936,28 +2214,15 @@ function utf8ToBytes (string, units) {
   var length = string.length
   var leadSurrogate = null
   var bytes = []
-  var i = 0
 
-  for (; i < length; i++) {
+  for (var i = 0; i < length; i++) {
     codePoint = string.charCodeAt(i)
 
     // is surrogate component
     if (codePoint > 0xD7FF && codePoint < 0xE000) {
       // last char was a lead
-      if (leadSurrogate) {
-        // 2 leads in a row
-        if (codePoint < 0xDC00) {
-          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-          leadSurrogate = codePoint
-          continue
-        } else {
-          // valid surrogate pair
-          codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
-          leadSurrogate = null
-        }
-      } else {
+      if (!leadSurrogate) {
         // no lead yet
-
         if (codePoint > 0xDBFF) {
           // unexpected trail
           if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
@@ -1966,17 +2231,29 @@ function utf8ToBytes (string, units) {
           // unpaired lead
           if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
           continue
-        } else {
-          // valid lead
-          leadSurrogate = codePoint
-          continue
         }
+
+        // valid lead
+        leadSurrogate = codePoint
+
+        continue
       }
+
+      // 2 leads in a row
+      if (codePoint < 0xDC00) {
+        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+        leadSurrogate = codePoint
+        continue
+      }
+
+      // valid surrogate pair
+      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
     } else if (leadSurrogate) {
       // valid bmp char, but last char was a lead
       if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-      leadSurrogate = null
     }
+
+    leadSurrogate = null
 
     // encode utf8
     if (codePoint < 0x80) {
@@ -1995,7 +2272,7 @@ function utf8ToBytes (string, units) {
         codePoint >> 0x6 & 0x3F | 0x80,
         codePoint & 0x3F | 0x80
       )
-    } else if (codePoint < 0x200000) {
+    } else if (codePoint < 0x110000) {
       if ((units -= 4) < 0) break
       bytes.push(
         codePoint >> 0x12 | 0xF0,
@@ -2048,144 +2325,18 @@ function blitBuffer (src, dst, offset, length) {
   return i
 }
 
-function decodeUtf8Char (str) {
-  try {
-    return decodeURIComponent(str)
-  } catch (err) {
-    return String.fromCharCode(0xFFFD) // UTF 8 invalid char
-  }
-}
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"base64-js":6,"ieee754":9,"isarray":8}],8:[function(require,module,exports){
+var toString = {}.toString;
 
-},{"base64-js":7,"ieee754":8,"is-array":9}],7:[function(require,module,exports){
-var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
+};
 
-;(function (exports) {
-	'use strict';
-
-  var Arr = (typeof Uint8Array !== 'undefined')
-    ? Uint8Array
-    : Array
-
-	var PLUS   = '+'.charCodeAt(0)
-	var SLASH  = '/'.charCodeAt(0)
-	var NUMBER = '0'.charCodeAt(0)
-	var LOWER  = 'a'.charCodeAt(0)
-	var UPPER  = 'A'.charCodeAt(0)
-	var PLUS_URL_SAFE = '-'.charCodeAt(0)
-	var SLASH_URL_SAFE = '_'.charCodeAt(0)
-
-	function decode (elt) {
-		var code = elt.charCodeAt(0)
-		if (code === PLUS ||
-		    code === PLUS_URL_SAFE)
-			return 62 // '+'
-		if (code === SLASH ||
-		    code === SLASH_URL_SAFE)
-			return 63 // '/'
-		if (code < NUMBER)
-			return -1 //no match
-		if (code < NUMBER + 10)
-			return code - NUMBER + 26 + 26
-		if (code < UPPER + 26)
-			return code - UPPER
-		if (code < LOWER + 26)
-			return code - LOWER + 26
-	}
-
-	function b64ToByteArray (b64) {
-		var i, j, l, tmp, placeHolders, arr
-
-		if (b64.length % 4 > 0) {
-			throw new Error('Invalid string. Length must be a multiple of 4')
-		}
-
-		// the number of equal signs (place holders)
-		// if there are two placeholders, than the two characters before it
-		// represent one byte
-		// if there is only one, then the three characters before it represent 2 bytes
-		// this is just a cheap hack to not do indexOf twice
-		var len = b64.length
-		placeHolders = '=' === b64.charAt(len - 2) ? 2 : '=' === b64.charAt(len - 1) ? 1 : 0
-
-		// base64 is 4/3 + up to two characters of the original data
-		arr = new Arr(b64.length * 3 / 4 - placeHolders)
-
-		// if there are placeholders, only get up to the last complete 4 chars
-		l = placeHolders > 0 ? b64.length - 4 : b64.length
-
-		var L = 0
-
-		function push (v) {
-			arr[L++] = v
-		}
-
-		for (i = 0, j = 0; i < l; i += 4, j += 3) {
-			tmp = (decode(b64.charAt(i)) << 18) | (decode(b64.charAt(i + 1)) << 12) | (decode(b64.charAt(i + 2)) << 6) | decode(b64.charAt(i + 3))
-			push((tmp & 0xFF0000) >> 16)
-			push((tmp & 0xFF00) >> 8)
-			push(tmp & 0xFF)
-		}
-
-		if (placeHolders === 2) {
-			tmp = (decode(b64.charAt(i)) << 2) | (decode(b64.charAt(i + 1)) >> 4)
-			push(tmp & 0xFF)
-		} else if (placeHolders === 1) {
-			tmp = (decode(b64.charAt(i)) << 10) | (decode(b64.charAt(i + 1)) << 4) | (decode(b64.charAt(i + 2)) >> 2)
-			push((tmp >> 8) & 0xFF)
-			push(tmp & 0xFF)
-		}
-
-		return arr
-	}
-
-	function uint8ToBase64 (uint8) {
-		var i,
-			extraBytes = uint8.length % 3, // if we have 1 byte left, pad 2 bytes
-			output = "",
-			temp, length
-
-		function encode (num) {
-			return lookup.charAt(num)
-		}
-
-		function tripletToBase64 (num) {
-			return encode(num >> 18 & 0x3F) + encode(num >> 12 & 0x3F) + encode(num >> 6 & 0x3F) + encode(num & 0x3F)
-		}
-
-		// go through the array every three bytes, we'll deal with trailing stuff later
-		for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
-			temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
-			output += tripletToBase64(temp)
-		}
-
-		// pad the end with zeros, but make sure to not forget the extra bytes
-		switch (extraBytes) {
-			case 1:
-				temp = uint8[uint8.length - 1]
-				output += encode(temp >> 2)
-				output += encode((temp << 4) & 0x3F)
-				output += '=='
-				break
-			case 2:
-				temp = (uint8[uint8.length - 2] << 8) + (uint8[uint8.length - 1])
-				output += encode(temp >> 10)
-				output += encode((temp >> 4) & 0x3F)
-				output += encode((temp << 2) & 0x3F)
-				output += '='
-				break
-		}
-
-		return output
-	}
-
-	exports.toByteArray = b64ToByteArray
-	exports.fromByteArray = uint8ToBase64
-}(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
-
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var nBits = -7
@@ -2198,12 +2349,12 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   e = s & ((1 << (-nBits)) - 1)
   s >>= (-nBits)
   nBits += eLen
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   m = e & ((1 << (-nBits)) - 1)
   e >>= (-nBits)
   nBits += mLen
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   if (e === 0) {
     e = 1 - eBias
@@ -2218,7 +2369,7 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
 
 exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var e, m, c
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
@@ -2251,7 +2402,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       m = 0
       e = eMax
     } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen)
+      m = ((value * c) - 1) * Math.pow(2, mLen)
       e = e + eBias
     } else {
       m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
@@ -2268,266 +2419,260 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],9:[function(require,module,exports){
-
-/**
- * isArray
- */
-
-var isArray = Array.isArray;
-
-/**
- * toString
- */
-
-var str = Object.prototype.toString;
-
-/**
- * Whether or not the given `val`
- * is an array.
- *
- * example:
- *
- *        isArray([]);
- *        // > true
- *        isArray(arguments);
- *        // > false
- *        isArray('');
- *        // > false
- *
- * @param {mixed} val
- * @return {bool}
- */
-
-module.exports = isArray || function (val) {
-  return !! val && '[object Array]' == str.call(val);
-};
-
 },{}],10:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
+;(function () { // closure for web browsers
 
-// resolves . and .. elements in a path array with directory names there
-// must be no slashes, empty elements, or device names (c:\) in the array
-// (so also no leading and trailing slashes - it does not distinguish
-// relative and absolute paths)
-function normalizeArray(parts, allowAboveRoot) {
-  // if the path tries to go above the root, `up` ends up > 0
-  var up = 0;
-  for (var i = parts.length - 1; i >= 0; i--) {
-    var last = parts[i];
-    if (last === '.') {
-      parts.splice(i, 1);
-    } else if (last === '..') {
-      parts.splice(i, 1);
-      up++;
-    } else if (up) {
-      parts.splice(i, 1);
-      up--;
-    }
-  }
-
-  // if the path is allowed to go above the root, restore leading ..s
-  if (allowAboveRoot) {
-    for (; up--; up) {
-      parts.unshift('..');
-    }
-  }
-
-  return parts;
+if (typeof module === 'object' && module.exports) {
+  module.exports = LRUCache
+} else {
+  // just set the global for non-node platforms.
+  this.LRUCache = LRUCache
 }
 
-// Split a filename into [root, dir, basename, ext], unix version
-// 'root' is just a slash, or nothing.
-var splitPathRe =
-    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-var splitPath = function(filename) {
-  return splitPathRe.exec(filename).slice(1);
-};
-
-// path.resolve([from ...], to)
-// posix version
-exports.resolve = function() {
-  var resolvedPath = '',
-      resolvedAbsolute = false;
-
-  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    var path = (i >= 0) ? arguments[i] : process.cwd();
-
-    // Skip empty and invalid entries
-    if (typeof path !== 'string') {
-      throw new TypeError('Arguments to path.resolve must be strings');
-    } else if (!path) {
-      continue;
-    }
-
-    resolvedPath = path + '/' + resolvedPath;
-    resolvedAbsolute = path.charAt(0) === '/';
-  }
-
-  // At this point the path should be resolved to a full absolute path, but
-  // handle relative paths to be safe (might happen when process.cwd() fails)
-
-  // Normalize the path
-  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
-    return !!p;
-  }), !resolvedAbsolute).join('/');
-
-  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-};
-
-// path.normalize(path)
-// posix version
-exports.normalize = function(path) {
-  var isAbsolute = exports.isAbsolute(path),
-      trailingSlash = substr(path, -1) === '/';
-
-  // Normalize the path
-  path = normalizeArray(filter(path.split('/'), function(p) {
-    return !!p;
-  }), !isAbsolute).join('/');
-
-  if (!path && !isAbsolute) {
-    path = '.';
-  }
-  if (path && trailingSlash) {
-    path += '/';
-  }
-
-  return (isAbsolute ? '/' : '') + path;
-};
-
-// posix version
-exports.isAbsolute = function(path) {
-  return path.charAt(0) === '/';
-};
-
-// posix version
-exports.join = function() {
-  var paths = Array.prototype.slice.call(arguments, 0);
-  return exports.normalize(filter(paths, function(p, index) {
-    if (typeof p !== 'string') {
-      throw new TypeError('Arguments to path.join must be strings');
-    }
-    return p;
-  }).join('/'));
-};
-
-
-// path.relative(from, to)
-// posix version
-exports.relative = function(from, to) {
-  from = exports.resolve(from).substr(1);
-  to = exports.resolve(to).substr(1);
-
-  function trim(arr) {
-    var start = 0;
-    for (; start < arr.length; start++) {
-      if (arr[start] !== '') break;
-    }
-
-    var end = arr.length - 1;
-    for (; end >= 0; end--) {
-      if (arr[end] !== '') break;
-    }
-
-    if (start > end) return [];
-    return arr.slice(start, end - start + 1);
-  }
-
-  var fromParts = trim(from.split('/'));
-  var toParts = trim(to.split('/'));
-
-  var length = Math.min(fromParts.length, toParts.length);
-  var samePartsLength = length;
-  for (var i = 0; i < length; i++) {
-    if (fromParts[i] !== toParts[i]) {
-      samePartsLength = i;
-      break;
-    }
-  }
-
-  var outputParts = [];
-  for (var i = samePartsLength; i < fromParts.length; i++) {
-    outputParts.push('..');
-  }
-
-  outputParts = outputParts.concat(toParts.slice(samePartsLength));
-
-  return outputParts.join('/');
-};
-
-exports.sep = '/';
-exports.delimiter = ':';
-
-exports.dirname = function(path) {
-  var result = splitPath(path),
-      root = result[0],
-      dir = result[1];
-
-  if (!root && !dir) {
-    // No dirname whatsoever
-    return '.';
-  }
-
-  if (dir) {
-    // It has a dirname, strip trailing slash
-    dir = dir.substr(0, dir.length - 1);
-  }
-
-  return root + dir;
-};
-
-
-exports.basename = function(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
-  if (ext && f.substr(-1 * ext.length) === ext) {
-    f = f.substr(0, f.length - ext.length);
-  }
-  return f;
-};
-
-
-exports.extname = function(path) {
-  return splitPath(path)[3];
-};
-
-function filter (xs, f) {
-    if (xs.filter) return xs.filter(f);
-    var res = [];
-    for (var i = 0; i < xs.length; i++) {
-        if (f(xs[i], i, xs)) res.push(xs[i]);
-    }
-    return res;
+function hOP (obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj, key)
 }
 
-// String.prototype.substr - negative index don't work in IE8
-var substr = 'ab'.substr(-1) === 'b'
-    ? function (str, start, len) { return str.substr(start, len) }
-    : function (str, start, len) {
-        if (start < 0) start = str.length + start;
-        return str.substr(start, len);
+function naiveLength () { return 1 }
+
+function LRUCache (options) {
+  if (!(this instanceof LRUCache))
+    return new LRUCache(options)
+
+  if (typeof options === 'number')
+    options = { max: options }
+
+  if (!options)
+    options = {}
+
+  this._max = options.max
+  // Kind of weird to have a default max of Infinity, but oh well.
+  if (!this._max || !(typeof this._max === "number") || this._max <= 0 )
+    this._max = Infinity
+
+  this._lengthCalculator = options.length || naiveLength
+  if (typeof this._lengthCalculator !== "function")
+    this._lengthCalculator = naiveLength
+
+  this._allowStale = options.stale || false
+  this._maxAge = options.maxAge || null
+  this._dispose = options.dispose
+  this.reset()
+}
+
+// resize the cache when the max changes.
+Object.defineProperty(LRUCache.prototype, "max",
+  { set : function (mL) {
+      if (!mL || !(typeof mL === "number") || mL <= 0 ) mL = Infinity
+      this._max = mL
+      if (this._length > this._max) trim(this)
     }
-;
+  , get : function () { return this._max }
+  , enumerable : true
+  })
+
+// resize the cache when the lengthCalculator changes.
+Object.defineProperty(LRUCache.prototype, "lengthCalculator",
+  { set : function (lC) {
+      if (typeof lC !== "function") {
+        this._lengthCalculator = naiveLength
+        this._length = this._itemCount
+        for (var key in this._cache) {
+          this._cache[key].length = 1
+        }
+      } else {
+        this._lengthCalculator = lC
+        this._length = 0
+        for (var key in this._cache) {
+          this._cache[key].length = this._lengthCalculator(this._cache[key].value)
+          this._length += this._cache[key].length
+        }
+      }
+
+      if (this._length > this._max) trim(this)
+    }
+  , get : function () { return this._lengthCalculator }
+  , enumerable : true
+  })
+
+Object.defineProperty(LRUCache.prototype, "length",
+  { get : function () { return this._length }
+  , enumerable : true
+  })
+
+
+Object.defineProperty(LRUCache.prototype, "itemCount",
+  { get : function () { return this._itemCount }
+  , enumerable : true
+  })
+
+LRUCache.prototype.forEach = function (fn, thisp) {
+  thisp = thisp || this
+  var i = 0;
+  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
+    i++
+    var hit = this._lruList[k]
+    if (this._maxAge && (Date.now() - hit.now > this._maxAge)) {
+      del(this, hit)
+      if (!this._allowStale) hit = undefined
+    }
+    if (hit) {
+      fn.call(thisp, hit.value, hit.key, this)
+    }
+  }
+}
+
+LRUCache.prototype.keys = function () {
+  var keys = new Array(this._itemCount)
+  var i = 0
+  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
+    var hit = this._lruList[k]
+    keys[i++] = hit.key
+  }
+  return keys
+}
+
+LRUCache.prototype.values = function () {
+  var values = new Array(this._itemCount)
+  var i = 0
+  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
+    var hit = this._lruList[k]
+    values[i++] = hit.value
+  }
+  return values
+}
+
+LRUCache.prototype.reset = function () {
+  if (this._dispose && this._cache) {
+    for (var k in this._cache) {
+      this._dispose(k, this._cache[k].value)
+    }
+  }
+
+  this._cache = Object.create(null) // hash of items by key
+  this._lruList = Object.create(null) // list of items in order of use recency
+  this._mru = 0 // most recently used
+  this._lru = 0 // least recently used
+  this._length = 0 // number of items in the list
+  this._itemCount = 0
+}
+
+// Provided for debugging/dev purposes only. No promises whatsoever that
+// this API stays stable.
+LRUCache.prototype.dump = function () {
+  return this._cache
+}
+
+LRUCache.prototype.dumpLru = function () {
+  return this._lruList
+}
+
+LRUCache.prototype.set = function (key, value) {
+  if (hOP(this._cache, key)) {
+    // dispose of the old one before overwriting
+    if (this._dispose) this._dispose(key, this._cache[key].value)
+    if (this._maxAge) this._cache[key].now = Date.now()
+    this._cache[key].value = value
+    this.get(key)
+    return true
+  }
+
+  var len = this._lengthCalculator(value)
+  var age = this._maxAge ? Date.now() : 0
+  var hit = new Entry(key, value, this._mru++, len, age)
+
+  // oversized objects fall out of cache automatically.
+  if (hit.length > this._max) {
+    if (this._dispose) this._dispose(key, value)
+    return false
+  }
+
+  this._length += hit.length
+  this._lruList[hit.lu] = this._cache[key] = hit
+  this._itemCount ++
+
+  if (this._length > this._max) trim(this)
+  return true
+}
+
+LRUCache.prototype.has = function (key) {
+  if (!hOP(this._cache, key)) return false
+  var hit = this._cache[key]
+  if (this._maxAge && (Date.now() - hit.now > this._maxAge)) {
+    return false
+  }
+  return true
+}
+
+LRUCache.prototype.get = function (key) {
+  return get(this, key, true)
+}
+
+LRUCache.prototype.peek = function (key) {
+  return get(this, key, false)
+}
+
+LRUCache.prototype.pop = function () {
+  var hit = this._lruList[this._lru]
+  del(this, hit)
+  return hit || null
+}
+
+LRUCache.prototype.del = function (key) {
+  del(this, this._cache[key])
+}
+
+function get (self, key, doUse) {
+  var hit = self._cache[key]
+  if (hit) {
+    if (self._maxAge && (Date.now() - hit.now > self._maxAge)) {
+      del(self, hit)
+      if (!self._allowStale) hit = undefined
+    } else {
+      if (doUse) use(self, hit)
+    }
+    if (hit) hit = hit.value
+  }
+  return hit
+}
+
+function use (self, hit) {
+  shiftLU(self, hit)
+  hit.lu = self._mru ++
+  if (self._maxAge) hit.now = Date.now()
+  self._lruList[hit.lu] = hit
+}
+
+function trim (self) {
+  while (self._lru < self._mru && self._length > self._max)
+    del(self, self._lruList[self._lru])
+}
+
+function shiftLU (self, hit) {
+  delete self._lruList[ hit.lu ]
+  while (self._lru < self._mru && !self._lruList[self._lru]) self._lru ++
+}
+
+function del (self, hit) {
+  if (hit) {
+    if (self._dispose) self._dispose(hit.key, hit.value)
+    self._length -= hit.length
+    self._itemCount --
+    delete self._cache[ hit.key ]
+    shiftLU(self, hit)
+  }
+}
+
+// classy, since V8 prefers predictable objects.
+function Entry (key, value, lu, length, now) {
+  this.key = key
+  this.value = value
+  this.lu = lu
+  this.length = length
+  this.now = now
+}
+
+})()
 
 },{}],11:[function(require,module,exports){
 ;(function (require, exports, module, platform) {
@@ -3604,281 +3749,231 @@ function regExpEscape (s) {
     typeof process === "object" ? process.platform : "win32"
   )
 
-},{"lru-cache":12,"path":10,"sigmund":13}],12:[function(require,module,exports){
-;(function () { // closure for web browsers
+},{"lru-cache":10,"path":12,"sigmund":13}],12:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-if (typeof module === 'object' && module.exports) {
-  module.exports = LRUCache
-} else {
-  // just set the global for non-node platforms.
-  this.LRUCache = LRUCache
-}
-
-function hOP (obj, key) {
-  return Object.prototype.hasOwnProperty.call(obj, key)
-}
-
-function naiveLength () { return 1 }
-
-function LRUCache (options) {
-  if (!(this instanceof LRUCache))
-    return new LRUCache(options)
-
-  if (typeof options === 'number')
-    options = { max: options }
-
-  if (!options)
-    options = {}
-
-  this._max = options.max
-  // Kind of weird to have a default max of Infinity, but oh well.
-  if (!this._max || !(typeof this._max === "number") || this._max <= 0 )
-    this._max = Infinity
-
-  this._lengthCalculator = options.length || naiveLength
-  if (typeof this._lengthCalculator !== "function")
-    this._lengthCalculator = naiveLength
-
-  this._allowStale = options.stale || false
-  this._maxAge = options.maxAge || null
-  this._dispose = options.dispose
-  this.reset()
-}
-
-// resize the cache when the max changes.
-Object.defineProperty(LRUCache.prototype, "max",
-  { set : function (mL) {
-      if (!mL || !(typeof mL === "number") || mL <= 0 ) mL = Infinity
-      this._max = mL
-      if (this._length > this._max) trim(this)
-    }
-  , get : function () { return this._max }
-  , enumerable : true
-  })
-
-// resize the cache when the lengthCalculator changes.
-Object.defineProperty(LRUCache.prototype, "lengthCalculator",
-  { set : function (lC) {
-      if (typeof lC !== "function") {
-        this._lengthCalculator = naiveLength
-        this._length = this._itemCount
-        for (var key in this._cache) {
-          this._cache[key].length = 1
-        }
-      } else {
-        this._lengthCalculator = lC
-        this._length = 0
-        for (var key in this._cache) {
-          this._cache[key].length = this._lengthCalculator(this._cache[key].value)
-          this._length += this._cache[key].length
-        }
-      }
-
-      if (this._length > this._max) trim(this)
-    }
-  , get : function () { return this._lengthCalculator }
-  , enumerable : true
-  })
-
-Object.defineProperty(LRUCache.prototype, "length",
-  { get : function () { return this._length }
-  , enumerable : true
-  })
-
-
-Object.defineProperty(LRUCache.prototype, "itemCount",
-  { get : function () { return this._itemCount }
-  , enumerable : true
-  })
-
-LRUCache.prototype.forEach = function (fn, thisp) {
-  thisp = thisp || this
-  var i = 0
-  var itemCount = this._itemCount
-
-  for (var k = this._mru - 1; k >= 0 && i < itemCount; k--) if (this._lruList[k]) {
-    i++
-    var hit = this._lruList[k]
-    if (isStale(this, hit)) {
-      del(this, hit)
-      if (!this._allowStale) hit = undefined
-    }
-    if (hit) {
-      fn.call(thisp, hit.value, hit.key, this)
-    }
-  }
-}
-
-LRUCache.prototype.keys = function () {
-  var keys = new Array(this._itemCount)
-  var i = 0
-  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
-    var hit = this._lruList[k]
-    keys[i++] = hit.key
-  }
-  return keys
-}
-
-LRUCache.prototype.values = function () {
-  var values = new Array(this._itemCount)
-  var i = 0
-  for (var k = this._mru - 1; k >= 0 && i < this._itemCount; k--) if (this._lruList[k]) {
-    var hit = this._lruList[k]
-    values[i++] = hit.value
-  }
-  return values
-}
-
-LRUCache.prototype.reset = function () {
-  if (this._dispose && this._cache) {
-    for (var k in this._cache) {
-      this._dispose(k, this._cache[k].value)
+// resolves . and .. elements in a path array with directory names there
+// must be no slashes, empty elements, or device names (c:\) in the array
+// (so also no leading and trailing slashes - it does not distinguish
+// relative and absolute paths)
+function normalizeArray(parts, allowAboveRoot) {
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var last = parts[i];
+    if (last === '.') {
+      parts.splice(i, 1);
+    } else if (last === '..') {
+      parts.splice(i, 1);
+      up++;
+    } else if (up) {
+      parts.splice(i, 1);
+      up--;
     }
   }
 
-  this._cache = Object.create(null) // hash of items by key
-  this._lruList = Object.create(null) // list of items in order of use recency
-  this._mru = 0 // most recently used
-  this._lru = 0 // least recently used
-  this._length = 0 // number of items in the list
-  this._itemCount = 0
-}
-
-// Provided for debugging/dev purposes only. No promises whatsoever that
-// this API stays stable.
-LRUCache.prototype.dump = function () {
-  return this._cache
-}
-
-LRUCache.prototype.dumpLru = function () {
-  return this._lruList
-}
-
-LRUCache.prototype.set = function (key, value, maxAge) {
-  maxAge = maxAge || this._maxAge
-  var now = maxAge ? Date.now() : 0
-
-  if (hOP(this._cache, key)) {
-    // dispose of the old one before overwriting
-    if (this._dispose)
-      this._dispose(key, this._cache[key].value)
-
-    this._cache[key].now = now
-    this._cache[key].maxAge = maxAge
-    this._cache[key].value = value
-    this.get(key)
-    return true
-  }
-
-  var len = this._lengthCalculator(value)
-  var hit = new Entry(key, value, this._mru++, len, now, maxAge)
-
-  // oversized objects fall out of cache automatically.
-  if (hit.length > this._max) {
-    if (this._dispose) this._dispose(key, value)
-    return false
-  }
-
-  this._length += hit.length
-  this._lruList[hit.lu] = this._cache[key] = hit
-  this._itemCount ++
-
-  if (this._length > this._max)
-    trim(this)
-
-  return true
-}
-
-LRUCache.prototype.has = function (key) {
-  if (!hOP(this._cache, key)) return false
-  var hit = this._cache[key]
-  if (isStale(this, hit)) {
-    return false
-  }
-  return true
-}
-
-LRUCache.prototype.get = function (key) {
-  return get(this, key, true)
-}
-
-LRUCache.prototype.peek = function (key) {
-  return get(this, key, false)
-}
-
-LRUCache.prototype.pop = function () {
-  var hit = this._lruList[this._lru]
-  del(this, hit)
-  return hit || null
-}
-
-LRUCache.prototype.del = function (key) {
-  del(this, this._cache[key])
-}
-
-function get (self, key, doUse) {
-  var hit = self._cache[key]
-  if (hit) {
-    if (isStale(self, hit)) {
-      del(self, hit)
-      if (!self._allowStale) hit = undefined
-    } else {
-      if (doUse) use(self, hit)
+  // if the path is allowed to go above the root, restore leading ..s
+  if (allowAboveRoot) {
+    for (; up--; up) {
+      parts.unshift('..');
     }
-    if (hit) hit = hit.value
   }
-  return hit
+
+  return parts;
 }
 
-function isStale(self, hit) {
-  if (!hit || (!hit.maxAge && !self._maxAge)) return false
-  var stale = false;
-  var diff = Date.now() - hit.now
-  if (hit.maxAge) {
-    stale = diff > hit.maxAge
-  } else {
-    stale = self._maxAge && (diff > self._maxAge)
+// Split a filename into [root, dir, basename, ext], unix version
+// 'root' is just a slash, or nothing.
+var splitPathRe =
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+var splitPath = function(filename) {
+  return splitPathRe.exec(filename).slice(1);
+};
+
+// path.resolve([from ...], to)
+// posix version
+exports.resolve = function() {
+  var resolvedPath = '',
+      resolvedAbsolute = false;
+
+  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
+    var path = (i >= 0) ? arguments[i] : process.cwd();
+
+    // Skip empty and invalid entries
+    if (typeof path !== 'string') {
+      throw new TypeError('Arguments to path.resolve must be strings');
+    } else if (!path) {
+      continue;
+    }
+
+    resolvedPath = path + '/' + resolvedPath;
+    resolvedAbsolute = path.charAt(0) === '/';
   }
-  return stale;
-}
 
-function use (self, hit) {
-  shiftLU(self, hit)
-  hit.lu = self._mru ++
-  self._lruList[hit.lu] = hit
-}
+  // At this point the path should be resolved to a full absolute path, but
+  // handle relative paths to be safe (might happen when process.cwd() fails)
 
-function trim (self) {
-  while (self._lru < self._mru && self._length > self._max)
-    del(self, self._lruList[self._lru])
-}
+  // Normalize the path
+  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
+    return !!p;
+  }), !resolvedAbsolute).join('/');
 
-function shiftLU (self, hit) {
-  delete self._lruList[ hit.lu ]
-  while (self._lru < self._mru && !self._lruList[self._lru]) self._lru ++
-}
+  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+};
 
-function del (self, hit) {
-  if (hit) {
-    if (self._dispose) self._dispose(hit.key, hit.value)
-    self._length -= hit.length
-    self._itemCount --
-    delete self._cache[ hit.key ]
-    shiftLU(self, hit)
+// path.normalize(path)
+// posix version
+exports.normalize = function(path) {
+  var isAbsolute = exports.isAbsolute(path),
+      trailingSlash = substr(path, -1) === '/';
+
+  // Normalize the path
+  path = normalizeArray(filter(path.split('/'), function(p) {
+    return !!p;
+  }), !isAbsolute).join('/');
+
+  if (!path && !isAbsolute) {
+    path = '.';
   }
+  if (path && trailingSlash) {
+    path += '/';
+  }
+
+  return (isAbsolute ? '/' : '') + path;
+};
+
+// posix version
+exports.isAbsolute = function(path) {
+  return path.charAt(0) === '/';
+};
+
+// posix version
+exports.join = function() {
+  var paths = Array.prototype.slice.call(arguments, 0);
+  return exports.normalize(filter(paths, function(p, index) {
+    if (typeof p !== 'string') {
+      throw new TypeError('Arguments to path.join must be strings');
+    }
+    return p;
+  }).join('/'));
+};
+
+
+// path.relative(from, to)
+// posix version
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
+
+  function trim(arr) {
+    var start = 0;
+    for (; start < arr.length; start++) {
+      if (arr[start] !== '') break;
+    }
+
+    var end = arr.length - 1;
+    for (; end >= 0; end--) {
+      if (arr[end] !== '') break;
+    }
+
+    if (start > end) return [];
+    return arr.slice(start, end - start + 1);
+  }
+
+  var fromParts = trim(from.split('/'));
+  var toParts = trim(to.split('/'));
+
+  var length = Math.min(fromParts.length, toParts.length);
+  var samePartsLength = length;
+  for (var i = 0; i < length; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      samePartsLength = i;
+      break;
+    }
+  }
+
+  var outputParts = [];
+  for (var i = samePartsLength; i < fromParts.length; i++) {
+    outputParts.push('..');
+  }
+
+  outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+  return outputParts.join('/');
+};
+
+exports.sep = '/';
+exports.delimiter = ':';
+
+exports.dirname = function(path) {
+  var result = splitPath(path),
+      root = result[0],
+      dir = result[1];
+
+  if (!root && !dir) {
+    // No dirname whatsoever
+    return '.';
+  }
+
+  if (dir) {
+    // It has a dirname, strip trailing slash
+    dir = dir.substr(0, dir.length - 1);
+  }
+
+  return root + dir;
+};
+
+
+exports.basename = function(path, ext) {
+  var f = splitPath(path)[2];
+  // TODO: make this comparison case-insensitive on windows?
+  if (ext && f.substr(-1 * ext.length) === ext) {
+    f = f.substr(0, f.length - ext.length);
+  }
+  return f;
+};
+
+
+exports.extname = function(path) {
+  return splitPath(path)[3];
+};
+
+function filter (xs, f) {
+    if (xs.filter) return xs.filter(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i], i, xs)) res.push(xs[i]);
+    }
+    return res;
 }
 
-// classy, since V8 prefers predictable objects.
-function Entry (key, value, lu, length, now, maxAge) {
-  this.key = key
-  this.value = value
-  this.lu = lu
-  this.length = length
-  this.now = now
-  if (maxAge) this.maxAge = maxAge
-}
-
-})()
+// String.prototype.substr - negative index don't work in IE8
+var substr = 'ab'.substr(-1) === 'b'
+    ? function (str, start, len) { return str.substr(start, len) }
+    : function (str, start, len) {
+        if (start < 0) start = str.length + start;
+        return str.substr(start, len);
+    }
+;
 
 },{}],13:[function(require,module,exports){
 module.exports = sigmund
@@ -3948,7 +4043,7 @@ Object.keys(Buffer).forEach(function (p) {
 module.exports = FilerBuffer;
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":6}],15:[function(require,module,exports){
+},{"buffer":7}],15:[function(require,module,exports){
 var O_READ = 'READ';
 var O_WRITE = 'WRITE';
 var O_CREATE = 'CREATE';
@@ -3970,11 +4065,20 @@ module.exports = {
   WSQL_SIZE: 5 * 1024 * 1024,
   WSQL_DESC: "FileSystem Storage",
 
-  MODE_FILE: 'FILE',
-  MODE_DIRECTORY: 'DIRECTORY',
-  MODE_SYMBOLIC_LINK: 'SYMLINK',
-  MODE_META: 'META',
+  NODE_TYPE_FILE: 'FILE',
+  NODE_TYPE_DIRECTORY: 'DIRECTORY',
+  NODE_TYPE_SYMBOLIC_LINK: 'SYMLINK',
+  NODE_TYPE_META: 'META',
 
+  S_IFREG: 0x8000,
+  S_IFDIR: 0x4000,
+  S_IFLNK: 0xA000,
+
+  DEFAULT_DIR_PERMISSIONS: 0x1ED, // 755
+  DEFAULT_FILE_PERMISSIONS: 0x1A4, // 644
+  FULL_READ_WRITE_EXEC_PERMISSIONS: 0x1FF, // 777
+  READ_WRITE_PERMISSIONS: 0x1B6, /// 666
+  
   SYMLOOP_MAX: 10,
 
   BINARY_MIME_TYPE: 'application/octet-stream',
@@ -4027,15 +4131,59 @@ module.exports = {
   ENVIRONMENT: {
     TMP: '/tmp',
     PATH: ''
+  },
+
+  // Duplicate Node's fs.constants
+  fsConstants: {
+    O_RDONLY: 0,
+    O_WRONLY: 1,
+    O_RDWR: 2,
+    S_IFMT: 61440,
+    S_IFREG: 32768,
+    S_IFDIR: 16384,
+    S_IFCHR: 8192,
+    S_IFBLK: 24576,
+    S_IFIFO: 4096,
+    S_IFLNK: 40960,
+    S_IFSOCK: 49152,
+    O_CREAT: 512,
+    O_EXCL: 2048,
+    O_NOCTTY: 131072,
+    O_TRUNC: 1024,
+    O_APPEND: 8,
+    O_DIRECTORY: 1048576,
+    O_NOFOLLOW: 256,
+    O_SYNC: 128,
+    O_DSYNC: 4194304,
+    O_SYMLINK: 2097152,
+    O_NONBLOCK: 4,
+    S_IRWXU: 448,
+    S_IRUSR: 256,
+    S_IWUSR: 128,
+    S_IXUSR: 64,
+    S_IRWXG: 56,
+    S_IRGRP: 32,
+    S_IWGRP: 16,
+    S_IXGRP: 8,
+    S_IRWXO: 7,
+    S_IROTH: 4,
+    S_IWOTH: 2,
+    S_IXOTH: 1,
+    F_OK: 0,
+    R_OK: 4,
+    W_OK: 2,
+    X_OK: 1,
+    UV_FS_COPYFILE_EXCL: 1,
+    COPYFILE_EXCL: 1
   }
 };
 
 },{}],16:[function(require,module,exports){
-var MODE_FILE = require('./constants.js').MODE_FILE;
+var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
   this.id = id;
-  this.type = type || MODE_FILE;
+  this.type = type || NODE_TYPE_FILE;
 };
 
 },{"./constants.js":15}],17:[function(require,module,exports){
@@ -4055,7 +4203,7 @@ module.exports = {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":6}],18:[function(require,module,exports){
+},{"buffer":7}],18:[function(require,module,exports){
 var errors = {};
 [
   /**
@@ -4172,10 +4320,14 @@ var isAbsolutePath = Path.isAbsolute;
 var isNullPath = Path.isNull;
 
 var Constants = require('../constants.js');
-var MODE_FILE = Constants.MODE_FILE;
-var MODE_DIRECTORY = Constants.MODE_DIRECTORY;
-var MODE_SYMBOLIC_LINK = Constants.MODE_SYMBOLIC_LINK;
-var MODE_META = Constants.MODE_META;
+var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
+var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
+var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
+var NODE_TYPE_META = Constants.NODE_TYPE_META;
+
+var DEFAULT_FILE_PERMISSIONS = Constants.DEFAULT_FILE_PERMISSIONS;
+var DEFAULT_DIR_PERMISSIONS = Constants.DEFAULT_DIR_PERMISSIONS;
+var FULL_READ_WRITE_EXEC_PERMISSIONS = Constants.FULL_READ_WRITE_EXEC_PERMISSIONS;
 
 var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
 var SUPER_NODE_ID = Constants.SUPER_NODE_ID;
@@ -4237,8 +4389,6 @@ function update_node_times(context, path, node, times, callback) {
   }
 
   function complete(error) {
-    // Queue this change so we can send watch events.
-    // Unlike node.js, we send the full path vs. basename/dirname only.
     context.changes.push({ event: 'change', path: path });
     callback(error);
   }
@@ -4255,9 +4405,9 @@ function update_node_times(context, path, node, times, callback) {
  */
 // in: file or directory path
 // out: new node representing file/directory
-function make_node(context, path, mode, callback) {
-  if(mode !== MODE_DIRECTORY && mode !== MODE_FILE) {
-    return callback(new Errors.EINVAL('mode must be a directory or file', path));
+function make_node(context, path, type, callback) {
+  if(type !== NODE_TYPE_DIRECTORY && type !== NODE_TYPE_FILE) {
+    return callback(new Errors.EINVAL('type must be a directory or file', path));
   }
 
   path = normalize(path);
@@ -4272,7 +4422,7 @@ function make_node(context, path, mode, callback) {
   function create_node_in_parent(error, parentDirectoryNode) {
     if(error) {
       callback(error);
-    } else if(parentDirectoryNode.mode !== MODE_DIRECTORY) {
+    } else if(parentDirectoryNode.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       parentNode = parentDirectoryNode;
@@ -4297,7 +4447,10 @@ function make_node(context, path, mode, callback) {
       callback(error);
     } else {
       parentNodeData = result;
-      Node.create({guid: context.guid, mode: mode}, function(error, result) {
+      Node.create({
+        guid: context.guid,
+        type: type
+      }, function(error, result) {
         if(error) {
           callback(error);
           return;
@@ -4324,7 +4477,7 @@ function make_node(context, path, mode, callback) {
     if(error) {
       callback(error);
     } else {
-      parentNodeData[name] = new DirectoryEntry(node.id, mode);
+      parentNodeData[name] = new DirectoryEntry(node.id, type);
       context.putObject(parentNode.data, parentNodeData, update_time);
     }
   }
@@ -4350,7 +4503,7 @@ function find_node(context, path, callback) {
   function read_root_directory_node(error, superNode) {
     if(error) {
       callback(error);
-    } else if(!superNode || superNode.mode !== MODE_META || !superNode.rnode) {
+    } else if(!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
       callback(new Errors.EFILESYSTEMERROR());
     } else {
       context.getObject(superNode.rnode, check_root_directory_node);
@@ -4372,7 +4525,7 @@ function find_node(context, path, callback) {
   function read_parent_directory_data(error, parentDirectoryNode) {
     if(error) {
       callback(error);
-    } else if(parentDirectoryNode.mode !== MODE_DIRECTORY || !parentDirectoryNode.data) {
+    } else if(parentDirectoryNode.type !== NODE_TYPE_DIRECTORY || !parentDirectoryNode.data) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       context.getObject(parentDirectoryNode.data, get_node_from_parent_directory_data);
@@ -4398,7 +4551,7 @@ function find_node(context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      if(node.mode == MODE_SYMBOLIC_LINK) {
+      if(node.type === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
         if(followedCount > SYMLOOP_MAX){
           callback(new Errors.ELOOP(null, path));
@@ -4415,14 +4568,14 @@ function find_node(context, path, callback) {
     data = normalize(data);
     parentPath = dirname(data);
     name = basename(data);
-    if(ROOT_DIRECTORY_NAME == name) {
+    if(ROOT_DIRECTORY_NAME === name) {
       context.getObject(SUPER_NODE_ID, read_root_directory_node);
     } else {
       find_node(context, parentPath, read_parent_directory_data);
     }
   }
 
-  if(ROOT_DIRECTORY_NAME == name) {
+  if(ROOT_DIRECTORY_NAME === name) {
     context.getObject(SUPER_NODE_ID, read_root_directory_node);
   } else {
     find_node(context, parentPath, read_parent_directory_data);
@@ -4490,7 +4643,11 @@ function ensure_root_directory(context, callback) {
     if(error) {
       callback(error);
     } else {
-      Node.create({guid: context.guid, id: superNode.rnode, mode: MODE_DIRECTORY}, function(error, result) {
+      Node.create({
+        guid: context.guid,
+        id: superNode.rnode,
+        type: NODE_TYPE_DIRECTORY
+      }, function(error, result) {
         if(error) {
           callback(error);
           return;
@@ -4551,7 +4708,10 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       parentDirectoryData = result;
-      Node.create({guid: context.guid, mode: MODE_DIRECTORY}, function(error, result) {
+      Node.create({
+        guid: context.guid,
+        type: NODE_TYPE_DIRECTORY
+      }, function(error, result) {
         if(error) {
           callback(error);
           return;
@@ -4585,7 +4745,7 @@ function make_directory(context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, MODE_DIRECTORY);
+      parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, NODE_TYPE_DIRECTORY);
       context.putObject(parentDirectoryNode.data, parentDirectoryData, update_time);
     }
   }
@@ -4618,7 +4778,7 @@ function remove_directory(context, path, callback) {
   function check_if_node_exists(error, result) {
     if(error) {
       callback(error);
-    } else if(ROOT_DIRECTORY_NAME == name) {
+    } else if(ROOT_DIRECTORY_NAME === name) {
       callback(new Errors.EBUSY(null, path));
     } else if(!_(result).has(name)) {
       callback(new Errors.ENOENT(null, path));
@@ -4632,7 +4792,7 @@ function remove_directory(context, path, callback) {
   function check_if_node_is_directory(error, result) {
     if(error) {
       callback(error);
-    } else if(result.mode != MODE_DIRECTORY) {
+    } else if(result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
@@ -4699,7 +4859,7 @@ function open_file(context, path, flags, callback) {
 
   var followedCount = 0;
 
-  if(ROOT_DIRECTORY_NAME == name) {
+  if(ROOT_DIRECTORY_NAME === name) {
     if(_(flags).contains(O_WRITE)) {
       callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
     } else {
@@ -4712,7 +4872,7 @@ function open_file(context, path, flags, callback) {
   function read_directory_data(error, result) {
     if(error) {
       callback(error);
-    } else if(result.mode !== MODE_DIRECTORY) {
+    } else if(result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOENT(null, path));
     } else {
       directoryNode = result;
@@ -4730,7 +4890,7 @@ function open_file(context, path, flags, callback) {
           callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
-          if(directoryEntry.type == MODE_DIRECTORY && _(flags).contains(O_WRITE)) {
+          if(directoryEntry.type === NODE_TYPE_DIRECTORY && _(flags).contains(O_WRITE)) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
@@ -4751,7 +4911,7 @@ function open_file(context, path, flags, callback) {
       callback(error);
     } else {
       var node = result;
-      if(node.mode == MODE_SYMBOLIC_LINK) {
+      if(node.type === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
         if(followedCount > SYMLOOP_MAX){
           callback(new Errors.ELOOP(null, path));
@@ -4768,7 +4928,7 @@ function open_file(context, path, flags, callback) {
     data = normalize(data);
     parentPath = dirname(data);
     name = basename(data);
-    if(ROOT_DIRECTORY_NAME == name) {
+    if(ROOT_DIRECTORY_NAME === name) {
       if(_(flags).contains(O_WRITE)) {
         callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
       } else {
@@ -4788,7 +4948,10 @@ function open_file(context, path, flags, callback) {
   }
 
   function write_file_node() {
-    Node.create({guid: context.guid, mode: MODE_FILE}, function(error, result) {
+    Node.create({
+      guid: context.guid,
+      type: NODE_TYPE_FILE
+    }, function(error, result) {
       if(error) {
         callback(error);
         return;
@@ -4822,7 +4985,7 @@ function open_file(context, path, flags, callback) {
     if(error) {
       callback(error);
     } else {
-      directoryData[name] = new DirectoryEntry(fileNode.id, MODE_FILE);
+      directoryData[name] = new DirectoryEntry(fileNode.id, NODE_TYPE_FILE);
       context.putObject(directoryNode.data, directoryData, update_time);
     }
   }
@@ -4977,7 +5140,7 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
   function read_file_data(error, result) {
     if(error) {
       callback(error);
-    } else if(result.mode === 'DIRECTORY') {
+    } else if(result.type === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EISDIR('the named file is a directory', ofd.path));
     } else {
       fileNode = result;
@@ -5006,7 +5169,7 @@ function lstat_file(context, path, callback) {
   var directoryNode;
   var directoryData;
 
-  if(ROOT_DIRECTORY_NAME == name) {
+  if(ROOT_DIRECTORY_NAME === name) {
     find_node(context, path, callback);
   } else {
     find_node(context, parentPath, read_directory_data);
@@ -5043,18 +5206,20 @@ function link_node(context, oldpath, newpath, callback) {
   newpath = normalize(newpath);
   var newname = basename(newpath);
   var newParentPath = dirname(newpath);
+  var ctime = Date.now();
 
   var oldDirectoryNode;
   var oldDirectoryData;
   var newDirectoryNode;
   var newDirectoryData;
+  var fileNodeID;
   var fileNode;
 
   function update_time(error) {
     if(error) {
       callback(error);
     } else {
-      update_node_times(context, newpath,  fileNode, { ctime: Date.now() }, callback);
+      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
     }
   }
 
@@ -5068,11 +5233,11 @@ function link_node(context, oldpath, newpath, callback) {
     }
   }
 
-  function read_directory_entry(error, result) {
+  function read_file_node(error, result) {
     if(error) {
       callback(error);
     } else {
-      context.getObject(newDirectoryData[newname].id, update_file_node);
+      context.getObject(fileNodeID, update_file_node);
     }
   }
 
@@ -5085,7 +5250,8 @@ function link_node(context, oldpath, newpath, callback) {
         callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
-        context.putObject(newDirectoryNode.data, newDirectoryData, read_directory_entry);
+        fileNodeID = newDirectoryData[newname].id;
+        context.putObject(newDirectoryNode.data, newDirectoryData, read_file_node);
       }
     }
   }
@@ -5106,7 +5272,7 @@ function link_node(context, oldpath, newpath, callback) {
       oldDirectoryData = result;
       if(!_(oldDirectoryData).has(oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
-      } else if(oldDirectoryData[oldname].type === 'DIRECTORY') {
+      } else if(oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
         callback(new Errors.EPERM('oldpath refers to a directory'));
       } else {
         find_node(context, newParentPath, read_new_directory_data);
@@ -5174,7 +5340,7 @@ function unlink_node(context, path, callback) {
   function check_if_node_is_directory(error, result) {
     if(error) {
       callback(error);
-    } else if(result.mode === 'DIRECTORY') {
+    } else if(result.type === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EPERM('unlink not permitted on directories', name));
     } else {
       update_file_node(null, result);
@@ -5226,7 +5392,7 @@ function read_directory(context, path, callback) {
   function read_directory_data(error, result) {
     if(error) {
       callback(error);
-    } else if(result.mode !== MODE_DIRECTORY) {
+    } else if(result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
@@ -5246,7 +5412,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   var directoryData;
   var fileNode;
 
-  if(ROOT_DIRECTORY_NAME == name) {
+  if(ROOT_DIRECTORY_NAME === name) {
     callback(new Errors.EEXIST(null, name));
   } else {
     find_node(context, parentPath, read_directory_data);
@@ -5275,15 +5441,27 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   }
 
   function write_file_node() {
-    Node.create({guid: context.guid, mode: MODE_SYMBOLIC_LINK}, function(error, result) {
+    Node.create({
+      guid: context.guid,
+      type: NODE_TYPE_SYMBOLIC_LINK
+    }, function(error, result) {
       if(error) {
         callback(error);
         return;
       }
       fileNode = result;
       fileNode.nlinks += 1;
+
+      // If the srcpath isn't absolute, resolve it relative to the dstpath
+      // but store both versions, since we'll use the relative one in readlink().
+      if(!isAbsolutePath(srcpath)) {
+        fileNode.symlink_relpath = srcpath;
+        srcpath = Path.resolve(parentPath, srcpath); 
+      }
+
       fileNode.size = srcpath.length;
       fileNode.data = srcpath;
+      
       context.putObject(fileNode.id, fileNode, update_directory_data);
     });
   }
@@ -5301,7 +5479,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
     if(error) {
       callback(error);
     } else {
-      directoryData[name] = new DirectoryEntry(fileNode.id, MODE_SYMBOLIC_LINK);
+      directoryData[name] = new DirectoryEntry(fileNode.id, NODE_TYPE_SYMBOLIC_LINK);
       context.putObject(directoryNode.data, directoryData, update_time);
     }
   }
@@ -5339,14 +5517,17 @@ function read_link(context, path, callback) {
     }
   }
 
-  function check_if_symbolic(error, result) {
+  function check_if_symbolic(error, fileNode) {
     if(error) {
       callback(error);
     } else {
-      if(result.mode != MODE_SYMBOLIC_LINK) {
+      if(fileNode.type !== NODE_TYPE_SYMBOLIC_LINK) {
         callback(new Errors.EINVAL('path not a symbolic link', path));
       } else {
-        callback(null, result.data);
+        // If we were originally given a relative path, return that now vs. the
+        // absolute path we've generated and use elsewhere internally.
+        var target = fileNode.symlink_relpath ? fileNode.symlink_relpath : fileNode.data;
+        callback(null, target);
       }
     }
   }
@@ -5360,7 +5541,7 @@ function truncate_file(context, path, length, callback) {
   function read_file_data (error, node) {
     if (error) {
       callback(error);
-    } else if(node.mode == MODE_DIRECTORY ) {
+    } else if(node.type === NODE_TYPE_DIRECTORY ) {
       callback(new Errors.EISDIR(null, path));
     } else{
       fileNode = node;
@@ -5416,7 +5597,7 @@ function ftruncate_file(context, ofd, length, callback) {
   function read_file_data (error, node) {
     if (error) {
       callback(error);
-    } else if(node.mode == MODE_DIRECTORY ) {
+    } else if(node.type === NODE_TYPE_DIRECTORY ) {
       callback(new Errors.EISDIR());
     } else{
       fileNode = node;
@@ -5479,7 +5660,7 @@ function utimes_file(context, path, atime, mtime, callback) {
     }
   }
 
-  if (typeof atime != 'number' || typeof mtime != 'number') {
+  if (typeof atime !== 'number' || typeof mtime !== 'number') {
     callback(new Errors.EINVAL('atime and mtime must be number', path));
   }
   else if (atime < 0 || mtime < 0) {
@@ -5500,7 +5681,7 @@ function futimes_file(context, ofd, atime, mtime, callback) {
     }
   }
 
-  if (typeof atime != 'number' || typeof mtime != 'number') {
+  if (typeof atime !== 'number' || typeof mtime !== 'number') {
     callback(new Errors.EINVAL('atime and mtime must be a number'));
   }
   else if (atime < 0 || mtime < 0) {
@@ -5521,7 +5702,7 @@ function setxattr_file(context, path, name, value, flag, callback) {
     set_extended_attribute(context, path, node, name, value, flag, callback);
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
   }
   else if (!name) {
@@ -5577,7 +5758,7 @@ function getxattr_file (context, path, name, callback) {
     }
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string', path));
   }
   else if (!name) {
@@ -5605,7 +5786,7 @@ function fgetxattr_file (context, ofd, name, callback) {
     }
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL());
   }
   else if (!name) {
@@ -5680,7 +5861,7 @@ function fremovexattr_file (context, ofd, name, callback) {
     }
   }
 
-  if (typeof name != 'string') {
+  if (typeof name !== 'string') {
     callback(new Errors.EINVAL('attribute name must be a string'));
   }
   else if (!name) {
@@ -5709,14 +5890,19 @@ function validate_file_options(options, enc, fileMode){
   return options;
 }
 
-function pathCheck(path, callback) {
+function pathCheck(path, allowRelative, callback) {
   var err;
+
+  if(typeof allowRelative === 'function') {
+    callback = allowRelative;
+    allowRelative = false;
+  }
 
   if(!path) {
     err = new Errors.EINVAL('Path must be a string', path);
   } else if(isNullPath(path)) {
     err = new Errors.EINVAL('Path must be a string without null bytes.', path);
-  } else if(!isAbsolutePath(path)) {
+  } else if(!allowRelative && !isAbsolutePath(path)) {
     err = new Errors.EINVAL('Path must be absolute.', path);
   }
 
@@ -5729,8 +5915,22 @@ function pathCheck(path, callback) {
 
 
 function open(fs, context, path, flags, mode, callback) {
-  // NOTE: we support the same signature as node with a `mode` arg,
-  // but ignore it.
+  /**
+   * NOTE: we support the same signature as node with a `mode` arg,
+   * but ignore it. We need to add it.  Here is what node.js does:
+   * function open(path, flags, mode, callback) {
+   *    path = getPathFromURL(path);
+   *  validatePath(path);
+   *  const flagsNumber = stringToFlags(flags);
+   *  if (arguments.length < 4) {
+   *    callback = makeCallback(mode);
+   *    mode = 0o666;
+   *  } else {
+   *    mode = validateAndMaskMode(mode, 'mode', 0o666);
+   *    callback = makeCallback(callback);
+   * }
+  */
+
   callback = arguments[arguments.length - 1];
   if(!pathCheck(path, callback)) return;
 
@@ -5767,14 +5967,20 @@ function close(fs, context, fd, callback) {
   }
 }
 
-function mknod(fs, context, path, mode, callback) {
+function mknod(fs, context, path, type, callback) {
   if(!pathCheck(path, callback)) return;
-  make_node(context, path, mode, callback);
+  make_node(context, path, type, callback);
 }
 
 function mkdir(fs, context, path, mode, callback) {
-  // NOTE: we support passing a mode arg, but we ignore it internally for now.
-  callback = arguments[arguments.length - 1];
+  if (arguments.length < 5) {
+    callback = mode;
+    mode = FULL_READ_WRITE_EXEC_PERMISSIONS;
+  } else {
+    mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
+    if(!mode) return;
+  }
+ 
   if(!pathCheck(path, callback)) return;
   make_directory(context, path, callback);
 }
@@ -5791,7 +5997,7 @@ function stat(fs, context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      var stats = new Stats(result, fs.name);
+      var stats = new Stats(path, result, fs.name);
       callback(null, stats);
     }
   }
@@ -5804,7 +6010,7 @@ function fstat(fs, context, fd, callback) {
     if(error) {
       callback(error);
     } else {
-      var stats = new Stats(result, fs.name);
+      var stats = new Stats(ofd.path, result, fs.name);
       callback(null, stats);
     }
   }
@@ -5877,7 +6083,7 @@ function readFile(fs, context, path, options, callback) {
         return callback(err);
       }
 
-      var stats = new Stats(fstatResult, fs.name);
+      var stats = new Stats(ofd.path, fstatResult, fs.name);
 
       if(stats.isDirectory()) {
         cleanup();
@@ -6003,6 +6209,121 @@ function exists(fs, context, path, callback) {
     callback(err ? false : true);
   }
   stat(fs, context, path, cb);
+}
+
+// Based on https://github.com/nodejs/node/blob/c700cc42da9cf73af9fec2098520a6c0a631d901/lib/internal/validators.js#L21
+var octalReg = /^[0-7]+$/;
+var modeDesc = 'must be a 32-bit unsigned integer or an octal string';
+function isUint32(value) {
+  return value === (value >>> 0);
+}
+// Validator for mode_t (the S_* constants). Valid numbers or octal strings
+// will be masked with 0o777 to be consistent with the behavior in POSIX APIs.
+function validateAndMaskMode(value, def, callback) {
+  if(typeof def === 'function') {
+    callback = def;
+    def = undefined;
+  }
+
+  if (isUint32(value)) {
+    return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isInteger(value)) {
+      callback(new Errors.EINVAL('mode not a valid an integer value', value));
+      return false;
+    } else {
+      // 2 ** 32 === 4294967296
+      callback(new Errors.EINVAL('mode not a valid an integer value', value));
+      return false;
+    }
+  }
+
+  if (typeof value === 'string') {
+    if (!octalReg.test(value)) {
+      callback(new Errors.EINVAL('mode not a valid octal string', value));
+      return false;
+    }
+    var parsed = parseInt(value, 8);
+    return parsed & FULL_READ_WRITE_EXEC_PERMISSIONS;
+  }
+
+  // TODO(BridgeAR): Only return `def` in case `value === null`
+  if (def !== undefined) {
+    return def;
+  }
+
+  callback(new Errors.EINVAL('mode not valid', value));
+  return false;
+}
+
+function chmod_file(context, path, mode, callback) {
+  path = normalize(path);
+
+  function update_mode(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      Node.setMode(mode, node);
+      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  if (typeof mode !== 'number') {
+    callback(new Errors.EINVAL('mode must be number', path));
+  }
+  else {
+    find_node(context, path, update_mode);
+  }
+}
+
+function fchmod_file(context, ofd, mode, callback) {
+  function update_mode(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.mode = mode;
+      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  if (typeof mode !== 'number') {
+    callback(new Errors.EINVAL('mode must be a number'));
+  }
+  else {
+    ofd.getNode(context, update_mode);
+  }
+}
+
+function chown_file(context, path, uid, gid, callback) {
+  path = normalize(path);
+
+  function update_owner(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.uid = uid;
+      node.gid = gid;
+      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  find_node(context, path, update_owner);
+}
+
+function fchown_file(context, ofd, uid, gid, callback) {
+  function update_owner(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.uid = uid;
+      node.gid = gid;
+      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
+    }
+  }
+
+  ofd.getNode(context, update_owner);
 }
 
 function getxattr(fs, context, path, name, callback) {
@@ -6136,6 +6457,58 @@ function futimes(fs, context, fd, atime, mtime, callback) {
   }
 }
 
+function chmod(fs, context, path, mode, callback) {
+  if(!pathCheck(path, callback)) return;
+  mode = validateAndMaskMode(mode, 'mode');
+  if(!mode) return;
+
+  chmod_file(context, path, mode, callback);
+}
+
+function fchmod(fs, context, fd, mode, callback) {
+  mode = validateAndMaskMode(mode, 'mode');
+  if(!mode) return;
+
+  var ofd = fs.openFiles[fd];
+  if(!ofd) {
+    callback(new Errors.EBADF());
+  } else if(!_(ofd.flags).contains(O_WRITE)) {
+    callback(new Errors.EBADF('descriptor does not permit writing'));
+  } else {
+    fchmod_file(context, ofd, mode, callback);
+  }
+}
+
+function chown(fs, context, path, uid, gid, callback) {
+  if(!pathCheck(path, callback)) return;
+  if(!isUint32(uid)) {
+    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
+  }
+  if(!isUint32(gid)) {
+    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
+  }
+
+  chown_file(context, path, uid, gid, callback);
+}
+
+function fchown(fs, context, fd, uid, gid, callback) {
+  if(!isUint32(uid)) {
+    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
+  }
+  if(!isUint32(gid)) {
+    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
+  }
+
+  var ofd = fs.openFiles[fd];
+  if(!ofd) {
+    callback(new Errors.EBADF());
+  } else if(!_(ofd.flags).contains(O_WRITE)) {
+    callback(new Errors.EBADF('descriptor does not permit writing'));
+  } else {
+    fchown_file(context, ofd, uid, gid, callback);
+  }
+}
+
 function rename(fs, context, oldpath, newpath, callback) {
   if(!pathCheck(oldpath, callback)) return;
   if(!pathCheck(newpath, callback)) return;
@@ -6149,12 +6522,15 @@ function rename(fs, context, oldpath, newpath, callback) {
   var newName = Path.basename(newpath);
   var oldParentDirectory, oldParentData;
   var newParentDirectory, newParentData;
+  var ctime = Date.now();
+  var fileNode;
 
-  function update_times(error, newNode) {
+  function update_times(error, result) {
     if(error) {
       callback(error);
     } else {
-      update_node_times(context, newpath,  newNode, { ctime: Date.now() }, callback);
+      fileNode = result;
+      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
     }
   }
 
@@ -6238,7 +6614,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   function check_node_type(error, node) {
     if(error) {
       callback(error);
-    } else if(node.mode === 'DIRECTORY') {
+    } else if(node.type === NODE_TYPE_DIRECTORY) {
       find_node(context, oldParentPath, read_parent_directory_data);
     } else {
       link_node(context, oldpath, newpath, unlink_old_file);
@@ -6251,8 +6627,13 @@ function rename(fs, context, oldpath, newpath, callback) {
 function symlink(fs, context, srcpath, dstpath, type, callback) {
   // NOTE: we support passing the `type` arg, but ignore it.
   callback = arguments[arguments.length - 1];
-  if(!pathCheck(srcpath, callback)) return;
+
+  // Special Case: allow srcpath to be relative, which we normally don't permit.
+  // If the srcpath is relative, we assume it's relative to the dirpath of 
+  // dstpath.
+  if(!pathCheck(srcpath, true, callback)) return;
   if(!pathCheck(dstpath, callback)) return;
+
   make_symbolic_link(context, srcpath, dstpath, callback);
 }
 
@@ -6268,7 +6649,7 @@ function lstat(fs, context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      var stats = new Stats(result, fs.name);
+      var stats = new Stats(path, result, fs.name);
       callback(null, stats);
     }
   }
@@ -6303,6 +6684,10 @@ function ftruncate(fs, context, fd, length, callback) {
 module.exports = {
   ensureRootDirectory: ensure_root_directory,
   open: open,
+  chmod: chmod,
+  fchmod: fchmod,
+  chown: chown,
+  fchown: fchown,
   close: close,
   mknod: mknod,
   mkdir: mkdir,
@@ -6431,6 +6816,9 @@ function FileSystem(options, callback) {
   fs.stdin = STDIN;
   fs.stdout = STDOUT;
   fs.stderr = STDERR;
+
+  // Expose Node's fs.constants to users
+  fs.constants = Constants.fsConstants;
 
   // Expose Shell constructor
   this.Shell = Shell.bind(undefined, this);
@@ -6606,6 +6994,10 @@ FileSystem.providers = providers;
  */
 [
   'open',
+  'chmod',
+  'fchmod',
+  'chown',
+  'fchown',
   'close',
   'mknod',
   'mkdir',
@@ -6758,13 +7150,39 @@ module.exports = {
 };
 
 },{"./buffer.js":14,"./errors.js":18,"./filesystem/interface.js":20,"./path.js":25,"./shell/shell.js":32}],23:[function(require,module,exports){
-var MODE_FILE = require('./constants.js').MODE_FILE;
+var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
+var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
+var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
+var NODE_TYPE_META = require('./constants.js').NODE_TYPE_META;
+
+var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
+
+var S_IFREG = require('./constants.js').S_IFREG;
+var S_IFDIR = require('./constants.js').S_IFDIR;
+var S_IFLNK = require('./constants.js').S_IFLNK;
+
+var DEFAULT_FILE_PERMISSIONS = require('./constants.js').DEFAULT_FILE_PERMISSIONS;
+var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
+
+function getMode(type, mode) {
+  switch(type) {
+    case NODE_TYPE_DIRECTORY:
+      return (mode || DEFAULT_DIR_PERMISSIONS) | S_IFDIR;
+    case NODE_TYPE_SYMBOLIC_LINK:
+      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFLNK;
+    /* jshint -W086 */
+    case NODE_TYPE_FILE:
+      // falls through
+    default:
+      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFREG;
+  }
+}
 
 function Node(options) {
   var now = Date.now();
 
   this.id = options.id;
-  this.mode = options.mode || MODE_FILE;  // node type (file, directory, etc)
+  this.type = options.type || NODE_TYPE_FILE;  // node type (file, directory, etc)
   this.size = options.size || 0; // size (bytes for files, entries for directories)
   this.atime = options.atime || now; // access time (will mirror ctime after creation)
   this.ctime = options.ctime || now; // creation/change time
@@ -6772,10 +7190,13 @@ function Node(options) {
   this.flags = options.flags || []; // file flags
   this.xattrs = options.xattrs || {}; // extended attributes
   this.nlinks = options.nlinks || 0; // links count
-  this.version = options.version || 0; // node version
-  this.blksize = undefined; // block size
-  this.nblocks = 1; // blocks count
   this.data = options.data; // id for data object
+  this.version = options.version || 1;
+
+  // permissions and flags
+  this.mode = options.mode || (getMode(this.type));
+  this.uid = options.uid || 0x0; // owner name
+  this.gid = options.gid || 0x0; // group name
 }
 
 // Make sure the options object has an id on property,
@@ -6808,6 +7229,11 @@ Node.create = function(options, callback) {
       callback(null, new Node(options));
     });
   });
+};
+
+// Update the node's mode (permissions), taking file type bits into account.
+Node.setMode = function(mode, node) {
+  node.mode = getMode(node.type, mode);
 };
 
 module.exports = Node;
@@ -7124,7 +7550,7 @@ module.exports = {
 };
 
 },{"./indexeddb.js":27,"./memory.js":28,"./websql.js":29}],27:[function(require,module,exports){
-(function (global,Buffer){
+(function (global){
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var IDB_RW = require('../constants.js').IDB_RW;
@@ -7216,12 +7642,7 @@ IndexedDBContext.prototype.putObject = function(key, value, callback) {
   this._put(key, value, callback);
 };
 IndexedDBContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
-  var buf;
-  if(!Buffer._useTypedArrays) { // workaround for fxos 1.3
-    buf = uint8BackedBuffer.toArrayBuffer();
-  } else {
-    buf = uint8BackedBuffer.buffer;
-  }
+  var buf = uint8BackedBuffer.buffer;
   this._put(key, buf, callback);
 };
 
@@ -7295,8 +7716,8 @@ IndexedDB.prototype.getReadWriteContext = function() {
 
 module.exports = IndexedDB;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"../buffer.js":14,"../constants.js":15,"../errors.js":18,"buffer":6}],28:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../buffer.js":14,"../constants.js":15,"../errors.js":18}],28:[function(require,module,exports){
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 // NOTE: prefer setImmediate to nextTick for proper recursion yielding.
 // see https://github.com/js-platform/filer/pull/24
@@ -7844,16 +8265,10 @@ Shell.prototype.ls = function(dir, options, callback) {
             callback(error);
             return;
           }
-          var entry = {
-            path: Path.basename(name),
-            links: stats.nlinks,
-            size: stats.size,
-            modified: stats.mtime,
-            type: stats.type
-          };
+          var entry = stats;
 
           if(options.recursive && stats.type === 'DIRECTORY') {
-            list(Path.join(pathname, entry.path), function(error, items) {
+            list(Path.join(pathname, entry.name), function(error, items) {
               if(error) {
                 callback(error);
                 return;
@@ -8158,28 +8573,34 @@ module.exports = Shell;
 
 },{"../../lib/async.js":1,"../encoding.js":17,"../errors.js":18,"../path.js":25,"./environment.js":31,"minimatch":11}],33:[function(require,module,exports){
 var Constants = require('./constants.js');
+var Path = require('./path.js');
 
-function Stats(fileNode, devName) {
-  this.node = fileNode.id;
+function Stats(path, fileNode, devName) {
   this.dev = devName;
+  this.node = fileNode.id;
+  this.type = fileNode.type;
   this.size = fileNode.size;
   this.nlinks = fileNode.nlinks;
   this.atime = fileNode.atime;
   this.mtime = fileNode.mtime;
   this.ctime = fileNode.ctime;
-  this.type = fileNode.mode;
+  this.version = fileNode.version;
+  this.mode = fileNode.mode;
+  this.uid = fileNode.uid;
+  this.gid = fileNode.gid;
+  this.name = Path.basename(path);
 }
 
 Stats.prototype.isFile = function() {
-  return this.type === Constants.MODE_FILE;
+  return this.type === Constants.NODE_TYPE_FILE;
 };
 
 Stats.prototype.isDirectory = function() {
-  return this.type === Constants.MODE_DIRECTORY;
+  return this.type === Constants.NODE_TYPE_DIRECTORY;
 };
 
 Stats.prototype.isSymbolicLink = function() {
-  return this.type === Constants.MODE_SYMBOLIC_LINK;
+  return this.type === Constants.NODE_TYPE_SYMBOLIC_LINK;
 };
 
 // These will always be false in Filer.
@@ -8193,14 +8614,14 @@ function() {
 
 module.exports = Stats;
 
-},{"./constants.js":15}],34:[function(require,module,exports){
+},{"./constants.js":15,"./path.js":25}],34:[function(require,module,exports){
 var Constants = require('./constants.js');
 
 function SuperNode(options) {
   var now = Date.now();
 
   this.id = Constants.SUPER_NODE_ID;
-  this.mode = Constants.MODE_META;
+  this.type = Constants.NODE_TYPE_META;
   this.atime = options.atime || now;
   this.ctime = options.ctime || now;
   this.mtime = options.mtime || now;

@@ -19,11 +19,20 @@ module.exports = {
   WSQL_SIZE: 5 * 1024 * 1024,
   WSQL_DESC: "FileSystem Storage",
 
-  MODE_FILE: 'FILE',
-  MODE_DIRECTORY: 'DIRECTORY',
-  MODE_SYMBOLIC_LINK: 'SYMLINK',
-  MODE_META: 'META',
+  NODE_TYPE_FILE: 'FILE',
+  NODE_TYPE_DIRECTORY: 'DIRECTORY',
+  NODE_TYPE_SYMBOLIC_LINK: 'SYMLINK',
+  NODE_TYPE_META: 'META',
 
+  S_IFREG: 0x8000,
+  S_IFDIR: 0x4000,
+  S_IFLNK: 0xA000,
+
+  DEFAULT_DIR_PERMISSIONS: 0x1ED, // 755
+  DEFAULT_FILE_PERMISSIONS: 0x1A4, // 644
+  FULL_READ_WRITE_EXEC_PERMISSIONS: 0x1FF, // 777
+  READ_WRITE_PERMISSIONS: 0x1B6, /// 666
+  
   SYMLOOP_MAX: 10,
 
   BINARY_MIME_TYPE: 'application/octet-stream',
@@ -76,5 +85,49 @@ module.exports = {
   ENVIRONMENT: {
     TMP: '/tmp',
     PATH: ''
+  },
+
+  // Duplicate Node's fs.constants
+  fsConstants: {
+    O_RDONLY: 0,
+    O_WRONLY: 1,
+    O_RDWR: 2,
+    S_IFMT: 61440,
+    S_IFREG: 32768,
+    S_IFDIR: 16384,
+    S_IFCHR: 8192,
+    S_IFBLK: 24576,
+    S_IFIFO: 4096,
+    S_IFLNK: 40960,
+    S_IFSOCK: 49152,
+    O_CREAT: 512,
+    O_EXCL: 2048,
+    O_NOCTTY: 131072,
+    O_TRUNC: 1024,
+    O_APPEND: 8,
+    O_DIRECTORY: 1048576,
+    O_NOFOLLOW: 256,
+    O_SYNC: 128,
+    O_DSYNC: 4194304,
+    O_SYMLINK: 2097152,
+    O_NONBLOCK: 4,
+    S_IRWXU: 448,
+    S_IRUSR: 256,
+    S_IWUSR: 128,
+    S_IXUSR: 64,
+    S_IRWXG: 56,
+    S_IRGRP: 32,
+    S_IWGRP: 16,
+    S_IXGRP: 8,
+    S_IRWXO: 7,
+    S_IROTH: 4,
+    S_IWOTH: 2,
+    S_IXOTH: 1,
+    F_OK: 0,
+    R_OK: 4,
+    W_OK: 2,
+    X_OK: 1,
+    UV_FS_COPYFILE_EXCL: 1,
+    COPYFILE_EXCL: 1
   }
 };

@@ -94,6 +94,9 @@ function FileSystem(options, callback) {
   fs.stdout = STDOUT;
   fs.stderr = STDERR;
 
+  // Expose Node's fs.constants to users
+  fs.constants = Constants.fsConstants;
+
   // Expose Shell constructor
   this.Shell = Shell.bind(undefined, this);
 
@@ -268,6 +271,10 @@ FileSystem.providers = providers;
  */
 [
   'open',
+  'chmod',
+  'fchmod',
+  'chown',
+  'fchown',
   'close',
   'mknod',
   'mkdir',

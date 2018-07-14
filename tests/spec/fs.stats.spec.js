@@ -1,4 +1,5 @@
 var Filer = require('../..');
+var Path = Filer.Path;
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
@@ -256,4 +257,41 @@ describe('fs.stats', function() {
       });
     });
   });
+
+  describe('generated name property', function() {
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
+    
+    it('should correct return name for a file', function(done) {
+      var fs = util.fs();
+      var filepath = '/a';
+
+      fs.writeFile(filepath, 'data', function(err) {
+        if(err) throw err;
+
+        fs.stat(filepath, function(err, stats) {
+          if(err) throw err;
+
+          expect(stats.name).to.equal(Path.basename(filepath));
+          done();
+        });
+      })
+    });
+
+    it('should correct return name for an fd', function(done) {
+      var fs = util.fs();
+      var filepath = '/a';
+
+      fs.open(filepath, 'w', function(err, fd) {
+        if(err) throw err;
+
+        fs.fstat(fd, function(err, stats) {
+          if(err) throw err;
+
+          expect(stats.name).to.equal(Path.basename(filepath));
+          done();
+        });
+      })
+    });
+  })
 });
