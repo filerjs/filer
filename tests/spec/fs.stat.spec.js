@@ -1,4 +1,3 @@
-var Filer = require('../..');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
@@ -27,7 +26,7 @@ describe('fs.stat', function() {
 
     fs.stat('/', function(error, result) {
       expect(error).not.to.exist;
-      expect(result).to.exit;
+      expect(result).to.exist;
 
       expect(result['node']).to.be.a('string');
       expect(result['dev']).to.equal(fs.name);

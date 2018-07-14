@@ -1,5 +1,4 @@
-var Filer = require('../..');
-var util = require('../lib/test-utils.js');
+var Filer = require('../../src');
 var expect = require('chai').expect;
 var setImmediate = require('../../lib/async.js').setImmediate;
 

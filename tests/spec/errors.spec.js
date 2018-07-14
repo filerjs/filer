@@ -1,4 +1,4 @@
-var Filer = require('../..');
+var Filer = require('../../src');
 var expect = require('chai').expect;
 
 describe("Filer.Errors", function() {

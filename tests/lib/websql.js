@@ -1,4 +1,4 @@
-var Filer = require('../..');
+var Filer = require('../../src');
 
 var needsCleanup = [];
 if(global.addEventListener) {

@@ -66,7 +66,6 @@ require("./spec/node-js/simple/test-fs-watch");
 require("./spec/node-js/simple/test-fs-watch-recursive");
 
 // Regressions, Bugs
-// NOTE: bugs/issue225.js has to be run outside this step, see gruntfile.js
 require("./bugs/issue105");
 require("./bugs/issue106");
 require("./bugs/issue239");

@@ -1,4 +1,4 @@
-var Path = require('../..').Path;
+var Path = require('../../src').Path;
 var expect = require('chai').expect;
 
 describe('Path.resolve does not work, issue357', function() {

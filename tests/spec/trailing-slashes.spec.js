@@ -1,4 +1,4 @@
-var Path = require('../..').Path;
+var Path = require('../../src').Path;
 var expect = require('chai').expect;
 
 describe('Path.normalize and trailing slashes', function() {
