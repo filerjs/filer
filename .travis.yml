@@ -1,9 +1,16 @@
+sudo: true
+
 language: node_js
 node_js:
-  - "8.11.3"
-before_install: npm install -g grunt-cli
+  - "lts/*"
+
+# Setup headless Chrome support
+# https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-the-Chrome-addon-in-the-headless-mode
+addons:
+  chrome: stable
+before_install:
+  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
+
 notifications:
   email: false
   irc: "irc.mozilla.org#filer"
-env:
-  - "FILER_UPSTREAM_URI=\"default\" FILER_UPSTREAM_BRANCH=\"default\" FILER_UPSTREAM_REMOTE_NAME=\"default\""
