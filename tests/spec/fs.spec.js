@@ -2,11 +2,11 @@ var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
-describe("fs", function() {
+describe('fs', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  it("is an object", function() {
+  it('is an object', function() {
     var fs = util.fs();
     expect(typeof fs).to.equal('object');
     expect(fs).to.be.an.instanceof(Filer.FileSystem);

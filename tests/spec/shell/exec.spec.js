@@ -13,7 +13,7 @@ describe('FileSystemShell.exec', function() {
   it('should be able to execute a command .js file from the filesystem', function(done) {
     var fs = util.fs();
     var shell = new fs.Shell();
-    var cmdString = "fs.writeFile(args[0], args[1], callback);";
+    var cmdString = 'fs.writeFile(args[0], args[1], callback);';
 
     fs.writeFile('/cmd.js', cmdString, function(error) {
       if(error) throw error;

@@ -1,7 +1,7 @@
 var util = require('../../../lib/test-utils.js');
 var expect = require('chai').expect;
 
-describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/test-fs-mkdir.js", function() {
+describe('node.js tests: https://github.com/joyent/node/blob/master/test/simple/test-fs-mkdir.js', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 

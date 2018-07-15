@@ -14,15 +14,15 @@ var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
 
 function getMode(type, mode) {
   switch(type) {
-    case NODE_TYPE_DIRECTORY:
-      return (mode || DEFAULT_DIR_PERMISSIONS) | S_IFDIR;
-    case NODE_TYPE_SYMBOLIC_LINK:
-      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFLNK;
+  case NODE_TYPE_DIRECTORY:
+    return (mode || DEFAULT_DIR_PERMISSIONS) | S_IFDIR;
+  case NODE_TYPE_SYMBOLIC_LINK:
+    return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFLNK;
     /* jshint -W086 */
-    case NODE_TYPE_FILE:
-      // falls through
-    default:
-      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFREG;
+  case NODE_TYPE_FILE:
+    // falls through
+  default:
+    return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFREG;
   }
 }
 

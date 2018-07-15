@@ -6,8 +6,8 @@ describe('node times (atime, mtime, ctime)', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  var dirname = "/dir";
-  var filename = "/dir/file";
+  var dirname = '/dir';
+  var filename = '/dir/file';
 
   function createTree(callback) {
     var fs = util.fs();
@@ -287,7 +287,7 @@ describe('node times (atime, mtime, ctime)', function() {
   });
 
   it('should update ctime, atime, mtime of parent dir when calling fs.mkdir()', function(done) {
-      var fs = util.fs();
+    var fs = util.fs();
 
     createTree(function() {
       stat('/', function(stats1) {

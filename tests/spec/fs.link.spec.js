@@ -43,7 +43,7 @@ describe('fs.link', function() {
 
   it('should create hard link to identical data node', function(done) {
     var fs = util.fs();
-    var contents = "Hello World!";
+    var contents = 'Hello World!';
 
     fs.writeFile('/file', contents, function(err) {
       if(err) throw err;

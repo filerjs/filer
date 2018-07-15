@@ -16,7 +16,7 @@ describe('fs.open', function() {
 
     fs.open('/tmp/myfile', 'w+', function(error, result) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       expect(result).not.to.exist;
       done();
     });
@@ -27,7 +27,7 @@ describe('fs.open', function() {
 
     fs.open('/myfile', 'r+', function(error, result) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       expect(result).not.to.exist;
       done();
     });
@@ -40,7 +40,7 @@ describe('fs.open', function() {
       if(error) throw error;
       fs.open('/tmp', 'w', function(error, result) {
         expect(error).to.exist;
-        expect(error.code).to.equal("EISDIR");
+        expect(error.code).to.equal('EISDIR');
         expect(result).not.to.exist;
         done();
       });
@@ -54,7 +54,7 @@ describe('fs.open', function() {
       if(error) throw error;
       fs.open('/tmp', 'a', function(error, result) {
         expect(error).to.exist;
-        expect(error.code).to.equal("EISDIR");
+        expect(error.code).to.equal('EISDIR');
         expect(result).not.to.exist;
         done();
       });

@@ -121,7 +121,7 @@ describe('path resolution', function() {
 
         fs.stat('/myfilelink1', function(error, result) {
           expect(error).to.exist;
-          expect(error.code).to.equal("ENOENT");
+          expect(error.code).to.equal('ENOENT');
           expect(result).not.to.exist;
           done();
         });
@@ -212,7 +212,7 @@ describe('path resolution', function() {
 
                 fs.stat('/mynotdirlink/myfile', function(error, result) {
                   expect(error).to.exist;
-                  expect(error.code).to.equal("ENOTDIR");
+                  expect(error.code).to.equal('ENOTDIR');
                   expect(result).not.to.exist;
                   done();
                 });

@@ -63,7 +63,7 @@ var splitPath = function(filename) {
 // path.resolve([from ...], to)
 function resolve() {
   var resolvedPath = '',
-      resolvedAbsolute = false;
+    resolvedAbsolute = false;
 
   for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
     // XXXfiler: we don't have process.cwd() so we use '/' as a fallback
@@ -92,7 +92,7 @@ function resolve() {
 // path.normalize(path)
 function normalize(path) {
   var isAbsolute = path.charAt(0) === '/',
-      trailingSlash = path.substr(-1) === '/';
+    trailingSlash = path.substr(-1) === '/';
 
   // Normalize the path
   path = normalizeArray(path.split('/').filter(function(p) {
@@ -162,8 +162,8 @@ function relative(from, to) {
 
 function dirname(path) {
   var result = splitPath(path),
-      root = result[0],
-      dir = result[1];
+    root = result[0],
+    dir = result[1];
 
   if (!root && !dir) {
     // No dirname whatsoever
@@ -185,7 +185,7 @@ function basename(path, ext) {
     f = f.substr(0, f.length - ext.length);
   }
   // XXXfiler: node.js just does `return f`
-  return f === "" ? "/" : f;
+  return f === '' ? '/' : f;
 }
 
 function extname(path) {

@@ -1,7 +1,7 @@
 var util = require('../../../lib/test-utils.js');
 var expect = require('chai').expect;
 
-describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/test-fs-null-bytes.js", function() {
+describe('node.js tests: https://github.com/joyent/node/blob/master/test/simple/test-fs-null-bytes.js', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
@@ -9,7 +9,7 @@ describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/
     var checks = [];
     var fnCount = 0;
     var fnTotal = 16;
-    var expected = "Path must be a string without null bytes.";
+    var expected = 'Path must be a string without null bytes.';
     var fs = util.fs();
 
     // Make sure function fails with null path error in callback.
@@ -47,8 +47,8 @@ describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/
     check(fs.appendFile,  '/foo\u0000bar');
     check(fs.truncate,    '/foo\u0000bar');
     check(fs.utimes,      '/foo\u0000bar', 0, 0);
-// Not implemented
-//    check(fs.realpath,    '/foo\u0000bar');
+    // Not implemented
+    //    check(fs.realpath,    '/foo\u0000bar');
     check(fs.chmod,       '/foo\u0000bar', '0644');
     check(fs.chown,       '/foo\u0000bar', 12, 34);
 

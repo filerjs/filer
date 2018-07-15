@@ -12,14 +12,14 @@ describe('fs.truncate', function() {
 
   it('should error when length is negative', function(done) {
     var fs = util.fs();
-    var contents = "This is a file.";
+    var contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, function(error) {
       if(error) throw error;
 
       fs.truncate('/myfile', -1, function(error) {
         expect(error).to.exist;
-        expect(error.code).to.equal("EINVAL");
+        expect(error.code).to.equal('EINVAL');
         done();
       });
     });
@@ -30,7 +30,7 @@ describe('fs.truncate', function() {
 
     fs.truncate('/', 0, function(error) {
       expect(error).to.exist;
-      expect(error.code).to.equal("EISDIR");
+      expect(error.code).to.equal('EISDIR');
       done();
     });
   });

@@ -17,7 +17,10 @@
   "bugs": "https://github.com/filerjs/filer/issues",
   "license": "BSD-2-Clause",
   "scripts": {
+    "eslint": "npm run lint",
+    "eslint:fix": "npm run lint:fix",
     "lint": "eslint src tests",
+    "lint:fix": "eslint --fix src tests",
     "test:manual": "parcel tests/index.html --out-dir tests/dist",
     "pretest": "npm run lint",
     "test": "npm run travis",

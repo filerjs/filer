@@ -1572,9 +1572,9 @@ function validate_flags(flags) {
 function validate_file_options(options, enc, fileMode){
   if(!options) {
     options = { encoding: enc, flag: fileMode };
-  } else if(typeof options === "function") {
+  } else if(typeof options === 'function') {
     options = { encoding: enc, flag: fileMode };
-  } else if(typeof options === "string") {
+  } else if(typeof options === 'string') {
     options = { encoding: options, flag: fileMode };
   }
   return options;
@@ -1832,10 +1832,10 @@ function writeFile(fs, context, path, data, options, callback) {
   }
 
   data = data || '';
-  if(typeof data === "number") {
+  if(typeof data === 'number') {
     data = '' + data;
   }
-  if(typeof data === "string" && options.encoding === 'utf8') {
+  if(typeof data === 'string' && options.encoding === 'utf8') {
     data = Encoding.encode(data);
   }
 
@@ -1869,10 +1869,10 @@ function appendFile(fs, context, path, data, options, callback) {
   }
 
   data = data || '';
-  if(typeof data === "number") {
+  if(typeof data === 'number') {
     data = '' + data;
   }
-  if(typeof data === "string" && options.encoding === 'utf8') {
+  if(typeof data === 'string' && options.encoding === 'utf8') {
     data = Encoding.encode(data);
   }
 

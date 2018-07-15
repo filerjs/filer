@@ -87,7 +87,7 @@ Shell.prototype.exec = function(path, args, callback) {
   callback = callback || function(){};
   path = Path.resolve(sh.pwd(), path);
 
-  fs.readFile(path, "utf8", function(error, data) {
+  fs.readFile(path, 'utf8', function(error, data) {
     if(error) {
       callback(error);
       return;
@@ -432,7 +432,7 @@ Shell.prototype.mkdirp = function(path, callback) {
  * `find` returns a flat array of absolute paths for all matching/found
  * paths as the final argument to the callback.
  */
- Shell.prototype.find = function(path, options, callback) {
+Shell.prototype.find = function(path, options, callback) {
   var sh = this;
   var fs = sh.fs;
   if(typeof options === 'function') {

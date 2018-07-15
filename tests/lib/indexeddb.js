@@ -40,7 +40,7 @@ function IndexedDBTestProvider(name) {
       request.onsuccess = finished;
       request.onerror = finished;
     } catch(e) {
-      console.log("Failed to delete test database", e);
+      console.log('Failed to delete test database', e);
       finished();
     }
   }

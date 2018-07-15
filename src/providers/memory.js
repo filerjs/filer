@@ -24,7 +24,7 @@ function MemoryContext(db, readOnly) {
 MemoryContext.prototype.clear = function(callback) {
   if(this.readOnly) {
     asyncCallback(function() {
-      callback("[MemoryContext] Error: write operation on read only context");
+      callback('[MemoryContext] Error: write operation on read only context');
     });
     return;
   }
@@ -49,7 +49,7 @@ MemoryContext.prototype.putBuffer =
 function(key, value, callback) {
   if(this.readOnly) {
     asyncCallback(function() {
-      callback("[MemoryContext] Error: write operation on read only context");
+      callback('[MemoryContext] Error: write operation on read only context');
     });
     return;
   }
@@ -60,7 +60,7 @@ function(key, value, callback) {
 MemoryContext.prototype.delete = function(key, callback) {
   if(this.readOnly) {
     asyncCallback(function() {
-      callback("[MemoryContext] Error: write operation on read only context");
+      callback('[MemoryContext] Error: write operation on read only context');
     });
     return;
   }

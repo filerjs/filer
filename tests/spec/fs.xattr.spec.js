@@ -288,7 +288,7 @@ describe('fs.xattr', function() {
             });
           });
         });
-      })
+      });
     });
   });
 

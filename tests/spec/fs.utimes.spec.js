@@ -126,7 +126,7 @@ describe('fs.utimes', function() {
         fs.fstat(ofd, function (error, stat) {
           expect(error).not.to.exist;
           expect(stat.mtime).to.equal(mtime);
-            done();
+          done();
         });
       });
     });

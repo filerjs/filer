@@ -15,7 +15,7 @@ describe('fs.symlink', function() {
 
     fs.symlink('/', '/tmp/mydir', function(error) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       done();
     });
   });
@@ -25,7 +25,7 @@ describe('fs.symlink', function() {
 
     fs.symlink('/tmp', '/', function(error) {
       expect(error).to.exist;
-      expect(error.code).to.equal("EEXIST");
+      expect(error.code).to.equal('EEXIST');
       done();
     });
   });

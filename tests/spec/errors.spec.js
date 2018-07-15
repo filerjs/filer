@@ -1,8 +1,8 @@
 var Filer = require('../../src');
 var expect = require('chai').expect;
 
-describe("Filer.Errors", function() {
-  it("has expected errors", function() {
+describe('Filer.Errors', function() {
+  it('has expected errors', function() {
     expect(Filer.Errors).to.exist;
 
     // By ctor -- if you add some to src/errors.js, also add here
@@ -165,12 +165,12 @@ describe("Filer.Errors", function() {
 
   it('should not include path in toString() when not provided', function() {
     var err = new Filer.Errors.ENOENT('This is the message');
-    expect(err.toString()).to.equal("ENOENT: This is the message");
+    expect(err.toString()).to.equal('ENOENT: This is the message');
   });
 
   it('should include path in toString() when provided', function() {
     var err = new Filer.Errors.ENOENT(null, '/this/is/the/path');
-    expect(err.toString()).to.equal("ENOENT: no such file or directory, '/this/is/the/path'");
+    expect(err.toString()).to.equal('ENOENT: no such file or directory, \'/this/is/the/path\'');
   });
 
   it('should include message and path info when provided', function() {

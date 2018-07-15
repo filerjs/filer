@@ -37,7 +37,7 @@ describe('FileSystemShell.env', function() {
 
     shell.cat(null, function(error, list) {
       expect(error).to.exist;
-      expect(error.code).to.equal("EINVAL");
+      expect(error.code).to.equal('EINVAL');
       expect(list).not.to.exist;
       done();
     });

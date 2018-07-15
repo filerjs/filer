@@ -274,7 +274,7 @@ describe('fs.stats', function() {
           expect(stats.name).to.equal(Path.basename(filepath));
           done();
         });
-      })
+      });
     });
 
     it('should correct return name for an fd', function(done) {
@@ -290,7 +290,7 @@ describe('fs.stats', function() {
           expect(stats.name).to.equal(Path.basename(filepath));
           done();
         });
-      })
+      });
     });
-  })
+  });
 });

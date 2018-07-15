@@ -16,7 +16,7 @@ describe('FileSystemShell.ls', function() {
 
     shell.cat(null, function(error, list) {
       expect(error).to.exist;
-      expect(error.code).to.equal("EINVAL");
+      expect(error.code).to.equal('EINVAL');
       expect(list).not.to.exist;
       done();
     });
@@ -25,8 +25,8 @@ describe('FileSystemShell.ls', function() {
   it('should return the contents of a simple dir', function(done) {
     var fs = util.fs();
     var shell = new fs.Shell();
-    var contents = "a";
-    var contents2 = "bb";
+    var contents = 'a';
+    var contents2 = 'bb';
 
     fs.writeFile('/file', contents, function(err) {
       if(err) throw err;
@@ -63,7 +63,7 @@ describe('FileSystemShell.ls', function() {
   it('should return the shallow contents of a dir tree', function(done) {
     var fs = util.fs();
     var shell = new fs.Shell();
-    var contents = "a";
+    var contents = 'a';
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -119,7 +119,7 @@ describe('FileSystemShell.ls', function() {
   it('should return the deep contents of a dir tree', function(done) {
     var fs = util.fs();
     var shell = new fs.Shell();
-    var contents = "a";
+    var contents = 'a';
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;

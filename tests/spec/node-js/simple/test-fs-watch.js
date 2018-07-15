@@ -9,7 +9,7 @@ var expect = require('chai').expect;
 var filenameOne = '/watch.txt';
 var filenameTwo = '/hasOwnProperty';
 
-describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/test-fs-watch.js", function() {
+describe('node.js tests: https://github.com/joyent/node/blob/master/test/simple/test-fs-watch.js', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
@@ -56,7 +56,7 @@ describe("node.js tests: https://github.com/joyent/node/blob/master/test/simple/
       if(error) throw error;
 
       var watcher = fs.watch('/tmp', function(event, filename) {
-// TODO: node thinks this should be 'rename', need to add rename along with change.
+        // TODO: node thinks this should be 'rename', need to add rename along with change.
         expect(event).to.equal('change');
         expect(filename).to.equal('/tmp');
         watcher.close();

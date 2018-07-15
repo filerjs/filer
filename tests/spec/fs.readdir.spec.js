@@ -15,7 +15,7 @@ describe('fs.readdir', function() {
 
     fs.readdir('/tmp/mydir', function(error, files) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       expect(files).not.to.exist;
       done();
     });
