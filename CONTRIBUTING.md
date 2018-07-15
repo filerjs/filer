@@ -17,7 +17,8 @@ npm install
 
 You can now run the following `npm` scripts:
 
-* `npm run lint` will run `eslint` on the `src` and `tests` directories.
+* `npm run lint` or `npm run eslint` will run `eslint` on the `src` and `tests` directories.
+* `npm run lint:fix` or `npm run eslint:fix` will run `eslint` with `--fix` on the `src` and `tests` directories, automatically fixing minor issues.
 * `npm run test:manual` will build the tests, and allow you to run them in a browser manually by loading http://localhost:1234.
 * `npm run karma-mocha` will build Filer and the tests, and finally run the tests in a headless Chrome browser.
 * `npm test` will run `lint` followed by `karma-chrome`, and is what we do on Travis.
