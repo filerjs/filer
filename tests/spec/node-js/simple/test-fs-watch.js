@@ -27,6 +27,7 @@ describe('node.js tests: https://github.com/joyent/node/blob/master/test/simple/
       watcher.close();
 
       fs.writeFile(filenameOne, 'hello again', function(error) {
+        if(error) throw error;
         expect(changes).to.equal(1);
         done();
       });
@@ -37,7 +38,6 @@ describe('node.js tests: https://github.com/joyent/node/blob/master/test/simple/
 
   it('should get change event for writeFile() using fs.watch() only', function(done) {
     var fs = util.fs();
-    var changes = 0;
 
     var watcher = fs.watch(filenameTwo, function(event, filename) {
       expect(event).to.equal('change');
