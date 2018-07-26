@@ -18,7 +18,7 @@ describe('FileSystemShell.exec', function() {
     fs.writeFile('/cmd.js', cmdString, function(error) {
       if(error) throw error;
 
-      shell.exec('/cmd.js', ['/test', 'hello world'], function(error, result) {
+      shell.exec('/cmd.js', ['/test', 'hello world'], function(error) {
         if(error) throw error;
 
         fs.readFile('/test', 'utf8', function(error, data) {
