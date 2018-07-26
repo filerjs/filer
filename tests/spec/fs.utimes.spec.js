@@ -154,8 +154,6 @@ describe('fs.utimes', function() {
 
   it('should update atime and mtime using current time if arguments are null', function(done) {
     var fs = util.fs();
-    var atimeEst;
-    var mtimeEst;
 
     fs.writeFile('/myfile', '', function (error) {
       if (error) throw error;
