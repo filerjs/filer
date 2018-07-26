@@ -1,3 +1,5 @@
+/* eslint no-console: 0 */
+
 var Buffer = require('../../../src').Buffer;
 var util = require('../../lib/test-utils.js');
 var expect = require('chai').expect;
@@ -43,7 +45,7 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
     });
 
     it('should allow putObject() and getObject()', function(done) {
-      provider.open(function(error, firstAccess) {
+      provider.open(function(error) {
         if(error) throw error;
 
         var context = provider.getReadWriteContext();
@@ -71,7 +73,7 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
     });
 
     it('should allow putBuffer() and getBuffer()', function(done) {
-      provider.open(function(error, firstAccess) {
+      provider.open(function(error) {
         if(error) throw error;
 
         var context = provider.getReadWriteContext();
@@ -91,7 +93,7 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
     });
 
     it('should allow zero-length Buffers with putBuffer() and getBuffer()', function(done) {
-      provider.open(function(error, firstAccess) {
+      provider.open(function(error) {
         if(error) throw error;
 
         var context = provider.getReadWriteContext();
@@ -112,7 +114,7 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
 
     it('should allow delete()', function(done) {
       var provider = _provider.provider;
-      provider.open(function(error, firstAccess) {
+      provider.open(function(error) {
         if(error) throw error;
 
         var context = provider.getReadWriteContext();
@@ -133,7 +135,7 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
     });
 
     it('should allow clear()', function(done) {
-      provider.open(function(error, firstAccess) {
+      provider.open(function(error) {
         if(error) throw error;
 
         var context = provider.getReadWriteContext();
@@ -143,7 +145,7 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
           context.putObject('key2', 'value2', function(error) {
             if(error) throw error;
 
-            context.clear(function(err) {
+            context.clear(function(error) {
               if(error) throw error;
 
               context.getObject('key1', function(error, result) {
