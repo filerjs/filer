@@ -41,6 +41,7 @@ describe('FileSystemShell.touch', function() {
 
       fs.stat('/newfile', function(error, stats) {
         expect(error).to.exist;
+        expect(stats).not.to.exist;
         done();
       });
     });
