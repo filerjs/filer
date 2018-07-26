@@ -9,7 +9,7 @@ describe('node times (atime, mtime, ctime) with mount flags', function() {
 
   function memoryFS(flags, callback) {
     var name = util.uniqueName();
-    var fs = new Filer.FileSystem({
+    return new Filer.FileSystem({
       name: name,
       flags: flags || [],
       provider: new Filer.FileSystem.providers.Memory(name)
