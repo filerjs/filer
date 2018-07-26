@@ -13,7 +13,6 @@ describe('fs.writeFile, fs.readFile', function() {
 
   it('should error when path is wrong to readFile', function(done) {
     var fs = util.fs();
-    var contents = 'This is a file.';
 
     fs.readFile('/no-such-file', 'utf8', function(error, data) {
       expect(error).to.exist;
@@ -67,8 +66,7 @@ describe('fs.writeFile, fs.readFile', function() {
 
   it('should write, read a binary file', function(done) {
     var fs = util.fs();
-    // String and utf8 binary encoded versions of the same thing:
-    var contents = 'This is a file.';
+    // String and utf8 binary encoded versions of the same thing: 'This is a file.'
     var binary = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
     fs.writeFile('/myfile', binary, function(error) {
