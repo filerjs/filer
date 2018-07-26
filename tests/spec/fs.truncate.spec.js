@@ -46,6 +46,7 @@ describe('fs.truncate', function() {
       var fd = result;
       fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
         if(error) throw error;
+        expect(result).to.equal(buffer.length);
 
         fs.close(fd, function(error) {
           if(error) throw error;
@@ -76,6 +77,7 @@ describe('fs.truncate', function() {
       var fd = result;
       fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
         if(error) throw error;
+        expect(result).to.equal(buffer.length);
 
         fs.close(fd, function(error) {
           if(error) throw error;
@@ -105,6 +107,7 @@ describe('fs.truncate', function() {
       var fd = result;
       fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
         if(error) throw error;
+        expect(result).to.equal(buffer.length);
 
         fs.close(fd, function(error) {
           if(error) throw error;
@@ -134,6 +137,7 @@ describe('fs.truncate', function() {
       var fd = result;
       fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
         if(error) throw error;
+        expect(result).to.equal(buffer.length);
 
         fs.ftruncate(fd, 0, function(error) {
           expect(error).not.to.exist;
@@ -159,6 +163,7 @@ describe('fs.truncate', function() {
       var fd = result;
       fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
         if(error) throw error;
+        expect(result).to.equal(buffer.length);
 
         fs.close(fd, function(error) {
           if(error) throw error;
