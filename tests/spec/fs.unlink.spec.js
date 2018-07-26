@@ -34,6 +34,7 @@ describe('fs.unlink', function() {
 
             fs.stat('/myfile', function(error, result) {
               expect(error).to.exist;
+              expect(result).not.to.exist;
               complete1 = true;
               maybeDone();
             });
@@ -65,6 +66,7 @@ describe('fs.unlink', function() {
 
           fs.lstat('/myFileLink', function (error, result) {
             expect(error).to.exist;
+            expect(result).not.to.exist;
 
             fs.lstat('/myotherfile', function (error, result) {
               if (error) throw error;
