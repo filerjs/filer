@@ -43,9 +43,9 @@ describe('fs.stats', function() {
 
       fs.open('/myfile', 'w+', function(error, fd) {
         if(error) throw error;
-        fs.close(fd, function(error, stats) {
+
+        fs.close(fd, function(error) {
           if(error) throw error;
-          expect(stats).to.exist;
 
           fs.symlink('/myfile', '/myfilelink', function(error) {
             if(error) throw error;

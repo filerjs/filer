@@ -21,6 +21,7 @@ describe('fs.read', function() {
       if(error) throw error;
       fs.write(fd, wbuffer, 0, wbuffer.length, 0, function(error, result) {
         if(error) throw error;
+        expect(result).to.equal(wbuffer.length);
 
         fs.read(fd, rbuffer, 0, rbuffer.length, 0, function(error, result) {
           expect(error).not.to.exist;
@@ -44,6 +45,7 @@ describe('fs.read', function() {
 
       fs.write(fd, wbuffer, 0, wbuffer.length, 0, function(error, result) {
         if(error) throw error;
+        expect(result).to.equal(wbuffer.length);
 
         fs.read(fd, rbuffer, 0, rbuffer.length / 2, undefined, function(error, result) {
           if(error) throw error;
@@ -70,7 +72,7 @@ describe('fs.read', function() {
     buf2.fill(0);
 
     fs.mkdir('/mydir', function(error) {
-      if(error) throw err;
+      if(error) throw error;
 
       fs.open('/mydir', 'r', function(error, fd) {
         if(error) throw error;
