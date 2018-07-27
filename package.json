@@ -23,7 +23,7 @@
     "lint:fix": "eslint --fix src tests",
     "test:manual": "parcel tests/index.html --out-dir tests/dist",
     "pretest": "npm run lint",
-    "test": "npm run travis",
+    "test": "npm run karma-mocha",
     "prebuild": "parcel build --global Filer src/index.js --no-minify --out-file filer.js",
     "build": "parcel build --global Filer src/index.js --out-file filer.min.js --detailed-report",
     "prekarma-mocha": "parcel build tests/index.js --no-source-maps --out-dir tests/dist",
