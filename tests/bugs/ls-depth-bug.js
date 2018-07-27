@@ -46,7 +46,7 @@ describe('sh.ls and deep directory trees', function() {
       }
 
       async.eachSeries(paths, writeFile, function(err) {
-        if(err) { console.log('error', err);  throw err; }
+        if(err) throw err;
 
         sh.ls('/', {recursive: true}, function(err, listing) {
           expect(err).not.to.exist;
