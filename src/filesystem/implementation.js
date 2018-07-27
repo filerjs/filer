@@ -13,8 +13,6 @@ var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
 var NODE_TYPE_META = Constants.NODE_TYPE_META;
 
-var DEFAULT_FILE_PERMISSIONS = Constants.DEFAULT_FILE_PERMISSIONS;
-var DEFAULT_DIR_PERMISSIONS = Constants.DEFAULT_DIR_PERMISSIONS;
 var FULL_READ_WRITE_EXEC_PERMISSIONS = Constants.FULL_READ_WRITE_EXEC_PERMISSIONS;
 
 var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
@@ -25,7 +23,6 @@ var O_READ = Constants.O_READ;
 var O_WRITE = Constants.O_WRITE;
 var O_CREATE = Constants.O_CREATE;
 var O_EXCLUSIVE = Constants.O_EXCLUSIVE;
-var O_TRUNCATE = Constants.O_TRUNCATE;
 var O_APPEND = Constants.O_APPEND;
 var O_FLAGS = Constants.O_FLAGS;
 
@@ -843,7 +840,6 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
 
 function stat_file(context, path, callback) {
   path = normalize(path);
-  var name = basename(path);
   find_node(context, path, callback);
 }
 
@@ -923,7 +919,7 @@ function link_node(context, oldpath, newpath, callback) {
     }
   }
 
-  function read_file_node(error, result) {
+  function read_file_node(error) {
     if(error) {
       callback(error);
     } else {
@@ -997,8 +993,12 @@ function unlink_node(context, path, callback) {
     } else {
       delete directoryData[name];
       context.putObject(directoryNode.data, directoryData, function(error) {
-        var now = Date.now();
-        update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
+        if(error) {
+          callback(error);
+        } else {
+          var now = Date.now();
+          update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
+        }
       });
     }
   }
@@ -1021,7 +1021,11 @@ function unlink_node(context, path, callback) {
         context.delete(fileNode.id, delete_file_data);
       } else {
         context.putObject(fileNode.id, fileNode, function(error) {
-          update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
+          if(error) {
+            callback(error);
+          } else {          
+            update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
+          }
         });
       }
     }
@@ -1064,7 +1068,6 @@ function unlink_node(context, path, callback) {
 
 function read_directory(context, path, callback) {
   path = normalize(path);
-  var name = basename(path);
 
   var directoryNode;
   var directoryData;
@@ -1784,7 +1787,7 @@ function readFile(fs, context, path, options, callback) {
       var buffer = new Buffer(size);
       buffer.fill(0);
 
-      read_data(context, ofd, buffer, 0, size, 0, function(err, nbytes) {
+      read_data(context, ofd, buffer, 0, size, 0, function(err) {
         cleanup();
 
         if(err) {
@@ -1846,7 +1849,7 @@ function writeFile(fs, context, path, data, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
 
-    replace_data(context, ofd, data, 0, data.length, function(err, nbytes) {
+    replace_data(context, ofd, data, 0, data.length, function(err) {
       fs.releaseDescriptor(fd);
 
       if(err) {
@@ -1883,7 +1886,7 @@ function appendFile(fs, context, path, data, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
     var fd = fs.allocDescriptor(ofd);
 
-    write_data(context, ofd, data, 0, data.length, ofd.position, function(err, nbytes) {
+    write_data(context, ofd, data, 0, data.length, ofd.position, function(err) {
       fs.releaseDescriptor(fd);
 
       if(err) {
@@ -1895,7 +1898,7 @@ function appendFile(fs, context, path, data, options, callback) {
 }
 
 function exists(fs, context, path, callback) {
-  function cb(err, stats) {
+  function cb(err) {
     callback(err ? false : true);
   }
   stat(fs, context, path, cb);
@@ -1903,7 +1906,6 @@ function exists(fs, context, path, callback) {
 
 // Based on https://github.com/nodejs/node/blob/c700cc42da9cf73af9fec2098520a6c0a631d901/lib/internal/validators.js#L21
 var octalReg = /^[0-7]+$/;
-var modeDesc = 'must be a 32-bit unsigned integer or an octal string';
 function isUint32(value) {
   return value === (value >>> 0);
 }
