@@ -12,7 +12,6 @@ describe('fs.lstat', function() {
 
   it('should return an error if path does not exist', function(done) {
     var fs = util.fs();
-    var _error, _result;
 
     fs.lstat('/tmp', function(error, result) {
       expect(error).to.exist;
