@@ -1,9 +1,6 @@
 var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
-var NODE_TYPE_META = require('./constants.js').NODE_TYPE_META;
-
-var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
 
 var S_IFREG = require('./constants.js').S_IFREG;
 var S_IFDIR = require('./constants.js').S_IFDIR;
