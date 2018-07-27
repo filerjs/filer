@@ -42,6 +42,7 @@ function maybeCallback(callback) {
 // Default callback that logs an error if passed in
 function defaultCallback(err) {
   if(err) {
+    /* eslint no-console: 0 */
     console.error('Filer error: ', err);
   }
 }
