@@ -32,9 +32,10 @@ describe('fs.mknod', function() {
   it('should return an error if the parent node is not a directory', function(done) {
     var fs = util.fs();
 
-    fs.mknod('/file', 'FILE' , function(error, result) {
+    fs.mknod('/file', 'FILE' , function(error) {
       if(error) throw error;
-      fs.mknod('/file/myfile', 'FILE', function(error, result) {
+
+      fs.mknod('/file/myfile', 'FILE', function(error) {
         expect(error.code).to.equal('ENOTDIR');
         done();
       });
@@ -68,8 +69,9 @@ describe('fs.mknod', function() {
   it('should make a new file', function(done) {
     var fs = util.fs();
 
-    fs.mknod('/file', 'FILE' , function(error, result) {
+    fs.mknod('/file', 'FILE' , function(error) {
       if(error) throw error;
+      
       fs.stat('/file', function(error, result) {
         expect(error).not.to.exist;
         expect(result.type).to.equal('FILE');
