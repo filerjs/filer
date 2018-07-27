@@ -2,7 +2,6 @@ var Path = require('../path.js');
 var Errors = require('../errors.js');
 var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
-var Encoding = require('../encoding.js');
 var minimatch = require('minimatch');
 
 function Shell(fs, options) {
@@ -131,7 +130,7 @@ Shell.prototype.touch = function(path, options, callback) {
     fs.utimes(path, atime, mtime, callback);
   }
 
-  fs.stat(path, function(error, stats) {
+  fs.stat(path, function(error) {
     if(error) {
       if(options.updateOnly === true) {
         callback();
@@ -348,7 +347,7 @@ Shell.prototype.tempDir = function(callback) {
 
   // Try and create it, and it will either work or fail
   // but either way it's now there.
-  fs.mkdir(tmp, function(err) {
+  fs.mkdir(tmp, function() {
     callback(null, tmp);
   });
 };
