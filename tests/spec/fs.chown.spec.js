@@ -1,4 +1,3 @@
-var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
@@ -12,7 +11,7 @@ describe('fs.chown, fs.fchown', function() {
     expect(typeof fs.fchown).to.equal('function');
   });
 
-  it('should automatically set a file\s uid and gid to 0 (i.e., root)', function(done) {
+  it('should automatically set a file\'s uid and gid to 0 (i.e., root)', function(done) {
     var fs = util.fs();
 
     fs.open('/file', 'w', function(err, fd) {
