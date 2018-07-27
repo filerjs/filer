@@ -54,7 +54,7 @@ function normalizeArray(parts, allowAboveRoot) {
 // Split a filename into [root, dir, basename, ext], unix version
 // 'root' is just a slash, or nothing.
 var splitPathRe =
-      /^(\/?)([\s\S]+\/(?!$)|\/)?((?:\.{1,2}$|[\s\S]+?)?(\.[^.\/]*)?)$/;
+      /^(\/?)([\s\S]+\/(?!$)|\/)?((?:\.{1,2}$|[\s\S]+?)?(\.[^./]*)?)$/;
 var splitPath = function(filename) {
   var result = splitPathRe.exec(filename);
   return [result[1] || '', result[2] || '', result[3] || '', result[4] || ''];
@@ -91,8 +91,7 @@ function resolve() {
 
 // path.normalize(path)
 function normalize(path) {
-  var isAbsolute = path.charAt(0) === '/',
-    trailingSlash = path.substr(-1) === '/';
+  var isAbsolute = path.charAt(0) === '/';
 
   // Normalize the path
   path = normalizeArray(path.split('/').filter(function(p) {
@@ -113,7 +112,7 @@ function normalize(path) {
 
 function join() {
   var paths = Array.prototype.slice.call(arguments, 0);
-  return normalize(paths.filter(function(p, index) {
+  return normalize(paths.filter(function(p) {
     return p && typeof p === 'string';
   }).join('/'));
 }
@@ -151,7 +150,7 @@ function relative(from, to) {
   }
 
   var outputParts = [];
-  for (var i = samePartsLength; i < fromParts.length; i++) {
+  for (i = samePartsLength; i < fromParts.length; i++) {
     outputParts.push('..');
   }
 
