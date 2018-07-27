@@ -2,7 +2,6 @@ var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var IDB_RW = require('../constants.js').IDB_RW;
 var IDB_RO = require('../constants.js').IDB_RO;
-var Errors = require('../errors.js');
 var FilerBuffer = require('../buffer.js');
 
 var indexedDB = global.indexedDB       ||
