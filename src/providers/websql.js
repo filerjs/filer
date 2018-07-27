@@ -26,7 +26,7 @@ WebSQLContext.prototype.clear = function(callback) {
   function onError(transaction, error) {
     callback(error);
   }
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     callback(null);
   }
   this.getTransaction(function(transaction) {
@@ -83,7 +83,7 @@ WebSQLContext.prototype.getBuffer = function(key, callback) {
 };
 
 function _put(getTransaction, key, value, callback) {
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     callback(null);
   }
   function onError(transaction, error) {
@@ -104,7 +104,7 @@ WebSQLContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
 };
 
 WebSQLContext.prototype.delete = function(key, callback) {
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     callback(null);
   }
   function onError(transaction, error) {
@@ -145,7 +145,7 @@ WebSQL.prototype.open = function(callback) {
     }
     callback(error);
   }
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     that.db = db;
     callback();
   }
