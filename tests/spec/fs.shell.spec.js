@@ -2,11 +2,11 @@ var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
-describe("fs.Shell", function() {
+describe('fs.Shell', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  it("is a function", function(done) {
+  it('is a function', function(done) {
     var fs = util.fs();
     expect(typeof fs.Shell).to.equal('function');
 
@@ -25,9 +25,9 @@ describe("fs.Shell", function() {
     var fs = util.fs();
     var sh = new fs.Shell();
 
-    Filer.Shell.prototype.test = "foo";
+    Filer.Shell.prototype.test = 'foo';
 
-    expect(sh.test).to.equal("foo");
+    expect(sh.test).to.equal('foo');
     done();
   });
 });

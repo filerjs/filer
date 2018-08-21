@@ -32,6 +32,7 @@ describe('fs.rename', function() {
 
           fs.stat('/myfile', function(error, result) {
             expect(error).to.exist;
+            expect(result).not.to.exist;
             complete1 = true;
             maybeDone();
           });

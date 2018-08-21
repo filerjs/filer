@@ -13,11 +13,10 @@ describe('fs.writeFile, fs.readFile', function() {
 
   it('should error when path is wrong to readFile', function(done) {
     var fs = util.fs();
-    var contents = "This is a file.";
 
     fs.readFile('/no-such-file', 'utf8', function(error, data) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       expect(data).not.to.exist;
       done();
     });
@@ -25,7 +24,7 @@ describe('fs.writeFile, fs.readFile', function() {
 
   it('should write, read a utf8 file without specifying utf8 in writeFile', function(done) {
     var fs = util.fs();
-    var contents = "This is a file.";
+    var contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, function(error) {
       if(error) throw error;
@@ -39,7 +38,7 @@ describe('fs.writeFile, fs.readFile', function() {
 
   it('should write, read a utf8 file with "utf8" option to writeFile', function(done) {
     var fs = util.fs();
-    var contents = "This is a file.";
+    var contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, 'utf8', function(error) {
       if(error) throw error;
@@ -53,7 +52,7 @@ describe('fs.writeFile, fs.readFile', function() {
 
   it('should write, read a utf8 file with {encoding: "utf8"} option to writeFile', function(done) {
     var fs = util.fs();
-    var contents = "This is a file.";
+    var contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, { encoding: 'utf8' }, function(error) {
       if(error) throw error;
@@ -67,8 +66,7 @@ describe('fs.writeFile, fs.readFile', function() {
 
   it('should write, read a binary file', function(done) {
     var fs = util.fs();
-    // String and utf8 binary encoded versions of the same thing:
-    var contents = "This is a file.";
+    // String and utf8 binary encoded versions of the same thing: 'This is a file.'
     var binary = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
     fs.writeFile('/myfile', binary, function(error) {
@@ -83,7 +81,7 @@ describe('fs.writeFile, fs.readFile', function() {
 
   it('should follow symbolic links', function(done) {
     var fs = util.fs();
-    var contents = "This is a file.";
+    var contents = 'This is a file.';
 
     fs.writeFile('/myfile', '', { encoding: 'utf8' }, function(error) {
       if(error) throw error;

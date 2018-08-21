@@ -15,7 +15,7 @@ describe('fs.readlink', function() {
 
     fs.readlink('/tmp/mydir', function(error) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       done();
     });
   });
@@ -25,7 +25,7 @@ describe('fs.readlink', function() {
 
     fs.readlink('/', function(error) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       done();
     });
   });

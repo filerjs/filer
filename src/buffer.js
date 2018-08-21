@@ -7,7 +7,7 @@ function FilerBuffer (subject, encoding, nonZero) {
   }
 
   return new Buffer(subject, encoding, nonZero);
-};
+}
 
 // Inherit prototype from Buffer
 FilerBuffer.prototype = Object.create(Buffer.prototype);

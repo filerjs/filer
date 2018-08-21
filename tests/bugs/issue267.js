@@ -14,6 +14,7 @@ describe('fs.readdir on non-dir paths, issue 267', function() {
       fs.readdir('/myfile.txt', function(err, contents) {
         expect(err).to.exist;
         expect(err.code).to.equal('ENOTDIR');
+        expect(contents).not.to.exist;
         done();
       });
     });

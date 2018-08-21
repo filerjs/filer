@@ -58,20 +58,20 @@ function setup(callback) {
   var name = uniqueName();
 
   switch(providerType.toLowerCase()) {
-    case 'indexeddb':
-      _provider = new IndexedDBTestProvider(name);
-      break;
-    case 'websql':
-      _provider = new WebSQLTestProvider(name);
-      break;
-    case 'memory':
-      _provider = new MemoryTestProvider(name);
-      break;
-    case 'default':
-    default:
-      var BestProvider = findBestProvider();
-      _provider = new BestProvider(name);
-      break;
+  case 'indexeddb':
+    _provider = new IndexedDBTestProvider(name);
+    break;
+  case 'websql':
+    _provider = new WebSQLTestProvider(name);
+    break;
+  case 'memory':
+    _provider = new MemoryTestProvider(name);
+    break;
+  case 'default':
+  default:
+    var BestProvider = findBestProvider();
+    _provider = new BestProvider(name);
+    break;
   }
 
   // Allow passing FS flags on query string
@@ -95,14 +95,14 @@ function setup(callback) {
 
 function fs() {
   if(!_fs) {
-    throw "TestUtil: call setup() before fs()";
+    throw 'TestUtil: call setup() before fs()';
   }
   return _fs;
 }
 
 function provider() {
   if(!_provider) {
-    throw "TestUtil: call setup() before provider()";
+    throw 'TestUtil: call setup() before provider()';
   }
   return _provider;
 }

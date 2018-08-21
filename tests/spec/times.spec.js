@@ -6,8 +6,8 @@ describe('node times (atime, mtime, ctime)', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  var dirname = "/dir";
-  var filename = "/dir/file";
+  var dirname = '/dir';
+  var filename = '/dir/file';
 
   function createTree(callback) {
     var fs = util.fs();
@@ -287,7 +287,7 @@ describe('node times (atime, mtime, ctime)', function() {
   });
 
   it('should update ctime, atime, mtime of parent dir when calling fs.mkdir()', function(done) {
-      var fs = util.fs();
+    var fs = util.fs();
 
     createTree(function() {
       stat('/', function(stats1) {
@@ -364,6 +364,7 @@ describe('node times (atime, mtime, ctime)', function() {
         stat('/myfile', function(stats1) {
           fs.write(fd, buffer, 0, buffer.length, 0, function(error, nbytes) {
             if(error) throw error;
+            expect(nbytes).to.equal(buffer.length);
 
             fs.close(fd, function(error) {
               if(error) throw error;
@@ -391,6 +392,7 @@ describe('node times (atime, mtime, ctime)', function() {
 
         fs.write(fd, buffer, 0, buffer.length, 0, function(err, nbytes) {
           if(err) throw err;
+          expect(nbytes).to.equal(buffer.length);
 
           fs.close(fd, function(error) {
             if(error) throw error;
@@ -402,6 +404,8 @@ describe('node times (atime, mtime, ctime)', function() {
                 var buffer2 = new Filer.Buffer(buffer.length);
                 buffer2.fill(0);
                 fs.read(fd, buffer2, 0, buffer2.length, 0, function(err, nbytes) {
+                  if(err) throw err;
+                  expect(nbytes).to.equal(buffer2.length);
 
                   fs.close(fd, function(error) {
                     if(error) throw error;
@@ -429,6 +433,7 @@ describe('node times (atime, mtime, ctime)', function() {
       stat(filename, function(stats1) {
         fs.readFile(filename, function(error, data) {
           if(error) throw error;
+          expect(data).to.exist;
 
           stat(filename, function(stats2) {
             expect(stats2.ctime).to.equal(stats1.ctime);
@@ -531,6 +536,7 @@ describe('node times (atime, mtime, ctime)', function() {
         stat(filename, function(stats1) {
           fs.getxattr(filename, 'extra', function(error, value) {
             if(error) throw error;
+            expect(value).to.equal('data');
 
             stat(filename, function(stats2) {
               expect(stats2.ctime).to.equal(stats1.ctime);
@@ -557,6 +563,7 @@ describe('node times (atime, mtime, ctime)', function() {
           stat(filename, function(stats1) {
             fs.fgetxattr(fd, 'extra', function(error, value) {
               if(error) throw error;
+              expect(value).to.equal('data');
 
               stat(filename, function(stats2) {
                 expect(stats2.ctime).to.equal(stats1.ctime);

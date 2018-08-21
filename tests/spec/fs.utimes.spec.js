@@ -126,7 +126,7 @@ describe('fs.utimes', function() {
         fs.fstat(ofd, function (error, stat) {
           expect(error).not.to.exist;
           expect(stat.mtime).to.equal(mtime);
-            done();
+          done();
         });
       });
     });
@@ -154,8 +154,6 @@ describe('fs.utimes', function() {
 
   it('should update atime and mtime using current time if arguments are null', function(done) {
     var fs = util.fs();
-    var atimeEst;
-    var mtimeEst;
 
     fs.writeFile('/myfile', '', function (error) {
       if (error) throw error;

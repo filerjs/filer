@@ -1,16 +1,16 @@
 var Filer = require('../../src');
 var expect = require('chai').expect;
 
-describe("Filer", function() {
-  it("is defined", function() {
+describe('Filer', function() {
+  it('is defined', function() {
     expect(typeof Filer).not.to.equal(undefined);
   });
 
-  it("has FileSystem constructor", function() {
+  it('has FileSystem constructor', function() {
     expect(typeof Filer.FileSystem).to.equal('function');
   });
 
-  it("has Shell constructor", function() {
+  it('has Shell constructor', function() {
     expect(typeof Filer.Shell).to.equal('function');
   });
 });

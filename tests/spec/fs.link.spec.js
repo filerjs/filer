@@ -43,7 +43,7 @@ describe('fs.link', function() {
 
   it('should create hard link to identical data node', function(done) {
     var fs = util.fs();
-    var contents = "Hello World!";
+    var contents = 'Hello World!';
 
     fs.writeFile('/file', contents, function(err) {
       if(err) throw err;
@@ -70,13 +70,17 @@ describe('fs.link', function() {
 
     fs.stat('/', function (error, result) {
       if (error) throw error;
-      var _oldstats = result;
+      expect(result).to.exist;
+
       fs.symlink('/', '/myfileLink', function (error) {
         if (error) throw error;
+
         fs.link('/myfileLink', '/myotherfile', function (error) {
           if (error) throw error;
+
           fs.lstat('/myfileLink', function (error, result) {
             if (error) throw error;
+            
             var _linkstats = result;
             fs.lstat('/myotherfile', function (error, result) {
               expect(error).not.to.exist;

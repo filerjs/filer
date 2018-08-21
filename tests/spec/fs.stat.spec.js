@@ -15,7 +15,7 @@ describe('fs.stat', function() {
 
     fs.stat('/tmp', function(error, result) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       expect(result).not.to.exist;
       done();
     });

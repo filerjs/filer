@@ -20,8 +20,11 @@ describe('fs.close', function() {
 
       var fd = result;
       fs.close(fd, function(error) {
+        if(error) throw error;
+
         fs.read(fd, buffer, 0, buffer.length, undefined, function(error, result) {
           expect(error).to.exist;
+          expect(result).not.to.exist;
           done();
         });
       });

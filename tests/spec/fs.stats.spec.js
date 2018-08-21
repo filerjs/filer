@@ -43,8 +43,10 @@ describe('fs.stats', function() {
 
       fs.open('/myfile', 'w+', function(error, fd) {
         if(error) throw error;
-        fs.close(fd, function(error, stats) {
+
+        fs.close(fd, function(error) {
           if(error) throw error;
+
           fs.symlink('/myfile', '/myfilelink', function(error) {
             if(error) throw error;
             fs.lstat('/myfilelink', function(error, stats) {
@@ -97,7 +99,7 @@ describe('fs.stats', function() {
 
       fs.open('/myfile', 'w+', function(error, fd) {
         if(error) throw error;
-        fs.close(fd, function(error, stats) {
+        fs.close(fd, function(error) {
           if(error) throw error;
           fs.symlink('/myfile', '/myfilelink', function(error) {
             if(error) throw error;
@@ -197,7 +199,7 @@ describe('fs.stats', function() {
 
       fs.open('/myfile', 'w+', function(error, fd) {
         if(error) throw error;
-        fs.close(fd, function(error, stats) {
+        fs.close(fd, function(error) {
           if(error) throw error;
           fs.symlink('/myfile', '/myfilelink', function(error) {
             if(error) throw error;
@@ -274,7 +276,7 @@ describe('fs.stats', function() {
           expect(stats.name).to.equal(Path.basename(filepath));
           done();
         });
-      })
+      });
     });
 
     it('should correct return name for an fd', function(done) {
@@ -290,7 +292,7 @@ describe('fs.stats', function() {
           expect(stats.name).to.equal(Path.basename(filepath));
           done();
         });
-      })
+      });
     });
-  })
+  });
 });

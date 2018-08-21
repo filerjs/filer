@@ -97,6 +97,7 @@ describe('fs.xattr', function() {
       fs.getxattr('/testfile', '', function(error, value) {
         expect(error).to.exist;
         expect(error.code).to.equal('EINVAL');
+        expect(value).not.to.exist;
         done();
       });
     });
@@ -111,6 +112,7 @@ describe('fs.xattr', function() {
       fs.getxattr('/testfile', 89, function(error, value) {
         expect(error).to.exist;
         expect(error.code).to.equal('EINVAL');
+        expect(value).not.to.exist;
         done();
       });
     });
@@ -125,6 +127,7 @@ describe('fs.xattr', function() {
       fs.getxattr('/testfile', 'test', function(error, value) {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOATTR');
+        expect(value).not.to.exist;
         done();
       });
     });
@@ -132,10 +135,9 @@ describe('fs.xattr', function() {
 
   it('should error when file descriptor is invalid', function(done) {
     var fs = util.fs();
-    var completeSet, completeGet, completeRemove;
-    var _value;
-
-    completeSet = completeGet = completeRemove = false;
+    var completeSet = false;
+    var completeGet = false;
+    var completeRemove = false;
 
     function maybeDone() {
       if(completeSet && completeGet && completeRemove) {
@@ -161,6 +163,7 @@ describe('fs.xattr', function() {
     fs.fremovexattr(1, 'test', function(error, value) {
       expect(error).to.exist;
       expect(error.code).to.equal('EBADF');
+      expect(value).not.to.exist;
       completeRemove = true;
       maybeDone();
     });
@@ -288,7 +291,7 @@ describe('fs.xattr', function() {
             });
           });
         });
-      })
+      });
     });
   });
 

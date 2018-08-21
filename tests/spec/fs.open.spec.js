@@ -16,7 +16,7 @@ describe('fs.open', function() {
 
     fs.open('/tmp/myfile', 'w+', function(error, result) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       expect(result).not.to.exist;
       done();
     });
@@ -27,7 +27,7 @@ describe('fs.open', function() {
 
     fs.open('/myfile', 'r+', function(error, result) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       expect(result).not.to.exist;
       done();
     });
@@ -40,7 +40,7 @@ describe('fs.open', function() {
       if(error) throw error;
       fs.open('/tmp', 'w', function(error, result) {
         expect(error).to.exist;
-        expect(error.code).to.equal("EISDIR");
+        expect(error.code).to.equal('EISDIR');
         expect(result).not.to.exist;
         done();
       });
@@ -54,7 +54,7 @@ describe('fs.open', function() {
       if(error) throw error;
       fs.open('/tmp', 'a', function(error, result) {
         expect(error).to.exist;
-        expect(error.code).to.equal("EISDIR");
+        expect(error.code).to.equal('EISDIR');
         expect(result).not.to.exist;
         done();
       });
@@ -83,7 +83,6 @@ describe('fs.open', function() {
   it('should return the argument value of the file descriptor index matching the value set by the first useable file descriptor constant', function(done) {
     var fs = util.fs();
     var firstFD = constants.FIRST_DESCRIPTOR;
-    var fd1;
 
     fs.open('/file1', 'w+', function(error, fd) {
       if(error) throw error;
@@ -95,8 +94,9 @@ describe('fs.open', function() {
   it('should create a new file when flagged for write', function(done) {
     var fs = util.fs();
 
-    fs.open('/myfile', 'w', function(error, result) {
+    fs.open('/myfile', 'w', function(error) {
       if(error) throw error;
+      
       fs.stat('/myfile', function(error, result) {
         expect(error).not.to.exist;
         expect(result).to.exist;

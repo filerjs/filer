@@ -32,6 +32,8 @@ describe('path resolution', function() {
     var fs = util.fs();
 
     fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
       fs.symlink('/mydir', '/mydirectorylink', function(error) {
         if(error) throw error;
 
@@ -121,7 +123,7 @@ describe('path resolution', function() {
 
         fs.stat('/myfilelink1', function(error, result) {
           expect(error).to.exist;
-          expect(error.code).to.equal("ENOENT");
+          expect(error.code).to.equal('ENOENT');
           expect(result).not.to.exist;
           done();
         });
@@ -148,6 +150,7 @@ describe('path resolution', function() {
         if(error) throw error;
         fs.stat('/myfile0', function(error, result) {
           if(error) throw error;
+          expect(result).to.exist;
 
           createSymlinkChain(1, function() {
             fs.stat('/myfile11', function(error, result) {
@@ -201,6 +204,7 @@ describe('path resolution', function() {
         if(error) throw error;
         fs.stat('/myfile', function(error, result) {
           if(error) throw error;
+          expect(result).to.exist;
 
           fs.open('/myfile2', 'w', function(error, result) {
             if(error) throw error;
@@ -212,7 +216,7 @@ describe('path resolution', function() {
 
                 fs.stat('/mynotdirlink/myfile', function(error, result) {
                   expect(error).to.exist;
-                  expect(error.code).to.equal("ENOTDIR");
+                  expect(error.code).to.equal('ENOTDIR');
                   expect(result).not.to.exist;
                   done();
                 });

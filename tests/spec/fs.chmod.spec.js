@@ -1,4 +1,3 @@
-var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 

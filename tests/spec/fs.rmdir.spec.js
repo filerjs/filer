@@ -15,7 +15,7 @@ describe('fs.rmdir', function() {
 
     fs.rmdir('/tmp/mydir', function(error) {
       expect(error).to.exist;
-      expect(error.code).to.equal("ENOENT");
+      expect(error.code).to.equal('ENOENT');
       done();
     });
   });
@@ -25,7 +25,7 @@ describe('fs.rmdir', function() {
 
     fs.rmdir('/', function(error) {
       expect(error).to.exist;
-      expect(error.code).to.equal("EBUSY");
+      expect(error.code).to.equal('EBUSY');
       done();
     });
   });
@@ -39,7 +39,7 @@ describe('fs.rmdir', function() {
         if(error) throw error;
         fs.rmdir('/', function(error) {
           expect(error).to.exist;
-          expect(error.code).to.equal("EBUSY");
+          expect(error.code).to.equal('EBUSY');
           done();
         });
       });
@@ -57,7 +57,7 @@ describe('fs.rmdir', function() {
           if(error) throw error;
           fs.rmdir('/tmp/myfile', function(error) {
             expect(error).to.exist;
-            expect(error.code).to.equal("ENOTDIR");
+            expect(error.code).to.equal('ENOTDIR');
             done();
           });
         });
@@ -74,7 +74,7 @@ describe('fs.rmdir', function() {
         if(error) throw error;
         fs.rmdir('/tmp/myfile', function (error) {
           expect(error).to.exist;
-          expect(error.code).to.equal("ENOTDIR");
+          expect(error.code).to.equal('ENOTDIR');
           done();
         });
       });

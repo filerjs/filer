@@ -26,12 +26,12 @@ WebSQLContext.prototype.clear = function(callback) {
   function onError(transaction, error) {
     callback(error);
   }
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     callback(null);
   }
   this.getTransaction(function(transaction) {
-    transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + ";",
-                           [], onSuccess, onError);
+    transaction.executeSql('DELETE FROM ' + FILE_STORE_NAME + ';',
+      [], onSuccess, onError);
   });
 };
 
@@ -45,8 +45,8 @@ function _get(getTransaction, key, callback) {
     callback(error);
   }
   getTransaction(function(transaction) {
-    transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ? LIMIT 1;",
-                           [key], onSuccess, onError);
+    transaction.executeSql('SELECT data FROM ' + FILE_STORE_NAME + ' WHERE id = ? LIMIT 1;',
+      [key], onSuccess, onError);
   });
 }
 WebSQLContext.prototype.getObject = function(key, callback) {
@@ -83,15 +83,15 @@ WebSQLContext.prototype.getBuffer = function(key, callback) {
 };
 
 function _put(getTransaction, key, value, callback) {
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     callback(null);
   }
   function onError(transaction, error) {
     callback(error);
   }
   getTransaction(function(transaction) {
-    transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data) VALUES (?, ?);",
-                           [key, value], onSuccess, onError);
+    transaction.executeSql('INSERT OR REPLACE INTO ' + FILE_STORE_NAME + ' (id, data) VALUES (?, ?);',
+      [key, value], onSuccess, onError);
   });
 }
 WebSQLContext.prototype.putObject = function(key, value, callback) {
@@ -104,15 +104,15 @@ WebSQLContext.prototype.putBuffer = function(key, uint8BackedBuffer, callback) {
 };
 
 WebSQLContext.prototype.delete = function(key, callback) {
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     callback(null);
   }
   function onError(transaction, error) {
     callback(error);
   }
   this.getTransaction(function(transaction) {
-    transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + " WHERE id = ?;",
-                           [key], onSuccess, onError);
+    transaction.executeSql('DELETE FROM ' + FILE_STORE_NAME + ' WHERE id = ?;',
+      [key], onSuccess, onError);
   });
 };
 
@@ -135,7 +135,7 @@ WebSQL.prototype.open = function(callback) {
 
   var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
   if(!db) {
-    callback("[WebSQL] Unable to open database.");
+    callback('[WebSQL] Unable to open database.');
     return;
   }
 
@@ -145,7 +145,7 @@ WebSQL.prototype.open = function(callback) {
     }
     callback(error);
   }
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     that.db = db;
     callback();
   }
@@ -153,12 +153,12 @@ WebSQL.prototype.open = function(callback) {
   // Create the table and index we'll need to store the fs data.
   db.transaction(function(transaction) {
     function createIndex(transaction) {
-      transaction.executeSql("CREATE INDEX IF NOT EXISTS idx_" + FILE_STORE_NAME + "_id" +
-                             " on " + FILE_STORE_NAME + " (id);",
-                             [], onSuccess, onError);
+      transaction.executeSql('CREATE INDEX IF NOT EXISTS idx_' + FILE_STORE_NAME + '_id' +
+                             ' on ' + FILE_STORE_NAME + ' (id);',
+      [], onSuccess, onError);
     }
-    transaction.executeSql("CREATE TABLE IF NOT EXISTS " + FILE_STORE_NAME + " (id unique, data TEXT);",
-                           [], createIndex, onError);
+    transaction.executeSql('CREATE TABLE IF NOT EXISTS ' + FILE_STORE_NAME + ' (id unique, data TEXT);',
+      [], createIndex, onError);
   });
 };
 WebSQL.prototype.getReadOnlyContext = function() {

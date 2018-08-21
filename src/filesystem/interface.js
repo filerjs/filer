@@ -29,7 +29,7 @@ var impl = require('./implementation.js');
 
 // node.js supports a calling pattern that leaves off a callback.
 function maybeCallback(callback) {
-  if(typeof callback === "function") {
+  if(typeof callback === 'function') {
     return callback;
   }
   return function(err) {
@@ -42,6 +42,7 @@ function maybeCallback(callback) {
 // Default callback that logs an error if passed in
 function defaultCallback(err) {
   if(err) {
+    /* eslint no-console: 0 */
     console.error('Filer error: ', err);
   }
 }
@@ -104,7 +105,7 @@ function FileSystem(options, callback) {
   // descriptor management functions
   var openFiles = {};
   var nextDescriptor = FIRST_DESCRIPTOR;
-  Object.defineProperty(this, "openFiles", {
+  Object.defineProperty(this, 'openFiles', {
     get: function() { return openFiles; }
   });
   this.allocDescriptor = function(openFileDescription) {

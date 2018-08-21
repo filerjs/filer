@@ -52,7 +52,7 @@ describe('Queued operations should error when fs is in error state, issue 258', 
 
   it('should get EFILESYSTEMERROR errors on callbacks to queued operations on provider error', function(done) {
     var errCount = 0;
-    var fs = new Filer.FileSystem({provider: provider}, function(err) {
+    var fs = new Filer.FileSystem({provider: provider}, function() {
       // Do nothing
     });
 
