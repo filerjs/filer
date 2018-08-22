@@ -3,6 +3,7 @@ bower_components
 .env
 *~
 dist/filer-issue225.js
+.vscode
 
 # Parcel build dirs
 .cache
