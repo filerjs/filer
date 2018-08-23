@@ -1,5 +1,5 @@
 var _ = require('../../lib/nodash.js');
-var promisify = require('util').promisify;
+var { promisify } = require('es6-promisify');
 
 var isNullPath = require('../path.js').isNull;
 var nop = require('../shared.js').nop;
