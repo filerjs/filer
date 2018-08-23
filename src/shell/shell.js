@@ -1,3 +1,4 @@
+var {promisify} = require('es6-promisify');
 var Path = require('../path.js');
 var Errors = require('../errors.js');
 var Environment = require('./environment.js');
@@ -56,6 +57,22 @@ function Shell(fs, options) {
   this.pwd = function() {
     return cwd;
   };
+
+  this.promises = {};
+
+  [
+    'cd',
+    'exec',
+    'touch',
+    'cat',
+    'ls',
+    'rm',
+    'tempDir',
+    'mkdirp',
+    'find'
+  ].forEach((methodName)=>{
+    this.promises[methodName] = promisify(this[methodName].bind(this));
+  });
 }
 
 /**
