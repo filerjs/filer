@@ -265,8 +265,8 @@ function FileSystem(options, callback) {
   });
   FileSystem.prototype.promises = {};
   /**
- * Public API for FileSystem
- */
+   * Public API for FileSystem
+  */
   [
     'open',
     'chmod',
@@ -347,8 +347,11 @@ function FileSystem(options, callback) {
         callback(error);
       }
     };
+    
     FileSystem.prototype.promises[methodName] = promisify(FileSystem.prototype[methodName].bind(fs));
   });
+
+  // explicitly throw for 'exists' method, since it is deprecated and the equivalent promise-based implementation does not exist.
   FileSystem.prototype.promises['exists'] = function() {
     return Promise.reject('This method is deprecated. You can still use the callback version. For more details see https://nodejs.org/api/fs.html#fs_fs_exists_path_callback');
   };

@@ -110,6 +110,21 @@ Like node.js, callbacks for methods that accept them are optional but suggested 
 you omit the callback, errors will be thrown as exceptions). The first callback parameter is
 reserved for passing errors. It will be `null` if no errors occurred and should always be checked.
 
+#### Support for Promises is here!
+Promise based API mimics the way Node [implements](https://nodejs.org/api/fs.html#fs_fs_promises_api) them. Both `Shell` and `FileSystem` now have `promises` object attached alongside regular callback style methods. Method names are identical to their callback counterparts with the difference that instead of receiving third argument as a callback, they return a Promise that is resolved or rejected based on the success of method execution.
+> Please note that `exists` method will always throw, since it was [deprecated](https://nodejs.org/api/fs.html#fs_fs_exists_path_callback) by Node.
+
+See example below:
+
+```javascript
+const fs = new Filer.FileSystem().promises;
+fs.open('/myfile', 'w+')
+  .then(fd => fs.close(fd))
+  .then(() => fs.stat('/myfile'))
+  .then(stats => { console.log(`stats: ${JSON.stringify(stats)}`); })
+  .catch(err => { console.error(err); })
+```
+
 #### Filer.FileSystem(options, callback) constructor
 
 File system constructor, invoked to open an existing file system or create a new one.

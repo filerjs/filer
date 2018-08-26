@@ -59,7 +59,9 @@ function Shell(fs, options) {
   };
 
   this.promises = {};
-
+  /**
+  * Public API for Shell converted to Promise based
+  */
   [
     'cd',
     'exec',
