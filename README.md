@@ -110,8 +110,8 @@ Like node.js, callbacks for methods that accept them are optional but suggested 
 you omit the callback, errors will be thrown as exceptions). The first callback parameter is
 reserved for passing errors. It will be `null` if no errors occurred and should always be checked.
 
-#### Support for Promises is here!
-Promise based API mimics the way Node [implements](https://nodejs.org/api/fs.html#fs_fs_promises_api) them. Both `Shell` and `FileSystem` now have `promises` object attached alongside regular callback style methods. Method names are identical to their callback counterparts with the difference that instead of receiving third argument as a callback, they return a Promise that is resolved or rejected based on the success of method execution.
+#### Support for Promises!
+The Promise based API mimics the way Node [implements](https://nodejs.org/api/fs.html#fs_fs_promises_api) them. Both `Shell` and `FileSystem` now have a `promises` object attached alongside the regular callback style methods. Method names are identical to their callback counterparts with the difference that instead of receiving a final argument as a callback, they return a Promise that is resolved or rejected based on the success of method execution.
 > Please note that `exists` method will always throw, since it was [deprecated](https://nodejs.org/api/fs.html#fs_fs_exists_path_callback) by Node.
 
 See example below:
