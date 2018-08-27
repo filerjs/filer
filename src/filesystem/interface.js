@@ -1,4 +1,5 @@
 var _ = require('../../lib/nodash.js');
+var { promisify } = require('es6-promisify');
 
 var isNullPath = require('../path.js').isNull;
 var nop = require('../shared.js').nop;
@@ -262,94 +263,97 @@ function FileSystem(options, callback) {
       impl.ensureRootDirectory(context, complete);
     }
   });
+  FileSystem.prototype.promises = {};
+  /**
+   * Public API for FileSystem
+  */
+  [
+    'open',
+    'chmod',
+    'fchmod',
+    'chown',
+    'fchown',
+    'close',
+    'mknod',
+    'mkdir',
+    'rmdir',
+    'stat',
+    'fstat',
+    'link',
+    'unlink',
+    'read',
+    'readFile',
+    'write',
+    'writeFile',
+    'appendFile',
+    'exists',
+    'lseek',
+    'readdir',
+    'rename',
+    'readlink',
+    'symlink',
+    'lstat',
+    'truncate',
+    'ftruncate',
+    'utimes',
+    'futimes',
+    'setxattr',
+    'getxattr',
+    'fsetxattr',
+    'fgetxattr',
+    'removexattr',
+    'fremovexattr'
+  ].forEach(function(methodName) {
+    FileSystem.prototype[methodName] = function() {
+      var fs = this;
+      var args = Array.prototype.slice.call(arguments, 0);
+      var lastArgIndex = args.length - 1;
+
+      // We may or may not get a callback, and since node.js supports
+      // fire-and-forget style fs operations, we have to dance a bit here.
+      var missingCallback = typeof args[lastArgIndex] !== 'function';
+      var callback = maybeCallback(args[lastArgIndex]);
+
+      var error = fs.queueOrRun(function() {
+        var context = fs.provider.openReadWriteContext();
+
+        // Fail early if the filesystem is in an error state (e.g.,
+        // provider failed to open.
+        if(FS_ERROR === fs.readyState) {
+          var err = new Errors.EFILESYSTEMERROR('filesystem unavailable, operation canceled');
+          return callback.call(fs, err);
+        }
+
+        // Wrap the callback so we can explicitly close the context
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+
+        // Either add or replace the callback with our wrapper complete()
+        if(missingCallback) {
+          args.push(complete);
+        } else {
+          args[lastArgIndex] = complete;
+        }
+
+        // Forward this call to the impl's version, using the following
+        // call signature, with complete() as the callback/last-arg now:
+        // fn(fs, context, arg0, arg1, ... , complete);
+        var fnArgs = [fs, context].concat(args);
+        impl[methodName].apply(null, fnArgs);
+      });
+      if(error) {
+        callback(error);
+      }
+    };
+    
+    FileSystem.prototype.promises[methodName] = promisify(FileSystem.prototype[methodName].bind(fs));
+  });
+
 }
 
 // Expose storage providers on FileSystem constructor
 FileSystem.providers = providers;
-
-/**
- * Public API for FileSystem
- */
-[
-  'open',
-  'chmod',
-  'fchmod',
-  'chown',
-  'fchown',
-  'close',
-  'mknod',
-  'mkdir',
-  'rmdir',
-  'stat',
-  'fstat',
-  'link',
-  'unlink',
-  'read',
-  'readFile',
-  'write',
-  'writeFile',
-  'appendFile',
-  'exists',
-  'lseek',
-  'readdir',
-  'rename',
-  'readlink',
-  'symlink',
-  'lstat',
-  'truncate',
-  'ftruncate',
-  'utimes',
-  'futimes',
-  'setxattr',
-  'getxattr',
-  'fsetxattr',
-  'fgetxattr',
-  'removexattr',
-  'fremovexattr'
-].forEach(function(methodName) {
-  FileSystem.prototype[methodName] = function() {
-    var fs = this;
-    var args = Array.prototype.slice.call(arguments, 0);
-    var lastArgIndex = args.length - 1;
-
-    // We may or may not get a callback, and since node.js supports
-    // fire-and-forget style fs operations, we have to dance a bit here.
-    var missingCallback = typeof args[lastArgIndex] !== 'function';
-    var callback = maybeCallback(args[lastArgIndex]);
-
-    var error = fs.queueOrRun(function() {
-      var context = fs.provider.openReadWriteContext();
-
-      // Fail early if the filesystem is in an error state (e.g.,
-      // provider failed to open.
-      if(FS_ERROR === fs.readyState) {
-        var err = new Errors.EFILESYSTEMERROR('filesystem unavailable, operation canceled');
-        return callback.call(fs, err);
-      }
-
-      // Wrap the callback so we can explicitly close the context
-      function complete() {
-        context.close();
-        callback.apply(fs, arguments);
-      }
-
-      // Either add or replace the callback with our wrapper complete()
-      if(missingCallback) {
-        args.push(complete);
-      } else {
-        args[lastArgIndex] = complete;
-      }
-
-      // Forward this call to the impl's version, using the following
-      // call signature, with complete() as the callback/last-arg now:
-      // fn(fs, context, arg0, arg1, ... , complete);
-      var fnArgs = [fs, context].concat(args);
-      impl[methodName].apply(null, fnArgs);
-    });
-    if(error) {
-      callback(error);
-    }
-  };
-});
 
 module.exports = FileSystem;
