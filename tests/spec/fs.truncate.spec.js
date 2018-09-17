@@ -125,6 +125,35 @@ describe('fs.truncate', function() {
     });
   });
 
+  it('should default to 0 when length is undefined', function(done) {
+    var fs = util.fs();
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
+        if(error) throw error;
+
+        fs.close(fd, function(error) {
+          if(error) throw error;
+
+          fs.truncate('/myfile', undefined, function(error) {
+            expect(error).to.not.exist;
+
+            fs.stat('/myfile', function(error, result) {
+              if(error) throw error;
+
+              expect(result.size).to.equal(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
   it('should truncate a valid descriptor', function(done) {
     var fs = util.fs();
     var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
