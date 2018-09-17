@@ -32,6 +32,7 @@ Want to join the fun? We'd love to have you! See [CONTRIBUTING](https://github.c
 
 Filer can be obtained in a number of ways:
 
+
 1. npm - `npm install filer`
 2. bower - `bower install filer`
 3. download pre-built versions: [filer.js](https://raw.github.com/filerjs/filer/develop/dist/filer.js), [filer.min.js](https://raw.github.com/filerjs/filer/develop/dist/filer.min.js)
