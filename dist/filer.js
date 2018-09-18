@@ -103,7 +103,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({"96cB":[function(require,module,exports) {
+})({"rwRH":[function(require,module,exports) {
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 // Cherry-picked bits of underscore.js, lodash.js
@@ -202,6 +202,91 @@ function nodash(value) {
 }
 
 module.exports = nodash;
+},{}],"dRwD":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+// Symbols is a better way to do this, but if we don't have support we'll just
+// have to make do with an unlikely token
+var customArgumentsToken = Symbol ? Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__") : "__ES6-PROMISIFY--CUSTOM-ARGUMENTS__";
+
+/**
+ * promisify()
+ * Transforms callback-based function -- func(arg1, arg2 .. argN, callback) -- into
+ * an ES6-compatible Promise. Promisify provides a default callback of the form (error, result)
+ * and rejects when `error` is truthy.
+ *
+ * @param {function} original - The function to promisify
+ * @return {function} A promisified version of `original`
+ */
+function promisify(original) {
+
+    // Ensure the argument is a function
+    if (typeof original !== "function") {
+        throw new TypeError("Argument to promisify must be a function");
+    }
+
+    // If the user has asked us to decode argument names for them, honour that
+    var argumentNames = original[customArgumentsToken];
+
+    // If the user has supplied a custom Promise implementation, use it. Otherwise
+    // fall back to whatever we can find on the global object.
+    var ES6Promise = promisify.Promise || Promise;
+
+    // If we can find no Promise implemention, then fail now.
+    if (typeof ES6Promise !== "function") {
+        throw new Error("No Promise implementation found; do you need a polyfill?");
+    }
+
+    return function () {
+        var _this = this;
+
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+        }
+
+        return new ES6Promise(function (resolve, reject) {
+
+            // Append the callback bound to the context
+            args.push(function callback(err) {
+
+                if (err) {
+                    return reject(err);
+                }
+
+                for (var _len2 = arguments.length, values = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+                    values[_key2 - 1] = arguments[_key2];
+                }
+
+                if (values.length === 1 || !argumentNames) {
+                    return resolve(values[0]);
+                }
+
+                var o = {};
+                values.forEach(function (value, index) {
+                    var name = argumentNames[index];
+                    if (name) {
+                        o[name] = value;
+                    }
+                });
+
+                resolve(o);
+            });
+
+            // Call the function.
+            original.call.apply(original, [_this].concat(args));
+        });
+    };
+}
+
+// Attach this symbol to the exported function, so users can use it
+promisify.argumentNames = customArgumentsToken;
+promisify.Promise = undefined;
+
+// Export the public API
+exports.promisify = promisify;
 },{}],"UzoP":[function(require,module,exports) {
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -258,7 +343,7 @@ function normalizeArray(parts, allowAboveRoot) {
 
 // Split a filename into [root, dir, basename, ext], unix version
 // 'root' is just a slash, or nothing.
-var splitPathRe = /^(\/?)([\s\S]+\/(?!$)|\/)?((?:\.{1,2}$|[\s\S]+?)?(\.[^.\/]*)?)$/;
+var splitPathRe = /^(\/?)([\s\S]+\/(?!$)|\/)?((?:\.{1,2}$|[\s\S]+?)?(\.[^./]*)?)$/;
 var splitPath = function splitPath(filename) {
   var result = splitPathRe.exec(filename);
   return [result[1] || '', result[2] || '', result[3] || '', result[4] || ''];
@@ -295,8 +380,7 @@ function resolve() {
 
 // path.normalize(path)
 function normalize(path) {
-  var isAbsolute = path.charAt(0) === '/',
-      trailingSlash = path.substr(-1) === '/';
+  var isAbsolute = path.charAt(0) === '/';
 
   // Normalize the path
   path = normalizeArray(path.split('/').filter(function (p) {
@@ -317,7 +401,7 @@ function normalize(path) {
 
 function join() {
   var paths = Array.prototype.slice.call(arguments, 0);
-  return normalize(paths.filter(function (p, index) {
+  return normalize(paths.filter(function (p) {
     return p && typeof p === 'string';
   }).join('/'));
 }
@@ -355,7 +439,7 @@ function relative(from, to) {
   }
 
   var outputParts = [];
-  for (var i = samePartsLength; i < fromParts.length; i++) {
+  for (i = samePartsLength; i < fromParts.length; i++) {
     outputParts.push('..');
   }
 
@@ -389,7 +473,7 @@ function basename(path, ext) {
     f = f.substr(0, f.length - ext.length);
   }
   // XXXfiler: node.js just does `return f`
-  return f === "" ? "/" : f;
+  return f === '' ? '/' : f;
 }
 
 function extname(path) {
@@ -487,9 +571,9 @@ module.exports = {
   IDB_RO: 'readonly',
   IDB_RW: 'readwrite',
 
-  WSQL_VERSION: "1",
+  WSQL_VERSION: '1',
   WSQL_SIZE: 5 * 1024 * 1024,
-  WSQL_DESC: "FileSystem Storage",
+  WSQL_DESC: 'FileSystem Storage',
 
   NODE_TYPE_FILE: 'FILE',
   NODE_TYPE_DIRECTORY: 'DIRECTORY',
@@ -603,105 +687,7 @@ module.exports = {
     COPYFILE_EXCL: 1
   }
 };
-},{}],"p8GN":[function(require,module,exports) {
-var errors = {};
-[
-/**
- * node.js errors - we only use some of these, add as needed.
- */
-//'-1:UNKNOWN:unknown error',
-//'0:OK:success',
-//'1:EOF:end of file',
-//'2:EADDRINFO:getaddrinfo error',
-//'3:EACCES:permission denied',
-//'4:EAGAIN:resource temporarily unavailable',
-//'5:EADDRINUSE:address already in use',
-//'6:EADDRNOTAVAIL:address not available',
-//'7:EAFNOSUPPORT:address family not supported',
-//'8:EALREADY:connection already in progress',
-'9:EBADF:bad file descriptor', '10:EBUSY:resource busy or locked',
-//'11:ECONNABORTED:software caused connection abort',
-//'12:ECONNREFUSED:connection refused',
-//'13:ECONNRESET:connection reset by peer',
-//'14:EDESTADDRREQ:destination address required',
-//'15:EFAULT:bad address in system call argument',
-//'16:EHOSTUNREACH:host is unreachable',
-//'17:EINTR:interrupted system call',
-'18:EINVAL:invalid argument',
-//'19:EISCONN:socket is already connected',
-//'20:EMFILE:too many open files',
-//'21:EMSGSIZE:message too long',
-//'22:ENETDOWN:network is down',
-//'23:ENETUNREACH:network is unreachable',
-//'24:ENFILE:file table overflow',
-//'25:ENOBUFS:no buffer space available',
-//'26:ENOMEM:not enough memory',
-'27:ENOTDIR:not a directory', '28:EISDIR:illegal operation on a directory',
-//'29:ENONET:machine is not on the network',
-// errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-//'31:ENOTCONN:socket is not connected',
-//'32:ENOTSOCK:socket operation on non-socket',
-//'33:ENOTSUP:operation not supported on socket',
-'34:ENOENT:no such file or directory',
-//'35:ENOSYS:function not implemented',
-//'36:EPIPE:broken pipe',
-//'37:EPROTO:protocol error',
-//'38:EPROTONOSUPPORT:protocol not supported',
-//'39:EPROTOTYPE:protocol wrong type for socket',
-//'40:ETIMEDOUT:connection timed out',
-//'41:ECHARSET:invalid Unicode character',
-//'42:EAIFAMNOSUPPORT:address family for hostname not supported',
-// errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-//'44:EAISERVICE:servname not supported for ai_socktype',
-//'45:EAISOCKTYPE:ai_socktype not supported',
-//'46:ESHUTDOWN:cannot send after transport endpoint shutdown',
-'47:EEXIST:file already exists',
-//'48:ESRCH:no such process',
-//'49:ENAMETOOLONG:name too long',
-'50:EPERM:operation not permitted', '51:ELOOP:too many symbolic links encountered',
-//'52:EXDEV:cross-device link not permitted',
-'53:ENOTEMPTY:directory not empty',
-//'54:ENOSPC:no space left on device',
-'55:EIO:i/o error',
-//'56:EROFS:read-only file system',
-//'57:ENODEV:no such device',
-//'58:ESPIPE:invalid seek',
-//'59:ECANCELED:operation canceled',
-
-/**
- * Filer specific errors
- */
-'1000:ENOTMOUNTED:not mounted', '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.', '1002:ENOATTR:attribute does not exist'].forEach(function (e) {
-  e = e.split(':');
-  var errno = +e[0];
-  var errName = e[1];
-  var defaultMessage = e[2];
-
-  function FilerError(msg, path) {
-    Error.call(this);
-
-    this.name = errName;
-    this.code = errName;
-    this.errno = errno;
-    this.message = msg || defaultMessage;
-    if (path) {
-      this.path = path;
-    }
-    this.stack = new Error(this.message).stack;
-  }
-  FilerError.prototype = Object.create(Error.prototype);
-  FilerError.prototype.constructor = FilerError;
-  FilerError.prototype.toString = function () {
-    var pathInfo = this.path ? ', \'' + this.path + '\'' : '';
-    return this.name + ': ' + this.message + pathInfo;
-  };
-
-  // We expose the error as both Errors.EINVAL and Errors[18]
-  errors[errName] = errors[errno] = FilerError;
-});
-
-module.exports = errors;
-},{}],"yh9p":[function(require,module,exports) {
+},{}],"XV+c":[function(require,module,exports) {
 'use strict'
 
 exports.byteLength = byteLength
@@ -854,7 +840,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],"JgNJ":[function(require,module,exports) {
+},{}],"QT34":[function(require,module,exports) {
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -940,14 +926,14 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],"REa7":[function(require,module,exports) {
+},{}],"CWYW":[function(require,module,exports) {
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],"dskh":[function(require,module,exports) {
+},{}],"D+m+":[function(require,module,exports) {
 
 var global = arguments[3];
 /*!
@@ -2740,7 +2726,7 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":"yh9p","ieee754":"JgNJ","isarray":"REa7","buffer":"dskh"}],"xfwq":[function(require,module,exports) {
+},{"base64-js":"XV+c","ieee754":"QT34","isarray":"CWYW","buffer":"D+m+"}],"xfwq":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
 function FilerBuffer(subject, encoding, nonZero) {
 
@@ -2751,7 +2737,7 @@ function FilerBuffer(subject, encoding, nonZero) {
   }
 
   return new Buffer(subject, encoding, nonZero);
-};
+}
 
 // Inherit prototype from Buffer
 FilerBuffer.prototype = Object.create(Buffer.prototype);
@@ -2765,13 +2751,12 @@ Object.keys(Buffer).forEach(function (p) {
 });
 
 module.exports = FilerBuffer;
-},{"buffer":"dskh"}],"QO4x":[function(require,module,exports) {
+},{"buffer":"D+m+"}],"SvVb":[function(require,module,exports) {
 var global = arguments[3];
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var IDB_RW = require('../constants.js').IDB_RW;
 var IDB_RO = require('../constants.js').IDB_RO;
-var Errors = require('../errors.js');
 var FilerBuffer = require('../buffer.js');
 
 var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB;
@@ -2927,7 +2912,105 @@ IndexedDB.prototype.getReadWriteContext = function () {
 };
 
 module.exports = IndexedDB;
-},{"../constants.js":"iJA9","../errors.js":"p8GN","../buffer.js":"xfwq"}],"vLJO":[function(require,module,exports) {
+},{"../constants.js":"iJA9","../buffer.js":"xfwq"}],"p8GN":[function(require,module,exports) {
+var errors = {};
+[
+/**
+ * node.js errors - we only use some of these, add as needed.
+ */
+//'-1:UNKNOWN:unknown error',
+//'0:OK:success',
+//'1:EOF:end of file',
+//'2:EADDRINFO:getaddrinfo error',
+//'3:EACCES:permission denied',
+//'4:EAGAIN:resource temporarily unavailable',
+//'5:EADDRINUSE:address already in use',
+//'6:EADDRNOTAVAIL:address not available',
+//'7:EAFNOSUPPORT:address family not supported',
+//'8:EALREADY:connection already in progress',
+'9:EBADF:bad file descriptor', '10:EBUSY:resource busy or locked',
+//'11:ECONNABORTED:software caused connection abort',
+//'12:ECONNREFUSED:connection refused',
+//'13:ECONNRESET:connection reset by peer',
+//'14:EDESTADDRREQ:destination address required',
+//'15:EFAULT:bad address in system call argument',
+//'16:EHOSTUNREACH:host is unreachable',
+//'17:EINTR:interrupted system call',
+'18:EINVAL:invalid argument',
+//'19:EISCONN:socket is already connected',
+//'20:EMFILE:too many open files',
+//'21:EMSGSIZE:message too long',
+//'22:ENETDOWN:network is down',
+//'23:ENETUNREACH:network is unreachable',
+//'24:ENFILE:file table overflow',
+//'25:ENOBUFS:no buffer space available',
+//'26:ENOMEM:not enough memory',
+'27:ENOTDIR:not a directory', '28:EISDIR:illegal operation on a directory',
+//'29:ENONET:machine is not on the network',
+// errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+//'31:ENOTCONN:socket is not connected',
+//'32:ENOTSOCK:socket operation on non-socket',
+//'33:ENOTSUP:operation not supported on socket',
+'34:ENOENT:no such file or directory',
+//'35:ENOSYS:function not implemented',
+//'36:EPIPE:broken pipe',
+//'37:EPROTO:protocol error',
+//'38:EPROTONOSUPPORT:protocol not supported',
+//'39:EPROTOTYPE:protocol wrong type for socket',
+//'40:ETIMEDOUT:connection timed out',
+//'41:ECHARSET:invalid Unicode character',
+//'42:EAIFAMNOSUPPORT:address family for hostname not supported',
+// errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+//'44:EAISERVICE:servname not supported for ai_socktype',
+//'45:EAISOCKTYPE:ai_socktype not supported',
+//'46:ESHUTDOWN:cannot send after transport endpoint shutdown',
+'47:EEXIST:file already exists',
+//'48:ESRCH:no such process',
+//'49:ENAMETOOLONG:name too long',
+'50:EPERM:operation not permitted', '51:ELOOP:too many symbolic links encountered',
+//'52:EXDEV:cross-device link not permitted',
+'53:ENOTEMPTY:directory not empty',
+//'54:ENOSPC:no space left on device',
+'55:EIO:i/o error',
+//'56:EROFS:read-only file system',
+//'57:ENODEV:no such device',
+//'58:ESPIPE:invalid seek',
+//'59:ECANCELED:operation canceled',
+
+/**
+ * Filer specific errors
+ */
+'1000:ENOTMOUNTED:not mounted', '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.', '1002:ENOATTR:attribute does not exist'].forEach(function (e) {
+  e = e.split(':');
+  var errno = +e[0];
+  var errName = e[1];
+  var defaultMessage = e[2];
+
+  function FilerError(msg, path) {
+    Error.call(this);
+
+    this.name = errName;
+    this.code = errName;
+    this.errno = errno;
+    this.message = msg || defaultMessage;
+    if (path) {
+      this.path = path;
+    }
+    this.stack = new Error(this.message).stack;
+  }
+  FilerError.prototype = Object.create(Error.prototype);
+  FilerError.prototype.constructor = FilerError;
+  FilerError.prototype.toString = function () {
+    var pathInfo = this.path ? ', \'' + this.path + '\'' : '';
+    return this.name + ': ' + this.message + pathInfo;
+  };
+
+  // We expose the error as both Errors.EINVAL and Errors[18]
+  errors[errName] = errors[errno] = FilerError;
+});
+
+module.exports = errors;
+},{}],"U+mA":[function(require,module,exports) {
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -3002,7 +3085,7 @@ module.exports = IndexedDB;
     return arraybuffer;
   };
 })();
-},{}],"hW+K":[function(require,module,exports) {
+},{}],"uv02":[function(require,module,exports) {
 var global = arguments[3];
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
@@ -3032,11 +3115,11 @@ WebSQLContext.prototype.clear = function (callback) {
   function onError(transaction, error) {
     callback(error);
   }
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     callback(null);
   }
   this.getTransaction(function (transaction) {
-    transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + ";", [], onSuccess, onError);
+    transaction.executeSql('DELETE FROM ' + FILE_STORE_NAME + ';', [], onSuccess, onError);
   });
 };
 
@@ -3050,7 +3133,7 @@ function _get(getTransaction, key, callback) {
     callback(error);
   }
   getTransaction(function (transaction) {
-    transaction.executeSql("SELECT data FROM " + FILE_STORE_NAME + " WHERE id = ? LIMIT 1;", [key], onSuccess, onError);
+    transaction.executeSql('SELECT data FROM ' + FILE_STORE_NAME + ' WHERE id = ? LIMIT 1;', [key], onSuccess, onError);
   });
 }
 WebSQLContext.prototype.getObject = function (key, callback) {
@@ -3087,14 +3170,14 @@ WebSQLContext.prototype.getBuffer = function (key, callback) {
 };
 
 function _put(getTransaction, key, value, callback) {
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     callback(null);
   }
   function onError(transaction, error) {
     callback(error);
   }
   getTransaction(function (transaction) {
-    transaction.executeSql("INSERT OR REPLACE INTO " + FILE_STORE_NAME + " (id, data) VALUES (?, ?);", [key, value], onSuccess, onError);
+    transaction.executeSql('INSERT OR REPLACE INTO ' + FILE_STORE_NAME + ' (id, data) VALUES (?, ?);', [key, value], onSuccess, onError);
   });
 }
 WebSQLContext.prototype.putObject = function (key, value, callback) {
@@ -3107,14 +3190,14 @@ WebSQLContext.prototype.putBuffer = function (key, uint8BackedBuffer, callback) 
 };
 
 WebSQLContext.prototype.delete = function (key, callback) {
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     callback(null);
   }
   function onError(transaction, error) {
     callback(error);
   }
   this.getTransaction(function (transaction) {
-    transaction.executeSql("DELETE FROM " + FILE_STORE_NAME + " WHERE id = ?;", [key], onSuccess, onError);
+    transaction.executeSql('DELETE FROM ' + FILE_STORE_NAME + ' WHERE id = ?;', [key], onSuccess, onError);
   });
 };
 
@@ -3136,7 +3219,7 @@ WebSQL.prototype.open = function (callback) {
 
   var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
   if (!db) {
-    callback("[WebSQL] Unable to open database.");
+    callback('[WebSQL] Unable to open database.');
     return;
   }
 
@@ -3146,7 +3229,7 @@ WebSQL.prototype.open = function (callback) {
     }
     callback(error);
   }
-  function onSuccess(transaction, result) {
+  function onSuccess() {
     that.db = db;
     callback();
   }
@@ -3154,9 +3237,9 @@ WebSQL.prototype.open = function (callback) {
   // Create the table and index we'll need to store the fs data.
   db.transaction(function (transaction) {
     function createIndex(transaction) {
-      transaction.executeSql("CREATE INDEX IF NOT EXISTS idx_" + FILE_STORE_NAME + "_id" + " on " + FILE_STORE_NAME + " (id);", [], onSuccess, onError);
+      transaction.executeSql('CREATE INDEX IF NOT EXISTS idx_' + FILE_STORE_NAME + '_id' + ' on ' + FILE_STORE_NAME + ' (id);', [], onSuccess, onError);
     }
-    transaction.executeSql("CREATE TABLE IF NOT EXISTS " + FILE_STORE_NAME + " (id unique, data TEXT);", [], createIndex, onError);
+    transaction.executeSql('CREATE TABLE IF NOT EXISTS ' + FILE_STORE_NAME + ' (id unique, data TEXT);', [], createIndex, onError);
   });
 };
 WebSQL.prototype.getReadOnlyContext = function () {
@@ -3167,7 +3250,7 @@ WebSQL.prototype.getReadWriteContext = function () {
 };
 
 module.exports = WebSQL;
-},{"../constants.js":"iJA9","../errors.js":"p8GN","../buffer.js":"xfwq","base64-arraybuffer":"vLJO"}],"pBGv":[function(require,module,exports) {
+},{"../constants.js":"iJA9","../errors.js":"p8GN","../buffer.js":"xfwq","base64-arraybuffer":"U+mA"}],"qC85":[function(require,module,exports) {
 
 // shim for using process in browser
 var process = module.exports = {};
@@ -3354,7 +3437,7 @@ process.chdir = function (dir) {
 process.umask = function () {
     return 0;
 };
-},{}],"u4Zs":[function(require,module,exports) {
+},{}],"AV2T":[function(require,module,exports) {
 var process = require("process");
 var define;
 /*global setImmediate: false, setTimeout: false, console: false */
@@ -3436,7 +3519,7 @@ var define;
                 root.async = async;
             }
 })();
-},{"process":"pBGv"}],"3OWy":[function(require,module,exports) {
+},{"process":"qC85"}],"cQUl":[function(require,module,exports) {
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 // NOTE: prefer setImmediate to nextTick for proper recursion yielding.
 // see https://github.com/js-platform/filer/pull/24
@@ -3463,7 +3546,7 @@ function MemoryContext(db, readOnly) {
 MemoryContext.prototype.clear = function (callback) {
   if (this.readOnly) {
     asyncCallback(function () {
-      callback("[MemoryContext] Error: write operation on read only context");
+      callback('[MemoryContext] Error: write operation on read only context');
     });
     return;
   }
@@ -3484,7 +3567,7 @@ MemoryContext.prototype.getObject = MemoryContext.prototype.getBuffer = function
 MemoryContext.prototype.putObject = MemoryContext.prototype.putBuffer = function (key, value, callback) {
   if (this.readOnly) {
     asyncCallback(function () {
-      callback("[MemoryContext] Error: write operation on read only context");
+      callback('[MemoryContext] Error: write operation on read only context');
     });
     return;
   }
@@ -3495,7 +3578,7 @@ MemoryContext.prototype.putObject = MemoryContext.prototype.putBuffer = function
 MemoryContext.prototype.delete = function (key, callback) {
   if (this.readOnly) {
     asyncCallback(function () {
-      callback("[MemoryContext] Error: write operation on read only context");
+      callback('[MemoryContext] Error: write operation on read only context');
     });
     return;
   }
@@ -3522,7 +3605,7 @@ Memory.prototype.getReadWriteContext = function () {
 };
 
 module.exports = Memory;
-},{"../constants.js":"iJA9","../../lib/async.js":"u4Zs"}],"AiW7":[function(require,module,exports) {
+},{"../constants.js":"iJA9","../../lib/async.js":"AV2T"}],"RzzZ":[function(require,module,exports) {
 var IndexedDB = require('./indexeddb.js');
 var WebSQL = require('./websql.js');
 var Memory = require('./memory.js');
@@ -3550,7 +3633,7 @@ module.exports = {
     }
 
     function NotSupported() {
-      throw "[Filer Error] Your browser doesn't support IndexedDB or WebSQL.";
+      throw '[Filer Error] Your browser doesn\'t support IndexedDB or WebSQL.';
     }
     NotSupported.isSupported = function () {
       return false;
@@ -3558,7 +3641,7 @@ module.exports = {
     return NotSupported;
   }()
 };
-},{"./indexeddb.js":"QO4x","./websql.js":"hW+K","./memory.js":"3OWy"}],"QMiB":[function(require,module,exports) {
+},{"./indexeddb.js":"SvVb","./websql.js":"uv02","./memory.js":"cQUl"}],"KPj6":[function(require,module,exports) {
 var defaults = require('../constants.js').ENVIRONMENT;
 
 module.exports = function Environment(env) {
@@ -3574,22 +3657,7 @@ module.exports = function Environment(env) {
     env[name] = value;
   };
 };
-},{"../constants.js":"iJA9"}],"03yF":[function(require,module,exports) {
-var Buffer = require("buffer").Buffer;
-// Adapt encodings to work with Buffer or Uint8Array, they expect the latter
-function decode(buf) {
-  return buf.toString('utf8');
-}
-
-function encode(string) {
-  return new Buffer(string, 'utf8');
-}
-
-module.exports = {
-  encode: encode,
-  decode: decode
-};
-},{"buffer":"dskh"}],"UUq2":[function(require,module,exports) {
+},{"../constants.js":"iJA9"}],"oS47":[function(require,module,exports) {
 var process = require("process");
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -3816,7 +3884,7 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-},{"process":"pBGv"}],"bQx9":[function(require,module,exports) {
+},{"process":"qC85"}],"Oe3x":[function(require,module,exports) {
 module.exports = function (xs, fn) {
     var res = [];
     for (var i = 0; i < xs.length; i++) {
@@ -3831,7 +3899,7 @@ var isArray = Array.isArray || function (xs) {
     return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],"6D9y":[function(require,module,exports) {
+},{}],"tPCG":[function(require,module,exports) {
 'use strict';
 module.exports = balanced;
 function balanced(a, b, str) {
@@ -3892,7 +3960,7 @@ function range(a, b, str) {
   return result;
 }
 
-},{}],"dwX/":[function(require,module,exports) {
+},{}],"PuLq":[function(require,module,exports) {
 var concatMap = require('concat-map');
 var balanced = require('balanced-match');
 
@@ -4095,7 +4163,7 @@ function expand(str, isTop) {
 }
 
 
-},{"concat-map":"bQx9","balanced-match":"6D9y"}],"Nt/K":[function(require,module,exports) {
+},{"concat-map":"Oe3x","balanced-match":"tPCG"}],"Dd0T":[function(require,module,exports) {
 module.exports = minimatch
 minimatch.Minimatch = Minimatch
 
@@ -5020,15 +5088,19 @@ function regExpEscape (s) {
   return s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
 
-},{"path":"UUq2","brace-expansion":"dwX/"}],"D1Ra":[function(require,module,exports) {
+},{"path":"oS47","brace-expansion":"PuLq"}],"/TiA":[function(require,module,exports) {
+var _require = require('es6-promisify'),
+    promisify = _require.promisify;
+
 var Path = require('../path.js');
 var Errors = require('../errors.js');
 var Environment = require('./environment.js');
 var async = require('../../lib/async.js');
-var Encoding = require('../encoding.js');
 var minimatch = require('minimatch');
 
 function Shell(fs, options) {
+  var _this = this;
+
   options = options || {};
 
   var env = new Environment(options.env);
@@ -5084,6 +5156,14 @@ function Shell(fs, options) {
   this.pwd = function () {
     return cwd;
   };
+
+  this.promises = {};
+  /**
+  * Public API for Shell converted to Promise based
+  */
+  ['cd', 'exec', 'touch', 'cat', 'ls', 'rm', 'tempDir', 'mkdirp', 'find'].forEach(function (methodName) {
+    _this.promises[methodName] = promisify(_this[methodName].bind(_this));
+  });
 }
 
 /**
@@ -5114,7 +5194,7 @@ Shell.prototype.exec = function (path, args, callback) {
   callback = callback || function () {};
   path = Path.resolve(sh.pwd(), path);
 
-  fs.readFile(path, "utf8", function (error, data) {
+  fs.readFile(path, 'utf8', function (error, data) {
     if (error) {
       callback(error);
       return;
@@ -5158,7 +5238,7 @@ Shell.prototype.touch = function (path, options, callback) {
     fs.utimes(path, atime, mtime, callback);
   }
 
-  fs.stat(path, function (error, stats) {
+  fs.stat(path, function (error) {
     if (error) {
       if (options.updateOnly === true) {
         callback();
@@ -5375,7 +5455,7 @@ Shell.prototype.tempDir = function (callback) {
 
   // Try and create it, and it will either work or fail
   // but either way it's now there.
-  fs.mkdir(tmp, function (err) {
+  fs.mkdir(tmp, function () {
     callback(null, tmp);
   });
 };
@@ -5562,7 +5642,7 @@ Shell.prototype.find = function (path, options, callback) {
 };
 
 module.exports = Shell;
-},{"../path.js":"UzoP","../errors.js":"p8GN","./environment.js":"QMiB","../../lib/async.js":"u4Zs","../encoding.js":"03yF","minimatch":"Nt/K"}],"J4Qg":[function(require,module,exports) {
+},{"es6-promisify":"dRwD","../path.js":"UzoP","../errors.js":"p8GN","./environment.js":"KPj6","../../lib/async.js":"AV2T","minimatch":"Dd0T"}],"eWWT":[function(require,module,exports) {
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -5634,7 +5714,7 @@ EventEmitter.prototype.trigger = pub.trigger;
 EventEmitter.prototype.removeAllListeners = pub.removeAllListeners;
 
 module.exports = EventEmitter;
-},{}],"u7Jv":[function(require,module,exports) {
+},{}],"cyyu":[function(require,module,exports) {
 var global = arguments[3];
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -5957,7 +6037,7 @@ Intercom.getInstance = function () {
 }();
 
 module.exports = Intercom;
-},{"./eventemitter.js":"J4Qg","../src/shared.js":"3zBM"}],"VLEe":[function(require,module,exports) {
+},{"./eventemitter.js":"eWWT","../src/shared.js":"3zBM"}],"VLEe":[function(require,module,exports) {
 var EventEmitter = require('../lib/eventemitter.js');
 var Path = require('./path.js');
 var Intercom = require('../lib/intercom.js');
@@ -6020,7 +6100,22 @@ FSWatcher.prototype = new EventEmitter();
 FSWatcher.prototype.constructor = FSWatcher;
 
 module.exports = FSWatcher;
-},{"../lib/eventemitter.js":"J4Qg","./path.js":"UzoP","../lib/intercom.js":"u7Jv"}],"ZECt":[function(require,module,exports) {
+},{"../lib/eventemitter.js":"eWWT","./path.js":"UzoP","../lib/intercom.js":"cyyu"}],"03yF":[function(require,module,exports) {
+var Buffer = require("buffer").Buffer;
+// Adapt encodings to work with Buffer or Uint8Array, they expect the latter
+function decode(buf) {
+  return buf.toString('utf8');
+}
+
+function encode(string) {
+  return new Buffer(string, 'utf8');
+}
+
+module.exports = {
+  encode: encode,
+  decode: decode
+};
+},{"buffer":"D+m+"}],"ZECt":[function(require,module,exports) {
 var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
@@ -6090,9 +6185,6 @@ module.exports = SuperNode;
 var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
-var NODE_TYPE_META = require('./constants.js').NODE_TYPE_META;
-
-var ROOT_DIRECTORY_NAME = require('./constants.js').ROOT_DIRECTORY_NAME;
 
 var S_IFREG = require('./constants.js').S_IFREG;
 var S_IFDIR = require('./constants.js').S_IFDIR;
@@ -6212,7 +6304,7 @@ Stats.prototype.isSocket = Stats.prototype.isFIFO = Stats.prototype.isCharacterD
 };
 
 module.exports = Stats;
-},{"./constants.js":"iJA9","./path.js":"UzoP"}],"bsBG":[function(require,module,exports) {
+},{"./constants.js":"iJA9","./path.js":"UzoP"}],"ctIo":[function(require,module,exports) {
 
 var _ = require('../../lib/nodash.js');
 
@@ -6229,8 +6321,6 @@ var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
 var NODE_TYPE_META = Constants.NODE_TYPE_META;
 
-var DEFAULT_FILE_PERMISSIONS = Constants.DEFAULT_FILE_PERMISSIONS;
-var DEFAULT_DIR_PERMISSIONS = Constants.DEFAULT_DIR_PERMISSIONS;
 var FULL_READ_WRITE_EXEC_PERMISSIONS = Constants.FULL_READ_WRITE_EXEC_PERMISSIONS;
 
 var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
@@ -6241,7 +6331,6 @@ var O_READ = Constants.O_READ;
 var O_WRITE = Constants.O_WRITE;
 var O_CREATE = Constants.O_CREATE;
 var O_EXCLUSIVE = Constants.O_EXCLUSIVE;
-var O_TRUNCATE = Constants.O_TRUNCATE;
 var O_APPEND = Constants.O_APPEND;
 var O_FLAGS = Constants.O_FLAGS;
 
@@ -7056,7 +7145,6 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
 
 function stat_file(context, path, callback) {
   path = normalize(path);
-  var name = basename(path);
   find_node(context, path, callback);
 }
 
@@ -7136,7 +7224,7 @@ function link_node(context, oldpath, newpath, callback) {
     }
   }
 
-  function read_file_node(error, result) {
+  function read_file_node(error) {
     if (error) {
       callback(error);
     } else {
@@ -7210,8 +7298,12 @@ function unlink_node(context, path, callback) {
     } else {
       delete directoryData[name];
       context.putObject(directoryNode.data, directoryData, function (error) {
-        var now = Date.now();
-        update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
+        if (error) {
+          callback(error);
+        } else {
+          var now = Date.now();
+          update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
+        }
       });
     }
   }
@@ -7234,7 +7326,11 @@ function unlink_node(context, path, callback) {
         context.delete(fileNode.id, delete_file_data);
       } else {
         context.putObject(fileNode.id, fileNode, function (error) {
-          update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
+          if (error) {
+            callback(error);
+          } else {
+            update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
+          }
         });
       }
     }
@@ -7277,7 +7373,6 @@ function unlink_node(context, path, callback) {
 
 function read_directory(context, path, callback) {
   path = normalize(path);
-  var name = basename(path);
 
   var directoryNode;
   var directoryData;
@@ -7761,9 +7856,9 @@ function validate_flags(flags) {
 function validate_file_options(options, enc, fileMode) {
   if (!options) {
     options = { encoding: enc, flag: fileMode };
-  } else if (typeof options === "function") {
+  } else if (typeof options === 'function') {
     options = { encoding: enc, flag: fileMode };
-  } else if (typeof options === "string") {
+  } else if (typeof options === 'string') {
     options = { encoding: options, flag: fileMode };
   }
   return options;
@@ -7972,7 +8067,7 @@ function readFile(fs, context, path, options, callback) {
       var buffer = new Buffer(size);
       buffer.fill(0);
 
-      read_data(context, ofd, buffer, 0, size, 0, function (err, nbytes) {
+      read_data(context, ofd, buffer, 0, size, 0, function (err) {
         cleanup();
 
         if (err) {
@@ -8020,10 +8115,10 @@ function writeFile(fs, context, path, data, options, callback) {
   }
 
   data = data || '';
-  if (typeof data === "number") {
+  if (typeof data === 'number') {
     data = '' + data;
   }
-  if (typeof data === "string" && options.encoding === 'utf8') {
+  if (typeof data === 'string' && options.encoding === 'utf8') {
     data = Encoding.encode(data);
   }
 
@@ -8034,7 +8129,7 @@ function writeFile(fs, context, path, data, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
 
-    replace_data(context, ofd, data, 0, data.length, function (err, nbytes) {
+    replace_data(context, ofd, data, 0, data.length, function (err) {
       fs.releaseDescriptor(fd);
 
       if (err) {
@@ -8057,10 +8152,10 @@ function appendFile(fs, context, path, data, options, callback) {
   }
 
   data = data || '';
-  if (typeof data === "number") {
+  if (typeof data === 'number') {
     data = '' + data;
   }
-  if (typeof data === "string" && options.encoding === 'utf8') {
+  if (typeof data === 'string' && options.encoding === 'utf8') {
     data = Encoding.encode(data);
   }
 
@@ -8071,7 +8166,7 @@ function appendFile(fs, context, path, data, options, callback) {
     var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
     var fd = fs.allocDescriptor(ofd);
 
-    write_data(context, ofd, data, 0, data.length, ofd.position, function (err, nbytes) {
+    write_data(context, ofd, data, 0, data.length, ofd.position, function (err) {
       fs.releaseDescriptor(fd);
 
       if (err) {
@@ -8083,15 +8178,15 @@ function appendFile(fs, context, path, data, options, callback) {
 }
 
 function exists(fs, context, path, callback) {
-  function cb(err, stats) {
+  function cb(err) {
     callback(err ? false : true);
   }
+  console.warn('This method is deprecated. For more details see https://nodejs.org/api/fs.html#fs_fs_exists_path_callback'); // eslint-disable-line no-console
   stat(fs, context, path, cb);
 }
 
 // Based on https://github.com/nodejs/node/blob/c700cc42da9cf73af9fec2098520a6c0a631d901/lib/internal/validators.js#L21
 var octalReg = /^[0-7]+$/;
-var modeDesc = 'must be a 32-bit unsigned integer or an octal string';
 function isUint32(value) {
   return value === value >>> 0;
 }
@@ -8590,8 +8685,11 @@ module.exports = {
   truncate: truncate,
   ftruncate: ftruncate
 };
-},{"../../lib/nodash.js":"96cB","../path.js":"UzoP","../constants.js":"iJA9","../encoding.js":"03yF","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","../buffer.js":"xfwq"}],"GMi4":[function(require,module,exports) {
+},{"../../lib/nodash.js":"rwRH","../path.js":"UzoP","../constants.js":"iJA9","../encoding.js":"03yF","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","../buffer.js":"xfwq"}],"aWta":[function(require,module,exports) {
 var _ = require('../../lib/nodash.js');
+
+var _require = require('es6-promisify'),
+    promisify = _require.promisify;
 
 var isNullPath = require('../path.js').isNull;
 var nop = require('../shared.js').nop;
@@ -8622,7 +8720,7 @@ var impl = require('./implementation.js');
 
 // node.js supports a calling pattern that leaves off a callback.
 function maybeCallback(callback) {
-  if (typeof callback === "function") {
+  if (typeof callback === 'function') {
     return callback;
   }
   return function (err) {
@@ -8635,6 +8733,7 @@ function maybeCallback(callback) {
 // Default callback that logs an error if passed in
 function defaultCallback(err) {
   if (err) {
+    /* eslint no-console: 0 */
     console.error('Filer error: ', err);
   }
 }
@@ -8697,7 +8796,7 @@ function FileSystem(options, callback) {
   // descriptor management functions
   var openFiles = {};
   var nextDescriptor = FIRST_DESCRIPTOR;
-  Object.defineProperty(this, "openFiles", {
+  Object.defineProperty(this, 'openFiles', {
     get: function get() {
       return openFiles;
     }
@@ -8856,62 +8955,64 @@ function FileSystem(options, callback) {
       impl.ensureRootDirectory(context, complete);
     }
   });
+  FileSystem.prototype.promises = {};
+  /**
+   * Public API for FileSystem
+  */
+  ['open', 'chmod', 'fchmod', 'chown', 'fchown', 'close', 'mknod', 'mkdir', 'rmdir', 'stat', 'fstat', 'link', 'unlink', 'read', 'readFile', 'write', 'writeFile', 'appendFile', 'exists', 'lseek', 'readdir', 'rename', 'readlink', 'symlink', 'lstat', 'truncate', 'ftruncate', 'utimes', 'futimes', 'setxattr', 'getxattr', 'fsetxattr', 'fgetxattr', 'removexattr', 'fremovexattr'].forEach(function (methodName) {
+    FileSystem.prototype[methodName] = function () {
+      var fs = this;
+      var args = Array.prototype.slice.call(arguments, 0);
+      var lastArgIndex = args.length - 1;
+
+      // We may or may not get a callback, and since node.js supports
+      // fire-and-forget style fs operations, we have to dance a bit here.
+      var missingCallback = typeof args[lastArgIndex] !== 'function';
+      var callback = maybeCallback(args[lastArgIndex]);
+
+      var error = fs.queueOrRun(function () {
+        var context = fs.provider.openReadWriteContext();
+
+        // Fail early if the filesystem is in an error state (e.g.,
+        // provider failed to open.
+        if (FS_ERROR === fs.readyState) {
+          var err = new Errors.EFILESYSTEMERROR('filesystem unavailable, operation canceled');
+          return callback.call(fs, err);
+        }
+
+        // Wrap the callback so we can explicitly close the context
+        function complete() {
+          context.close();
+          callback.apply(fs, arguments);
+        }
+
+        // Either add or replace the callback with our wrapper complete()
+        if (missingCallback) {
+          args.push(complete);
+        } else {
+          args[lastArgIndex] = complete;
+        }
+
+        // Forward this call to the impl's version, using the following
+        // call signature, with complete() as the callback/last-arg now:
+        // fn(fs, context, arg0, arg1, ... , complete);
+        var fnArgs = [fs, context].concat(args);
+        impl[methodName].apply(null, fnArgs);
+      });
+      if (error) {
+        callback(error);
+      }
+    };
+
+    FileSystem.prototype.promises[methodName] = promisify(FileSystem.prototype[methodName].bind(fs));
+  });
 }
 
 // Expose storage providers on FileSystem constructor
 FileSystem.providers = providers;
 
-/**
- * Public API for FileSystem
- */
-['open', 'chmod', 'fchmod', 'chown', 'fchown', 'close', 'mknod', 'mkdir', 'rmdir', 'stat', 'fstat', 'link', 'unlink', 'read', 'readFile', 'write', 'writeFile', 'appendFile', 'exists', 'lseek', 'readdir', 'rename', 'readlink', 'symlink', 'lstat', 'truncate', 'ftruncate', 'utimes', 'futimes', 'setxattr', 'getxattr', 'fsetxattr', 'fgetxattr', 'removexattr', 'fremovexattr'].forEach(function (methodName) {
-  FileSystem.prototype[methodName] = function () {
-    var fs = this;
-    var args = Array.prototype.slice.call(arguments, 0);
-    var lastArgIndex = args.length - 1;
-
-    // We may or may not get a callback, and since node.js supports
-    // fire-and-forget style fs operations, we have to dance a bit here.
-    var missingCallback = typeof args[lastArgIndex] !== 'function';
-    var callback = maybeCallback(args[lastArgIndex]);
-
-    var error = fs.queueOrRun(function () {
-      var context = fs.provider.openReadWriteContext();
-
-      // Fail early if the filesystem is in an error state (e.g.,
-      // provider failed to open.
-      if (FS_ERROR === fs.readyState) {
-        var err = new Errors.EFILESYSTEMERROR('filesystem unavailable, operation canceled');
-        return callback.call(fs, err);
-      }
-
-      // Wrap the callback so we can explicitly close the context
-      function complete() {
-        context.close();
-        callback.apply(fs, arguments);
-      }
-
-      // Either add or replace the callback with our wrapper complete()
-      if (missingCallback) {
-        args.push(complete);
-      } else {
-        args[lastArgIndex] = complete;
-      }
-
-      // Forward this call to the impl's version, using the following
-      // call signature, with complete() as the callback/last-arg now:
-      // fn(fs, context, arg0, arg1, ... , complete);
-      var fnArgs = [fs, context].concat(args);
-      impl[methodName].apply(null, fnArgs);
-    });
-    if (error) {
-      callback(error);
-    }
-  };
-});
-
 module.exports = FileSystem;
-},{"../../lib/nodash.js":"96cB","../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","./implementation.js":"bsBG"}],"Focm":[function(require,module,exports) {
+},{"../../lib/nodash.js":"rwRH","es6-promisify":"dRwD","../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../providers/index.js":"RzzZ","../shell/shell.js":"/TiA","../../lib/intercom.js":"cyyu","../fs-watcher.js":"VLEe","../errors.js":"p8GN","./implementation.js":"ctIo"}],"Focm":[function(require,module,exports) {
 module.exports = {
   FileSystem: require('./filesystem/interface.js'),
   Buffer: require('./buffer.js'),
@@ -8919,5 +9020,5 @@ module.exports = {
   Errors: require('./errors.js'),
   Shell: require('./shell/shell.js')
 };
-},{"./filesystem/interface.js":"GMi4","./buffer.js":"xfwq","./path.js":"UzoP","./errors.js":"p8GN","./shell/shell.js":"D1Ra"}]},{},["Focm"], "Filer")
+},{"./filesystem/interface.js":"aWta","./buffer.js":"xfwq","./path.js":"UzoP","./errors.js":"p8GN","./shell/shell.js":"/TiA"}]},{},["Focm"], "Filer")
 //# sourceMappingURL=/filer.map
