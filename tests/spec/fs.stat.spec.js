@@ -92,3 +92,24 @@ describe('fs.stat', function() {
     });
   });
 });
+
+/**
+ * fsPromises tests
+ */
+
+describe('fsPromises.stat', function() {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should return an error if path does not exist', function(done) {
+    var fsPromises = util.fs().promises;
+
+    fsPromises.stat('/tmp')
+      .then(result => expect(result).not.to.exist)
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('ENOENT');
+      })
+      .then(() => done())
+  });
+})
