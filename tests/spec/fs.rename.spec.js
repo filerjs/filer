@@ -71,11 +71,9 @@ describe('fs.rename', function() {
   });
   it('should return error if the file or directory to rename doesnt exist', function(done) {
     var fs = util.fs();
-
       fs.rename('/fakeDirectory', '/myotherdir', function(error) {
         expect(error).to.exist;
         done();
-        
       });
   });
 
