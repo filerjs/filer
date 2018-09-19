@@ -112,4 +112,4 @@ describe('fsPromises.stat', function() {
       })
       .then(() => done())
   });
-})
+});
