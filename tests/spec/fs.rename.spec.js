@@ -69,6 +69,16 @@ describe('fs.rename', function() {
       });
     });
   });
+  //337
+  it('should error if the file or directory to rename doesnt exist', function(done) {
+    var fs = util.fs();
+
+      fs.rename('/fakeDirectory', '/myotherdir', function(error) {
+        expect(error).to.exist;
+        done();
+        
+      });
+  });
 
   it('should rename an existing directory if the new path points to an existing directory', function(done) {
     var fs = util.fs();
