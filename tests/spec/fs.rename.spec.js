@@ -62,7 +62,7 @@ describe('fs.rename', function() {
 
           fs.stat('/myotherdir', function(error, result) {
             expect(error).not.to.exist;
-            expect(result.nlinks).to.equal(1)g;
+            expect(result.nlinks).to.equal(1);
             done();
           });
         });
