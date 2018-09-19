@@ -62,14 +62,13 @@ describe('fs.rename', function() {
 
           fs.stat('/myotherdir', function(error, result) {
             expect(error).not.to.exist;
-            expect(result.nlinks).to.equal(1);
+            expect(result.nlinks).to.equal(1)g;
             done();
           });
         });
       });
     });
   });
-  //337
   it('should error if the file or directory to rename doesnt exist', function(done) {
     var fs = util.fs();
 
