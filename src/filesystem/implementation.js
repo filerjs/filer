@@ -1665,17 +1665,85 @@ function mknod(fs, context, path, type, callback) {
   make_node(context, path, type, callback);
 }
 
-function mkdir(fs, context, path, mode, callback) {
-  if (arguments.length < 5) {
-    callback = mode;
-    mode = FULL_READ_WRITE_EXEC_PERMISSIONS;
-  } else {
-    mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
-    if(!mode) return;
+function mkdirp(fs, context, path, callback) {
+  if(!path) {
+    callback(new Errors.EINVAL('Missing path argument'));
+    return;
+  } else if (path === '/') {
+    callback();
+    return;
   }
- 
+
+  function _mkdirp(path, callback) {
+    stat(fs, context, path, function (err, stat) {
+      if(stat) {
+        if(stat.isDirectory()) {
+          callback();
+          return;
+        }
+        else if (stat.isFile()) {
+          callback(new Errors.ENOTDIR(null, path));
+          return;
+        }
+      }
+      else if (err && err.code !== 'ENOENT') {
+        callback(err);
+        return;
+      }
+      else {
+        var parent = Path.dirname(path);
+        if(parent === '/') {
+          mkdir(fs, context, path, function (err) {
+            if (err && err.code != 'EEXIST') {
+              callback(err);
+              return;
+            }
+            callback();
+            return;
+          });
+        }
+        else {
+          _mkdirp(parent, function (err) {
+            if (err) return callback(err);
+            mkdir(fs, context, path, function (err) {
+              if (err && err.code != 'EEXIST') {
+                callback(err);
+                return;
+              }
+              callback();
+              return;
+            });
+          });
+        }
+      }
+    });
+  }
+
+  _mkdirp(path, callback);
+}
+
+function mkdir(fs, context, path, options, callback) {
+  if (arguments.length < 5) {
+    callback = options;
+    options = {
+      mode: FULL_READ_WRITE_EXEC_PERMISSIONS,
+      recursive: false
+    };
+  } else {
+    var mode = options.mode || options;
+    mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
+    if(!mode) {
+      return callback(new Errors.EINVAL('Invalid mode'));
+    }
+  }
+
   if(!pathCheck(path, callback)) return;
-  make_directory(context, path, callback);
+
+  if(options.recursive) {
+    mkdirp(fs, context, path, callback);
+  } else {
+    make_directory(context, path, callback);
+  }
 }
 
 function rmdir(fs, context, path, callback) {
