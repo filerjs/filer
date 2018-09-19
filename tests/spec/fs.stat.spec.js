@@ -110,6 +110,6 @@ describe('fsPromises.stat', function() {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOENT');
       })
-      .then(() => done())
+      .then(() => done());
   });
 });
