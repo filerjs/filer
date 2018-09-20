@@ -359,7 +359,7 @@ function ensure_root_directory(context, callback) {
 }
 
 /**
- * make_directory
+ * make_directory - TODO: deal with `mode` arg on creation
  */
 function make_directory(context, path, callback) {
   path = normalize(path);
@@ -1665,53 +1665,49 @@ function mknod(fs, context, path, type, callback) {
   make_node(context, path, type, callback);
 }
 
+/**
+ * Recursively creates the directory at `path`. If the parent
+ * of `path` does not exist, it will be created.
+ * Based off EnsureDir by Sam X. Xu
+ * https://www.npmjs.org/package/ensureDir
+ * MIT License
+ */
 function mkdirp(fs, context, path, callback) {
   if(!path) {
-    callback(new Errors.EINVAL('Missing path argument'));
-    return;
+    return callback(new Errors.EINVAL('Missing path argument'));
   } else if (path === '/') {
-    callback();
-    return;
+    return callback();
   }
 
   function _mkdirp(path, callback) {
     stat(fs, context, path, function (err, stat) {
       if(stat) {
         if(stat.isDirectory()) {
-          callback();
-          return;
+          return callback();
+        } else if (stat.isFile()) {
+          return callback(new Errors.ENOTDIR(null, path));
         }
-        else if (stat.isFile()) {
-          callback(new Errors.ENOTDIR(null, path));
-          return;
-        }
-      }
-      else if (err && err.code !== 'ENOENT') {
-        callback(err);
-        return;
-      }
-      else {
+      } else if (err && err.code !== 'ENOENT') {
+        return callback(err);
+      } else {
         var parent = Path.dirname(path);
         if(parent === '/') {
           mkdir(fs, context, path, function (err) {
             if (err && err.code != 'EEXIST') {
-              callback(err);
-              return;
+              return callback(err);
             }
             callback();
-            return;
           });
-        }
-        else {
+        } else {
           _mkdirp(parent, function (err) {
-            if (err) return callback(err);
+            if (err) {
+              return callback(err);
+            }
             mkdir(fs, context, path, function (err) {
               if (err && err.code != 'EEXIST') {
-                callback(err);
-                return;
+                return callback(err);
               }
               callback();
-              return;
             });
           });
         }
@@ -1722,23 +1718,32 @@ function mkdirp(fs, context, path, callback) {
   _mkdirp(path, callback);
 }
 
+/**
+ * options can be 1) `Number` or `String` if only a mode; 2) Object with `recursive` and/or `mode`
+ */
 function mkdir(fs, context, path, options, callback) {
-  if (arguments.length < 5) {
+  if(typeof options === 'function') {
     callback = options;
     options = {
       mode: FULL_READ_WRITE_EXEC_PERMISSIONS,
       recursive: false
     };
-  } else {
-    var mode = options.mode || options;
-    mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
-    if(!mode) {
-      return callback(new Errors.EINVAL('Invalid mode'));
-    }
   }
 
+  // Deal with options being a mode Number or String instead of an Object
+  if(typeof options === 'number' || typeof options === 'string') {
+    options = {
+      mode: options,
+      recursive: false
+    };
+  }
+
+  // Validate path and mode before going further
+  var mode = validateAndMaskMode(options.mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
+  if(!mode) return;
   if(!pathCheck(path, callback)) return;
 
+  // Allow for recurive:true and create any parent dirs necessary first
   if(options.recursive) {
     mkdirp(fs, context, path, callback);
   } else {
@@ -2220,14 +2225,14 @@ function futimes(fs, context, fd, atime, mtime, callback) {
 
 function chmod(fs, context, path, mode, callback) {
   if(!pathCheck(path, callback)) return;
-  mode = validateAndMaskMode(mode, 'mode');
+  mode = validateAndMaskMode(mode, 'mode', callback);
   if(!mode) return;
 
   chmod_file(context, path, mode, callback);
 }
 
 function fchmod(fs, context, fd, mode, callback) {
-  mode = validateAndMaskMode(mode, 'mode');
+  mode = validateAndMaskMode(mode, 'mode', callback);
   if(!mode) return;
 
   var ofd = fs.openFiles[fd];
