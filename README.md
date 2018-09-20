@@ -61,7 +61,6 @@ Filer is as close to the node.js [fs module](http://nodejs.org/api/fs.html) as p
 with the following differences:
 
 * No synchronous versions of methods (e.g., `mkdir()` but not `mkdirSync()`).
-* No permissions (e.g., no `chown()`, `chmod()`, etc.).
 * No support for stream-based operations (e.g., `fs.ReadStream`, `fs.WriteStream`).
 
 Filer has other features lacking in node.js (e.g., swappable backend
@@ -305,7 +304,7 @@ var fs = new Filer.FileSystem();
 * [fs.unlink(path, callback)](#unlink)
 * [fs.mknod(path, mode, callback)](#mknod)
 * [fs.rmdir(path, callback)](#rmdir)
-* [fs.mkdir(path, [mode], callback)](#mkdir)
+* [fs.mkdir(path, [options], callback)](#mkdir)
 * [fs.readdir(path, callback)](#readdir)
 * [fs.close(fd, callback)](#close)
 * [fs.open(path, flags, [mode], callback)](#open)
@@ -653,11 +652,15 @@ fs.unlink('/docs/a.txt', function(err) {
 });
 ```
 
-#### fs.mkdir(path, [mode], callback)<a name="mkdir"></a>
+#### fs.mkdir(path, [options], callback)<a name="mkdir"></a>
 
 Makes a directory with name supplied in `path` argument. Asynchronous [mkdir(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/mkdir.html). Callback gets no additional arguments.
 
-NOTE: Filer allows for, but ignores the optional `mode` argument used in node.js.
+`options` can be an `Object`, `Number`, or `String`.  If a `Number` or `String`, it is
+considered a `mode`. Note: Filer allows for a `mode`, but currently ignores it.  If `options`
+is an `Object`, it can contain: 1) `recursive` (`Boolean`) property, indicating whether or not
+parent paths should first be created (defaults to `false`); 2) `mode` (`Number`/`String`) property,
+indicating a `mode` as discussed above.
 
 Example:
 
@@ -670,6 +673,12 @@ fs.mkdir('/home', function(err) {
     if(err) throw err;
     // directory /home/carl now exists
   });
+});
+
+// Create /home/guest/tim recursively
+fs.mkdir('/home/guest/tim', {recursive: true}, function(err) {
+  if(err) throw err;
+  // directories /home/guest/tim now exist
 });
 ```
 
@@ -1531,9 +1540,11 @@ sh.tempDir(function(err, tmp) {
 
 #### sh.mkdirp(path, callback)<a name="mkdirp"></a>
 
-Recursively creates the directory at the provided path. If the
-directory already exists, no error is returned. All parents must
-be valid directories (not files).
+Recursively creates the directory at the provided path. If the directory already
+exists, no error is returned. All parents must be valid directories (not files).
+
+NOTE: This is simply a convenience for calling [`fs.mkdir(path, {recursive: true}, callback)`](#mkdir),
+which is the preferred way to accomplish recursive directory creation.
 
 Example:
 
