@@ -70,6 +70,31 @@ describe('fs.rename', function() {
     });
   });
 
+  it('should rename an existing directory (using promises)', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/mydir', function(error) {
+      if(error) throw error;
+
+      fs.promises.rename('/mydir', '/myotherdir').then(
+      function() {
+        expect(error).not.to.exist;
+        fs.stat('/mydir', function(error) {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOENT');
+
+          fs.stat('/myotherdir', function(error, result) {
+            expect(error).not.to.exist;
+            expect(result.nlinks).to.equal(1);
+            done();
+          });
+        });
+      },
+      function(error){throw error;}
+      );
+    });
+  });
+
   it('should rename an existing directory if the new path points to an existing directory', function(done) {
     var fs = util.fs();
 
