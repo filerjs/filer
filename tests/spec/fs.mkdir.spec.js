@@ -82,4 +82,16 @@ describe('fs.mkdir', function() {
     });
   });
 
+  it('should create all paths if {recursive:true} is specified on a deep path (promises)', () => {
+    let fsPromises = util.fs().promises;
+
+    return fsPromises
+      .mkdir('/tmp/deep/path', {recursive:true})
+      .then(() => fsPromises.stat('/tmp/deep/path'))
+      .then(stats => {
+        expect(stats).to.exist;
+        expect(stats.type).to.equal('DIRECTORY');
+      });
+  });
+
 });
