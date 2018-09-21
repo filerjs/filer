@@ -157,20 +157,17 @@ describe('fs.promises.read', function() {
 		buf.fill(0);
 		buf2.fill(0);
 
-		fsPromises.mkdir('/mydir', function(error) {
-			if(error) throw error;
-
-			fsPromises.open('/mydir', 'r', function(error, fd) {
-				if(error) throw error;
-
-				fsPromises.read(fd, buf, 0, buf.length, 0, function(error, result) {
-					expect(error).to.exist;
-					expect(error.code).to.equal('EISDIR');
-					expect(result).to.equal(0);
-					expect(buf).to.deep.equal(buf2);
-					done();
-				});
-			});
-		});
+		fsPromises.mkdir('/mydir')
+		.then(()=>{return fsPromises.open('/mydir', 'r');})
+		.catch((error)=>{throw error;})
+		.then((fd)=>{return fsPromises.read(fd, buf, 0, buf.length, 0);})
+		.then((result)=>{expect(result).to.equal(0);})
+		.catch((error)=>{
+			expect(error).to.exist;
+			expect(error.code).to.equal('EISDIR');
+			expect(buf).to.deep.equal(buf2);
+			done();
+		})
+		;
 	});
 });
