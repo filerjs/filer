@@ -102,14 +102,14 @@ describe('fs.promises.read', function() {
     var fsPromises = util.fs().promises;
     expect(fsPromises.read()).to.be.a('Promise');
   });
-  it('should read data from a file', function(done) {
+  it('should read data from a file', function() {
     var fsPromises = util.fs().promises;
     var wbuffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
     var rbuffer = new Filer.Buffer(wbuffer.length);
     var fdesc;
     rbuffer.fill(0);
 
-    fsPromises.open('/myfile', 'w+')
+    return fsPromises.open('/myfile', 'w+')
       .then((fd)=>{fdesc=fd;return fsPromises.write(fd, wbuffer, 0, wbuffer.length, 0);})
       .catch((error)=>{throw error;})
       .then((result)=>{
@@ -120,12 +120,11 @@ describe('fs.promises.read', function() {
       .then((result)=>{
         expect(result).to.equal(rbuffer.length);
         expect(wbuffer).to.deep.equal(rbuffer);
-        done();
       })
     ;
   });
 
-  it('should update the current file position', function(done) {
+  it('should update the current file position', function() {
     var fsPromises = util.fs().promises;
     var wbuffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
     var rbuffer = new Filer.Buffer(wbuffer.length);
@@ -133,7 +132,7 @@ describe('fs.promises.read', function() {
     var _result = 0;
     var fdesc;
 
-    fsPromises.open('/myfile', 'w+')
+    return fsPromises.open('/myfile', 'w+')
       .then((fd)=>{fdesc=fd;return fsPromises.write(fd, wbuffer, 0, wbuffer.length, 0 );} )
       .then((result)=>{
         expect(result).to.equal(wbuffer.length);
@@ -149,19 +148,18 @@ describe('fs.promises.read', function() {
         _result+=result;
         expect(_result).to.equal(rbuffer.length);
         expect(wbuffer).to.deep.equal(rbuffer);
-        done();
       })
     ;
   });
 
-  it('should fail to read a directory', function(done) {
+  it('should fail to read a directory', function() {
     var fsPromises = util.fs().promises;
     var buf = new Filer.Buffer(20);
     var buf2 = new Filer.Buffer(20);
     buf.fill(0);
     buf2.fill(0);
 
-    fsPromises.mkdir('/mydir')
+    return fsPromises.mkdir('/mydir')
       .then(()=>{return fsPromises.open('/mydir', 'r');})
       .catch((error)=>{throw error;})
       .then((fd)=>{return fsPromises.read(fd, buf, 0, buf.length, 0);})
@@ -170,7 +168,6 @@ describe('fs.promises.read', function() {
         expect(error).to.exist;
         expect(error.code).to.equal('EISDIR');
         expect(buf).to.deep.equal(buf2);
-        done();
       })
     ;
   });
