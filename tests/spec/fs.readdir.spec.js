@@ -64,16 +64,15 @@ describe('fsPromises.readdir', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  it('should return an error if the path is a file', function(done) {
+  it('should return an error if the path is a file', function() {
     var fsPromises = util.fs().promises;
 
-    fsPromises.open('/myfile', 'w')
+    return fsPromises.open('/myfile', 'w')
       .then(fd => fsPromises.close(fd))
       .then(() => fsPromises.readdir('/myfile'))
       .catch(error => {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOTDIR');
-        done();
       });
   });
 });
