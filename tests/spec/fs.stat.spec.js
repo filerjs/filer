@@ -91,21 +91,21 @@ describe('fs.stat', function() {
       });
     });
   });
-});
 
-describe('fs.promises.stat', function() {
-  beforeEach(util.setup);
-  afterEach(util.cleanup);
-
-  it('should be a function', function() {
+  it('(promise) should be a function', function() {
     var fs = util.fs();
     expect(fs.promises.stat).to.be.a('function');
   });
   
-  it('should return a stat object if file exists', function(done){
+  it('should return a promise', function() {
+    var fs = util.fs();
+    expect(fs.promises.stat()).to.be.a('Promise');
+  });
+  
+  it('(promise) should return a stat object if file exists', function(){
     var fs = util.fs();
 
-    fs.promises.stat('/')
+    return fs.promises.stat('/')
       .then(result => { 
         expect(result).to.exist;
         expect(result['node']).to.be.a('string');
@@ -116,7 +116,6 @@ describe('fs.promises.stat', function() {
         expect(result['mtime']).to.be.a('number');
         expect(result['ctime']).to.be.a('number');
         expect(result['type']).to.equal('DIRECTORY');
-        done();
       })
       .catch(error => expect(error).not.to.exist);
   });
