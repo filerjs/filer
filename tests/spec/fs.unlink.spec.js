@@ -105,7 +105,6 @@ describe('fs.unlink', function() {
   });
 });
 
-
 describe('fs.promises.unlink', function () {
   beforeEach(util.setup);
   afterEach(util.cleanup);
@@ -113,5 +112,15 @@ describe('fs.promises.unlink', function () {
   it('should be a function', function () {
     var fs = util.fs();
     expect(fs.promises.unlink).to.be.a('function');
+  });
+
+  it('should return an error if trying to delete a file that does not exist', function() {
+    var fsPromises = util.fs().promises;
+
+    return fsPromises.unlink('/myFile')
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('ENOENT');
+      });
   });
 });
