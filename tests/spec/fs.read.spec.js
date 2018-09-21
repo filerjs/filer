@@ -110,7 +110,10 @@ describe('fs.promises.read', function() {
     rbuffer.fill(0);
 
     return fsPromises.open('/myfile', 'w+')
-      .then((fd)=>{fdesc=fd;return fsPromises.write(fd, wbuffer, 0, wbuffer.length, 0);})
+      .then((fd)=>{
+        fdesc=fd;
+        return fsPromises.write(fd, wbuffer, 0, wbuffer.length, 0);
+      })
       .catch((error)=>{throw error;})
       .then((result)=>{
         expect(result).to.equal(wbuffer.length);
@@ -133,7 +136,10 @@ describe('fs.promises.read', function() {
     var fdesc;
 
     return fsPromises.open('/myfile', 'w+')
-      .then((fd)=>{fdesc=fd;return fsPromises.write(fd, wbuffer, 0, wbuffer.length, 0 );} )
+      .then((fd)=>{
+        fdesc=fd;
+        return fsPromises.write(fd, wbuffer, 0, wbuffer.length, 0 );
+      })
       .then((result)=>{
         expect(result).to.equal(wbuffer.length);
         return fsPromises.read(fdesc, rbuffer, 0, rbuffer.length / 2, undefined);
@@ -163,7 +169,10 @@ describe('fs.promises.read', function() {
       .then(()=>{return fsPromises.open('/mydir', 'r');})
       .catch((error)=>{throw error;})
       .then((fd)=>{return fsPromises.read(fd, buf, 0, buf.length, 0);})
-      .then((result)=>{expect(result).to.equal(0);})
+      .then((result)=>{
+        expect(result).to.equal(0);
+        expect().fail('This should not happen.');
+      })
       .catch((error)=>{
         expect(error).to.exist;
         expect(error.code).to.equal('EISDIR');
