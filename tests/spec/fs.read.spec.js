@@ -127,29 +127,27 @@ describe('fs.promises.read', function() {
 		var rbuffer = new Filer.Buffer(wbuffer.length);
 		rbuffer.fill(0);
 		var _result = 0;
+		var fdesc;
 
-		fsPromises.open('/myfile', 'w+', function(error, fd) {
-			if(error) throw error;
-
-			fsPromises.write(fd, wbuffer, 0, wbuffer.length, 0, function(error, result) {
-				if(error) throw error;
-				expect(result).to.equal(wbuffer.length);
-
-				fsPromises.read(fd, rbuffer, 0, rbuffer.length / 2, undefined, function(error, result) {
-					if(error) throw error;
-
-					_result += result;
-					fsPromises.read(fd, rbuffer, rbuffer.length / 2, rbuffer.length, undefined, function(error, result) {
-						if(error) throw error;
-						_result += result;
-						expect(error).not.to.exist;
-						expect(_result).to.equal(rbuffer.length);
-						expect(wbuffer).to.deep.equal(rbuffer);
-						done();
-					});
-				});
-			});
-		});
+		fsPromises.open('/myfile', 'w+')
+		.then((fd)=>{fdesc=fd;return fsPromises.write(fd, wbuffer, 0, wbuffer.length, 0 );} )
+		.then((result)=>{
+			expect(result).to.equal(wbuffer.length);
+			return fsPromises.read(fdesc, rbuffer, 0, rbuffer.length / 2, undefined);
+		})
+		.catch((error) => {throw error;})
+		.then((result)=>{
+			_result += result;
+			return fsPromises.read(fdesc,rbuffer,rbuffer.length / 2, rbuffer.length, undefined);
+		})
+		.catch((error)=>{throw error;expect(error).not.to.exist;})
+		.then((result)=>{
+			_result+=result;
+			expect(_result).to.equal(rbuffer.length);
+			expect(wbuffer).to.deep.equal(rbuffer);
+			done();
+		})
+		;
 	});
 
 	it('should fail to read a directory', function(done) {
