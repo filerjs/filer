@@ -98,6 +98,10 @@ describe('fs.promises.read', function() {
 		expect(fsPromises.read).to.be.a('function');
 	});
 
+	it('should return a promise', function() {
+		var fsPromises = util.fs().promises;
+		expect(fsPromises.read()).to.be.a('Promise');
+	});
 	it('should read data from a file', function(done) {
 		var fsPromises = util.fs().promises;
 		var wbuffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
