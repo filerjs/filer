@@ -106,7 +106,6 @@ describe('fs.promises.read', function() {
 		rbuffer.fill(0);
 
 		fsPromises.open('/myfile', 'w+')
-			.catch((error)=>{throw error;})
 			.then((fd)=>{fdesc=fd;return fsPromises.write(fd, wbuffer, 0, wbuffer.length, 0);})
 			.catch((error)=>{throw error;})
 			.then((result)=>{
