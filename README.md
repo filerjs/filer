@@ -908,11 +908,11 @@ Example:
 
 ```javascript
 fs.open('/myfile', 'r', function(err, fd) {
-  if(err) throw error;
+  if(err) throw err;
 
   // Determine size of file
   fs.fstat(fd, function(err, stats) {
-    if(err) throw error;
+    if(err) throw err;
 
     // Create a buffer large enough to hold the file's contents
     var nbytes = expected = stats.size;
@@ -923,7 +923,7 @@ fs.open('/myfile', 'r', function(err, fd) {
       length = length || buffer.length - read;
 
       fs.read(fd, buffer, offset, length, position, function(err, nbytes) {
-        if(err) throw error;
+        if(err) throw err;
 
         // nbytes is now the number of bytes read, between 0 and buffer.length.
         // See if we still have more bytes to read.
