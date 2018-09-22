@@ -279,6 +279,7 @@ function FileSystem(options, callback) {
     { name: 'close' },
     { name: 'mknod', promises: true },
     { name: 'mkdir', promises: true },
+    { name: 'mkdtemp', promises: true },
     { name: 'rmdir', promises: true },
     { name: 'stat', promises: true },
     { name: 'fstat' },

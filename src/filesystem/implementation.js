@@ -4,6 +4,7 @@ var dirname = Path.dirname;
 var basename = Path.basename;
 var isAbsolutePath = Path.isAbsolute;
 var isNullPath = Path.isNull;
+var shared = require('../shared.js');
 
 var Constants = require('../constants.js');
 var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
@@ -1693,6 +1694,21 @@ function access(fs, context, path, mode, callback) {
   access_file(context, path, mode, callback);
 }
 
+function mkdtemp(fs, context, prefix, options, callback) { 
+  callback = arguments[arguments.length - 1];
+  if(!prefix) {
+    return callback(new Error('filename prefix is required'));
+  } 
+
+  let random = shared.randomChars(6);
+  var path = prefix + '-' + random; 
+
+  if(!pathCheck(path, callback)) return;
+  make_directory(context, path, function(error) {
+    callback(error, path);
+  });  
+}
+
 function rmdir(fs, context, path, callback) {
   if(!pathCheck(path, callback)) return;
   remove_directory(context, path, callback);
@@ -2428,6 +2444,7 @@ module.exports = {
   close: close,
   mknod: mknod,
   mkdir: mkdir,
+  mkdtemp: mkdtemp,
   rmdir: rmdir,
   unlink: unlink,
   stat: stat,

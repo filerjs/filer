@@ -329,6 +329,7 @@ var fs = new Filer.FileSystem();
 * [fs.rmdir(path, callback)](#rmdir)
 * [fs.mkdir(path, [mode], callback)](#mkdir)
 * [fs.access(path, [mode], callback)](#access)
+* [fs.mkdtemp(path, [options], callback)](#mkdtemp)
 * [fs.readdir(path, callback)](#readdir)
 * [fs.close(fd, callback)](#close)
 * [fs.open(path, flags, [mode], callback)](#open)
@@ -728,6 +729,26 @@ Example:
 // Check if the file exists in the current directory.
 fs.access(file, fs.constants.F_OK, function(err) {
   console.log(`${file} ${err ? 'does not exist' : 'exists'}`);
+});
+```
+
+#### fs.mkdtemp(prefix, options, callback)<a name="mkdtemp"></a>
+
+Makes a temporary directory with prefix supplied in `path` argument. Method will append six random characters directly to the prefix. Asynchronous. Callback gets `(error, path)`, where path is the path to the created directory.
+
+NOTE: Filer allows for, but ignores the optional `options` argument used in node.js.
+
+Example:
+
+```javascript
+// Create tmp directory with prefix foo
+fs.mkdtemp("/foo-", function (error, path) {
+    // A new folder foo-xxxxxx will be created. Path contains a path to created folder.    
+});
+
+fs.mkdtemp("/myDir/tmp", function (error, path) {
+    // Will create a new folder tmpxxxxxx inside myDir directory. 
+    // Will throw error if myDir does not exist    
 });
 ```
 
