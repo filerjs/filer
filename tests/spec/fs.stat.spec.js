@@ -13,7 +13,7 @@ describe('fs.stat', function() {
   it('should return an error if path does not exist', function(done) {
     var fs = util.fs();
 
-    fs.stat('/tmp', function(error, result) {
+    fs.lstat('/tmp', function(error, result) {
       expect(error).to.exist;
       expect(error.code).to.equal('ENOENT');
       expect(result).not.to.exist;
@@ -49,14 +49,15 @@ describe('fs.stat', function() {
       var fd = result;
       fs.close(fd, function(error) {
         if(error) throw error;
-        fs.stat('/myfile', function(error, result) {
+        fs.lstat('/myfile', function(error, result) {
           if(error) throw error;
 
           expect(result['node']).to.exist;
           fs.symlink('/myfile', '/myfilelink', function(error) {
             if(error) throw error;
 
-            fs.stat('/myfilelink', function(error, result) {
+            //'stat' should be 'lstat'
+            fs.lstat('/myfilelink', function(error, result) {
               expect(error).not.to.exist;
               expect(result).to.exist;
               expect(result['node']).to.exist;

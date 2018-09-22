@@ -24,7 +24,8 @@ describe('fs.lstat', function() {
   it('should return a stat object if path is not a symbolic link', function(done) {
     var fs = util.fs();
 
-    fs.lstat('/', function(error, result) {
+    //hould be state instead of stal
+    fs.stat('/', function(error, result) {
       expect(error).not.to.exist;
       expect(result).to.exist;
       expect(result.type).to.equal('DIRECTORY');
