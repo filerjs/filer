@@ -124,4 +124,20 @@ describe('fs.appendFile', function() {
       });
     });
   });
+  
+  it('should accept numbers and appends them to the file', function(done) {
+    var fs = util.fs();
+    var contents = 'This is a file.';
+    var more = 10000;
+
+    fs.appendFile('/myfile', more, 'utf8', function(error) {
+      if(error) throw error;
+
+      fs.readFile('/myfile', 'utf8', function(error, data) {
+        expect(error).not.to.exist;
+        expect(data).to.equal(contents + more);
+        done();
+      });
+    });
+  });
 });
