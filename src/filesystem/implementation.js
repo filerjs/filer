@@ -1678,6 +1678,55 @@ function mkdir(fs, context, path, mode, callback) {
   make_directory(context, path, callback);
 }
 
+function mkdtemp(fs, context, prefix, callback) { 
+  callback = arguments[arguments.length - 1];
+
+  // this function is ised to generate a random character set to append 
+  // to tmp dir name to make sure it is unique
+  function generateRandom() {
+    return 'xxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+      return v.toString(16);
+    })
+  }
+
+  var tmpDir = "/tmp";      //tmp dir in root
+  var tmpDirExists = false;   //flag to check if already created
+  
+  if (!prefix) {
+    prefix = generateRandom(); //if user did not specify prefix
+  }
+  prefix = prefix + "-" + generateRandom();
+  var path = Path.join(tmpDir, prefix); //path to a new tmp dir  
+  
+  // check if root temporary directory '/tmp' already exists
+  fs.stat(tmpDir, function(error, stats) {
+    if (!error) {
+      if (stats.isDirectory()) {
+        tmpDirExists = true;
+      }
+    } 
+  });
+
+  //try to create /tmp in root
+  if (!tmpDirExists) {
+    make_directory(context, tmpDir, function(error) {
+      if (error) {
+        callback(error, path)
+      } else {        
+         //create new temp dir in /tmp
+          make_directory(context, path, function(error) {
+            if (error) {
+              callback(error, path)
+            } else {
+              callback(null, path);
+            }
+          });
+      }
+    });
+  }   
+}
+
 function rmdir(fs, context, path, callback) {
   if(!pathCheck(path, callback)) return;
   remove_directory(context, path, callback);
