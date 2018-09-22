@@ -109,6 +109,7 @@ describe('fs.stat', function() {
       .stat('/')
       .then(result => { 
         expect(result).to.exist;
+
         expect(result.node).to.be.a('string');
         expect(result.dev).to.equal(fs.name);
         expect(result.size).to.be.a('number');
