@@ -123,4 +123,20 @@ describe('fs.promises.unlink', function () {
         expect(error.code).to.equal('ENOENT');
       });
   });
+
+  it('should not unlink directories', () => {
+    var fs = util.fs().promises;
+
+    return fs.mkdir('/mydir')
+      .then(() => fs.unlink('/mydir'))
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('EPERM');
+      })
+      .then(() => fs.stat('/mydir'))
+      .then(stats => {
+        expect(stats).to.exist;
+        expect(stats.type).to.equal('DIRECTORY');
+      });
+  });
 });
