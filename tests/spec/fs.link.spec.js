@@ -157,12 +157,11 @@ describe('fs.promises.link', function() {
       fs.close(fd, function(error) {
         if(error) throw error;
 
-        fs.promises.link('/myfile', '/myotherfile', function(error) {
-          if(error) throw error;
+        fs.promises.link('/myfile', '/myotherfile').then(function(){
 
           fs.stat('/myfile', function(error, result) {
             if(error) throw error;
-
+      
             var _oldstats = result;
             fs.stat('/myotherfile', function(error, result) {
               expect(error).not.to.exist;
@@ -173,7 +172,9 @@ describe('fs.promises.link', function() {
               expect(result.type).to.equal(_oldstats.type);
               done();
             });
-          });
+          },
+          function(error){throw error;}
+          );
         });
       });
     });
@@ -213,11 +214,10 @@ describe('fs.promises.link', function() {
       fs.symlink('/', '/myfileLink', function (error) {
         if (error) throw error;
 
-        fs.promises.link('/myfileLink', '/myotherfile', function (error) {
+        fs.promises.link('/myfileLink', '/myotherfile').then(function(){
           if (error) throw error;
-
+      
           fs.lstat('/myfileLink', function (error, result) {
-            if (error) throw error;
             
             var _linkstats = result;
             fs.lstat('/myotherfile', function (error, result) {
@@ -229,7 +229,9 @@ describe('fs.promises.link', function() {
               expect(result.nlinks).to.equal(2);
               done();
             });
-          });
+          },
+          function(error){throw error;}
+          );
         });
       });
     });
