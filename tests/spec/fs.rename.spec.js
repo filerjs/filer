@@ -70,29 +70,31 @@ describe('fs.rename', function() {
     });
   });
 
-  it('should rename an existing directory (using promises)', function(done) {
-    var fs = util.fs();
+  it('should rename an existing directory (using promises)', () => {
+    var fsPromises = util.fs().promises;
 
-    fs.mkdir('/mydir', function(error) {
-      if(error) throw error;
-
-      fs.promises.rename('/mydir', '/myotherdir').then(
-        function() {
-          expect(error).not.to.exist;
-          fs.stat('/mydir', function(error) {
+    return fsPromises.mkdir('/mydir')
+      .then(() => {
+        return fsPromises.rename('/mydir', '/myotherdir')
+          .catch((error) => expect(error).not.to.exist);
+      })
+      .then(() => {
+        return fsPromises.stat('/mydir')
+          .catch((error) => {
             expect(error).to.exist;
             expect(error.code).to.equal('ENOENT');
-
-            fs.stat('/myotherdir', function(error, result) {
-              expect(error).not.to.exist;
-              expect(result.nlinks).to.equal(1);
-              done();
-            });
           });
-        },
-        function(error){throw error;}
-      );
-    });
+      })
+      .then(() => {
+        return fsPromises.stat('/myotherdir')
+          .catch((error, result) => {
+            expect(error).not.to.exist;
+            expect(result.nlinks).to.equal(1);
+          });
+      })
+      .catch((error) => {
+        if (error) throw error;
+      });
   });
 
   it('should rename an existing directory if the new path points to an existing directory', function(done) {
