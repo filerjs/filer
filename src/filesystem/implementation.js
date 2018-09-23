@@ -1699,7 +1699,7 @@ function mkdtemp(fs, context, prefix, options, callback) {
       }
     });
   } else {
-    callback(new Error('filename prefix is required'), path)
+    callback(new Error('filename prefix is required'), prefix)
   }  
 }
 
