@@ -137,3 +137,23 @@ describe('fs.open', function() {
     });
   });
 });
+
+/**
+ * fsPromise.open() Tests
+ **/
+describe('fsPromises.open', function() {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should return an error if the parent path does not exist', function(done) {
+    var fsPromises = util.fs().promises;
+
+    fsPromises.open('/tmp/myfile', 'w+')
+      .then(result => expect(result).not.to.exist)
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('ENOENT');
+      })
+      .then(() => done());
+  });
+});
