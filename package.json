@@ -28,7 +28,6 @@
     "build": "parcel build --global Filer src/index.js --out-file filer.min.js --detailed-report",
     "prekarma-mocha": "parcel build tests/index.js --no-source-maps --out-dir tests/dist",
     "karma-mocha": "karma start karma.conf.js"
-    
   },
   "repository": {
     "type": "git",
@@ -37,6 +36,7 @@
   "dependencies": {
     "base64-arraybuffer": "^0.1.5",
     "es6-promisify": "^6.0.0",
+    "istanbul": "^0.4.5",
     "minimatch": "^3.0.4"
   },
   "devDependencies": {
