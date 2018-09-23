@@ -1,6 +1,7 @@
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
+
 describe('fs.link', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
@@ -80,7 +81,7 @@ describe('fs.link', function() {
 
           fs.lstat('/myfileLink', function (error, result) {
             if (error) throw error;
-            
+
             var _linkstats = result;
             fs.lstat('/myotherfile', function (error, result) {
               expect(error).not.to.exist;
@@ -110,4 +111,15 @@ describe('fs.link', function() {
       });
     });
   });
+
+  describe('fs.promises.link', function() {
+
+    it('should return a promise', function() {
+      var fs = util.fs().promises; //should be in test-utils.js?
+      var returnValue = fs.link('/myfile', '/myotherfile');
+      expect(returnValue).to.be.a('promise');
+    });
+
+  });
+
 });
