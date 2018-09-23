@@ -113,32 +113,28 @@ describe('fsPromises.unlink', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  it('should not unlink directories', function (done) {
+  it('should not unlink directories', () => {
     var fs = util.fs().promises;
 
-    fs.mkdir('/mydir')
-      .then(
-        error => {
-          if(error) throw error;
-        });
-
-    fs.unlink('/mydir')
-      .then(
-        error => {
-          expect(error).to.exist;
-          expect(error.code).to.equal('EPERM');
-        });
-
-    fs.stat('/mydir')
-      .then(
-        stats => {
-          expect(stats).to.exist;
-          expect(stats.type).to.equal('DIRECTORY');
-        })
-      .then(
-        error => {
-          expect(error).not.to.exist;
-        })
-      .then(() => done());
+    return fs.mkdir('/mydir')
+      .then(() => {
+        return fs.unlink('/mydir')
+          .catch(error => {
+            expect(error).to.exist;
+            expect(error.code).to.equal('EPERM');
+          });
+      })
+      .then(() => {
+        return fs.stat('/mydir')
+          .then(stats => {
+            expect(stats).to.exist;
+            expect(stats.type).to.equal('DIRECTORY');
+          })
+          .then( error => {
+            expect(error).not.to.exist;
+          });
+      })
+      .catch(error => { 
+        if(error) throw error; });
   });
 });
