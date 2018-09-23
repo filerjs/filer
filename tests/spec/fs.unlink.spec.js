@@ -129,12 +129,8 @@ describe('fsPromises.unlink', function() {
           .then(stats => {
             expect(stats).to.exist;
             expect(stats.type).to.equal('DIRECTORY');
-          })
-          .then( error => {
-            expect(error).not.to.exist;
           });
       })
-      .catch(error => { 
-        if(error) throw error; });
+      .catch(error => { if(error) throw error; });
   });
 });
