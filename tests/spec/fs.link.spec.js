@@ -112,14 +112,17 @@ describe('fs.link', function() {
     });
   });
 
-  describe('fs.promises.link', function() {
+});
 
-    it('should return a promise', function() {
-      var fs = util.fs().promises; //should be in test-utils.js?
-      var returnValue = fs.link('/myfile', '/myotherfile');
-      expect(returnValue).to.be.a('promise');
-    });
+describe('fs.promises.link', function() {
 
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should return a promise', function() {
+    var fs = util.fs().promises; //should be in test-utils.js?
+    var returnValue = fs.link('/myfile', '/myotherfile');
+    expect(returnValue).to.be.a('promise');
   });
 
 });
