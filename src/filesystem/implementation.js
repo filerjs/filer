@@ -1678,7 +1678,7 @@ function mkdir(fs, context, path, mode, callback) {
   make_directory(context, path, callback);
 }
 
-function mkdtemp(fs, context, prefix, callback) { 
+function mkdtemp(fs, context, prefix, options, callback) { 
   callback = arguments[arguments.length - 1];
 
   // this function is ised to generate a random character set to append 
@@ -1689,42 +1689,18 @@ function mkdtemp(fs, context, prefix, callback) {
       return v.toString(16);
     })
   }
-
-  var tmpDir = "/tmp";      //tmp dir in root
-  var tmpDirExists = false;   //flag to check if already created
-  
-  if (!prefix) {
-    prefix = generateRandom(); //if user did not specify prefix
-  }
-  prefix = prefix + "-" + generateRandom();
-  var path = Path.join(tmpDir, prefix); //path to a new tmp dir  
-  
-  // check if root temporary directory '/tmp' already exists
-  fs.stat(tmpDir, function(error, stats) {
-    if (!error) {
-      if (stats.isDirectory()) {
-        tmpDirExists = true;
-      }
-    } 
-  });
-
-  //try to create /tmp in root
-  if (!tmpDirExists) {
-    make_directory(context, tmpDir, function(error) {
+  if (prefix) {
+    var path = "/"+prefix+generateRandom();
+    make_directory(context, path, function(error) {
       if (error) {
         callback(error, path)
-      } else {        
-         //create new temp dir in /tmp
-          make_directory(context, path, function(error) {
-            if (error) {
-              callback(error, path)
-            } else {
-              callback(null, path);
-            }
-          });
+      } else {
+        callback(null, path);
       }
     });
-  }   
+  } else {
+    callback(new Error('filename prefix is required'), path)
+  }  
 }
 
 function rmdir(fs, context, path, callback) {
@@ -2433,6 +2409,7 @@ module.exports = {
   close: close,
   mknod: mknod,
   mkdir: mkdir,
+  mkdtemp: mkdtemp,
   rmdir: rmdir,
   unlink: unlink,
   stat: stat,
