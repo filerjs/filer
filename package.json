@@ -28,6 +28,7 @@
     "build": "parcel build --global Filer src/index.js --out-file filer.min.js --detailed-report",
     "prekarma-mocha": "parcel build tests/index.js --no-source-maps --out-dir tests/dist",
     "karma-mocha": "karma start karma.conf.js"
+    
   },
   "repository": {
     "type": "git",
@@ -44,6 +45,7 @@
     "karma": "^3.0.0",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
+    "karma-coverage": "^1.1.2",
     "karma-mocha": "^1.3.0",
     "karma-mocha-reporter": "^2.2.5",
     "mocha": "^5.2.0",

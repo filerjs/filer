@@ -58,5 +58,28 @@ describe('fs.write', function() {
         });
       });
     });
+    it('should fail to write to a directory', function(done) {
+      var fs = util.fs();
+      var buf = new Filer.Buffer(20);
+      var buf2 = new Filer.Buffer(20);
+      buf.fill(0);
+      buf2.fill(0);
+  
+      fs.mkdir('/myfile', function(error) {
+        if(error) throw error;
+  
+        fs.open('/myfile', 'w', function(error, fd) {
+          if(error) throw error;
+  
+          fs.read(fd, buf, 0, buf.length, 0, function(error, result) {
+            expect(error).to.exist;
+            expect(error.code).to.equal('EISDIR');
+            expect(result).to.equal(0);
+            expect(buf).to.deep.equal(buf2);
+            done();
+          });
+        });
+      });
+    });
   });
 });
