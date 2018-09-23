@@ -1623,8 +1623,16 @@ function open(fs, context, path, flags, mode, callback) {
    *    callback = makeCallback(callback);
    * }
   */
-
-  callback = arguments[arguments.length - 1];
+   if (arguments.length == 5){
+      callback = arguments[arguments.length - 1];
+    }
+    else {
+      //need to test this validateAndMakeMode
+      console.log("open'd mode: " + mode)
+      mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
+      console.log("mask'd mode: " + mode)
+    }
+    
   if(!pathCheck(path, callback)) return;
 
   function check_result(error, fileNode) {
@@ -1913,12 +1921,15 @@ function isUint32(value) {
 // Validator for mode_t (the S_* constants). Valid numbers or octal strings
 // will be masked with 0o777 to be consistent with the behavior in POSIX APIs.
 function validateAndMaskMode(value, def, callback) {
+  console.log("Passed in mode: " + value)
   if(typeof def === 'function') {
     callback = def;
     def = undefined;
   }
 
   if (isUint32(value)) {
+    let newMode = value & FULL_READ_WRITE_EXEC_PERMISSIONS;
+    console.log("Masked mode: " + newMode)
     return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
   }
 
@@ -1939,6 +1950,7 @@ function validateAndMaskMode(value, def, callback) {
       return false;
     }
     var parsed = parseInt(value, 8);
+    console.log("Parsed + Masekd mode: " + parsed & FULL_READ_WRITE_EXEC_PERMISSIONS)
     return parsed & FULL_READ_WRITE_EXEC_PERMISSIONS;
   }
 
