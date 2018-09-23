@@ -41,6 +41,7 @@ require('./spec/errors.spec');
 require('./spec/fs.shell.spec');
 require('./spec/fs.chmod.spec');
 require('./spec/fs.chown.spec');
+require('./spec/fs.copyFile.spec');
 
 // Filer.FileSystem.providers.*
 require('./spec/providers/providers.spec');
