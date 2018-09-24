@@ -533,7 +533,10 @@ function remove_directory(context, path, callback) {
   find_node(context, parentPath, read_parent_directory_data);
 }
 
-function open_file(context, path, flags, callback) {
+function open_file(context, path, flags, mode, callback) {
+  if (typeof mode == 'function'){
+    callback = mode;
+  }
   path = normalize(path);
   var name = basename(path);
   var parentPath = dirname(path);
@@ -645,6 +648,7 @@ function open_file(context, path, flags, callback) {
       }
       fileNode = result;
       fileNode.nlinks += 1;
+      if(mode){Node.setMode(mode, fileNode);}
       context.putObject(fileNode.id, fileNode, write_file_data);
     });
   }
@@ -1625,12 +1629,11 @@ function open(fs, context, path, flags, mode, callback) {
   */
   if (arguments.length == 5){
     callback = arguments[arguments.length - 1];
+    mode = 0o666;
   }
   else {
     //need to test this validateAndMakeMode
-    console.log('open\'d mode: ' + mode);
     mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
-    console.log('mask\'d mode: ' + mode);
   }
     
   if(!pathCheck(path, callback)) return;
@@ -1656,7 +1659,7 @@ function open(fs, context, path, flags, mode, callback) {
     callback(new Errors.EINVAL('flags is not valid'), path);
   }
 
-  open_file(context, path, flags, check_result);
+  open_file(context, path, flags, mode, check_result);
 }
 
 function close(fs, context, fd, callback) {

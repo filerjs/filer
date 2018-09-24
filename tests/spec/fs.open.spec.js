@@ -106,22 +106,6 @@ describe('fs.open', function() {
     });
   });
 
-  it('should create a new file when flagged for write, and set the mode', function(done) {
-    var fs = util.fs();
-
-    fs.open('/myfile', 'w', 644, function(error) {
-      if(error) throw error;
-      
-      fs.stat('/myfile', function(error, result) {
-        expect(error).not.to.exist;
-        expect(result).to.exist;
-        expect(result.type).to.equal('FILE');
-        expect(result.mode).to.exist;
-        expect(result.mode).to.equal(33188);
-        done();
-      });
-    });
-  });
   /**
    * This test is currently correct per our code, but incorrect according to the spec.
    * When we fix https://github.com/filerjs/filer/issues/314 we'll have to update this.
