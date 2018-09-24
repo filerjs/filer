@@ -213,10 +213,10 @@ describe('fs.truncate', function() {
   });
 });
 
-
 describe('fsPromises.truncate', function () {
   beforeEach(util.setup);
   afterEach(util.cleanup);
+
   it('should error when path does not exist (with promises)', () => {
     var fsPromises = util.fs().promises;
 
@@ -224,6 +224,18 @@ describe('fsPromises.truncate', function () {
       .catch(error => {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOENT');
+      });
+  });
+
+  it('should error when length is negative', () => {
+    var fsPromises = util.fs().promises;
+    var contents = 'This is a file.';
+
+    fsPromises.writeFile('/myfile', contents)
+      .then(() => fsPromises.truncate('/myfile', -1))
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('EINVAL');
       });
   });
 });
