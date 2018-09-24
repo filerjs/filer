@@ -48,8 +48,8 @@ describe('fs.symlink', function() {
 describe('fs.promises.symlink', function(){
   beforeEach(function(done){
     util.setup(function(){
-      var fs = util.fs();
-      fs.promises.symlink('/test.txt','/temp/mydir')
+      var fsPromises = util.fs().promises;
+      fsPromises.symlink('/','/temp/mydir')
         .then(done())
         .catch(function(error){
           throw error;
@@ -61,7 +61,7 @@ describe('fs.promises.symlink', function(){
   // it('should be return an error if the file destination path is bot exists', function(done){
   //   var fsPromises = util.fs().promises;
 
-  //   fsPromises.symlink('/', '/tmp', function(error){
+  //   fsPromises.symlink('/', '/tmp/mydir', function(error){
   //     expect(error).to.exist;
   //     expect(error.code).to.equal('ENOENT');
   //     done();
@@ -69,13 +69,13 @@ describe('fs.promises.symlink', function(){
   // });
 
   it('should be a function', function() {
-    var fs = util.fs().promises;
-    expect(fs.symlink).to.be.a('function');
+    var fsPromises = util.fs().promises;
+    expect(fsPromises.symlink).to.be.a('function');
   });
   
   it('should be a function', function() {
-    var fs = util.fs();
-    expect(fs.symlink).to.be.a('function');
+    var fsPromises = util.fs().promises;
+    expect(fsPromises.symlink).to.be.a('function');
   });
 
   // it('should return an error if part of the parent destination path does not exist', function(done) {
