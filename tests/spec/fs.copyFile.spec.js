@@ -1,4 +1,3 @@
-var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
@@ -37,7 +36,7 @@ describe('fs.copyFile', function(){
 
   it('should copy file successfully', function(done) {
     var fs = util.fs();
-    var src = "This is a src file.";
+    var src = 'This is a src file.';
 
     fs.copyFile('/srcfile', '/destfile', function(error) {
       if(error) throw error;
