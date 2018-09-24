@@ -106,37 +106,32 @@ describe('fs.promises.rmdir', function(){
   
   afterEach(util.cleanup);
 
-  it('should return an error if the directory is not empty', function(done) {
+  it('should return an error if the directory is not empty', function() {
 
     var fs = util.fs();
     var fsPromises = fs.promises;
 
-    fsPromises.mkdir('/tmp')
-      .then(fsPromises.mkdir('/tmp/mydir'))
-      .then(fsPromises.rmdir('/'))
+    return fsPromises.mkdir('/tmp')
+      .then(() => fsPromises.mkdir('/tmp/mydir'))
+      .then(() => fsPromises.rmdir('/'))
       .catch(error => {
-        expect(error).to.eventually.exist;
-        expect(error.code).to.eventually.equal('ENOTEMPTY');
-        done();
+        expect(error).to.exist;
+        expect(error.code).to.equal('EBUSY');
       });
 
   });
  
-  it('should return an error if the path is not a directory', function(done) {
+  it('should return an error if the path is not a directory', function() {
 
     var fs = util.fs();
     var fsPromises = fs.promises;
 
-    fsPromises.mkdir('/tmp')
-      .then(fsPromises.open('/tmp/myfile','w'))
-      .then(filehandle => {
-        return filehandle.close();
-      })
-      .then(fsPromises.rmdir('/tmp/myfile'))
+    return fsPromises.mkdir('/tmp')
+      .then(() => fsPromises.writeFile('/tmp/myfile','Hello World'))
+      .then(() => fsPromises.rmdir('/tmp/myfile'))
       .catch(error => {
-        expect(error).to.eventually.exist;
-        expect(error.code).to.eventually.equal('ENOENT');
-        done();
+        expect(error).to.exist;
+        expect(error.code).to.equal('ENOTDIR');
       });
     
   });
