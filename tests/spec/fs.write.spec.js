@@ -5,6 +5,17 @@ var expect = require('chai').expect;
 describe('fs.write', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
+  
+  // the file is underfined, will create problem
+  it('should be a error',function(done){
+    var fs=util.fs();
+    fs.writeFile(undefined, 'data', function(err) {
+      expect(err).to.exist;
+      expect(err.code).to.equal('EINVAL');
+      done();
+    });
+  });
+
 
   it('should be a function', function() {
     var fs = util.fs();
