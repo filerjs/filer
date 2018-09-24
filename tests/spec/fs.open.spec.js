@@ -117,7 +117,7 @@ describe('fs.open', function() {
         expect(result).to.exist;
         expect(result.type).to.equal('FILE');
         expect(result.mode).to.exist;
-        expect(result.mode).to.equal(33188)
+        expect(result.mode).to.equal(33188);
         done();
       });
     });
