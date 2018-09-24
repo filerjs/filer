@@ -1681,7 +1681,7 @@ function mkdir(fs, context, path, mode, callback) {
 function mkdtemp(fs, context, prefix, options, callback) { 
   callback = arguments[arguments.length - 1];
 
-  // this function is ised to generate a random character set to append 
+  // this function is used to generate a random character set to append 
   // to tmp dir name to make sure it is unique
   function generateRandom() {
     return 'xxxxxx'.replace(/[xy]/g, function(c) {
