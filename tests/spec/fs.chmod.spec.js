@@ -39,6 +39,20 @@ describe('fs.chmod, fs.fchmod', function() {
     });
   });
 
+  it('Should be a valid mode value to set permissions', function(done){
+    var fs = util.fs();
+    fs.mkdir('/file',function(err, ed) {
+      if(err) throw err;
+      fs.chmod(ed, 1000, function(err) {
+        expect(err).to.exist;
+        expect(err.code).to.equal('EINVAL');
+        done();
+      });
+    });
+  });
+
+
+
   it('should allow for updating mode of a given file', function(done) {
     var fs = util.fs();
 
