@@ -202,17 +202,11 @@ describe('fsPromises.truncate', function () {
     var fsPromises = util.fs().promises;
     var contents = 'This is a file.';
 
-    fsPromises.writeFile('/myfile', contents)
-      .then(
-        error => {
-          if (error) throw error;
-        });
-
-    fsPromises.truncate('/myfile', -1)
-      .then(
-        error => {
-          expect(error).to.exist;
-          expect(error.code).to.equal('EINVAL');
-        });
+    return fsPromises.writeFile('/myfile', contents)
+      .then(() => fsPromises.truncate('/myfile', -1))
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('EINVAL');
+      });
   });
 });
