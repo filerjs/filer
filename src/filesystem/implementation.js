@@ -1924,7 +1924,6 @@ function isUint32(value) {
 // Validator for mode_t (the S_* constants). Valid numbers or octal strings
 // will be masked with 0o777 to be consistent with the behavior in POSIX APIs.
 function validateAndMaskMode(value, def, callback) {
-  console.log('Passed in mode: ' + value);
   if(typeof def === 'function') {
     callback = def;
     def = undefined;
@@ -1932,7 +1931,6 @@ function validateAndMaskMode(value, def, callback) {
 
   if (isUint32(value)) {
     let newMode = value & FULL_READ_WRITE_EXEC_PERMISSIONS;
-    console.log('Masked mode: ' + newMode);
     return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
   }
 
@@ -1953,7 +1951,6 @@ function validateAndMaskMode(value, def, callback) {
       return false;
     }
     var parsed = parseInt(value, 8);
-    console.log('Parsed + Masekd mode: ' + parsed & FULL_READ_WRITE_EXEC_PERMISSIONS);
     return parsed & FULL_READ_WRITE_EXEC_PERMISSIONS;
   }
 
