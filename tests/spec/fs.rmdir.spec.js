@@ -122,24 +122,23 @@ describe('fs.promises.rmdir', function(){
         expect(error.code).to.equal('ENOTEMPTY');
         done();
       });
+
   });
  
-  // it('should return an error if the path is not a directory', function(done) {
+  it('should return an error if the path is not a directory', function(done) {
 
-  //   fs.mkdir('/tmp', function(error) {
-  //     if(error) throw error;
-  //     fs.open('/tmp/myfile', 'w', function(error, fd) {
-  //       if(error) throw error;
-  //       fs.close(fd, function(error) {
-  //         if(error) throw error;
-  //         fs.rmdir('/tmp/myfile', function(error) {
-  //           expect(error).to.exist;
-  //           expect(error.code).to.equal('ENOTDIR');
-  //           done();
-  //         });
-  //       });
-  //     });
-  //   });
-  // });
-
+      fsPromises.mkdir('/tmp')
+      .then(fsPromises.open('/tmp/myfile','w'))
+      .then(filehandle => {
+        return filehandle.close();
+      })
+      .then(fsPromises.rmdir('/tmp/myfile'))
+      .catch(err => {
+        expect(err).to.exist;
+        expect(err.code).to.equal('ENOENT');
+        done();
+      });
+    
+  });
+    
 });
