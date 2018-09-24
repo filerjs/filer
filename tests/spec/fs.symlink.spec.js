@@ -43,4 +43,14 @@ describe('fs.symlink', function() {
       });
     });
   });
+
+  it('should be return an error if the file destination path is bot exists', function(done){
+    var fs = unil.fs();
+
+    fsPromises.symlink('/tmp', '/', function(error){
+      expect(error).to.exist;
+      expect(error.code).to.equal('EEXIST');
+      done();
+    });
+  });
 });
