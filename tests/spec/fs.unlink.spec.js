@@ -104,3 +104,30 @@ describe('fs.unlink', function() {
     });
   });
 });
+
+describe('fsPromises.stat', function() {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should not unlink directories (using promises)', () => {
+    var fsPromises = util.fs().promises;
+  
+    return fsPromises.mkdir('/mydir')
+      .then(() => {
+        fsPromises.unlink('/mydir')
+          .catch((error) => {
+            expect(error).to.exist;
+            expect(error.code).to.equal('EPERM');
+            fsPromises.stat('/mydir')
+              .then((error, stats) =>{
+                expect(error).not.to.exist;
+                expect(stats).to.exist;
+                expect(stats.type).to.equal('DIRECTORY');
+              });
+          });
+      })
+      .catch((error) => {
+        if (error) throw error;
+      });
+  });
+}); 
