@@ -69,21 +69,15 @@ describe('fs.write', function() {
     var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
 
     return fs.open('/myfile', 'w+')
-      .then((fd) => {
-        return fs.write(fd, buffer, 0, buffer.length, 0)
-          .then((result) => {
-            expect(result).to.equal(buffer.length);
-          });
+      .then(fd => fs.write(fd, buffer, 0, buffer.length, 0))
+      .then(result => {
+        expect(result).to.equal(buffer.length);
       })
-      .then(() => { 
-        return fs.stat('/myfile')
-          .then((result) => {
-            expect(result.type).to.equal('FILE');
-            expect(result.size).to.equal(buffer.length);
-          });
+      .then(() => fs.stat('/myfile'))
+      .then(result => {
+        expect(result.type).to.equal('FILE');
+        expect(result.size).to.equal(buffer.length);
       })
-      .catch((error) => {
-        if(error) throw error;
-      });
+      .catch(error => { throw error; });
   });
 });
