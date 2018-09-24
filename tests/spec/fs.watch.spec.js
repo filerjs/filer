@@ -70,7 +70,7 @@ describe('fs.watch', function() {
 
     fs.writeFile('/myfile', 'data', function(error) {
       if(error) throw error;
-    })
+    });
 
     var watcher = fs.watch('/myfile', function(event, filename) {
       expect(event).to.equal('change');
