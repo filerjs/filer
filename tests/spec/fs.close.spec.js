@@ -31,3 +31,13 @@ describe('fs.close', function() {
     });
   });
 });
+
+describe('fsPromises.close', function() {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should be a function', function() {
+    var fsPromises = util.fs().promises;
+    expect(typeof fsPromises).to.equal('function');
+  });
+});
