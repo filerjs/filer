@@ -1,0 +1,8 @@
+```
+const data = new Uint8Array(Buffer.from('Hello Node.js'));
+fs.writeFile('message.txt', data, (err) => {
+  if (err) throw err;
+  console.log('The file has been saved!');
+});
+```
+https://nodejs.org/api/fs.html#fs_fs_writefile_file_data_options_callback
