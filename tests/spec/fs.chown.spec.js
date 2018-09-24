@@ -69,8 +69,8 @@ describe('fs.promises.chown', function(){
   afterEach(util.setup);
 
   it('should be a function', function(){
-      var fs= util.fs();
-      expect(fs.promises.chown).to.be.a('function');
+    var fs= util.fs();
+    expect(fs.promises.chown).to.be.a('function');
   });
 
   it('should allow updating uid and gid for a file', function(done) {
@@ -91,22 +91,22 @@ describe('fs.promises.chown', function(){
             if(err) throw err;
 
             return fs.promises.chown('/file', 500, 500)
-            .then(()=>{
-              fs.stat('/file', function(err, stats){
-                if(err) throw err;
+              .then(()=>{
+                fs.stat('/file', function(err, stats){
+                  if(err) throw err;
         
-                expect(stats.uid).to.equal(500);
-                expect(stats.gid).to.equal(500);
+                  expect(stats.uid).to.equal(500);
+                  expect(stats.gid).to.equal(500);
                 
-                done();
+                  done();
+                });
+              })
+              .catch((err)=>{
+                throw(err);
               });
-            })
-            .catch((err)=>{
-              throw(err)
-            });
           });
         });
-      })
+      });
     });
   });
 });
