@@ -10,6 +10,39 @@ describe('fs.rename', function() {
     expect(fs.rename).to.be.a('function');
   });
 
+  it('should not change an existing file to itself', function(done) {
+    var complete1 = false;
+    var complete2 = false;
+    var fs = util.fs();
+
+    function maybeDone() {
+      if(complete1 && complete2) {
+        done();
+      }
+    }
+
+    fs.open('/myfile', 'w+', function(error, fd) {
+      if(error) throw error;
+
+      fs.close(fd, function(error) {
+        if(error) throw error;
+
+        fs.rename('/myfile', '/myfile', function(error) {
+          if(error) throw error;
+
+          fs.stat('/myfile', function(error, result) {
+            expect(error).not.to.exist;
+            expect(result.nlinks).to.equal(1);
+            complete1 = true;
+            complete2 = true;
+            maybeDone();
+          });
+
+        });
+      });
+    });
+  });
+
   it('should rename an existing file', function(done) {
     var complete1 = false;
     var complete2 = false;
