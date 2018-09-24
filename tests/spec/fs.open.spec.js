@@ -169,6 +169,15 @@ describe('fs.open', function() {
       });
     });
   });
+
+  it('should return an error when flag in invalid', function(done) { 
+    var fs = util.fs();
+
+    expect(fs.open('/myfile', 'abcd', function(){
+      done();
+    })).to.throw('flags is not valid');
+    
+  });
 });
 
 /**
