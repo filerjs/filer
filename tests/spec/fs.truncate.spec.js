@@ -192,3 +192,27 @@ describe('fs.truncate', function() {
     });
   });
 });
+
+describe('fsPromises.truncate', function () {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should error when length is negative', () => {
+
+    var fsPromises = util.fs().promises;
+    var contents = 'This is a file.';
+
+    fsPromises.writeFile('/myfile', contents)
+      .then(
+        error => {
+          if (error) throw error;
+        });
+
+    fsPromises.truncate('/myfile', -1)
+      .then(
+        error => {
+          expect(error).to.exist;
+          expect(error.code).to.equal('EINVAL');
+        });
+  });
+});
