@@ -1930,7 +1930,6 @@ function validateAndMaskMode(value, def, callback) {
   }
 
   if (isUint32(value)) {
-    let newMode = value & FULL_READ_WRITE_EXEC_PERMISSIONS;
     return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
   }
 
