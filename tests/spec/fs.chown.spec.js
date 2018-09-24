@@ -62,3 +62,51 @@ describe('fs.chown, fs.fchown', function() {
     });
   });
 });
+
+
+describe('fs.promises.chown', function(){
+  beforeEach(util.setup);
+  afterEach(util.setup);
+
+  it('should be a function', function(){
+      var fs= util.fs();
+      expect(fs.promises.chown).to.be.a('function');
+  });
+
+  it('should allow updating uid and gid for a file', function(done) {
+    var fs = util.fs();
+
+    fs.open('/file', 'w', function(err, fd) {
+      if(err) throw err;
+
+      fs.fchown(fd, 1001, 1001, function(err) {
+        if(err) throw err;
+
+        fs.fstat(fd, function(err, stats){
+          if(err) throw err;
+
+          expect(stats.uid).to.equal(1001);
+
+          fs.close(fd, function(){
+            if(err) throw err;
+
+            return fs.promises.chown('/file', 500, 500)
+            .then(()=>{
+              fs.stat('/file', function(err, stats){
+                if(err) throw err;
+        
+                expect(stats.uid).to.equal(500);
+                expect(stats.gid).to.equal(500);
+                
+                done();
+              });
+            })
+            .catch((err)=>{
+              throw(err)
+            });
+          });
+        });
+      })
+    });
+  });
+});
