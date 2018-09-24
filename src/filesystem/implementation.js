@@ -1277,7 +1277,10 @@ function truncate_file(context, path, length, callback) {
     }
   }
 
-  if(length < 0) {
+  if (!Number.isInteger(length)) {
+    callback(new Errors.EINVAL('length must be a number'));
+  }
+  else if (length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
   } else {
     find_node(context, path, read_file_data);
