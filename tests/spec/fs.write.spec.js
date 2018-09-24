@@ -59,4 +59,22 @@ describe('fs.write', function() {
       });
     });
   });
+
+});
+
+describe('fsPromises.writeFile', function () {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+  it('should write data to a file', () => {
+    var fs = util.fs().promises;
+    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+
+
+    return fs.writeFile('/myfile.txt', buffer)
+      .then(()=> fs.stat('/myfile.txt'))
+      .then(stats => {
+        expect(stats.type).to.equal('FILE');
+        expect(stats.size).to.equal(buffer.length);
+      });
+  });
 });
