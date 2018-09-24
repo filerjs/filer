@@ -231,7 +231,7 @@ describe('fsPromises.truncate', function () {
     var fsPromises = util.fs().promises;
     var contents = 'This is a file.';
 
-    fsPromises.writeFile('/myfile', contents)
+    return fsPromises.writeFile('/myfile', contents)
       .then(() => fsPromises.truncate('/myfile', -1))
       .catch(error => {
         expect(error).to.exist;
