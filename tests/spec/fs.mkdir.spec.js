@@ -45,4 +45,16 @@ describe('fs.mkdir', function() {
       });
     });
   });
+
+  //not sure about error code
+  it('should not create dir with restricted symbols', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/?', function(error) {
+      expect(error).to.exist;
+      expect(error.code).to.equal('DIRECTORY');
+      done();
+    });
+  });
+
 });
