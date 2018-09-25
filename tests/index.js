@@ -29,6 +29,7 @@ require('./spec/fs.lseek.spec');
 require('./spec/fs.symlink.spec');
 require('./spec/fs.readlink.spec');
 require('./spec/fs.truncate.spec');
+require('./spec/fs.ftruncate.spec');
 require('./spec/fs.utimes.spec');
 require('./spec/fs.xattr.spec');
 require('./spec/fs.stats.spec');
