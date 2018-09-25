@@ -46,4 +46,16 @@ describe('fs.lstat', function() {
       });
     });
   });
+
+  //edit
+  it('should return a stat object if path is not a symbolic link', function(done) {
+    var fs = util.fs();
+    const fsPromises = fs.promises;
+    fsPromises.lstat('/', function(error, result) {
+      expect(error).not.to.exist;
+      expect(result).to.exist;
+      expect(result.type).to.equal('DIRECTORY');
+      done();
+    });
+  });
 });
