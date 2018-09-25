@@ -197,17 +197,13 @@ describe('fs.truncate', function() {
 describe('fsPromises.truncate', function () {
   beforeEach(util.setup);
   afterEach(util.cleanup);
-  it('should error when path does not exist (with promises)', (done) => {
+  it('should error when path does not exist (with promises)', () => {
     var fsPromises = util.fs().promises;
 
-    fsPromises.truncate('/NonExistingPath', 0)
-      .then(result => expect(result).not.to.exist)
+    return fsPromises.truncate('/NonExistingPath', 0)
       .catch(error => {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOENT');
-      })
-      .then(() => done());
+      });
   });
 });
-
-
