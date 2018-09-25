@@ -164,10 +164,6 @@ describe('fs.promises.read', function() {
     return fsPromises.mkdir('/mydir')
       .then(()=>fsPromises.open('/mydir', 'r'))
       .then(fd=>fsPromises.read(fd, buf, 0, buf.length, 0))
-      .then((result)=>{
-        expect(result).to.equal(0);
-        expect().fail('This should not happen.');
-      })
       .catch((error)=>{
         expect(error).to.exist;
         expect(error.code).to.equal('EISDIR');
