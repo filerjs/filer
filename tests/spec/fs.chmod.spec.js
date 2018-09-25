@@ -42,7 +42,7 @@ describe('fs.chmod, fs.fchmod', function() {
   it('should be a valid mode value to set permissions', function(done){
     var fs = util.fs();
 
-    fs.mkdir('/file',function(err) {
+    fs.mkdir('/file', function(err) {
       if(err) throw err;
       
       fs.chmod('file', 1000, function(err) {
