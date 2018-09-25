@@ -1629,7 +1629,7 @@ function open(fs, context, path, flags, mode, callback) {
   */
   if (arguments.length == 5){
     callback = arguments[arguments.length - 1];
-    mode = 0o666;
+    mode = 0o644;
   }
   else {
     //need to test this validateAndMakeMode
@@ -1928,8 +1928,8 @@ function validateAndMaskMode(value, def, callback) {
     callback = def;
     def = undefined;
   }
-
   if (isUint32(value)) {
+    let newMode = value & FULL_READ_WRITE_EXEC_PERMISSIONS;
     return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
   }
 
