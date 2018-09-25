@@ -48,7 +48,7 @@ describe('fs.lstat', function() {
   });
 });
 
-describe('fs.promises.lstat', ()=> {
+describe('fs.promises.lstat', () => {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
@@ -61,6 +61,14 @@ describe('fs.promises.lstat', ()=> {
         expect(error.code).to.equal('ENOENT');
       });
   });
+
+  it('should return a stat object if path is not a symbolic link', () => {
+    var fsPromises = util.fs().promises;
+
+    return fsPromises.lstat('/')
+      .then(result => {
+        expect(result).to.exist;
+        expect(result.isDirectory()).to.be.true;
+      });
+  });
 });
-
-
