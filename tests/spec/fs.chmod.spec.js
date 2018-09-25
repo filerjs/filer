@@ -44,7 +44,7 @@ describe('fs.chmod, fs.fchmod', function() {
 
     fs.mkdir('/file',function(err) {
       if(err) throw err;
-      
+        
       fs.chmod('file', 1000, function(err) {
         expect(err).to.exist;
         expect(err.code).to.equal('EINVAL');
