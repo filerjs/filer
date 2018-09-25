@@ -98,3 +98,26 @@ describe('fs.rmdir', function() {
     });
   });
 });
+describe('fsPromises.rmdir', function() {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+  
+  it('should return an error if the path does not exist', function() {
+    var fs = util.fs().promises;
+    
+    return fs.rmdir('/tmp/mydir')
+    .catch(error => {
+      expect(error).to.exist;
+      expect(error.code).to.equal('ENOENT');
+    });
+  });
+  it('should return an error if attempting to remove the root directory', function(){
+    var fs = util.fs().promises;
+    
+    return fs.rmdir('/')
+    .catch(error => {
+      expect(error).to.exist;
+      expect(error.code).to.equal('EBUSY');
+    });
+  });
+});
