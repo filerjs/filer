@@ -56,4 +56,28 @@ describe('fs.exists', function() {
       });
     });
   });
+  it('should follow symbolic links and return false if for the resulting path does not exist', function(done) {
+    var fs = util.fs();
+
+    fs.open('/myfile', 'w', function(error, fd) {
+      if(error) throw error;
+
+      fs.close(fd, function(error) {
+        if(error) throw error;
+
+        fs.symlink('/myfile', '/myfilelink', function(error) {
+          if(error) throw error;
+        
+          fs.unlink('/myfile', function(err) {
+            if(err) throw err;
+          
+            fs.exists('/myfilelink', function(result) {
+              expect(result).to.be.false;
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
 });
