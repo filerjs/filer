@@ -25,14 +25,14 @@ describe('fs.open', function() {
   it('should return an error when flagged for read and the path does not exist', function(done) {
     var fs = util.fs();
 //I want to try the difference between "r" and "r+"
-/*    fs.open('/myfile', 'r', function(error, result) {
+    fs.open('/myfile', 'r', function(error, result) {
       expect(error).to.exist;
       expect(error.code).to.equal('ENOENT');
       expect(result).not.to.exist;
       done();
     });
   });
-*/
+/*
     fs.open('/myfile', 'r+', function(error, result) {
       expect(error).to.exist;
       expect(error.code).to.equal('ENOENT');
@@ -40,7 +40,7 @@ describe('fs.open', function() {
       done();
     });
   });
-
+*/
 
   it('should return an error when flagged for write and the path is a directory', function(done) {
     var fs = util.fs();
