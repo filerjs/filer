@@ -119,7 +119,7 @@ describe('fsPromise.fchmod', function() {
     expect(fsPromise.fchmod()).to.be.a('Promise');
   });
 
-  it('should allow for updating mode of a given fule', function() {
+  it('should allow for updating mode of a given file', function() {
     var fsPromise = util.fs().promises;
     var fdesc;
 
