@@ -118,8 +118,8 @@ describe('fs.promises.link', function() {
   afterEach(util.cleanup);
 
   it('should return a promise', function() {
-    var fs = util.fs().promises;
-    var returnValue = fs.link('/myfile', '/myotherfile');
+    var fsPromise = util.fs().promises;
+    var returnValue = fsPromise.link('/myfile', '/myotherfile');
     expect(returnValue).to.be.a('promise');
   });
 
