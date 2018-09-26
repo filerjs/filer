@@ -162,12 +162,11 @@ describe('fs.rename', function () {
         done();
       }
     }
-    //TODO: CHECK PROMISE ERRORS ARE PROPAGATED CORRECTLY (re-throw?)
+    
     Promise.all(
       fs.promises.open('/myfile', 'w+')
         .then((fd)=>fs.promises.close(fd)),
       fs.promises.rename('/myfile', '/myotherfile'),
-      //TODO: for both stat() check expect() vs assert()
       fs.promises.stat('/myfile')
         .then( (result)=> expect(result).not.to.exist, (error) => expect(error).to.exist)
         .finally(()=>{
@@ -180,7 +179,6 @@ describe('fs.rename', function () {
           complete2 = true;
           maybeDone();
         })
-    );
-    //TODO: .catch() probably not necessary--we just want errors to percolate up...
+    ).catch((error)=> {throw error;});
   });
 });
