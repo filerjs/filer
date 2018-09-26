@@ -6,7 +6,7 @@ describe('fs.write', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
   
-  // the file is undefined, will create problem
+  // the file is undefined, it will create problem
   // 
   it('should be a error',function(done){
     var fs=util.fs();
