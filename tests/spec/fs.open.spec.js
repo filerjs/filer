@@ -145,7 +145,7 @@ describe('fsPromises.open', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  it('should return an error if the parent path does not exist', function(done) {
+  it('should return an error if the parent path does not exist', function() {
     var fsPromises = util.fs().promises;
 
     fsPromises.open('/tmp/myfile', 'w+')
@@ -153,7 +153,6 @@ describe('fsPromises.open', function() {
       .catch(error => {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOENT');
-      })
-      .then(() => done());
+      });
   });
 });
