@@ -104,3 +104,14 @@ describe('fs.unlink', function() {
     });
   });
 });
+
+
+describe('fs.promises.unlink', function () {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should be a function', function () {
+    var fs = util.fs();
+    expect(fs.promises.unlink).to.be.a('function');
+  });
+});
