@@ -121,4 +121,3 @@ describe('fs.rmdir', function() {
       });
   });
 });
-
