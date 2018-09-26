@@ -39,15 +39,14 @@ describe('fs.chmod, fs.fchmod', function() {
     });
   });
 
-  it('should error whenp path is invalid', function(done){
+  it('should be an error when the path is invalid', function(done){
     var fs = util.fs();
-
-      fs.chmod("/invalid_file", 0o444, function(err) {
-        expect(err).to.exist;
-        expect(err.code).to.equal('EINVAL');
-        done();
-      });
+    fs.chmod('/invalid_path', 0o444, function(err){
+      expect(err).to.exist;
+      expect(err.code).to.equal('ENOENT');
+      done();
     });
+
   });
 
   it('should allow for updating mode of a given file', function(done) {
