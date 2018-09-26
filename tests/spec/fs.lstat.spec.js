@@ -61,9 +61,9 @@ describe('fs.promises.lstat', function() {
     var fsPromises = util.fs().promises;
     var fsStats;
     fsPromises.lstat('/tmp')
-    .then( (stat) => {
-      fsStats = stat;
-    })
+      .then( (stat) => {
+        fsStats = stat;
+      })
     .catch(error => {
       expect(error).to.exist;
       expect(error.code).to.equal('ENOENT');
