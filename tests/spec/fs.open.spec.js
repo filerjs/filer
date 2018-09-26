@@ -32,7 +32,7 @@ describe('fs.open', function() {
       done();
     });
   });
-
+*/
     fs.open('/myfile', 'r+', function(error, result) {
       expect(error).to.exist;
       expect(error.code).to.equal('ENOENT');
@@ -40,28 +40,8 @@ describe('fs.open', function() {
       done();
     });
   });
-*/
-fs.open(__dirname + '/test.txt', 'r', function (err, fd) {
-  if(err) {
-    console.error(err);
-    return;
-  } else {
-    var buffer = new Buffer(255);
-    console.log(buffer.length);
-    fs.read(fd, buffer, 0, 9, 3, function (err, bytesRead, buffer) {
-      if(err) {
-        throw err;
-      } else {
-        console.log(bytesRead);
-        console.log(buffer.slice(0, bytesRead).toString());
-        fs.read(fd, buffer, 0, 9, null, function (err, bytesRead, buffer) {
-          console.log(bytesRead);
-          console.log(buffer.slice(0, bytesRead).toString());
-        });
-      }
-    });
-  }
-});
+
+
   it('should return an error when flagged for write and the path is a directory', function(done) {
     var fs = util.fs();
 
