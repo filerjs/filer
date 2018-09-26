@@ -10,9 +10,9 @@ describe('fs.write', function() {
   // 
   it('should be a error',function(done){
     var fs=util.fs();
-    fs.writeFile(undefined, 'data', function(err) {
-      expect(err).to.exist;
-      expect(err.code).to.equal('EINVAL');
+    fs.writeFile(undefined, 'data', function(error) {
+      expect(error).to.exist;
+      expect(error.code).to.equal('EINVAL');
       done();
     });
   });
