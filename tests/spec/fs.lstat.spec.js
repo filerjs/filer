@@ -48,23 +48,23 @@ describe('fs.lstat', function() {
   });
 });
 
-describe('fs.promises.lstat', function() {
+describe('fs.promises.lstat', ()=> {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  it('should be a function', function() {
+  it('should be a function', ()=>  {
     var fsPromises = util.fs().promises;
     expect(typeof fsPromises.lstat).to.equal('function');
   });
 
-  it('should return an error if path does not exist', function() {
+  it('should return an error if path does not exist', () => {
     var fsPromises = util.fs().promises;
     var fsStats;
     fsPromises.lstat('/tmp')
-      .then( (stat) => {
+      .then( stat => {
         fsStats = stat;
       })
-      .catch(error => {
+      .catch( error => {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOENT');
         expect(fsStats).not.to.exist;
