@@ -32,7 +32,7 @@ describe('fs.open', function() {
       done();
     });
   });
-/*
+/* 
     fs.open('/myfile', 'r+', function(error, result) {
       expect(error).to.exist;
       expect(error.code).to.equal('ENOENT');
