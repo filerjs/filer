@@ -64,11 +64,11 @@ describe('fs.promises.lstat', function() {
       .then( (stat) => {
         fsStats = stat;
       })
-    .catch(error => {
-      expect(error).to.exist;
-      expect(error.code).to.equal('ENOENT');
-      expect(fsStats).not.to.exist;
-    });
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('ENOENT');
+        expect(fsStats).not.to.exist;
+      });
   });
 });
 
