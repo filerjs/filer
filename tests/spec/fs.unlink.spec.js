@@ -111,15 +111,14 @@ describe('fs.unlink', function() {
 describe('fsPromises.stat', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
-  it('should return an error if trying to delete a file that does not exist', function(done) {
+  it('should return an error if trying to delete a file that does not exist', function() {
     var fsPromises = util.fs().promises;
 
-    fsPromises.unlink('/myFile')
+    return fsPromises.unlink('/myFile')
       .then(result => expect(result).not.to.exist)
       .catch(error => {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOENT');
-      })
-      .then(() => done());
+      });
   });
 });
