@@ -46,7 +46,6 @@ describe('fs.rmdir', function() {
     });
   });
 
-
   it('should return an error if the path is not a directory', function(done) {
     var fs = util.fs();
 
@@ -101,13 +100,10 @@ describe('fs.rmdir', function() {
 });
 
 describe('fs.promises.rmdir', function(){
-  
   beforeEach(util.setup);
-  
   afterEach(util.cleanup);
 
   it('should return an error if the directory is not empty', function() {
-
     var fs = util.fs();
     var fsPromises = fs.promises;
 
@@ -118,11 +114,9 @@ describe('fs.promises.rmdir', function(){
         expect(error).to.exist;
         expect(error.code).to.equal('EBUSY');
       });
-
   });
  
   it('should return an error if the path is not a directory', function() {
-
     var fs = util.fs();
     var fsPromises = fs.promises;
 
@@ -133,7 +127,5 @@ describe('fs.promises.rmdir', function(){
         expect(error).to.exist;
         expect(error.code).to.equal('ENOTDIR');
       });
-    
   });
-    
 });
