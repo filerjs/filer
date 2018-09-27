@@ -1249,6 +1249,9 @@ function truncate_file(context, path, length, callback) {
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
+      if (!Number.isInteger(length)) {
+        return callback(new Errors.EINVAL('length must be a number'));
+      }
       var data = new Buffer(length);
       data.fill(0);
       if(fileData) {

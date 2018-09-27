@@ -10,6 +10,21 @@ describe('fs.truncate', function() {
     expect(fs.truncate).to.be.a('function');
   });
 
+  it('should error when length is not an integer', function(done) {
+    var fs = util.fs();
+    var contents = 'This is a file.';
+
+    fs.writeFile('/myfile', contents, function(error) {
+      if(error) throw error;
+
+      fs.truncate('/myfile', 'notAnInteger', function(error) {
+        expect(error).to.exist;
+        expect(error.code).to.equal('EINVAL');
+        done();
+      });
+    });
+  });
+
   it('should error when length is negative', function(done) {
     var fs = util.fs();
     var contents = 'This is a file.';
