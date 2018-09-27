@@ -75,8 +75,7 @@ describe('fs.rename', function() {
 
     return fsPromises.mkdir('/mydir')
       .then(() => {
-        return fsPromises.rename('/mydir', '/myotherdir')
-          .catch((error) => expect(error).not.to.exist);
+        return fsPromises.rename('/mydir', '/myotherdir');
       })
       .then(() => {
         return fsPromises.stat('/mydir')
