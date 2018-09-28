@@ -56,6 +56,7 @@ describe('fs.exists', function() {
       });
     });
   });
+  
   it('should follow symbolic links and return false if for the resulting path does not exist', function(done) {
     var fs = util.fs();
 
