@@ -22,7 +22,7 @@ describe('fs.copyFile', function() {
     });
   });
 
-  it('adding the flag as an argument, should ruturn an error if the destination file already exist', function (done){
+  it('adding the flag as an argument, should return an error if the destination file already exist', function (done){
     var fs = util.fs();
         
     fs.copyFile('source.txt', 'destination.txt', COPYFILE_EXCL, function(error){
