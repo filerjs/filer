@@ -56,7 +56,7 @@ describe('fs.promises.symlink', function(){
         });
     });
   });
-  afterEach(util.cleanup);
+  afterEach(util.cleanup); //
 
 
   it('should be a function', function() {
