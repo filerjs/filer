@@ -163,11 +163,11 @@ describe('fs.rename', function() {
       }
     }
     
-    Promise.all(
-      fs.promises.open('/myfile', 'w+')
-        .then((fd)=>fs.promises.close(fd)),
-      fs.promises.rename('/myfile', '/myotherfile'),
-      fs.promises.stat('/myfile')
+  
+    fs.promises.open('/myfile', 'w+')
+      .then((fd)=>fs.promises.close(fd))
+      .then(fs.promises.rename('/myfile', '/myotherfile'))
+      .then(Promise.all(fs.promises.stat('/myfile')
         .then( (result)=> expect(result).not.to.exist, (error) => expect(error).to.exist)
         .finally(()=>{
           complete1 = true;
@@ -178,7 +178,8 @@ describe('fs.rename', function() {
         .finally(()=>{
           complete2 = true;
           maybeDone();
-        })
-    ).catch((error)=> {throw error;});
+        })))
+    
+      .catch((error)=> {throw error;});
   });
 });
