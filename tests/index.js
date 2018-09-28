@@ -14,6 +14,7 @@ require('./spec/fs.lstat.spec');
 require('./spec/fs.exists.spec');
 require('./spec/fs.mknod.spec');
 require('./spec/fs.mkdir.spec');
+require('./spec/fs.mkdtemp.spec');
 require('./spec/fs.readdir.spec');
 require('./spec/fs.rmdir.spec');
 require('./spec/fs.open.spec');
