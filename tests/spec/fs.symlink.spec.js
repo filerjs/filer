@@ -43,6 +43,71 @@ describe('fs.symlink', function() {
       });
     });
   });
+  describe('fsPromises.symlink', function () {
+    it('should return an error if destination path does not exist', function () {
+      var fsPromises = util.fs().promises;
+      return fsPromises.symlink('/', '/tmp/link')
+        .catch(error => {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOENT');
+        });
+    });
+    it('should return an error if source path does not exist', function () {
+      var fsPromises = util.fs().promises;
+      return fsPromises.symlink('/tmp/myLink', '/myLink')
+        .catch(error => {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOENT');
+        });
+    });
+
+
+    it('Promise should create a symlink of type DIRECTORY when directory provided', function () {
+      var fsPromises = util.fs().promises;
+      return fsPromises.symlink('/', '/myDirLink')
+        .then(() => {
+          return fsPromises.stat('/myDirLink')
+            .then(stats => {
+              expect(stats).to.exist;
+              expect(stats.type).to.equal('DIRECTORY');
+            })
+            .catch(error => {
+              expect(error).not.to.exist;
+              expect(error.code).to.equal('ENOENT');
+            });
+        });
+    });
+    it('Promise should create a symlink of type FILE when file provided', function () {
+      var fsPromises = util.fs().promises;
+      var fs = util.fs();
+      fs.open('/myFile', 'w+', function (error) {
+        if (error) throw error;
+        expect(error).not.to.exist;
+      });
+      return fsPromises.symlink('/myFile', '/myFileLink')
+        .then(() => {
+          return fsPromises.stat('/myFileLink')
+            .then(stats => {
+              expect(stats).to.exist;
+              expect(stats.type).to.equal('FILE');
+            })
+            .catch(error => {
+              expect(error).not.to.exist;
+              expect(error.code).to.equal('ENOENT');
+            });
+        });
+    });
+    it('Promise should return an error if the destination path already exists', function () {
+      var fsPromises = util.fs().promises;
+
+      return fsPromises.symlink('/tmp', '/')
+        .catch(error => {
+          expect(error).to.exist;
+          expect(error.code).to.equal('EEXIST');
+        });
+    });
+  });
+
 });
 
 
