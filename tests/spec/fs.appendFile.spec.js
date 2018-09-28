@@ -112,7 +112,6 @@ describe('fs.appendFile', function() {
 
   it('should error when the symbolic link does not exist', function(done) {
     var fs = util.fs();
-    var contents = 'This is a file.';
      
     fs.symlink('/myfile', ' ', function(error) {  
       expect(error).to.exist; 
