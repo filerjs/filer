@@ -110,11 +110,23 @@ describe('fs.appendFile', function() {
     });
   });
 
-  it('should work when file does not exist, and create the file', function(done) {
+  it('should error when the symbolic link does not exist', function(done) {
+    var fs = util.fs();
+    var contents = 'This is a file.';
+     
+    fs.symlink('/myfile', ' ', function(error) {  
+      expect(error).to.exist; 
+      expect(error.code).to.equal('EINVAL');
+      done();  
+    });
+  });
+
+
+  it('should work when file does not exist, and create the file',function(done) {
     var fs = util.fs();
     var contents = 'This is a file.';
 
-    fs.appendFile('/newfile', contents, { encoding: 'utf8' }, function(error) {
+    fs.appendFile('/newfile', contents, { encoding: 'utf8' },function(error) {
       expect(error).not.to.exist;
 
       fs.readFile('/newfile', 'utf8', function(err, data) {
