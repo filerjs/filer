@@ -10,16 +10,8 @@ describe('fs.rename', function() {
     expect(fs.rename).to.be.a('function');
   });
 
-  it('should not change an existing file to itself', function(done) {
-    var complete1 = false;
-    var complete2 = false;
+  it('should fail to overwrite an existing file to itself', function(done) {
     var fs = util.fs();
-
-    function maybeDone() {
-      if(complete1 && complete2) {
-        done();
-      }
-    }
 
     fs.open('/myfile', 'w+', function(error, fd) {
       if(error) throw error;
@@ -28,16 +20,9 @@ describe('fs.rename', function() {
         if(error) throw error;
 
         fs.rename('/myfile', '/myfile', function(error) {
-          if(error) throw error;
-
-          fs.stat('/myfile', function(error, result) {
-            expect(error).not.to.exist;
-            expect(result.nlinks).to.equal(1);
-            complete1 = true;
-            complete2 = true;
-            maybeDone();
-          });
-
+          expect(error).to.exist;
+          expect(error.code).to.equal('EEXIST'); 
+          done();
         });
       });
     });
