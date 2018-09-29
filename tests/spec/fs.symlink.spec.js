@@ -43,6 +43,7 @@ describe('fs.symlink', function() {
       });
     });
   });
+  /** Tests for fsPromises API */
   describe('fsPromises.symlink', function () {
     it('should return an error if destination path does not exist', function () {
       var fsPromises = util.fs().promises;
@@ -51,7 +52,7 @@ describe('fs.symlink', function() {
           expect(error).to.exist;
           expect(error.code).to.equal('ENOENT');
         });
-    });
+    
     it('should return an error if source path does not exist', function () {
       var fsPromises = util.fs().promises;
       return fsPromises.symlink('/tmp/myLink', '/myLink')
@@ -77,11 +78,10 @@ describe('fs.symlink', function() {
             });
         });
     });
+      
     it('Promise should create a symlink of type FILE when file provided', function () {
       var fsPromises = util.fs().promises;
-      var fs = util.fs();
-      fs.open('/myFile', 'w+', function (error) {
-        if (error) throw error;
+      fsPromises.open('/myFile', 'w+').catch((error) => {
         expect(error).not.to.exist;
       });
       return fsPromises.symlink('/myFile', '/myFileLink')
@@ -97,6 +97,7 @@ describe('fs.symlink', function() {
             });
         });
     });
+      
     it('Promise should return an error if the destination path already exists', function () {
       var fsPromises = util.fs().promises;
 
