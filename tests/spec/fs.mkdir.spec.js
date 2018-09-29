@@ -46,14 +46,11 @@ describe('fs.mkdir', function() {
     });
   });
 
-  //not sure about error code
-  it('should not create dir with restricted symbols', function(done) {
-    var fs = util.fs();
-
-    fs.mkdir('/?', function(error) {
+  it('should return an error if the path already exists (using promises)', () => {
+    var fsPromises = util.fs().promises;
+    return fsPromises.mkdir('/').catch(error => {
       expect(error).to.exist;
-      expect(error.code).to.equal('DIRECTORY');
-      done();
+      expect(error.code).to.equal('EEXIST');
     });
   });
 
