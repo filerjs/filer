@@ -242,7 +242,7 @@ describe('fs.promises.utimes', function () {
     var atime = Date.parse('1 Oct 2000 15:33:22');
     var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-    return fs.utimes(1, atime, mtime)
+    return fs.futimes(1, atime, mtime)
       .catch(function (error) {
         expect(error).to.exist;
         expect(error.code).to.equal('EBADF');
