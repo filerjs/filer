@@ -242,7 +242,7 @@ describe('fs.promises.utimes', function () {
     var atime = Date.parse('1 Oct 2000 15:33:22');
     var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-    fs.utimes(1, atime, mtime)
+    return fs.utimes(1, atime, mtime)
       .catch(function (error) {
         expect(error).to.exist;
         expect(error.code).to.equal('EBADF');
@@ -254,7 +254,7 @@ describe('fs.promises.utimes', function () {
     var atime = Date.parse('1 Oct 2000 15:33:22');
     var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-    fs.writeFile('/testfile', '')
+    return fs.writeFile('/testfile', '')
       .then(function () {
         fs.utimes('/testfile', atime, mtime)
           .then(function () {
@@ -281,7 +281,7 @@ describe('fs.promises.utimes', function () {
     var atime = Date.parse('1 Oct 2000 15:33:22');
     var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-    fs.open('/testfile', 'w')
+    return fs.open('/testfile', 'w')
       .then(function (result) {
         ofd = result;
         fs.futimes(ofd, atime, mtime)
@@ -308,7 +308,7 @@ describe('fs.promises.utimes', function () {
     var atime = Date.parse('1 Oct 2000 15:33:22');
     var mtime = Date.parse('30 Sep 2000 06:43:54');
 
-    fs.mkdir('/testdir')
+    return fs.mkdir('/testdir')
       .then(function () {
         fs.utimes('/testdir', atime, mtime)
           .then(function () {
@@ -332,7 +332,7 @@ describe('fs.promises.utimes', function () {
   it('should update atime and mtime using current time if arguments are null', function () {
     var fs = util.fs().promises;
 
-    fs.writeFile('/myfile', '')
+    return fs.writeFile('/myfile', '')
       .then(function () {
         var then = Date.now();
         fs.utimes('/myfile', null, null)
