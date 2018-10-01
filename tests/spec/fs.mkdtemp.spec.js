@@ -10,7 +10,7 @@ describe('fs.mkdtemp', function() {
     expect(fs.mkdtemp).to.be.a('function');
   });
 
-  it('should craete temp dir with specified prefix', function(done) {
+  it('should create temp dir with specified prefix', function(done) {
     var fs = util.fs();
     fs.mkdtemp('foo', function(error, path) {
       expect(error).not.to.exist;
@@ -18,7 +18,8 @@ describe('fs.mkdtemp', function() {
       done();
     });
   });
-  it('should craete temp dir inside existing directory', function(done) {
+
+  it('should create temp dir inside existing directory', function(done) {
     var fs = util.fs();
     fs.mkdir('/myDir', (error) => {
       expect(error).not.to.exist;
@@ -28,7 +29,6 @@ describe('fs.mkdtemp', function() {
         done();
       });
     });
-
   });
 
   it('should not create temp dir without prefix', function(done) {
@@ -39,6 +39,7 @@ describe('fs.mkdtemp', function() {
       done();
     });
   });
+  
   it('should not create temp dir inside non existing dir', function(done) {
     var fs = util.fs();
     fs.mkdtemp('/doesNotExists/foo', function(error, path) {
