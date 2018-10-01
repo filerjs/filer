@@ -93,11 +93,9 @@ describe('fsPromise.chmod', function() {
       .then( () => {
         return fsPromise.chmod('/file', 0o444);
       })
-      .catch( err => { throw err; })
       .then( () => {
         return fsPromise.stat('/file');
       })
-      .catch( err => { throw err; })
       .then( stats => {
         expect(stats.mode & 0o444).to.equal(0o444);
       })
@@ -128,11 +126,9 @@ describe('fsPromise.fchmod', function() {
         fdesc = fd;
         return fsPromise.fchmod(fd, 0o777);
       })
-      .catch( err => { throw err; })
       .then( () => {
         return fsPromise.fstat(fdesc);
       })
-      .catch( err => { throw err; })
       .then( stats => {
         expect(stats.mode & 0o777).to.equal(0o777);
       })
