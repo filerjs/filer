@@ -4,20 +4,6 @@ var expect = require('chai').expect;
 describe('fs.truncate', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
-  
-   it('should error when file does not exist (with promises)' , ()=> {
-   var fsPromises = util.fs().promises;
-
-   return fsPromises.truncate('/NonExistingPath' , 0)
-     .catch(error => {
-         expect(error).to.exixts;
-         expect(error.code).to.equal('ENOENT');
-      })
-      .then(() => done());
-      });
-    });
-  });
-});
 
 
   it('should be a function', function() {
@@ -239,4 +225,15 @@ describe('fs.truncate', function() {
       });
     });
   });
+});
+
+it('should error when file does not exist' , ()=> {
+  var fsPromises = util.fs().promises;
+
+  return fsPromises.truncate('/NonExistingPath' , 0)
+    .catch(error => {
+      expect(error).to.exixts;
+      expect(error.code).to.equal('ENOENT');
+    });
+  
 });
