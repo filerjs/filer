@@ -227,13 +227,18 @@ describe('fs.truncate', function() {
   });
 });
 
-it('should error when file does not exist' , ()=> {
-  var fsPromises = util.fs().promises;
-
-  return fsPromises.truncate('/NonExistingPath' , 0)
-    .catch(error => {
-      expect(error).to.exixts;
-      expect(error.code).to.equal('ENOENT');
-    });
+describe('fsPromises.truncate', function () {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
   
+  it('should error when file does not exist (with promises)' , ()=> {
+    var fsPromises = util.fs().promises;
+
+    return fsPromises.truncate('/NonExistingPath' , 0)
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('ENOENT');
+      });
+  });
 });
+
