@@ -65,6 +65,19 @@ describe('fs.truncate', function() {
       });
     });
   });
+  
+ 
+   it('should error when file does not exist (with promises)' => {
+   var fsPromises = util.fs().promises;
+   return
+   fsPromises.truncate('/NonExistingFile' , 0)
+                  .catch(error => {
+    expect(error).to.exixts;
+    expect(error.code).to.equal('ENOENT');
+   })
+   .then(() => done());
+});
+});
 
   it('should pad a file with zeros when the length is greater than the file size', function(done) {
     var fs = util.fs();
