@@ -276,6 +276,7 @@ function FileSystem(options, callback) {
     'close',
     'mknod',
     'mkdir',
+    'mkdtemp',
     'rmdir',
     'stat',
     'fstat',

@@ -1685,6 +1685,31 @@ function mkdir(fs, context, path, mode, callback) {
   make_directory(context, path, callback);
 }
 
+function mkdtemp(fs, context, prefix, options, callback) { 
+  callback = arguments[arguments.length - 1];
+
+  // this function is used to generate a random character set to append 
+  // to tmp dir name to make sure it is unique
+  function generateRandom() {
+    return 'xxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+      return v.toString(16);
+    });
+  }
+  if (prefix) {
+    var path = '/'+prefix+generateRandom();
+    make_directory(context, path, function(error) {
+      if (error) {
+        callback(error, path);
+      } else {
+        callback(null, path);
+      }
+    });
+  } else {
+    callback(new Error('filename prefix is required'), prefix);
+  }  
+}
+
 function rmdir(fs, context, path, callback) {
   if(!pathCheck(path, callback)) return;
   remove_directory(context, path, callback);
@@ -2391,6 +2416,7 @@ module.exports = {
   close: close,
   mknod: mknod,
   mkdir: mkdir,
+  mkdtemp: mkdtemp,
   rmdir: rmdir,
   unlink: unlink,
   stat: stat,
