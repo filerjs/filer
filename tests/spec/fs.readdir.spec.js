@@ -54,6 +54,35 @@ describe('fs.readdir', function() {
       });
     });
   });
+
+  it('(promise) should be a function', function() {
+    var fsPromises = util.fs().promises;
+    expect(fsPromises.readdir).to.be.a('function');
+  });
+  
+  it('(promise) should return a list of files from an existing directory', function() {
+    var fsPromises = util.fs().promises;
+
+    return fsPromises.mkdir('/tmp')
+      .then(() => {
+        return fsPromises.stat('/');
+      })
+      .then(stats => {
+        expect(stats).to.exist;
+        expect(stats.isDirectory()).to.be.true;
+      })
+      .then(() => {
+        return fsPromises.readdir('/');
+      })
+      .then(files => {
+        expect(files).to.exist;
+        expect(files.length).to.equal(1);
+        expect(files[0]).to.equal('tmp');
+      })
+      .catch(error => {
+        expect(error).not.to.exist;
+      });
+  });
 });
 
 /**
