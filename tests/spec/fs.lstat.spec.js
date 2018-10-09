@@ -60,7 +60,8 @@ describe('fs.promises.lstat', ()=> {
   it('should return an error if path does not exist', () => {
     var fsPromises = util.fs().promises;
     var fsStats;
-    fsPromises.lstat('/tmp')
+    
+    return fsPromises.lstat('/tmp')
       .then( stat => {
         fsStats = stat;
       })
