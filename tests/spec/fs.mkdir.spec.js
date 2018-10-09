@@ -45,4 +45,13 @@ describe('fs.mkdir', function() {
       });
     });
   });
+
+  it('should return an error if the path already exists (using promises)', () => {
+    var fsPromises = util.fs().promises;
+    return fsPromises.mkdir('/').catch(error => {
+      expect(error).to.exist;
+      expect(error.code).to.equal('EEXIST');
+    });
+  });
+
 });
