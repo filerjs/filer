@@ -175,3 +175,186 @@ describe('fs.utimes', function() {
     });
   });
 });
+
+describe('fs.promises.utimes', function () {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should be a function', function () {
+    var fs = util.fs().promises;
+    expect(fs.utimes).to.be.a('function');
+  });
+
+  it('should return a promise', function() {
+    var fs = util.fs().promises;
+    expect(fs.utimes()).to.be.a('Promise');
+  });
+
+  it('should error when atime is negative', function () {
+    var fs = util.fs().promises;
+    return fs.writeFile('/testfile', '')
+      .then(function () {
+        fs.utimes('/testfile', -1, Date.now())
+          .catch(function (error) {
+            expect(error).to.exist;
+            expect(error.code).to.equal('EINVAL');
+          });
+      })
+      .catch(function (error) {
+        throw error;
+      });
+  });
+
+  it('should error when mtime is negative', function () {
+    var fs = util.fs().promises;
+
+    return fs.writeFile('/testfile', '')
+      .then(function () {
+        fs.utimes('/testfile', Date.now(), -1)
+          .catch(function (error) {
+            expect(error).to.exist;
+            expect(error.code).to.equal('EINVAL');
+          });
+      })
+      .catch(function (error) {
+        throw error;
+      });
+  });
+
+  it('should error when mtime is an invalid number', function () {
+    var fs = util.fs().promises;
+
+    return fs.writeFile('/testfile', '')
+      .then(function () {
+        fs.utimes('/testfile', Date.now(), 'invalid datetime')
+          .catch(function (error) {
+            expect(error).to.exist;
+            expect(error.code).to.equal('EINVAL');
+          });
+      })
+      .catch(function (error) {
+        throw error;
+      });
+  });
+
+  it('should error when file descriptor is invalid', function () {
+    var fs = util.fs().promises;
+    var atime = Date.parse('1 Oct 2000 15:33:22');
+    var mtime = Date.parse('30 Sep 2000 06:43:54');
+
+    return fs.futimes(1, atime, mtime)
+      .catch(function (error) {
+        expect(error).to.exist;
+        expect(error.code).to.equal('EBADF');
+      });
+  });
+
+  it('should change atime and mtime of a file path', function () {
+    var fs = util.fs().promises;
+    var atime = Date.parse('1 Oct 2000 15:33:22');
+    var mtime = Date.parse('30 Sep 2000 06:43:54');
+
+    return fs.writeFile('/testfile', '')
+      .then(function () {
+        fs.utimes('/testfile', atime, mtime)
+          .then(function () {
+            fs.stat('/testfile')
+              .then(function (stat) {
+                expect(stat.mtime).to.equal(mtime);
+              })
+              .catch(function (error) {
+                expect(error).not.to.exist;
+              });
+          })
+          .catch(function (error) {
+            expect(error).not.to.exist;
+          });
+      })
+      .catch(function (error) {
+        throw error;
+      });
+  });
+
+  it('should change atime and mtime for a valid file descriptor', function () {
+    var fs = util.fs().promises;
+    var ofd;
+    var atime = Date.parse('1 Oct 2000 15:33:22');
+    var mtime = Date.parse('30 Sep 2000 06:43:54');
+
+    return fs.open('/testfile', 'w')
+      .then(function (result) {
+        ofd = result;
+        fs.futimes(ofd, atime, mtime)
+          .then(function () {
+            fs.fstat(ofd)
+              .then(function (stat) {
+                expect(stat.mtime).to.equal(mtime);
+              })
+              .catch(function (error) {
+                expect(error).not.to.exist;
+              });
+          })
+          .catch(function (error) {
+            expect(error).not.to.exist;
+          });
+      })
+      .catch(function (error) {
+        throw error;
+      });
+  });
+
+  it('should update atime and mtime of directory path', function () {
+    var fs = util.fs().promises;
+    var atime = Date.parse('1 Oct 2000 15:33:22');
+    var mtime = Date.parse('30 Sep 2000 06:43:54');
+
+    return fs.mkdir('/testdir')
+      .then(function () {
+        fs.utimes('/testdir', atime, mtime)
+          .then(function () {
+            fs.stat('/testdir')
+              .then(function (stat) {
+                expect(stat.mtime).to.equal(mtime);
+              })
+              .catch(function (error) {
+                expect(error).not.to.exist;
+              });
+          })
+          .catch(function (error) {
+            expect(error).not.to.exist;
+          });
+      })
+      .catch(function (error) {
+        throw error;
+      });
+  });
+
+  it('should update atime and mtime using current time if arguments are null', function () {
+    var fs = util.fs().promises;
+
+    return fs.writeFile('/myfile', '')
+      .then(function () {
+        var then = Date.now();
+        fs.utimes('/myfile', null, null)
+          .then(function () {
+            fs.stat('/myfile')
+              .then(function (stat) {
+                // Note: testing estimation as time may differ by a couple of milliseconds
+                // This number should be increased if tests are on slow systems
+                var delta = Date.now() - then;
+                expect(then - stat.atime).to.be.at.most(delta);
+                expect(then - stat.mtime).to.be.at.most(delta);
+              })
+              .catch(function (error) {
+                expect(error).not.to.exist;
+              });
+          })
+          .catch(function (error) {
+            expect(error).not.to.exist;
+          });
+      })
+      .catch(function (error) {
+        throw error;
+      });
+  });
+});
