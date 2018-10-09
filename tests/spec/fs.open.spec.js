@@ -148,7 +148,7 @@ describe('fsPromises.open', function() {
   it('should return an error if the parent path does not exist', function() {
     var fsPromises = util.fs().promises;
 
-    fsPromises.open('/tmp/myfile', 'w+')
+    return fsPromises.open('/tmp/myfile', 'w+')
       .then(result => expect(result).not.to.exist)
       .catch(error => {
         expect(error).to.exist;
