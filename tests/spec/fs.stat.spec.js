@@ -91,4 +91,33 @@ describe('fs.stat', function() {
       });
     });
   });
+
+  it('(promise) should be a function', function() {
+    var fs = util.fs();
+    expect(fs.promises.stat).to.be.a('function');
+  });
+  
+  it('should return a promise', function() {
+    var fs = util.fs();
+    expect(fs.promises.stat()).to.be.a('Promise');
+  });
+  
+  it('(promise) should return a stat object if file exists', function() {
+    var fs = util.fs();
+
+    return fs.promises
+      .stat('/')
+      .then(result => { 
+        expect(result).to.exist;
+
+        expect(result.node).to.be.a('string');
+        expect(result.dev).to.equal(fs.name);
+        expect(result.size).to.be.a('number');
+        expect(result.nlinks).to.be.a('number');
+        expect(result.atime).to.be.a('number');
+        expect(result.mtime).to.be.a('number');
+        expect(result.ctime).to.be.a('number');
+        expect(result.type).to.equal('DIRECTORY');
+      }); 
+  });
 });
