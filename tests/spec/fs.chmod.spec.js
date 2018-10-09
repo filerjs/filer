@@ -71,3 +71,67 @@ describe('fs.chmod, fs.fchmod', function() {
     });
   });
 });
+
+describe('fsPromise.chmod', function() {
+  beforeEach(util.setup);
+  afterEach(util.setup);
+
+  it('should be a function', function() {
+    var fsPromise = util.fs().promises;
+    expect(typeof fsPromise.chmod).to.equal('function');
+  });
+
+  it('should return a promise', function() {
+    var fsPromise = util.fs().promises;
+    expect(fsPromise.chmod()).to.be.a('Promise');
+  });
+
+  it('should allow for updating mode of a given file', function() {
+    var fsPromise = util.fs().promises;
+
+    return fsPromise.open('/file', 'w')
+      .then( () => {
+        return fsPromise.chmod('/file', 0o444);
+      })
+      .then( () => {
+        return fsPromise.stat('/file');
+      })
+      .then( stats => {
+        expect(stats.mode & 0o444).to.equal(0o444);
+      })
+      .catch( err => { throw err; });
+  });
+});
+
+describe('fsPromise.fchmod', function() {
+  beforeEach(util.setup);
+  afterEach(util.setup);
+
+  it('should be a function', function() {
+    var fsPromise = util.fs().promises;
+    expect(typeof fsPromise.fchmod).to.equal('function');
+  });
+
+  it('should be a promise', function() {
+    var fsPromise = util.fs().promises;
+    expect(fsPromise.fchmod()).to.be.a('Promise');
+  });
+
+  it('should allow for updating mode of a given file', function() {
+    var fsPromise = util.fs().promises;
+    var fdesc;
+
+    return fsPromise.open('/file', 'w')
+      .then( fd => {
+        fdesc = fd;
+        return fsPromise.fchmod(fd, 0o777);
+      })
+      .then( () => {
+        return fsPromise.fstat(fdesc);
+      })
+      .then( stats => {
+        expect(stats.mode & 0o777).to.equal(0o777);
+      })
+      .catch( err => { throw err; });
+  });
+});
