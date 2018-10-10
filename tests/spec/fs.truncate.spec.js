@@ -229,16 +229,13 @@ describe('fs.truncate', function() {
 
 describe('fsPromises.truncate', function () {
   beforeEach(util.setup);
-  afterEach(util.cleanup);
-  
-  it('should error when file does not exist (with promises)' , ()=> {
+  afterEach(util.cleanup); 
+  it('should error when file does not exist (with promises)' , () => {
     var fsPromises = util.fs().promises;
-
-    return fsPromises.truncate('/NonExistingPath' , 0)
+    return fsPromises.truncate('/NonExistingPath', 0)
       .catch(error => {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOENT');
       });
   });
 });
-
