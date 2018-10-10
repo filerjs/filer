@@ -1870,12 +1870,17 @@ function appendFile(fs, context, path, data, options, callback) {
   if(!flags) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
+  
+  if (typeof options === 'object' && options.encoding === undefined ) {
+    options.encoding = 'utf8';
+  }
 
   data = data || '';
   if(typeof data === 'number') {
     data = '' + data;
   }
-  if(typeof data === 'string' && (options.encoding === null || options.encoding === 'utf8')) {
+  
+  if(typeof data === 'string' && options.encoding === 'utf8') {
     data = Encoding.encode(data);
   }
 
