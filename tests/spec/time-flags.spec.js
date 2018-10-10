@@ -104,3 +104,45 @@ describe('node times (atime, mtime, ctime) with mount flags', function() {
     });
   });
 });
+
+function memoryFS(flags, callback) {
+  var name = util.uniqueName();
+  return new Filer.FileSystem({
+    name: name,
+    flags: flags || [],
+    provider: new Filer.FileSystem.providers.Memory(name)
+  }, callback);
+}
+
+describe('fsPromises.update',function() {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+  var filename = '/dir/file';
+  var newfilename = filename + '1';
+  
+  it('should not update ctime when calling fs.rename() with NOCTIME', function() {
+    memoryFS(['NOCTIME'], function(error, fs) {
+      var fsPromises = util.fs().promises;
+
+      fsPromises.createTree(fs, function() {
+        fsPromises.stat(fs, filename, function(stats1) {
+
+          return fsPromises.rename(filename, newfilename)
+
+            .then(() => {
+			
+              fs.stat(fsPromises, newfilename, function(stats2){
+                expect(stats2.ctime).to.equal(stats1.ctime);
+                expect(stats2.mtime).to.equal(stats1.mtime);
+                expect(stats2.atime).to.equal(stats1.atime);
+              
+              });
+            })
+            .catch((error)=>{
+              throw(error);
+            });
+        });
+      });
+    });	 
+  });	 
+});	 
