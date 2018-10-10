@@ -61,6 +61,6 @@ describe('fs.promises.symlink', function(){
     return fsPromise.symlink('/', '/tmp/')
       .then((error) =>{
         expect(error).not.be.exist;
-      });
     });
   });
+});
