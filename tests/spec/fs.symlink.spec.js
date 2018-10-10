@@ -46,12 +46,8 @@ describe('fs.symlink', function() {
 });
 
 describe('fs.promises.symlink', function(){
-  beforeEach((done)=>{
-    util.setup(()=>{
-      var fsPromises = util.fs().fsPromises;
-    });
-  });
-  });
+    beforeEach(uitl.setup);
+});
   afterEach(util.cleanup);
 
 
@@ -68,5 +64,4 @@ describe('fs.promises.symlink', function(){
       .then((error) =>{
         expect(error).not.be.exist;
       });
-  });
-});
+    });
