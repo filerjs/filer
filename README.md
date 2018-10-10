@@ -61,7 +61,6 @@ Filer is as close to the node.js [fs module](http://nodejs.org/api/fs.html) as p
 with the following differences:
 
 * No synchronous versions of methods (e.g., `mkdir()` but not `mkdirSync()`).
-* No permissions (e.g., no `chown()`, `chmod()`, etc.).
 * No support for stream-based operations (e.g., `fs.ReadStream`, `fs.WriteStream`).
 
 Filer has other features lacking in node.js (e.g., swappable backend
