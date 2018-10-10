@@ -63,7 +63,6 @@ describe('fs.chown, fs.fchown', function() {
   });
 });
 
-
 describe('fs.promises.chown', function(){
   beforeEach(util.setup);
   afterEach(util.setup);
