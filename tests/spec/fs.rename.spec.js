@@ -10,7 +10,7 @@ describe('fs.rename', function() {
     expect(fs.rename).to.be.a('function');
   });
 
-  it('should be able to rename an existing file to the same filename', function(done) {
+  it.skip('should be able to rename an existing file to the same filename', function(done) {
     var fs = util.fs();
 
     fs.open('/myfile', 'w+', function(error, fd) {
