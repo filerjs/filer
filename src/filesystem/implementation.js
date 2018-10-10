@@ -1930,6 +1930,7 @@ function validateAndMaskMode(value, def, callback) {
     callback = def;
     def = undefined;
   }
+  
   if (isUint32(value)) {
     return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
   }
