@@ -536,7 +536,7 @@ function remove_directory(context, path, callback) {
 function open_file(context, path, flags, mode, callback) {
   if (typeof mode === 'function'){
     callback = mode;
-    mode = null
+    mode = null;
   }
   path = normalize(path);
   var name = basename(path);
