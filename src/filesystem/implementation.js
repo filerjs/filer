@@ -534,8 +534,9 @@ function remove_directory(context, path, callback) {
 }
 
 function open_file(context, path, flags, mode, callback) {
-  if (typeof mode == 'function'){
+  if (typeof mode === 'function'){
     callback = mode;
+    mode = null
   }
   path = normalize(path);
   var name = basename(path);
@@ -648,7 +649,9 @@ function open_file(context, path, flags, mode, callback) {
       }
       fileNode = result;
       fileNode.nlinks += 1;
-      if(mode){Node.setMode(mode, fileNode);}
+      if(mode){
+        Node.setMode(mode, fileNode);
+      }
       context.putObject(fileNode.id, fileNode, write_file_data);
     });
   }
@@ -1627,12 +1630,11 @@ function open(fs, context, path, flags, mode, callback) {
    *    callback = makeCallback(callback);
    * }
   */
-  if (arguments.length == 5){
+  if (arguments.length < 6 ){
     callback = arguments[arguments.length - 1];
     mode = 0o644;
   }
   else {
-    //need to test this validateAndMakeMode
     mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
   }
     

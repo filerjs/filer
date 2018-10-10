@@ -123,7 +123,6 @@ describe('fs.open', function() {
     });
   });
 
-  
   /**
    * This test is currently correct per our code, but incorrect according to the spec.
    * When we fix https://github.com/filerjs/filer/issues/314 we'll have to update this.
