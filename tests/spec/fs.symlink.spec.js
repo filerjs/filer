@@ -46,15 +46,11 @@ describe('fs.symlink', function() {
 });
 
 describe('fs.promises.symlink', function(){
-  beforeEach(function(done){
-    util.setup(function(){
-      var fsPromises = util.fs().promises;
-      fsPromises.symlink('/','/temp/mydir')
-        .then(done())
-        .catch(function(error){
-          throw error;
-        });
+  beforeEach((done)=>{
+    util.setup(()=>{
+      var fsPromises = util.fs().fsPromises;
     });
+  });
   });
   afterEach(util.cleanup);
 
