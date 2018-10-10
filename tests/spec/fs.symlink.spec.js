@@ -58,8 +58,7 @@ describe('fs.promises.symlink', function(){
   it('should return an error if the destination path already exists', () => {
     var fsPromise = util.fs().promises;
 
-    return fsPromise.symlink('/', '/tmp/')
-      .then((error) =>{
+    return fsPromise.symlink('/', '/tmp/').then((error) =>{
         expect(error).not.be.exist;
     });
   });
