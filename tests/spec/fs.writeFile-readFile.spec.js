@@ -112,3 +112,25 @@ describe('fs.writeFile, fs.readFile', function() {
     });
   });
 });
+
+describe('fsPromises.Write', function() {
+  it('should write, read a utf8 file without specifying utf8 in writeFile', function() {
+    //var fs = util.fs();
+    //var contents = 'This is a file.';
+	
+    var fsPromises = util.fs().promises;
+	
+    return fsPromises.writeFile('/myfile' , { encoding: 'utf8' }) 
+      
+      .then(() => {
+        return  fsPromises.readFile('/myfile', 'utf8')
+          
+          .catch((error) => {
+		
+            expect(error).not.to.exist;
+            //expect(data).to.equal(contents);
+            //done();
+          });
+      });
+  });
+});
