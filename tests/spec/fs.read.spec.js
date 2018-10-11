@@ -98,6 +98,7 @@ describe('fs.read', function() {
     fs.read(fd, rbuffer, 0, rbuffer.length, 0, function(error, result) {
       expect(error).to.exist;
       expect(result).not.to.exist;
+      expect(error.code).to.equal('EBADF');
       done();
     });
   });
