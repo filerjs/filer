@@ -1,7 +1,8 @@
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
-describe('fs.unwatchFile', function() {
+// Waiting on https://github.com/filerjs/filer/pull/553 to land
+describe.skip('fs.unwatchFile', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
@@ -12,8 +13,11 @@ describe('fs.unwatchFile', function() {
 
   it('should not throw an error when using a file not being watched', function() {
     var fs = util.fs();
-    fs.unwatchFile('/myfile', function(error){
-      expect(error).not.to.exist;
-    });
+
+    try {
+      fs.unwatchFile('/myfile');
+    } catch(e) {
+      expect.fail('calling fs.unwatchFile() on a file should not throw');
+    }
   });
 });

@@ -42,6 +42,7 @@ require('./spec/trailing-slashes.spec');
 require('./spec/times.spec');
 require('./spec/time-flags.spec');
 require('./spec/fs.watch.spec');
+require('./spec/fs.unwatchFile.spec');
 require('./spec/errors.spec');
 require('./spec/fs.shell.spec');
 require('./spec/fs.chmod.spec');
