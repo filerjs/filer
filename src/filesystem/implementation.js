@@ -1615,21 +1615,6 @@ function pathCheck(path, allowRelative, callback) {
 
 
 function open(fs, context, path, flags, mode, callback) {
-  /**
-   * NOTE: we support the same signature as node with a `mode` arg,
-   * but ignore it. We need to add it.  Here is what node.js does:
-   * function open(path, flags, mode, callback) {
-   *    path = getPathFromURL(path);
-   *  validatePath(path);
-   *  const flagsNumber = stringToFlags(flags);
-   *  if (arguments.length < 4) {
-   *    callback = makeCallback(mode);
-   *    mode = 0o666;
-   *  } else {
-   *    mode = validateAndMaskMode(mode, 'mode', 0o666);
-   *    callback = makeCallback(callback);
-   * }
-  */
   if (arguments.length < 6 ){
     callback = arguments[arguments.length - 1];
     mode = 0o644;
@@ -1930,7 +1915,7 @@ function validateAndMaskMode(value, def, callback) {
     callback = def;
     def = undefined;
   }
-  
+
   if (isUint32(value)) {
     return value & FULL_READ_WRITE_EXEC_PERMISSIONS;
   }
