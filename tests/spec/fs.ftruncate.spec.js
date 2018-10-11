@@ -31,10 +31,10 @@ describe('fs.ftruncate', function() {
     });
   });
 
-  it('should return an error if file descriptor is not valid', function(done) {
+  it('should return an error if file descriptor is negative', function(done) {
     let fs = util.fs();
 
-    //File descriptor should be a non-negative number
+     // File descriptor should be a non-negative number
     fs.ftruncate(-1, 0, function(error) {
       expect(error).to.exist;
       expect(error.code).to.equal('EBADF');
@@ -55,7 +55,7 @@ describe('fs.ftruncate', function() {
         if(error) throw error;
         expect(result).to.equal(buffer.length);
 
-        // truncate file to first two bytes
+        // Truncate file to first two bytes
         fs.ftruncate(fd, 2, function(error) {
           expect(error).not.to.exist;
         });
@@ -67,6 +67,32 @@ describe('fs.ftruncate', function() {
             if(error) throw error;
 
             expect(result).to.deep.equal(truncated);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should truncate a valid descriptor', function(done) {
+    var fs = util.fs();
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
+        if(error) throw error;
+        expect(result).to.equal(buffer.length);
+
+        fs.ftruncate(fd, 0, function(error) {
+          expect(error).not.to.exist;
+
+          fs.fstat(fd, function(error, result) {
+            if(error) throw error;
+
+            expect(result.size).to.equal(0);
             done();
           });
         });
@@ -90,7 +116,7 @@ describe('fs.ftruncate', function() {
         fs.ftruncate(fd, 9, function(error) {
           expect(error).not.to.exist;
         });
-        
+
         fs.close(fd, function(error) {
           if(error) throw error;
 
