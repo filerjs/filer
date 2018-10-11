@@ -34,7 +34,7 @@ describe('fs.ftruncate', function() {
   it('should return an error if file descriptor is negative', function(done) {
     let fs = util.fs();
 
-     // File descriptor should be a non-negative number
+    // File descriptor should be a non-negative number
     fs.ftruncate(-1, 0, function(error) {
       expect(error).to.exist;
       expect(error.code).to.equal('EBADF');
