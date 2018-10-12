@@ -187,7 +187,7 @@ describe('fs.promises.link', function() {
     fs.writeFile('/file', contents, function(err) {
       if(err) throw err;
 
-      fs.promises.link('/file', '/hlink', function(err) {
+      fs.link('/file', '/hlink', function(err) {
         if(err) throw err;
 
         fs.readFile('/file', 'utf8', function(err, fileData) {
@@ -199,39 +199,6 @@ describe('fs.promises.link', function() {
             expect(fileData).to.equal(hlinkData);
             done();
           });
-        });
-      });
-    });
-  });
-
-  it('should not follow symbolic links', function(done) {
-    var fs = util.fs();
-
-    fs.stat('/', function (error, result) {
-      if (error) throw error;
-      expect(result).to.exist;
-
-      fs.symlink('/', '/myfileLink', function (error) {
-        if (error) throw error;
-
-        fs.promises.link('/myfileLink', '/myotherfile').then(function(){
-          if (error) throw error;
-      
-          fs.lstat('/myfileLink', function (error, result) {
-            
-            var _linkstats = result;
-            fs.lstat('/myotherfile', function (error, result) {
-              expect(error).not.to.exist;
-              expect(result.dev).to.equal(_linkstats.dev);
-              expect(result.node).to.equal(_linkstats.node);
-              expect(result.size).to.equal(_linkstats.size);
-              expect(result.type).to.equal(_linkstats.type);
-              expect(result.nlinks).to.equal(2);
-              done();
-            });
-          },
-          function(error){throw error;}
-          );
         });
       });
     });
