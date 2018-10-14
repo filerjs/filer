@@ -80,7 +80,6 @@ describe('fs.link', function() {
 
           fs.lstat('/myfileLink', function (error, result) {
             if (error) throw error;
-            
             var _linkstats = result;
             fs.lstat('/myotherfile', function (error, result) {
               expect(error).not.to.exist;
@@ -110,4 +109,18 @@ describe('fs.link', function() {
       });
     });
   });
+
+});
+
+describe('fs.promises.link', function() {
+
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should return a promise', function() {
+    var fsPromise = util.fs().promises;
+    var returnValue = fsPromise.link('/myfile', '/myotherfile');
+    expect(returnValue).to.be.a('promise');
+  });
+
 });

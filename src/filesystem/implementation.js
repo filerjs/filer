@@ -39,6 +39,7 @@ var SuperNode = require('../super-node.js');
 var Node = require('../node.js');
 var Stats = require('../stats.js');
 var Buffer = require('../buffer.js');
+const { validateInteger } = require('../shared.js');
 
 /**
  * Update node times. Only passed times are modified (undefined times are ignored)
@@ -1248,6 +1249,12 @@ function truncate_file(context, path, length, callback) {
     } else {
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
+      }
+      try {
+        validateInteger(length, 'len');
+      }
+      catch (error) {
+        return callback(error);
       }
       var data = new Buffer(length);
       data.fill(0);

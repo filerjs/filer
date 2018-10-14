@@ -22,6 +22,19 @@ describe('fs.writeFile, fs.readFile', function() {
     });
   });
 
+  
+  it('should error when path is wrong to writeFile',function(done){
+    var fs = util.fs();
+
+    fs.writeFile('/tmp/myfile', '','utf8', function(error, result) {
+      expect(error).to.exist;
+      expect(error.code).to.equal('ENOENT');
+      expect(result).not.to.exist;
+      done();
+    });
+
+  });
+
   it('should write, read a utf8 file without specifying utf8 in writeFile', function(done) {
     var fs = util.fs();
     var contents = 'This is a file.';

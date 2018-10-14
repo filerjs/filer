@@ -10,6 +10,21 @@ describe('fs.truncate', function() {
     expect(fs.truncate).to.be.a('function');
   });
 
+  it('should error when length is not an integer', function(done) {
+    var fs = util.fs();
+    var contents = 'This is a file.';
+
+    fs.writeFile('/myfile', contents, function(error) {
+      if(error) throw error;
+
+      fs.truncate('/myfile', 'notAnInteger', function(error) {
+        expect(error).to.exist;
+        expect(error.code).to.equal('EINVAL');
+        done();
+      });
+    });
+  });
+
   it('should error when length is negative', function(done) {
     var fs = util.fs();
     var contents = 'This is a file.';
@@ -127,6 +142,37 @@ describe('fs.truncate', function() {
     });
   });
 
+  it('should assume a length of 0 if passed undefined', function(done) {
+    var fs = util.fs();
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
+        if(error) throw error;
+        expect(result).to.equal(buffer.length);
+
+        fs.close(fd, function(error) {
+          if(error) throw error;
+
+          // We want to use undefined to see that it defaults to 0
+          fs.truncate('/myfile', undefined, function(error) {
+            expect(error).not.to.exist;
+
+            fs.stat('/myfile', function(error, result) {
+              if(error) throw error;
+
+              expect(result.size).to.equal(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
   it('should truncate a valid descriptor', function(done) {
     var fs = util.fs();
     var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
@@ -190,5 +236,20 @@ describe('fs.truncate', function() {
         });
       });
     });
+  });
+});
+
+
+describe('fsPromises.truncate', function () {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+  it('should error when path does not exist (with promises)', () => {
+    var fsPromises = util.fs().promises;
+
+    return fsPromises.truncate('/NonExistingPath', 0)
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('ENOENT');
+      });
   });
 });
