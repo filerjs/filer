@@ -12,7 +12,7 @@ describe('fs.mkdtemp', function() {
 
   it('should craete temp dir with specified prefix', function(done) {
     var fs = util.fs();
-    fs.mkdtemp('foo', function(error, path) {
+    fs.mkdtemp('/foo', function(error, path) {
       expect(error).not.to.exist;
       expect(path).to.match(/foo.{6}/);
       done();
@@ -28,7 +28,6 @@ describe('fs.mkdtemp', function() {
         done();
       });
     });
-
   });
 
   it('should not create temp dir without prefix', function(done) {

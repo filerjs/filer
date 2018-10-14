@@ -1,8 +1,21 @@
-function guid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+function generateRandom(template) {
+  return template.replace(/[xy]/g, function(c) {
     var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
     return v.toString(16);
-  }).toUpperCase();
+  });
+}
+
+function guid() {
+  return generateRandom('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').toUpperCase();
+}
+
+/**
+ * Generate a string of n random characters.  Defaults to n=6.
+ */ 
+function randomChars(n) {
+  n = n || 6;
+  var template = 'x'.repeat(n);
+  return generateRandom(template);
 }
 
 function nop() {}
@@ -21,6 +34,7 @@ function u8toArray(u8) {
 
 module.exports = {
   guid: guid,
-  u8toArray: u8toArray,
-  nop: nop
+  nop: nop,
+  randomChars: randomChars,
+  u8toArray: u8toArray
 };

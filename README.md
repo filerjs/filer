@@ -306,7 +306,7 @@ var fs = new Filer.FileSystem();
 * [fs.mknod(path, mode, callback)](#mknod)
 * [fs.rmdir(path, callback)](#rmdir)
 * [fs.mkdir(path, [mode], callback)](#mkdir)
-* [fs.mkdtemp(path, [mode], callback)](#mkdtemp)
+* [fs.mkdtemp(path, [options], callback)](#mkdtemp)
 * [fs.readdir(path, callback)](#readdir)
 * [fs.close(fd, callback)](#close)
 * [fs.open(path, flags, [mode], callback)](#open)
@@ -676,10 +676,9 @@ fs.mkdir('/home', function(err) {
 
 #### fs.mkdtemp(prefix, options, callback)<a name="mkdtemp"></a>
 
+Makes a temporary directory with prefix supplied in `path` argument. Method will append six random characters directly to the prefix.
 
-Makes a temporary directory with prefix supplied in `path` argument. Method will append the six randomly selected characters directly to the prefix.
-
-Asynchronous. Callback gets `(error, path)`, where path is a path to created directory.
+Asynchronous. Callback gets `(error, path)`, where path is the path to the created directory.
 
 NOTE: Filer allows for, but ignores the optional `options` argument used in node.js.
 
@@ -687,7 +686,7 @@ Example:
 
 ```javascript
 // Create tmp directory with prefix foo
-fs.mkdtemp("foo-", function (error, path) {
+fs.mkdtemp("/foo-", function (error, path) {
     //A new folder foo-xxxxxx will be created. Path contains a path to created folder.    
 });
 
@@ -695,9 +694,7 @@ fs.mkdtemp("/myDir/tmp", function (error, path) {
     //Will create a new folder tmpxxxxxx inside myDir directory. 
     //Will throw error if myDir does not exist    
 });
-
 ```
-
 #### fs.readdir(path, callback)<a name="readdir"></a>
 
 Reads the contents of a directory. Asynchronous [readdir(3)](http://pubs.opengroup.org/onlinepubs/009695399/functions/readdir.html).

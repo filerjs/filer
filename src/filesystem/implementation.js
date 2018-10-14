@@ -1680,17 +1680,13 @@ function mkdir(fs, context, path, mode, callback) {
 
 function mkdtemp(fs, context, prefix, options, callback) { 
   callback = arguments[arguments.length - 1];
-
-  // this function is used to generate a random character set to append 
-  // to tmp dir name to make sure it is unique
-  function generateRandom() {
-    return 'xxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-      return v.toString(16);
-    });
-  }
-  if (prefix) {
-    var path = '/'+prefix+generateRandom();
+  let shared = require('../shared.js');
+  if(!prefix) {
+    return callback(new Error('filename prefix is required'), prefix);
+  } else {
+    let random = shared.randomChars(6);
+    var path = prefix+'-'+random; 
+    normalize(prefix);
     make_directory(context, path, function(error) {
       if (error) {
         callback(error, path);
@@ -1698,9 +1694,7 @@ function mkdtemp(fs, context, prefix, options, callback) {
         callback(null, path);
       }
     });
-  } else {
-    callback(new Error('filename prefix is required'), prefix);
-  }  
+  }
 }
 
 function rmdir(fs, context, path, callback) {
