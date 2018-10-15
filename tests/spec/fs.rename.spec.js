@@ -74,22 +74,17 @@ describe('fs.rename', function() {
     var fsPromises = util.fs().promises;
 
     return fsPromises.mkdir('/mydir')
-      .then(() => {
-        return fsPromises.rename('/mydir', '/myotherdir');
+      .then(() => fsPromises.rename('/mydir', '/myotherdir'))
+      .then(() => { fsPromises.stat('/mydir')
+        .catch((error) => {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOENT');
+        });
       })
-      .then(() => {
-        return fsPromises.stat('/mydir')
-          .catch((error) => {
-            expect(error).to.exist;
-            expect(error.code).to.equal('ENOENT');
-          });
-      })
-      .then(() => {
-        return fsPromises.stat('/myotherdir')
-          .catch((error, result) => {
-            expect(error).not.to.exist;
-            expect(result.nlinks).to.equal(1);
-          });
+      .then(() => { fsPromises.stat('/myotherdir')
+        .then(result => {
+          expect(result.nlinks).to.equal(1);
+        });
       })
       .catch((error) => {
         if (error) throw error;
