@@ -64,4 +64,25 @@ describe('fs.watch', function() {
       });
     });
   });
+
+  it('should get a change event when renaming a file', function(done) {
+    var fs = util.fs();
+
+    fs.writeFile('/myfile', 'data', function(error) {
+      if(error) throw error;
+    });
+
+    //Normaly A 'rename' event should be thrown, but filer doesn't support that event at this time.
+    //For now renaming a file will throw a change event.
+    var watcher = fs.watch('/myfile', function(event, filename) {
+      expect(event).to.equal('change');
+      expect(filename).to.equal('/myfile');
+      watcher.close();
+      done();
+    });
+
+    fs.rename('/myfile', '/mynewfile', function(error) {
+      if(error) throw error;
+    });
+  });
 });
