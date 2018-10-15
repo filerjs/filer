@@ -933,13 +933,9 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       newDirectoryData = result;
-      if(_(newDirectoryData).has(newname)) {
-        callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
-      } else {
-        newDirectoryData[newname] = oldDirectoryData[oldname];
-        fileNodeID = newDirectoryData[newname].id;
-        context.putObject(newDirectoryNode.data, newDirectoryData, read_file_node);
-      }
+      newDirectoryData[newname] = oldDirectoryData[oldname];
+      fileNodeID = newDirectoryData[newname].id;
+      context.putObject(newDirectoryNode.data, newDirectoryData, read_file_node);
     }
   }
 
