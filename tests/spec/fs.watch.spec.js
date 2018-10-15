@@ -72,6 +72,8 @@ describe('fs.watch', function() {
       if(error) throw error;
     });
 
+    //Normaly A 'rename' event should be thrown, but filer doesn't support that event at this time.
+    //For now renaming a file will throw a change event.
     var watcher = fs.watch('/myfile', function(event, filename) {
       expect(event).to.equal('change');
       expect(filename).to.equal('/myfile');
