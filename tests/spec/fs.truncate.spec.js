@@ -173,32 +173,6 @@ describe('fs.truncate', function() {
     });
   });
 
-  it('should truncate a valid descriptor', function(done) {
-    var fs = util.fs();
-    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
-
-    fs.open('/myfile', 'w', function(error, result) {
-      if(error) throw error;
-
-      var fd = result;
-      fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
-        if(error) throw error;
-        expect(result).to.equal(buffer.length);
-
-        fs.ftruncate(fd, 0, function(error) {
-          expect(error).not.to.exist;
-
-          fs.fstat(fd, function(error, result) {
-            if(error) throw error;
-
-            expect(result.size).to.equal(0);
-            done();
-          });
-        });
-      });
-    });
-  });
-
   it('should follow symbolic links', function(done) {
     var fs = util.fs();
     var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
