@@ -87,6 +87,21 @@ describe('fs.read', function() {
       });
     });
   });
+
+  it('should fail to read a file that does not exist', function(done) {
+    var fs = util.fs();
+
+    var fd = 0;
+    var rbuffer = new Filer.Buffer(8);
+    rbuffer.fill(0);
+
+    fs.read(fd, rbuffer, 0, rbuffer.length, 0, function(error, result) {
+      expect(error).to.exist;
+      expect(result).not.to.exist;
+      expect(error.code).to.equal('EBADF');
+      done();
+    });
+  });
 });
 
 describe('fs.promises.read', function() {
