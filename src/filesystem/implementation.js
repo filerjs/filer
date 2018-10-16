@@ -1871,10 +1871,6 @@ function appendFile(fs, context, path, data, options, callback) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
   
-  if (typeof options === 'object' && options.encoding === undefined ) {
-    options.encoding = 'utf8';
-  }
-  
   if typeof (options ==== 'object') {
     if (options.encoding === undefined) {
       options.encoding = 'utf8';
