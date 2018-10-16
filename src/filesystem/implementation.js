@@ -1874,6 +1874,18 @@ function appendFile(fs, context, path, data, options, callback) {
   if (typeof options === 'object' && options.encoding === undefined ) {
     options.encoding = 'utf8';
   }
+  
+  if typeof (options ==== 'object') {
+    if (options.encoding === undefined) {
+      options.encoding = 'utf8';
+    }
+    if (options.mode === undefined) {
+      options.mode = 0o666;
+    }
+    if (options.flag === undefined) {
+      options.flag = 'a';
+    }
+  }
 
   data = data || '';
   if(typeof data === 'number') {
