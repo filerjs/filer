@@ -1871,14 +1871,14 @@ function appendFile(fs, context, path, data, options, callback) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
   
-  if typeof (options ==== 'object') {
+  if (typeof options ==== 'object') {
     if (options.encoding === undefined) {
       options.encoding = 'utf8';
     }
-    if (options.mode === undefined) {
+    if (typeof options.mode === undefined) {
       options.mode = 0o666;
     }
-    if (options.flag === undefined) {
+    if (typeof options.flag === undefined) {
       options.flag = 'a';
     }
   }
