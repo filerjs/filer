@@ -1872,7 +1872,7 @@ function appendFile(fs, context, path, data, options, callback) {
   }
   
   if (typeof options === 'object') {
-    if (options.encoding === undefined) {
+    if (!options.encoding) {
       options.encoding = 'utf8';
     }
     if (typeof options.mode === undefined) {
