@@ -17,6 +17,7 @@ var providers = require('../providers/index.js');
 var Shell = require('../shell/shell.js');
 var Intercom = require('../../lib/intercom.js');
 var FSWatcher = require('../fs-watcher.js');
+//var unwatcher = require('../unwatcherFile.js');
 var Errors = require('../errors.js');
 var defaultGuidFn = require('../shared.js').guid;
 
@@ -157,6 +158,27 @@ function FileSystem(options, callback) {
     watcher.on('change', listener);
 
     return watcher;
+  };
+
+  this.unwatchFile = function(filename, listener) {
+    if(isNullPath(filename)) {
+      throw new Error('Path must be a string without null bytes.');
+    }
+    listener = listener || nop;
+
+    if(listener == nop){
+      this.removeAllListeners();
+    }
+    else{
+      this.off('change', listener);
+    }
+    /*var unwatch = new unwatchFile();
+    if(listener == nop){
+      unwatch.removeListeners();
+    }
+    else{
+      unwatch.removeSingleListener(listener);
+    }*/
   };
 
   // Deal with various approaches to node ID creation
@@ -347,7 +369,7 @@ function FileSystem(options, callback) {
         callback(error);
       }
     };
-    
+
     FileSystem.prototype.promises[methodName] = promisify(FileSystem.prototype[methodName].bind(fs));
   });
 
