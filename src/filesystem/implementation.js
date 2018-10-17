@@ -1875,10 +1875,10 @@ function appendFile(fs, context, path, data, options, callback) {
     if (!options.encoding) {
       options.encoding = 'utf8';
     }
-    if (typeof options.mode === undefined) {
+    if (!options.mode) {
       options.mode = 0o666;
     }
-    if (typeof options.flag === undefined) {
+    if (!options.flag) {
       options.flag = 'a';
     }
   }
