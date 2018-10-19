@@ -124,6 +124,7 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
     p.then(() => {
       expect(fsPromises.readFile('/myfile', 'utf8')).to.be.a('Promise');
     });
+    return p;
   });
 
   it('should error when path is wrong to readFile', function() {
@@ -136,72 +137,52 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
       });
   });
 
-  it('should write, read a utf8 file without specifying utf8 in writeFile', function(done) {
+  it('should write, read a utf8 file without specifying utf8 in writeFile', function() {
     var fsPromises = util.fs().promises;
     var contents = 'This is a file.';
 
-    fsPromises.writeFile('/myfile', contents)
+    return fsPromises.writeFile('/myfile', contents)
       .then( () => fsPromises.readFile('/myfile', 'utf8'))
-      .then(data => { 
-        expect(data).to.equal(contents);
-        done(); 
-      })
-      .catch(error => { throw error; });
+      .then(data => { expect(data).to.equal(contents); });
   });
 
-  it('should write, read a utf8 file with "utf8" option to writeFile', function(done) {
+  it('should write, read a utf8 file with "utf8" option to writeFile', function() {
     var fsPromises = util.fs().promises;
     var contents = 'This is a file.';
 
-    fsPromises.writeFile('/myfile', contents, 'utf8') 
+    return fsPromises.writeFile('/myfile', contents, 'utf8') 
       .then( () => fsPromises.readFile('/myfile', 'utf8'))
-      .then(data => { 
-        expect(data).to.equal(contents); 
-        done(); 
-      })  
-      .catch(error => { throw error; });
+      .then(data => { expect(data).to.equal(contents); });
   });
 
-  it('should write, read a utf8 file with {encoding: "utf8"} option to writeFile', function(done) {
+  it('should write, read a utf8 file with {encoding: "utf8"} option to writeFile', function() {
     var fsPromises = util.fs().promises;
     var contents = 'This is a file.';
 
-    fsPromises.writeFile('/myfile', contents, { encoding: 'utf8' })
+    return fsPromises.writeFile('/myfile', contents, { encoding: 'utf8' })
       .then( () => fsPromises.readFile('/myfile', 'utf8'))
-      .then(data => { 
-        expect(data).to.equal(contents);
-        done(); 
-      }) 
-      .catch(error => { throw error; });
+      .then(data => { expect(data).to.equal(contents); });
   });
 
-  it('should write, read a binary file', function(done) {
+  it('should write, read a binary file', function() {
     var fsPromises = util.fs().promises;
     // String and utf8 binary encoded versions of the same thing: 'This is a file.'
     var binary = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
-    fsPromises.writeFile('/myfile', binary)
+    return fsPromises.writeFile('/myfile', binary)
       .then( () => fsPromises.readFile('/myfile'))
-      .then(data => { 
-        expect(data).to.deep.equal(binary); 
-        done(); 
-      }) 
-      .catch(error => { throw error; });
+      .then(data => { expect(data).to.deep.equal(binary); });
   });
 
-  it('should follow symbolic links', function(done) {
+  it('should follow symbolic links', function() {
     var fsPromises = util.fs().promises;
     var contents = 'This is a file.';
 
-    fsPromises.writeFile('/myfile', '', { encoding: 'utf8' })
+    return fsPromises.writeFile('/myfile', '', { encoding: 'utf8' })
       .then( () => fsPromises.symlink('/myfile', '/myFileLink'))
       .then( () => fsPromises.writeFile('/myFileLink', contents, 'utf8'))
       .then( () => fsPromises.readFile('/myFileLink', 'utf8'))
-      .then(data => { 
-        expect(data).to.equal(contents); 
-        done(); 
-      }) 
-      .catch(error => { throw error; });
+      .then(data => { expect(data).to.equal(contents); });
   });
 });
 
