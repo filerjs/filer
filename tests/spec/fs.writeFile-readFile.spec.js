@@ -118,19 +118,21 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
     var fsPromises = util.fs().promises;
     var contents = 'This is a file.';
 
-    expect(fsPromises.writeFile('/myfile', contents)).to.be.a('Promise');
-    expect(fsPromises.readFile('/myfile', 'utf8')).to.be.a('Promise');
+    var p = fsPromises.writeFile('/myfile', contents);
+    expect(p).to.be.a('Promise');
+
+    p.then(() => {
+      expect(fsPromises.readFile('/myfile', 'utf8')).to.be.a('Promise');
+    });
   });
 
-  it('should error when path is wrong to readFile', function(done) {
+  it('should error when path is wrong to readFile', function() {
     var fsPromises = util.fs().promises;
 
-    fsPromises.readFile('/no-such-file', 'utf8')
-      .then(data => expect(data).not.to.exist)
+    return fsPromises.readFile('/no-such-file', 'utf8')
       .catch(error => { 
         expect(error).to.exist; 
         expect(error.code).to.equal('ENOENT'); 
-        done(); 
       });
   });
 
@@ -139,14 +141,10 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
     var contents = 'This is a file.';
 
     fsPromises.writeFile('/myfile', contents)
-      .then( () => {
-
-        fsPromises.readFile('/myfile', 'utf8')
-          .then(data => { 
-            expect(data).to.equal(contents);
-            done(); 
-          })
-          .catch(error => expect(error).not.to.exist);
+      .then( () => fsPromises.readFile('/myfile', 'utf8'))
+      .then(data => { 
+        expect(data).to.equal(contents);
+        done(); 
       })
       .catch(error => { throw error; });
   });
@@ -156,14 +154,10 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
     var contents = 'This is a file.';
 
     fsPromises.writeFile('/myfile', contents, 'utf8') 
-      .then( () => {
-
-        fsPromises.readFile('/myfile', 'utf8')
-          .then(data => { 
-            expect(data).to.equal(contents); 
-            done(); 
-          })
-          .catch(error => expect(error).not.to.exist);
+      .then( () => fsPromises.readFile('/myfile', 'utf8'))
+      .then(data => { 
+        expect(data).to.equal(contents); 
+        done(); 
       })  
       .catch(error => { throw error; });
   });
@@ -173,14 +167,10 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
     var contents = 'This is a file.';
 
     fsPromises.writeFile('/myfile', contents, { encoding: 'utf8' })
-      .then( () => {
-
-        fsPromises.readFile('/myfile', 'utf8')
-          .then(data => { 
-            expect(data).to.equal(contents);
-            done(); 
-          })
-          .catch(error => expect(error).not.to.exist);
+      .then( () => fsPromises.readFile('/myfile', 'utf8'))
+      .then(data => { 
+        expect(data).to.equal(contents);
+        done(); 
       }) 
       .catch(error => { throw error; });
   });
@@ -191,14 +181,10 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
     var binary = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
     fsPromises.writeFile('/myfile', binary)
-      .then( () => {
-
-        fsPromises.readFile('/myfile')
-          .then(data => { 
-            expect(data).to.deep.equal(binary); 
-            done(); 
-          })
-          .catch(error => expect(error).not.to.exist);
+      .then( () => fsPromises.readFile('/myfile'))
+      .then(data => { 
+        expect(data).to.deep.equal(binary); 
+        done(); 
       }) 
       .catch(error => { throw error; });
   });
@@ -208,20 +194,12 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
     var contents = 'This is a file.';
 
     fsPromises.writeFile('/myfile', '', { encoding: 'utf8' })
-      .then( () => {
-        fsPromises.symlink('/myfile', '/myFileLink')
-          .then( () => {
-            fsPromises.writeFile('/myFileLink', contents, 'utf8')
-              .then( () => {
-
-                fsPromises.readFile('/myFileLink', 'utf8')
-                  .then(data => { 
-                    expect(data).to.equal(contents); 
-                    done(); 
-                  })
-                  .catch(error => expect(error).not.to.exist); 
-              });  
-          });
+      .then( () => fsPromises.symlink('/myfile', '/myFileLink'))
+      .then( () => fsPromises.writeFile('/myFileLink', contents, 'utf8'))
+      .then( () => fsPromises.readFile('/myFileLink', 'utf8'))
+      .then(data => { 
+        expect(data).to.equal(contents); 
+        done(); 
       }) 
       .catch(error => { throw error; });
   });
