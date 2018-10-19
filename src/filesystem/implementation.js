@@ -6,6 +6,7 @@ var dirname = Path.dirname;
 var basename = Path.basename;
 var isAbsolutePath = Path.isAbsolute;
 var isNullPath = Path.isNull;
+var shared = require('../shared.js');
 
 var Constants = require('../constants.js');
 var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
@@ -1680,21 +1681,16 @@ function mkdir(fs, context, path, mode, callback) {
 
 function mkdtemp(fs, context, prefix, options, callback) { 
   callback = arguments[arguments.length - 1];
-  let shared = require('../shared.js');
   if(!prefix) {
     return callback(new Error('filename prefix is required'), prefix);
-  } else {
-    let random = shared.randomChars(6);
-    var path = prefix+'-'+random; 
-    normalize(prefix);
-    make_directory(context, path, function(error) {
-      if (error) {
-        callback(error, path);
-      } else {
-        callback(null, path);
-      }
-    });
-  }
+  } 
+  let random = shared.randomChars(6);
+  var path = prefix + '-' + random; 
+  path = normalize(path);
+  make_directory(context, path, function(error) {
+    callback(error, path);
+  });
+  
 }
 
 function rmdir(fs, context, path, callback) {

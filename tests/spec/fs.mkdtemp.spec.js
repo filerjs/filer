@@ -18,6 +18,7 @@ describe('fs.mkdtemp', function() {
       done();
     });
   });
+
   it('should craete temp dir inside existing directory', function(done) {
     var fs = util.fs();
     fs.mkdir('/myDir', (error) => {
@@ -38,6 +39,7 @@ describe('fs.mkdtemp', function() {
       done();
     });
   });
+  
   it('should not create temp dir inside non existing dir', function(done) {
     var fs = util.fs();
     fs.mkdtemp('/doesNotExists/foo', function(error, path) {
