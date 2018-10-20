@@ -44,3 +44,20 @@ describe('fs.symlink', function() {
     });
   });
 });
+
+
+describe('fsPromises.symlink', function () {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+
+  it('should return an error if part of the parent destination path does not exist', () => {
+    var fsPromises = util.fs().promises;
+
+    return fsPromises.symlink('/', '/tmp/mydir')
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('ENOENT');
+      });
+  });
+});
