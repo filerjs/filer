@@ -26,7 +26,7 @@ You can now run the following `npm` scripts:
 
 
 Once you've done some hacking and you'd like to have your work merged, you'll need to
-make a pull request. If you're patch includes code, make sure to check that all the
+make a pull request. If your patch includes code, make sure to check that all the
 unit tests pass, including any new tests you wrote. Finally, make sure you add yourself
 to the `AUTHORS` file.
 
