@@ -55,7 +55,6 @@ describe('fsPromises.symlink', function () {
     var fsPromises = util.fs().promises;
 
     return fsPromises.symlink('/', '/tmp/mydir')
-      .then()
       .catch(error => {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOENT');
