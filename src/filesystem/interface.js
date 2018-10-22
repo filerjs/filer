@@ -17,7 +17,6 @@ var providers = require('../providers/index.js');
 var Shell = require('../shell/shell.js');
 var Intercom = require('../../lib/intercom.js');
 var FSWatcher = require('../fs-watcher.js');
-//var unwatcher = require('../unwatcherFile.js');
 var Errors = require('../errors.js');
 var defaultGuidFn = require('../shared.js').guid;
 
@@ -166,19 +165,15 @@ function FileSystem(options, callback) {
     }
     listener = listener || nop;
 
-    if(listener == nop){
-      this.removeAllListeners();
+    var unwatcher = new FSWatcher();
+    unwatcher.start(filename, false, options.recursive);
+    if(listener != nop){
+      unwatcher.closeOneListener(filename);
     }
     else{
-      this.off('change', listener);
+      unwatcher.close();
     }
-    /*var unwatch = new unwatchFile();
-    if(listener == nop){
-      unwatch.removeListeners();
-    }
-    else{
-      unwatch.removeSingleListener(listener);
-    }*/
+    return unwatcher;
   };
 
   // Deal with various approaches to node ID creation
