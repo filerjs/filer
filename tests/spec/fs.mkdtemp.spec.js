@@ -14,7 +14,7 @@ describe('fs.mkdtemp', function() {
     var fs = util.fs();
     fs.mkdtemp('/foo', function(error, path) {
       expect(error).not.to.exist;
-      expect(path).to.match(/foo.{6}/);
+      expect(path).to.match(/foo-\w{6}/);
       done();
     });
   });
