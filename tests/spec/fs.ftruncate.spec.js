@@ -130,4 +130,63 @@ describe('fs.ftruncate', function() {
       });
     });
   });
+
+  it('should assume a length of 0 if passed undefined', function(done) {
+    var fs = util.fs();
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
+        if(error) throw error;
+        expect(result).to.equal(buffer.length);
+
+        // Pass undefined to see that it defaults to 0
+        fs.ftruncate(fd, undefined, function(error) {
+          expect(error).not.to.exist;
+          
+          fs.stat('/myfile', function(error, result) {
+            if(error) throw error;
+
+            expect(result.size).to.equal(0);
+            done();
+          });
+        });
+
+        // Close file descriptor
+        fs.close(fd);
+      });
+    });
+  });
+
+  it('should update the file size', function(done) {
+    var fs = util.fs();
+    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.open('/myfile', 'w', function(error, result) {
+      if(error) throw error;
+
+      var fd = result;
+      fs.write(fd, buffer, 0, buffer.length, 0, function(error, result) {
+        if(error) throw error;
+        expect(result).to.equal(buffer.length);
+
+        fs.ftruncate(fd, 0, function(error) {
+          expect(error).not.to.exist;
+
+          fs.stat('/myfile', function(error, result) {
+           if(error) throw error;
+
+            expect(result.size).to.equal(0);
+            done();
+          });
+        });
+        
+        // Close file descriptor
+        fs.close(fd);
+      });
+    });
+  });
 });
