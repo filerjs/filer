@@ -177,7 +177,7 @@ describe('fs.ftruncate', function() {
           expect(error).not.to.exist;
 
           fs.stat('/myfile', function(error, result) {
-           if(error) throw error;
+            if(error) throw error;
 
             expect(result.size).to.equal(0);
             done();
