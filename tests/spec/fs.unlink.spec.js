@@ -115,7 +115,6 @@ describe('fsPromises.stat', function() {
     var fsPromises = util.fs().promises;
 
     return fsPromises.unlink('/myFile')
-      .then(result => expect(result).not.to.exist)
       .catch(error => {
         expect(error).to.exist;
         expect(error.code).to.equal('ENOENT');
