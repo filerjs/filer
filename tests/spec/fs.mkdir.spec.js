@@ -45,6 +45,55 @@ describe('fs.mkdir', function () {
       });
     });
   });
+
+  it('should error if {recursive:true} is not specified on a deep path', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/tmp/deep/path', function(error) {
+      expect(error).to.exist;
+      expect(error.code).to.equal('ENOENT');
+      done();
+    });
+  });
+
+  it('should error if only a mode is specified on a deep path (should default to recursive:false)', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/tmp/deep/path', 0o777, function(error) {
+      expect(error).to.exist;
+      expect(error.code).to.equal('ENOENT');
+      done();
+    });
+  });
+
+  it('should create all paths if {recursive:true} is specified on a deep path', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/tmp/deep/path', {recursive:true}, function(error) {
+      expect(error).not.to.exist;
+      if(error) throw error;
+
+      fs.stat('/tmp/deep/path', function(error, stats) {
+        expect(error).not.to.exist;
+        expect(stats).to.exist;
+        expect(stats.type).to.equal('DIRECTORY');
+        done();
+      });
+    });
+  });
+
+  it('should create all paths if {recursive:true} is specified on a deep path (promises)', () => {
+    let fsPromises = util.fs().promises;
+
+    return fsPromises
+      .mkdir('/tmp/deep/path', {recursive:true})
+      .then(() => fsPromises.stat('/tmp/deep/path'))
+      .then(stats => {
+        expect(stats).to.exist;
+        expect(stats.type).to.equal('DIRECTORY');
+      });
+  });
+
 });
 
 describe('fs.promises.mkdir', function () {
