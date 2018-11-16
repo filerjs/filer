@@ -21,7 +21,6 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist', function (done) {
-    
     var fs = util.fs();
     var contents = 'This is a file.';
 

@@ -39,7 +39,6 @@ var SuperNode = require('../super-node.js');
 var Node = require('../node.js');
 var Stats = require('../stats.js');
 var Buffer = require('../buffer.js');
-const { validateInteger } = require('../shared.js');
 
 /**
  * Update node times. Only passed times are modified (undefined times are ignored)
@@ -48,28 +47,28 @@ const { validateInteger } = require('../shared.js');
 function update_node_times(context, path, node, times, callback) {
   // Honour mount flags for how we update times
   var flags = context.flags;
-  if (_(flags).contains(FS_NOCTIME)) {
+  if(_(flags).contains(FS_NOCTIME)) {
     delete times.ctime;
   }
-  if (_(flags).contains(FS_NOMTIME)) {
+  if(_(flags).contains(FS_NOMTIME)) {
     delete times.mtime;
   }
 
   // Only do the update if required (i.e., times are still present)
   var update = false;
-  if (times.ctime) {
+  if(times.ctime) {
     node.ctime = times.ctime;
     // We don't do atime tracking for perf reasons, but do mirror ctime
     node.atime = times.ctime;
     update = true;
   }
-  if (times.atime) {
+  if(times.atime) {
     // The only time we explicitly pass atime is when utimes(), futimes() is called.
     // Override ctime mirror here if so
     node.atime = times.atime;
     update = true;
   }
-  if (times.mtime) {
+  if(times.mtime) {
     node.mtime = times.mtime;
     update = true;
   }
@@ -81,7 +80,7 @@ function update_node_times(context, path, node, times, callback) {
     callback(error);
   }
 
-  if (update) {
+  if(update) {
     context.putObject(node.id, node, complete);
   } else {
     complete();
@@ -94,7 +93,7 @@ function update_node_times(context, path, node, times, callback) {
 // in: file or directory path
 // out: new node representing file/directory
 function make_node(context, path, type, callback) {
-  if (type !== NODE_TYPE_DIRECTORY && type !== NODE_TYPE_FILE) {
+  if(type !== NODE_TYPE_DIRECTORY && type !== NODE_TYPE_FILE) {
     return callback(new Errors.EINVAL('type must be a directory or file', path));
   }
 
@@ -108,9 +107,9 @@ function make_node(context, path, type, callback) {
 
   // Check if the parent node exists
   function create_node_in_parent(error, parentDirectoryNode) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (parentDirectoryNode.type !== NODE_TYPE_DIRECTORY) {
+    } else if(parentDirectoryNode.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       parentNode = parentDirectoryNode;
@@ -120,9 +119,9 @@ function make_node(context, path, type, callback) {
 
   // Check if the node to be created already exists
   function check_if_node_exists(error, result) {
-    if (!error && result) {
+    if(!error && result) {
       callback(new Errors.EEXIST('path name already exists', path));
-    } else if (error && !(error instanceof Errors.ENOENT)) {
+    } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
       context.getObject(parentNode.data, create_node);
@@ -131,15 +130,15 @@ function make_node(context, path, type, callback) {
 
   // Create the new node
   function create_node(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       parentNodeData = result;
       Node.create({
         guid: context.guid,
         type: type
-      }, function (error, result) {
-        if (error) {
+      }, function(error, result) {
+        if(error) {
           callback(error);
           return;
         }
@@ -152,7 +151,7 @@ function make_node(context, path, type, callback) {
 
   // Update parent node time
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var now = Date.now();
@@ -162,7 +161,7 @@ function make_node(context, path, type, callback) {
 
   // Update the parent nodes data
   function update_parent_node_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       parentNodeData[name] = new DirectoryEntry(node.id, type);
@@ -181,7 +180,7 @@ function make_node(context, path, type, callback) {
 // out: node structure, or error
 function find_node(context, path, callback) {
   path = normalize(path);
-  if (!path) {
+  if(!path) {
     return callback(new Errors.ENOENT('path is an empty string'));
   }
   var name = basename(path);
@@ -189,9 +188,9 @@ function find_node(context, path, callback) {
   var followedCount = 0;
 
   function read_root_directory_node(error, superNode) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
+    } else if(!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
       callback(new Errors.EFILESYSTEMERROR());
     } else {
       context.getObject(superNode.rnode, check_root_directory_node);
@@ -199,9 +198,9 @@ function find_node(context, path, callback) {
   }
 
   function check_root_directory_node(error, rootDirectoryNode) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (!rootDirectoryNode) {
+    } else if(!rootDirectoryNode) {
       callback(new Errors.ENOENT());
     } else {
       callback(null, rootDirectoryNode);
@@ -211,9 +210,9 @@ function find_node(context, path, callback) {
   // in: parent directory node
   // out: parent directory data
   function read_parent_directory_data(error, parentDirectoryNode) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (parentDirectoryNode.type !== NODE_TYPE_DIRECTORY || !parentDirectoryNode.data) {
+    } else if(parentDirectoryNode.type !== NODE_TYPE_DIRECTORY || !parentDirectoryNode.data) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       context.getObject(parentDirectoryNode.data, get_node_from_parent_directory_data);
@@ -223,10 +222,10 @@ function find_node(context, path, callback) {
   // in: parent directory data
   // out: searched node
   function get_node_from_parent_directory_data(error, parentDirectoryData) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
-      if (!_(parentDirectoryData).has(name)) {
+      if(!_(parentDirectoryData).has(name)) {
         callback(new Errors.ENOENT(null, path));
       } else {
         var nodeId = parentDirectoryData[name].id;
@@ -236,12 +235,12 @@ function find_node(context, path, callback) {
   }
 
   function is_symbolic_link(error, node) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
-      if (node.type === NODE_TYPE_SYMBOLIC_LINK) {
+      if(node.type === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
-        if (followedCount > SYMLOOP_MAX) {
+        if(followedCount > SYMLOOP_MAX){
           callback(new Errors.ELOOP(null, path));
         } else {
           follow_symbolic_link(node.data);
@@ -256,14 +255,14 @@ function find_node(context, path, callback) {
     data = normalize(data);
     parentPath = dirname(data);
     name = basename(data);
-    if (ROOT_DIRECTORY_NAME === name) {
+    if(ROOT_DIRECTORY_NAME === name) {
       context.getObject(SUPER_NODE_ID, read_root_directory_node);
     } else {
       find_node(context, parentPath, read_parent_directory_data);
     }
   }
 
-  if (ROOT_DIRECTORY_NAME === name) {
+  if(ROOT_DIRECTORY_NAME === name) {
     context.getObject(SUPER_NODE_ID, read_root_directory_node);
   } else {
     find_node(context, parentPath, read_parent_directory_data);
@@ -274,9 +273,9 @@ function find_node(context, path, callback) {
 /**
  * set extended attribute (refactor)
  */
-function set_extended_attribute(context, path, node, name, value, flag, callback) {
+function set_extended_attribute (context, path, node, name, value, flag, callback) {
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       update_node_times(context, path, node, { ctime: Date.now() }, callback);
@@ -310,14 +309,14 @@ function ensure_root_directory(context, callback) {
   var directoryData;
 
   function ensure_super_node(error, existingNode) {
-    if (!error && existingNode) {
+    if(!error && existingNode) {
       // Another instance has beat us and already created the super node.
       callback();
-    } else if (error && !(error instanceof Errors.ENOENT)) {
+    } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
-      SuperNode.create({ guid: context.guid }, function (error, result) {
-        if (error) {
+      SuperNode.create({guid: context.guid}, function(error, result) {
+        if(error) {
           callback(error);
           return;
         }
@@ -328,15 +327,15 @@ function ensure_root_directory(context, callback) {
   }
 
   function write_directory_node(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       Node.create({
         guid: context.guid,
         id: superNode.rnode,
         type: NODE_TYPE_DIRECTORY
-      }, function (error, result) {
-        if (error) {
+      }, function(error, result) {
+        if(error) {
           callback(error);
           return;
         }
@@ -348,7 +347,7 @@ function ensure_root_directory(context, callback) {
   }
 
   function write_directory_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData = {};
@@ -373,9 +372,9 @@ function make_directory(context, path, callback) {
   var parentDirectoryData;
 
   function check_if_directory_exists(error, result) {
-    if (!error && result) {
+    if(!error && result) {
       callback(new Errors.EEXIST(null, path));
-    } else if (error && !(error instanceof Errors.ENOENT)) {
+    } else if(error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
       find_node(context, parentPath, read_parent_directory_data);
@@ -383,7 +382,7 @@ function make_directory(context, path, callback) {
   }
 
   function read_parent_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       parentDirectoryNode = result;
@@ -392,15 +391,15 @@ function make_directory(context, path, callback) {
   }
 
   function write_directory_node(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       parentDirectoryData = result;
       Node.create({
         guid: context.guid,
         type: NODE_TYPE_DIRECTORY
-      }, function (error, result) {
-        if (error) {
+      }, function(error, result) {
+        if(error) {
           callback(error);
           return;
         }
@@ -412,7 +411,7 @@ function make_directory(context, path, callback) {
   }
 
   function write_directory_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData = {};
@@ -421,7 +420,7 @@ function make_directory(context, path, callback) {
   }
 
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var now = Date.now();
@@ -430,7 +429,7 @@ function make_directory(context, path, callback) {
   }
 
   function update_parent_directory_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       parentDirectoryData[name] = new DirectoryEntry(directoryNode.id, NODE_TYPE_DIRECTORY);
@@ -441,20 +440,19 @@ function make_directory(context, path, callback) {
   find_node(context, path, check_if_directory_exists);
 }
 
-/**
- * access_file
- */
 function access_file(context, path, mode, callback) {
   path = normalize(path);
   find_node(context, path, function (err) {
     if (err) {
       return callback(err);
     }
-    // TO DO: we currently only support Constants.fsConstants.F_OK
+    /* 
+    TODO: we currently only support Constants.fsConstants.F_OK
+    Working to fix the issue: https://github.com/filerjs/filer/issues/561
+    */
     callback(null);
   });
 }
-
 
 /**
  * remove_directory
@@ -470,7 +468,7 @@ function remove_directory(context, path, callback) {
   var parentDirectoryData;
 
   function read_parent_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       parentDirectoryNode = result;
@@ -479,11 +477,11 @@ function remove_directory(context, path, callback) {
   }
 
   function check_if_node_exists(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (ROOT_DIRECTORY_NAME === name) {
+    } else if(ROOT_DIRECTORY_NAME === name) {
       callback(new Errors.EBUSY(null, path));
-    } else if (!_(result).has(name)) {
+    } else if(!_(result).has(name)) {
       callback(new Errors.ENOENT(null, path));
     } else {
       parentDirectoryData = result;
@@ -493,9 +491,9 @@ function remove_directory(context, path, callback) {
   }
 
   function check_if_node_is_directory(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (result.type !== NODE_TYPE_DIRECTORY) {
+    } else if(result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
@@ -504,11 +502,11 @@ function remove_directory(context, path, callback) {
   }
 
   function check_if_directory_is_empty(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData = result;
-      if (_(directoryData).size() > 0) {
+      if(_(directoryData).size() > 0) {
         callback(new Errors.ENOTEMPTY(null, path));
       } else {
         remove_directory_entry_from_parent_directory_node();
@@ -517,7 +515,7 @@ function remove_directory(context, path, callback) {
   }
 
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var now = Date.now();
@@ -531,7 +529,7 @@ function remove_directory(context, path, callback) {
   }
 
   function remove_directory_node(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       context.delete(directoryNode.id, remove_directory_data);
@@ -539,7 +537,7 @@ function remove_directory(context, path, callback) {
   }
 
   function remove_directory_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       context.delete(directoryNode.data, callback);
@@ -562,8 +560,8 @@ function open_file(context, path, flags, callback) {
 
   var followedCount = 0;
 
-  if (ROOT_DIRECTORY_NAME === name) {
-    if (_(flags).contains(O_WRITE)) {
+  if(ROOT_DIRECTORY_NAME === name) {
+    if(_(flags).contains(O_WRITE)) {
       callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
     } else {
       find_node(context, path, set_file_node);
@@ -573,9 +571,9 @@ function open_file(context, path, flags, callback) {
   }
 
   function read_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (result.type !== NODE_TYPE_DIRECTORY) {
+    } else if(result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOENT(null, path));
     } else {
       directoryNode = result;
@@ -584,23 +582,23 @@ function open_file(context, path, flags, callback) {
   }
 
   function check_if_file_exists(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData = result;
-      if (_(directoryData).has(name)) {
-        if (_(flags).contains(O_EXCLUSIVE)) {
+      if(_(directoryData).has(name)) {
+        if(_(flags).contains(O_EXCLUSIVE)) {
           callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
-          if (directoryEntry.type === NODE_TYPE_DIRECTORY && _(flags).contains(O_WRITE)) {
+          if(directoryEntry.type === NODE_TYPE_DIRECTORY && _(flags).contains(O_WRITE)) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
         }
       } else {
-        if (!_(flags).contains(O_CREATE)) {
+        if(!_(flags).contains(O_CREATE)) {
           callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist', path));
         } else {
           write_file_node();
@@ -610,13 +608,13 @@ function open_file(context, path, flags, callback) {
   }
 
   function check_if_symbolic_link(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var node = result;
-      if (node.type === NODE_TYPE_SYMBOLIC_LINK) {
+      if(node.type === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
-        if (followedCount > SYMLOOP_MAX) {
+        if(followedCount > SYMLOOP_MAX){
           callback(new Errors.ELOOP(null, path));
         } else {
           follow_symbolic_link(node.data);
@@ -631,8 +629,8 @@ function open_file(context, path, flags, callback) {
     data = normalize(data);
     parentPath = dirname(data);
     name = basename(data);
-    if (ROOT_DIRECTORY_NAME === name) {
-      if (_(flags).contains(O_WRITE)) {
+    if(ROOT_DIRECTORY_NAME === name) {
+      if(_(flags).contains(O_WRITE)) {
         callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
       } else {
         find_node(context, path, set_file_node);
@@ -642,7 +640,7 @@ function open_file(context, path, flags, callback) {
   }
 
   function set_file_node(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       fileNode = result;
@@ -654,8 +652,8 @@ function open_file(context, path, flags, callback) {
     Node.create({
       guid: context.guid,
       type: NODE_TYPE_FILE
-    }, function (error, result) {
-      if (error) {
+    }, function(error, result) {
+      if(error) {
         callback(error);
         return;
       }
@@ -666,7 +664,7 @@ function open_file(context, path, flags, callback) {
   }
 
   function write_file_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       fileData = new Buffer(0);
@@ -676,7 +674,7 @@ function open_file(context, path, flags, callback) {
   }
 
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var now = Date.now();
@@ -685,7 +683,7 @@ function open_file(context, path, flags, callback) {
   }
 
   function update_directory_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData[name] = new DirectoryEntry(fileNode.id, NODE_TYPE_FILE);
@@ -694,7 +692,7 @@ function open_file(context, path, flags, callback) {
   }
 
   function handle_update_result(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       callback(null, fileNode);
@@ -706,7 +704,7 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
   var fileNode;
 
   function return_nbytes(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       callback(null, length);
@@ -714,7 +712,7 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
   }
 
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var now = Date.now();
@@ -723,7 +721,7 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
   }
 
   function update_file_node(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       context.putObject(fileNode.id, fileNode, update_time);
@@ -731,7 +729,7 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
   }
 
   function write_file_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       fileNode = result;
@@ -755,7 +753,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
   var fileData;
 
   function return_nbytes(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       callback(null, length);
@@ -763,7 +761,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
   }
 
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var now = Date.now();
@@ -772,7 +770,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
   }
 
   function update_file_node(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       context.putObject(fileNode.id, fileNode, update_time);
@@ -780,22 +778,22 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
   }
 
   function update_file_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       fileData = result;
-      if (!fileData) {
+      if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
       var _position = (!(undefined === position || null === position)) ? position : ofd.position;
       var newSize = Math.max(fileData.length, _position + length);
       var newData = new Buffer(newSize);
       newData.fill(0);
-      if (fileData) {
+      if(fileData) {
         fileData.copy(newData);
       }
       buffer.copy(newData, _position, offset, offset + length);
-      if (undefined === position) {
+      if(undefined === position) {
         ofd.position += length;
       }
 
@@ -807,7 +805,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
   }
 
   function read_file_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       fileNode = result;
@@ -823,17 +821,17 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
   var fileData;
 
   function handle_file_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       fileData = result;
-      if (!fileData) {
+      if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
       var _position = (!(undefined === position || null === position)) ? position : ofd.position;
       length = (_position + length > buffer.length) ? length - _position : length;
       fileData.copy(buffer, offset, _position, _position + length);
-      if (undefined === position) {
+      if(undefined === position) {
         ofd.position += length;
       }
       callback(null, length);
@@ -841,9 +839,9 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
   }
 
   function read_file_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (result.type === NODE_TYPE_DIRECTORY) {
+    } else if(result.type === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EISDIR('the named file is a directory', ofd.path));
     } else {
       fileNode = result;
@@ -871,14 +869,14 @@ function lstat_file(context, path, callback) {
   var directoryNode;
   var directoryData;
 
-  if (ROOT_DIRECTORY_NAME === name) {
+  if(ROOT_DIRECTORY_NAME === name) {
     find_node(context, path, callback);
   } else {
     find_node(context, parentPath, read_directory_data);
   }
 
   function read_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryNode = result;
@@ -887,11 +885,11 @@ function lstat_file(context, path, callback) {
   }
 
   function check_if_file_exists(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData = result;
-      if (!_(directoryData).has(name)) {
+      if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
       } else {
         context.getObject(directoryData[name].id, callback);
@@ -918,7 +916,7 @@ function link_node(context, oldpath, newpath, callback) {
   var fileNode;
 
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
@@ -926,7 +924,7 @@ function link_node(context, oldpath, newpath, callback) {
   }
 
   function update_file_node(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       fileNode = result;
@@ -936,7 +934,7 @@ function link_node(context, oldpath, newpath, callback) {
   }
 
   function read_file_node(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       context.getObject(fileNodeID, update_file_node);
@@ -944,11 +942,11 @@ function link_node(context, oldpath, newpath, callback) {
   }
 
   function check_if_new_file_exists(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       newDirectoryData = result;
-      if (_(newDirectoryData).has(newname)) {
+      if(_(newDirectoryData).has(newname)) {
         callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
@@ -959,7 +957,7 @@ function link_node(context, oldpath, newpath, callback) {
   }
 
   function read_new_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       newDirectoryNode = result;
@@ -968,13 +966,13 @@ function link_node(context, oldpath, newpath, callback) {
   }
 
   function check_if_old_file_exists(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       oldDirectoryData = result;
-      if (!_(oldDirectoryData).has(oldname)) {
+      if(!_(oldDirectoryData).has(oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
-      } else if (oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
+      } else if(oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
         callback(new Errors.EPERM('oldpath refers to a directory'));
       } else {
         find_node(context, newParentPath, read_new_directory_data);
@@ -983,7 +981,7 @@ function link_node(context, oldpath, newpath, callback) {
   }
 
   function read_old_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       oldDirectoryNode = result;
@@ -1004,12 +1002,12 @@ function unlink_node(context, path, callback) {
   var fileNode;
 
   function update_directory_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       delete directoryData[name];
-      context.putObject(directoryNode.data, directoryData, function (error) {
-        if (error) {
+      context.putObject(directoryNode.data, directoryData, function(error) {
+        if(error) {
           callback(error);
         } else {
           var now = Date.now();
@@ -1020,7 +1018,7 @@ function unlink_node(context, path, callback) {
   }
 
   function delete_file_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       context.delete(fileNode.data, update_directory_data);
@@ -1028,18 +1026,18 @@ function unlink_node(context, path, callback) {
   }
 
   function update_file_node(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       fileNode = result;
       fileNode.nlinks -= 1;
-      if (fileNode.nlinks < 1) {
+      if(fileNode.nlinks < 1) {
         context.delete(fileNode.id, delete_file_data);
       } else {
-        context.putObject(fileNode.id, fileNode, function (error) {
-          if (error) {
+        context.putObject(fileNode.id, fileNode, function(error) {
+          if(error) {
             callback(error);
-          } else {
+          } else {          
             update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
           }
         });
@@ -1048,9 +1046,9 @@ function unlink_node(context, path, callback) {
   }
 
   function check_if_node_is_directory(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (result.type === NODE_TYPE_DIRECTORY) {
+    } else if(result.type === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EPERM('unlink not permitted on directories', name));
     } else {
       update_file_node(null, result);
@@ -1058,11 +1056,11 @@ function unlink_node(context, path, callback) {
   }
 
   function check_if_file_exists(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData = result;
-      if (!_(directoryData).has(name)) {
+      if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_node_is_directory);
@@ -1071,7 +1069,7 @@ function unlink_node(context, path, callback) {
   }
 
   function read_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryNode = result;
@@ -1089,7 +1087,7 @@ function read_directory(context, path, callback) {
   var directoryData;
 
   function handle_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData = result;
@@ -1099,9 +1097,9 @@ function read_directory(context, path, callback) {
   }
 
   function read_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (result.type !== NODE_TYPE_DIRECTORY) {
+    } else if(result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
@@ -1121,14 +1119,14 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   var directoryData;
   var fileNode;
 
-  if (ROOT_DIRECTORY_NAME === name) {
+  if(ROOT_DIRECTORY_NAME === name) {
     callback(new Errors.EEXIST(null, name));
   } else {
     find_node(context, parentPath, read_directory_data);
   }
 
   function read_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryNode = result;
@@ -1137,11 +1135,11 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   }
 
   function check_if_file_exists(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData = result;
-      if (_(directoryData).has(name)) {
+      if(_(directoryData).has(name)) {
         callback(new Errors.EEXIST(null, name));
       } else {
         write_file_node();
@@ -1153,8 +1151,8 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
     Node.create({
       guid: context.guid,
       type: NODE_TYPE_SYMBOLIC_LINK
-    }, function (error, result) {
-      if (error) {
+    }, function(error, result) {
+      if(error) {
         callback(error);
         return;
       }
@@ -1163,20 +1161,20 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
 
       // If the srcpath isn't absolute, resolve it relative to the dstpath
       // but store both versions, since we'll use the relative one in readlink().
-      if (!isAbsolutePath(srcpath)) {
+      if(!isAbsolutePath(srcpath)) {
         fileNode.symlink_relpath = srcpath;
-        srcpath = Path.resolve(parentPath, srcpath);
+        srcpath = Path.resolve(parentPath, srcpath); 
       }
 
       fileNode.size = srcpath.length;
       fileNode.data = srcpath;
-
+      
       context.putObject(fileNode.id, fileNode, update_directory_data);
     });
   }
 
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var now = Date.now();
@@ -1185,7 +1183,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   }
 
   function update_directory_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData[name] = new DirectoryEntry(fileNode.id, NODE_TYPE_SYMBOLIC_LINK);
@@ -1205,7 +1203,7 @@ function read_link(context, path, callback) {
   find_node(context, parentPath, read_directory_data);
 
   function read_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryNode = result;
@@ -1214,11 +1212,11 @@ function read_link(context, path, callback) {
   }
 
   function check_if_file_exists(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       directoryData = result;
-      if (!_(directoryData).has(name)) {
+      if(!_(directoryData).has(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_symbolic);
@@ -1227,10 +1225,10 @@ function read_link(context, path, callback) {
   }
 
   function check_if_symbolic(error, fileNode) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
-      if (fileNode.type !== NODE_TYPE_SYMBOLIC_LINK) {
+      if(fileNode.type !== NODE_TYPE_SYMBOLIC_LINK) {
         callback(new Errors.EINVAL('path not a symbolic link', path));
       } else {
         // If we were originally given a relative path, return that now vs. the
@@ -1247,12 +1245,12 @@ function truncate_file(context, path, length, callback) {
 
   var fileNode;
 
-  function read_file_data(error, node) {
+  function read_file_data (error, node) {
     if (error) {
       callback(error);
-    } else if (node.type === NODE_TYPE_DIRECTORY) {
+    } else if(node.type === NODE_TYPE_DIRECTORY ) {
       callback(new Errors.EISDIR(null, path));
-    } else {
+    } else{
       fileNode = node;
       context.getBuffer(fileNode.data, truncate_file_data);
     }
@@ -1262,18 +1260,12 @@ function truncate_file(context, path, length, callback) {
     if (error) {
       callback(error);
     } else {
-      if (!fileData) {
+      if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
-      }
-      try {
-        validateInteger(length, 'len');
-      }
-      catch (error) {
-        return callback(error);
       }
       var data = new Buffer(length);
       data.fill(0);
-      if (fileData) {
+      if(fileData) {
         fileData.copy(data);
       }
       context.putBuffer(fileNode.data, data, update_file_node);
@@ -1281,7 +1273,7 @@ function truncate_file(context, path, length, callback) {
   }
 
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var now = Date.now();
@@ -1289,8 +1281,8 @@ function truncate_file(context, path, length, callback) {
     }
   }
 
-  function update_file_node(error) {
-    if (error) {
+  function update_file_node (error) {
+    if(error) {
       callback(error);
     } else {
       fileNode.size = length;
@@ -1299,7 +1291,7 @@ function truncate_file(context, path, length, callback) {
     }
   }
 
-  if (length < 0) {
+  if(length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
   } else {
     find_node(context, path, read_file_data);
@@ -1309,12 +1301,12 @@ function truncate_file(context, path, length, callback) {
 function ftruncate_file(context, ofd, length, callback) {
   var fileNode;
 
-  function read_file_data(error, node) {
+  function read_file_data (error, node) {
     if (error) {
       callback(error);
-    } else if (node.type === NODE_TYPE_DIRECTORY) {
+    } else if(node.type === NODE_TYPE_DIRECTORY ) {
       callback(new Errors.EISDIR());
-    } else {
+    } else{
       fileNode = node;
       context.getBuffer(fileNode.data, truncate_file_data);
     }
@@ -1325,10 +1317,10 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(error);
     } else {
       var data;
-      if (!fileData) {
+      if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
-      if (fileData) {
+      if(fileData) {
         data = fileData.slice(0, length);
       } else {
         data = new Buffer(length);
@@ -1339,7 +1331,7 @@ function ftruncate_file(context, ofd, length, callback) {
   }
 
   function update_time(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var now = Date.now();
@@ -1347,8 +1339,8 @@ function ftruncate_file(context, ofd, length, callback) {
     }
   }
 
-  function update_file_node(error) {
-    if (error) {
+  function update_file_node (error) {
+    if(error) {
       callback(error);
     } else {
       fileNode.size = length;
@@ -1357,7 +1349,7 @@ function ftruncate_file(context, ofd, length, callback) {
     }
   }
 
-  if (length < 0) {
+  if(length < 0) {
     callback(new Errors.EINVAL('length cannot be negative'));
   } else {
     ofd.getNode(context, read_file_data);
@@ -1388,7 +1380,7 @@ function utimes_file(context, path, atime, mtime, callback) {
 
 function futimes_file(context, ofd, atime, mtime, callback) {
 
-  function update_times(error, node) {
+  function update_times (error, node) {
     if (error) {
       callback(error);
     } else {
@@ -1411,7 +1403,7 @@ function setxattr_file(context, path, name, value, flag, callback) {
   path = normalize(path);
 
   function setxattr(error, node) {
-    if (error) {
+    if(error) {
       return callback(error);
     }
     set_extended_attribute(context, path, node, name, value, flag, callback);
@@ -1424,7 +1416,7 @@ function setxattr_file(context, path, name, value, flag, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string', path));
   }
   else if (flag !== null &&
-    flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
+           flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
     callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE', path));
   }
   else {
@@ -1432,9 +1424,9 @@ function setxattr_file(context, path, name, value, flag, callback) {
   }
 }
 
-function fsetxattr_file(context, ofd, name, value, flag, callback) {
+function fsetxattr_file (context, ofd, name, value, flag, callback) {
   function setxattr(error, node) {
-    if (error) {
+    if(error) {
       return callback(error);
     }
     set_extended_attribute(context, ofd.path, node, name, value, flag, callback);
@@ -1447,7 +1439,7 @@ function fsetxattr_file(context, ofd, name, value, flag, callback) {
     callback(new Errors.EINVAL('attribute name cannot be an empty string'));
   }
   else if (flag !== null &&
-    flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
+           flag !== XATTR_CREATE && flag !== XATTR_REPLACE) {
     callback(new Errors.EINVAL('invalid flag, must be null, XATTR_CREATE or XATTR_REPLACE'));
   }
   else {
@@ -1455,11 +1447,11 @@ function fsetxattr_file(context, ofd, name, value, flag, callback) {
   }
 }
 
-function getxattr_file(context, path, name, callback) {
+function getxattr_file (context, path, name, callback) {
   path = normalize(path);
 
   function get_xattr(error, node) {
-    if (error) {
+    if(error) {
       return callback(error);
     }
 
@@ -1484,9 +1476,9 @@ function getxattr_file(context, path, name, callback) {
   }
 }
 
-function fgetxattr_file(context, ofd, name, callback) {
+function fgetxattr_file (context, ofd, name, callback) {
 
-  function get_xattr(error, node) {
+  function get_xattr (error, node) {
     if (error) {
       return callback(error);
     }
@@ -1512,16 +1504,16 @@ function fgetxattr_file(context, ofd, name, callback) {
   }
 }
 
-function removexattr_file(context, path, name, callback) {
+function removexattr_file (context, path, name, callback) {
   path = normalize(path);
 
-  function remove_xattr(error, node) {
+  function remove_xattr (error, node) {
     if (error) {
       return callback(error);
     }
 
     function update_time(error) {
-      if (error) {
+      if(error) {
         callback(error);
       } else {
         update_node_times(context, path, node, { ctime: Date.now() }, callback);
@@ -1550,15 +1542,15 @@ function removexattr_file(context, path, name, callback) {
   }
 }
 
-function fremovexattr_file(context, ofd, name, callback) {
+function fremovexattr_file (context, ofd, name, callback) {
 
-  function remove_xattr(error, node) {
+  function remove_xattr (error, node) {
     if (error) {
       return callback(error);
     }
 
     function update_time(error) {
-      if (error) {
+      if(error) {
         callback(error);
       } else {
         update_node_times(context, ofd.path, node, { ctime: Date.now() }, callback);
@@ -1588,18 +1580,18 @@ function fremovexattr_file(context, ofd, name, callback) {
 }
 
 function validate_flags(flags) {
-  if (!_(O_FLAGS).has(flags)) {
+  if(!_(O_FLAGS).has(flags)) {
     return null;
   }
   return O_FLAGS[flags];
 }
 
-function validate_file_options(options, enc, fileMode) {
-  if (!options) {
+function validate_file_options(options, enc, fileMode){
+  if(!options) {
     options = { encoding: enc, flag: fileMode };
-  } else if (typeof options === 'function') {
+  } else if(typeof options === 'function') {
     options = { encoding: enc, flag: fileMode };
-  } else if (typeof options === 'string') {
+  } else if(typeof options === 'string') {
     options = { encoding: options, flag: fileMode };
   }
   return options;
@@ -1608,20 +1600,20 @@ function validate_file_options(options, enc, fileMode) {
 function pathCheck(path, allowRelative, callback) {
   var err;
 
-  if (typeof allowRelative === 'function') {
+  if(typeof allowRelative === 'function') {
     callback = allowRelative;
     allowRelative = false;
   }
 
-  if (!path) {
+  if(!path) {
     err = new Errors.EINVAL('Path must be a string', path);
-  } else if (isNullPath(path)) {
+  } else if(isNullPath(path)) {
     err = new Errors.EINVAL('Path must be a string without null bytes.', path);
-  } else if (!allowRelative && !isAbsolutePath(path)) {
+  } else if(!allowRelative && !isAbsolutePath(path)) {
     err = new Errors.EINVAL('Path must be absolute.', path);
   }
 
-  if (err) {
+  if(err) {
     callback(err);
     return false;
   }
@@ -1647,14 +1639,14 @@ function open(fs, context, path, flags, mode, callback) {
   */
 
   callback = arguments[arguments.length - 1];
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
 
   function check_result(error, fileNode) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var position;
-      if (_(flags).contains(O_APPEND)) {
+      if(_(flags).contains(O_APPEND)) {
         position = fileNode.size;
       } else {
         position = 0;
@@ -1666,7 +1658,7 @@ function open(fs, context, path, flags, mode, callback) {
   }
 
   flags = validate_flags(flags);
-  if (!flags) {
+  if(!flags) {
     callback(new Errors.EINVAL('flags is not valid'), path);
   }
 
@@ -1674,7 +1666,7 @@ function open(fs, context, path, flags, mode, callback) {
 }
 
 function close(fs, context, fd, callback) {
-  if (!_(fs.openFiles).has(fd)) {
+  if(!_(fs.openFiles).has(fd)) {
     callback(new Errors.EBADF());
   } else {
     fs.releaseDescriptor(fd);
@@ -1683,7 +1675,7 @@ function close(fs, context, fd, callback) {
 }
 
 function mknod(fs, context, path, type, callback) {
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
   make_node(context, path, type, callback);
 }
 
@@ -1693,36 +1685,34 @@ function mkdir(fs, context, path, mode, callback) {
     mode = FULL_READ_WRITE_EXEC_PERMISSIONS;
   } else {
     mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
-    if (!mode) return;
+    if(!mode) return;
   }
-
-  if (!pathCheck(path, callback)) return;
+ 
+  if(!pathCheck(path, callback)) return;
   make_directory(context, path, callback);
 }
 
 function access(fs, context, path, mode, callback) {
-
   if (typeof mode === 'function') {
     callback = mode;
     mode = Constants.fsConstants.F_OK;
   }
 
   if (!pathCheck(path, callback)) return;
-
   mode = mode | 0;
   access_file(context, path, mode, callback);
 }
 
 function rmdir(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
   remove_directory(context, path, callback);
 }
 
 function stat(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
 
   function check_result(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var stats = new Stats(path, result, fs.name);
@@ -1735,7 +1725,7 @@ function stat(fs, context, path, callback) {
 
 function fstat(fs, context, fd, callback) {
   function check_result(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var stats = new Stats(ofd.path, result, fs.name);
@@ -1744,7 +1734,7 @@ function fstat(fs, context, fd, callback) {
   }
 
   var ofd = fs.openFiles[fd];
-  if (!ofd) {
+  if(!ofd) {
     callback(new Errors.EBADF());
   } else {
     fstat_file(context, ofd, check_result);
@@ -1752,13 +1742,13 @@ function fstat(fs, context, fd, callback) {
 }
 
 function link(fs, context, oldpath, newpath, callback) {
-  if (!pathCheck(oldpath, callback)) return;
-  if (!pathCheck(newpath, callback)) return;
+  if(!pathCheck(oldpath, callback)) return;
+  if(!pathCheck(newpath, callback)) return;
   link_node(context, oldpath, newpath, callback);
 }
 
 function unlink(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
   unlink_node(context, path, callback);
 }
 
@@ -1774,9 +1764,9 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   callback = arguments[arguments.length - 1];
 
   var ofd = fs.openFiles[fd];
-  if (!ofd) {
+  if(!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_READ)) {
+  } else if(!_(ofd.flags).contains(O_READ)) {
     callback(new Errors.EBADF('descriptor does not permit reading'));
   } else {
     read_data(context, ofd, buffer, offset, length, position, wrapped_cb);
@@ -1787,15 +1777,15 @@ function readFile(fs, context, path, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, null, 'r');
 
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
 
   var flags = validate_flags(options.flag || 'r');
-  if (!flags) {
+  if(!flags) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
-  open_file(context, path, flags, function (err, fileNode) {
-    if (err) {
+  open_file(context, path, flags, function(err, fileNode) {
+    if(err) {
       return callback(err);
     }
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
@@ -1805,15 +1795,15 @@ function readFile(fs, context, path, options, callback) {
       fs.releaseDescriptor(fd);
     }
 
-    fstat_file(context, ofd, function (err, fstatResult) {
-      if (err) {
+    fstat_file(context, ofd, function(err, fstatResult) {
+      if(err) {
         cleanup();
         return callback(err);
       }
 
       var stats = new Stats(ofd.path, fstatResult, fs.name);
 
-      if (stats.isDirectory()) {
+      if(stats.isDirectory()) {
         cleanup();
         return callback(new Errors.EISDIR('illegal operation on directory', path));
       }
@@ -1822,15 +1812,15 @@ function readFile(fs, context, path, options, callback) {
       var buffer = new Buffer(size);
       buffer.fill(0);
 
-      read_data(context, ofd, buffer, 0, size, 0, function (err) {
+      read_data(context, ofd, buffer, 0, size, 0, function(err) {
         cleanup();
 
-        if (err) {
+        if(err) {
           return callback(err);
         }
 
         var data;
-        if (options.encoding === 'utf8') {
+        if(options.encoding === 'utf8') {
           data = Encoding.decode(buffer);
         } else {
           data = buffer;
@@ -1847,11 +1837,11 @@ function write(fs, context, fd, buffer, offset, length, position, callback) {
   length = (undefined === length) ? buffer.length - offset : length;
 
   var ofd = fs.openFiles[fd];
-  if (!ofd) {
+  if(!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
-  } else if (buffer.length - offset < length) {
+  } else if(buffer.length - offset < length) {
     callback(new Errors.EIO('intput buffer is too small'));
   } else {
     write_data(context, ofd, buffer, offset, length, position, callback);
@@ -1862,32 +1852,32 @@ function writeFile(fs, context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'w');
 
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
 
   var flags = validate_flags(options.flag || 'w');
-  if (!flags) {
+  if(!flags) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
   data = data || '';
-  if (typeof data === 'number') {
+  if(typeof data === 'number') {
     data = '' + data;
   }
-  if (typeof data === 'string' && options.encoding === 'utf8') {
+  if(typeof data === 'string' && options.encoding === 'utf8') {
     data = Encoding.encode(data);
   }
 
-  open_file(context, path, flags, function (err, fileNode) {
-    if (err) {
+  open_file(context, path, flags, function(err, fileNode) {
+    if(err) {
       return callback(err);
     }
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
 
-    replace_data(context, ofd, data, 0, data.length, function (err) {
+    replace_data(context, ofd, data, 0, data.length, function(err) {
       fs.releaseDescriptor(fd);
 
-      if (err) {
+      if(err) {
         return callback(err);
       }
       callback(null);
@@ -1899,32 +1889,32 @@ function appendFile(fs, context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'a');
 
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
 
   var flags = validate_flags(options.flag || 'a');
-  if (!flags) {
+  if(!flags) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
   data = data || '';
-  if (typeof data === 'number') {
+  if(typeof data === 'number') {
     data = '' + data;
   }
-  if (typeof data === 'string' && options.encoding === 'utf8') {
+  if(typeof data === 'string' && options.encoding === 'utf8') {
     data = Encoding.encode(data);
   }
 
-  open_file(context, path, flags, function (err, fileNode) {
-    if (err) {
+  open_file(context, path, flags, function(err, fileNode) {
+    if(err) {
       return callback(err);
     }
     var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
     var fd = fs.allocDescriptor(ofd);
 
-    write_data(context, ofd, data, 0, data.length, ofd.position, function (err) {
+    write_data(context, ofd, data, 0, data.length, ofd.position, function(err) {
       fs.releaseDescriptor(fd);
 
-      if (err) {
+      if(err) {
         return callback(err);
       }
       callback(null);
@@ -1948,7 +1938,7 @@ function isUint32(value) {
 // Validator for mode_t (the S_* constants). Valid numbers or octal strings
 // will be masked with 0o777 to be consistent with the behavior in POSIX APIs.
 function validateAndMaskMode(value, def, callback) {
-  if (typeof def === 'function') {
+  if(typeof def === 'function') {
     callback = def;
     def = undefined;
   }
@@ -2070,7 +2060,7 @@ function fgetxattr(fs, context, fd, name, callback) {
 }
 
 function setxattr(fs, context, path, name, value, flag, callback) {
-  if (typeof flag === 'function') {
+  if(typeof flag === 'function') {
     callback = flag;
     flag = null;
   }
@@ -2080,7 +2070,7 @@ function setxattr(fs, context, path, name, value, flag, callback) {
 }
 
 function fsetxattr(fs, context, fd, name, value, flag, callback) {
-  if (typeof flag === 'function') {
+  if(typeof flag === 'function') {
     callback = flag;
     flag = null;
   }
@@ -2117,10 +2107,10 @@ function fremovexattr(fs, context, fd, name, callback) {
 
 function lseek(fs, context, fd, offset, whence, callback) {
   function update_descriptor_position(error, stats) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
-      if (stats.size + offset < 0) {
+      if(stats.size + offset < 0) {
         callback(new Errors.EINVAL('resulting file offset would be negative'));
       } else {
         ofd.position = stats.size + offset;
@@ -2130,25 +2120,25 @@ function lseek(fs, context, fd, offset, whence, callback) {
   }
 
   var ofd = fs.openFiles[fd];
-  if (!ofd) {
+  if(!ofd) {
     callback(new Errors.EBADF());
   }
 
-  if ('SET' === whence) {
-    if (offset < 0) {
+  if('SET' === whence) {
+    if(offset < 0) {
       callback(new Errors.EINVAL('resulting file offset would be negative'));
     } else {
       ofd.position = offset;
       callback(null, ofd.position);
     }
-  } else if ('CUR' === whence) {
-    if (ofd.position + offset < 0) {
+  } else if('CUR' === whence) {
+    if(ofd.position + offset < 0) {
       callback(new Errors.EINVAL('resulting file offset would be negative'));
     } else {
       ofd.position += offset;
       callback(null, ofd.position);
     }
-  } else if ('END' === whence) {
+  } else if('END' === whence) {
     fstat_file(context, ofd, update_descriptor_position);
   } else {
     callback(new Errors.EINVAL('whence argument is not a proper value'));
@@ -2156,12 +2146,12 @@ function lseek(fs, context, fd, offset, whence, callback) {
 }
 
 function readdir(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
   read_directory(context, path, callback);
 }
 
 function utimes(fs, context, path, atime, mtime, callback) {
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
 
   var currentTime = Date.now();
   atime = (atime) ? atime : currentTime;
@@ -2176,9 +2166,9 @@ function futimes(fs, context, fd, atime, mtime, callback) {
   mtime = (mtime) ? mtime : currentTime;
 
   var ofd = fs.openFiles[fd];
-  if (!ofd) {
+  if(!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     futimes_file(context, ofd, atime, mtime, callback);
@@ -2186,21 +2176,21 @@ function futimes(fs, context, fd, atime, mtime, callback) {
 }
 
 function chmod(fs, context, path, mode, callback) {
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
   mode = validateAndMaskMode(mode, 'mode');
-  if (!mode) return;
+  if(!mode) return;
 
   chmod_file(context, path, mode, callback);
 }
 
 function fchmod(fs, context, fd, mode, callback) {
   mode = validateAndMaskMode(mode, 'mode');
-  if (!mode) return;
+  if(!mode) return;
 
   var ofd = fs.openFiles[fd];
-  if (!ofd) {
+  if(!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchmod_file(context, ofd, mode, callback);
@@ -2208,11 +2198,11 @@ function fchmod(fs, context, fd, mode, callback) {
 }
 
 function chown(fs, context, path, uid, gid, callback) {
-  if (!pathCheck(path, callback)) return;
-  if (!isUint32(uid)) {
+  if(!pathCheck(path, callback)) return;
+  if(!isUint32(uid)) {
     return callback(new Errors.EINVAL('uid must be a valid integer', uid));
   }
-  if (!isUint32(gid)) {
+  if(!isUint32(gid)) {
     return callback(new Errors.EINVAL('gid must be a valid integer', gid));
   }
 
@@ -2220,17 +2210,17 @@ function chown(fs, context, path, uid, gid, callback) {
 }
 
 function fchown(fs, context, fd, uid, gid, callback) {
-  if (!isUint32(uid)) {
+  if(!isUint32(uid)) {
     return callback(new Errors.EINVAL('uid must be a valid integer', uid));
   }
-  if (!isUint32(gid)) {
+  if(!isUint32(gid)) {
     return callback(new Errors.EINVAL('gid must be a valid integer', gid));
   }
 
   var ofd = fs.openFiles[fd];
-  if (!ofd) {
+  if(!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchown_file(context, ofd, uid, gid, callback);
@@ -2238,8 +2228,8 @@ function fchown(fs, context, fd, uid, gid, callback) {
 }
 
 function rename(fs, context, oldpath, newpath, callback) {
-  if (!pathCheck(oldpath, callback)) return;
-  if (!pathCheck(newpath, callback)) return;
+  if(!pathCheck(oldpath, callback)) return;
+  if(!pathCheck(newpath, callback)) return;
 
   oldpath = normalize(oldpath);
   newpath = normalize(newpath);
@@ -2254,7 +2244,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   var fileNode;
 
   function update_times(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       fileNode = result;
@@ -2263,7 +2253,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   }
 
   function read_new_directory(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       context.getObject(newParentData[newName].id, update_times);
@@ -2271,10 +2261,10 @@ function rename(fs, context, oldpath, newpath, callback) {
   }
 
   function update_old_parent_directory_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
-      if (oldParentDirectory.id === newParentDirectory.id) {
+      if(oldParentDirectory.id === newParentDirectory.id) {
         oldParentData = newParentData;
       }
       delete oldParentData[oldName];
@@ -2283,7 +2273,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   }
 
   function update_new_parent_directory_data(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       newParentData[newName] = oldParentData[oldName];
@@ -2292,11 +2282,11 @@ function rename(fs, context, oldpath, newpath, callback) {
   }
 
   function check_if_new_directory_exists(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       newParentData = result;
-      if (_(newParentData).has(newName)) {
+      if(_(newParentData).has(newName)) {
         remove_directory(context, newpath, update_new_parent_directory_data);
       } else {
         update_new_parent_directory_data();
@@ -2305,7 +2295,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   }
 
   function read_new_parent_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       newParentDirectory = result;
@@ -2314,7 +2304,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   }
 
   function get_new_parent_directory(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       oldParentData = result;
@@ -2323,7 +2313,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   }
 
   function read_parent_directory_data(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       oldParentDirectory = result;
@@ -2332,7 +2322,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   }
 
   function unlink_old_file(error) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       unlink_node(context, oldpath, callback);
@@ -2340,9 +2330,9 @@ function rename(fs, context, oldpath, newpath, callback) {
   }
 
   function check_node_type(error, node) {
-    if (error) {
+    if(error) {
       callback(error);
-    } else if (node.type === NODE_TYPE_DIRECTORY) {
+    } else if(node.type === NODE_TYPE_DIRECTORY) {
       find_node(context, oldParentPath, read_parent_directory_data);
     } else {
       link_node(context, oldpath, newpath, unlink_old_file);
@@ -2359,22 +2349,22 @@ function symlink(fs, context, srcpath, dstpath, type, callback) {
   // Special Case: allow srcpath to be relative, which we normally don't permit.
   // If the srcpath is relative, we assume it's relative to the dirpath of 
   // dstpath.
-  if (!pathCheck(srcpath, true, callback)) return;
-  if (!pathCheck(dstpath, callback)) return;
+  if(!pathCheck(srcpath, true, callback)) return;
+  if(!pathCheck(dstpath, callback)) return;
 
   make_symbolic_link(context, srcpath, dstpath, callback);
 }
 
 function readlink(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
   read_link(context, path, callback);
 }
 
 function lstat(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
 
   function check_result(error, result) {
-    if (error) {
+    if(error) {
       callback(error);
     } else {
       var stats = new Stats(path, result, fs.name);
@@ -2390,7 +2380,7 @@ function truncate(fs, context, path, length, callback) {
   callback = arguments[arguments.length - 1];
   length = length || 0;
 
-  if (!pathCheck(path, callback)) return;
+  if(!pathCheck(path, callback)) return;
   truncate_file(context, path, length, callback);
 }
 
@@ -2400,9 +2390,9 @@ function ftruncate(fs, context, fd, length, callback) {
   length = length || 0;
 
   var ofd = fs.openFiles[fd];
-  if (!ofd) {
+  if(!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!_(ofd.flags).contains(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     ftruncate_file(context, ofd, length, callback);
@@ -2412,8 +2402,8 @@ function ftruncate(fs, context, fd, length, callback) {
 module.exports = {
   ensureRootDirectory: ensure_root_directory,
   open: open,
-  access: access,
   chmod: chmod,
+  access: access,
   fchmod: fchmod,
   chown: chown,
   fchown: fchown,
