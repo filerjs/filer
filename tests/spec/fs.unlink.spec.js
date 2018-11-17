@@ -108,7 +108,7 @@ describe('fs.unlink', function() {
 /**
  * fsPromises tests
  */
-describe('fsPromises.stat', function() {
+describe('fs.promises.unlink', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
   it('should return an error if trying to delete a file that does not exist', function() {
