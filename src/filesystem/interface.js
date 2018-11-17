@@ -269,6 +269,7 @@ function FileSystem(options, callback) {
   */
   [
     'open',
+    'access',
     'chmod',
     'fchmod',
     'chown',

@@ -441,6 +441,20 @@ function make_directory(context, path, callback) {
   find_node(context, path, check_if_directory_exists);
 }
 
+function access_file(context, path, mode, callback) {
+  path = normalize(path);
+  find_node(context, path, function (err) {
+    if (err) {
+      return callback(err);
+    }
+    /* 
+    TODO: we currently only support Constants.fsConstants.F_OK
+    Working to fix the issue: https://github.com/filerjs/filer/issues/561
+    */
+    callback(null);
+  });
+}
+
 /**
  * remove_directory
  */
@@ -1685,6 +1699,17 @@ function mkdir(fs, context, path, mode, callback) {
   make_directory(context, path, callback);
 }
 
+function access(fs, context, path, mode, callback) {
+  if (typeof mode === 'function') {
+    callback = mode;
+    mode = Constants.fsConstants.F_OK;
+  }
+
+  if (!pathCheck(path, callback)) return;
+  mode = mode | 0;
+  access_file(context, path, mode, callback);
+}
+
 function rmdir(fs, context, path, callback) {
   if(!pathCheck(path, callback)) return;
   remove_directory(context, path, callback);
@@ -2385,6 +2410,7 @@ module.exports = {
   ensureRootDirectory: ensure_root_directory,
   open: open,
   chmod: chmod,
+  access: access,
   fchmod: fchmod,
   chown: chown,
   fchown: fchown,

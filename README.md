@@ -305,6 +305,7 @@ var fs = new Filer.FileSystem();
 * [fs.mknod(path, mode, callback)](#mknod)
 * [fs.rmdir(path, callback)](#rmdir)
 * [fs.mkdir(path, [mode], callback)](#mkdir)
+* [fs.access(path, [mode], callback)](#access)
 * [fs.readdir(path, callback)](#readdir)
 * [fs.close(fd, callback)](#close)
 * [fs.open(path, flags, [mode], callback)](#open)
@@ -669,6 +670,26 @@ fs.mkdir('/home', function(err) {
     if(err) throw err;
     // directory /home/carl now exists
   });
+});
+```
+
+#### fs.access(path, [mode], callback)<a name="access"></a>
+
+Tests a user's permissions for the file or directory supplied in `path` argument. Asynchronous [access(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/access.html). Callback gets no additional arguments. The `mode` argument can be one of the following (constants are available on `fs.constants`):
+
+* `F_OK`: Test for existence of file.
+* `R_OK`: Test whether the file exists and grants read permission.
+* `W_OK`: Test whether the file exists and grants write permission.
+* `X_OK`: Test whether the file exists and grants execute permission.
+
+NOTE: you can also create a mask consisting of the bitwise OR of two or more values (e.g. `fs.constants.W_OK | fs.constants.R_OK`).
+
+Example:
+
+```javascript
+// Check if the file exists in the current directory.
+fs.access(file, fs.constants.F_OK, function(err) {
+  console.log(`${file} ${err ? 'does not exist' : 'exists'}`);
 });
 ```
 
