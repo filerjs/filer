@@ -57,7 +57,7 @@
     "meow": "^5.0.0",
     "mocha": "^5.2.0",
     "nyc": "^13.1.0",
-    "parcel-bundler": "^1.9.6",
+    "parcel-bundler": "^1.10.3",
     "pretty-bytes": "^5.1.0",
     "unused-filename": "^1.0.0",
     "walk": "^2.3.14"
