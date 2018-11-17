@@ -60,3 +60,18 @@ describe('fs.write', function() {
     });
   });
 });
+
+describe('fs.promises.write', function() {
+  beforeEach(util.setup);
+  afterEach(util.cleanup);
+
+  it('should be a function', function() {
+    var fsPromises = util.fs().promises;
+    expect(fsPromises.write).to.be.a('function');
+  });
+
+  it('should return a promise', function() {
+    var fsPromises = util.fs().promises;
+    expect(fsPromises.write()).to.be.a('Promise');
+  });
+});
