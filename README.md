@@ -675,25 +675,22 @@ fs.mkdir('/home', function(err) {
 
 #### fs.access(path, [mode], callback)<a name="access"></a>
 
-Tests a user's permissions for the file or directory supplied in `path` argument. Asynchronous [access(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/access.html). Callback gets no additional arguments. The `mode` argument can be:
+Tests a user's permissions for the file or directory supplied in `path` argument. Asynchronous [access(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/access.html). Callback gets no additional arguments. The `mode` argument can be one of the following (constants are available on fs.constants):
 
 * `F_OK`: Test for existence of file.
 * `R_OK`: Test whether the file exists and grants read permission.
 * `W_OK`: Test whether the file exists and grants write permission.
 * `X_OK`: Test whether the file exists and grants execute permission.
 
-NOTE: Filer allows for, but ignores the optional `mode` argument used in node.js.
+NOTE: you can also create a mask consisting of the bitwise OR of two or more values (e.g. fs.constants.W_OK | fs.constants.R_OK).
 
 Example:
 
 ```javascript
-/*
-* Given the following file exists:
-* '/myfile'
-*/
- fs.access('/myfile', fs.constants.F_OK, function (error) {
-        if(err) throw err;
-  });
+// Check if the file exists in the current directory.
+fs.access(file, fs.constants.F_OK, function(err) {
+  console.log(`${file} ${err ? 'does not exist' : 'exists'}`);
+});
 ```
 
 #### fs.readdir(path, callback)<a name="readdir"></a>
