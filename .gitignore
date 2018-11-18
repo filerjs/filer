@@ -8,3 +8,7 @@ dist/filer-issue225.js
 # Parcel build dirs
 .cache
 tests/dist
+
+# nyc code coverage
+.nyc_output
+coverage

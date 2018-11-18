@@ -27,7 +27,8 @@
     "prebuild": "parcel build --global Filer src/index.js --no-minify --out-file filer.js",
     "build": "parcel build --global Filer src/index.js --out-file filer.min.js --detailed-report",
     "prekarma-mocha": "parcel build tests/index.js --no-source-maps --out-dir tests/dist",
-    "karma-mocha": "karma start karma.conf.js"
+    "karma-mocha": "karma start karma.conf.js",
+    "coverage": "nyc mocha tests/index.js"
   },
   "repository": {
     "type": "git",
@@ -47,8 +48,20 @@
     "karma-mocha": "^1.3.0",
     "karma-mocha-reporter": "^2.2.5",
     "mocha": "^5.2.0",
+    "nyc": "^13.1.0",
     "parcel-bundler": "^1.9.6"
   },
   "main": "./src/index.js",
-  "browser": "./dist/filer.min.js"
+  "browser": "./dist/filer.min.js",
+  "nyc": {
+    "exclude": [
+      "tests/**/*.js",
+      "lib/**/*.js",
+      "src/providers/**/*.js"
+    ],
+    "reporter": [
+      "lcov",
+      "text"
+    ]
+  }
 }
