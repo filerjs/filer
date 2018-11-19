@@ -110,7 +110,7 @@ function make_node(context, path, type, callback) {
   function create_node_in_parent(error, parentDirectoryNode) {
     if(error) {
       callback(error);
-    } else if(parentDirectoryNode.type !== NODE_TYPE_DIRECTORY) {
+    } else if(parentDirectoryNode.mode !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       parentNode = parentDirectoryNode;
@@ -137,7 +137,7 @@ function make_node(context, path, type, callback) {
       parentNodeData = result;
       Node.create({
         guid: context.guid,
-        type: type
+        mode: type
       }, function(error, result) {
         if(error) {
           callback(error);
@@ -191,7 +191,7 @@ function find_node(context, path, callback) {
   function read_root_directory_node(error, superNode) {
     if(error) {
       callback(error);
-    } else if(!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
+    } else if(!superNode || superNode.mode !== NODE_TYPE_META || !superNode.rnode) {
       callback(new Errors.EFILESYSTEMERROR());
     } else {
       context.getObject(superNode.rnode, check_root_directory_node);
@@ -213,7 +213,7 @@ function find_node(context, path, callback) {
   function read_parent_directory_data(error, parentDirectoryNode) {
     if(error) {
       callback(error);
-    } else if(parentDirectoryNode.type !== NODE_TYPE_DIRECTORY || !parentDirectoryNode.data) {
+    } else if(parentDirectoryNode.mode !== NODE_TYPE_DIRECTORY || !parentDirectoryNode.data) {
       callback(new Errors.ENOTDIR('a component of the path prefix is not a directory', path));
     } else {
       context.getObject(parentDirectoryNode.data, get_node_from_parent_directory_data);
@@ -239,7 +239,7 @@ function find_node(context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      if(node.type === NODE_TYPE_SYMBOLIC_LINK) {
+      if(node.mode === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
         if(followedCount > SYMLOOP_MAX){
           callback(new Errors.ELOOP(null, path));
@@ -334,7 +334,7 @@ function ensure_root_directory(context, callback) {
       Node.create({
         guid: context.guid,
         id: superNode.rnode,
-        type: NODE_TYPE_DIRECTORY
+        mode: NODE_TYPE_DIRECTORY
       }, function(error, result) {
         if(error) {
           callback(error);
@@ -398,7 +398,7 @@ function make_directory(context, path, callback) {
       parentDirectoryData = result;
       Node.create({
         guid: context.guid,
-        type: NODE_TYPE_DIRECTORY
+        mode: NODE_TYPE_DIRECTORY
       }, function(error, result) {
         if(error) {
           callback(error);
@@ -494,7 +494,7 @@ function remove_directory(context, path, callback) {
   function check_if_node_is_directory(error, result) {
     if(error) {
       callback(error);
-    } else if(result.type !== NODE_TYPE_DIRECTORY) {
+    } else if(result.mode !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
@@ -574,7 +574,7 @@ function open_file(context, path, flags, callback) {
   function read_directory_data(error, result) {
     if(error) {
       callback(error);
-    } else if(result.type !== NODE_TYPE_DIRECTORY) {
+    } else if(result.mode !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOENT(null, path));
     } else {
       directoryNode = result;
@@ -592,7 +592,7 @@ function open_file(context, path, flags, callback) {
           callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
-          if(directoryEntry.type === NODE_TYPE_DIRECTORY && _(flags).contains(O_WRITE)) {
+          if(directoryEntry.mode === NODE_TYPE_DIRECTORY && _(flags).contains(O_WRITE)) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
@@ -613,7 +613,7 @@ function open_file(context, path, flags, callback) {
       callback(error);
     } else {
       var node = result;
-      if(node.type === NODE_TYPE_SYMBOLIC_LINK) {
+      if(node.mode === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
         if(followedCount > SYMLOOP_MAX){
           callback(new Errors.ELOOP(null, path));
@@ -652,7 +652,7 @@ function open_file(context, path, flags, callback) {
   function write_file_node() {
     Node.create({
       guid: context.guid,
-      type: NODE_TYPE_FILE
+      mode: NODE_TYPE_FILE
     }, function(error, result) {
       if(error) {
         callback(error);
@@ -842,7 +842,7 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
   function read_file_data(error, result) {
     if(error) {
       callback(error);
-    } else if(result.type === NODE_TYPE_DIRECTORY) {
+    } else if(result.mode === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EISDIR('the named file is a directory', ofd.path));
     } else {
       fileNode = result;
@@ -973,7 +973,7 @@ function link_node(context, oldpath, newpath, callback) {
       oldDirectoryData = result;
       if(!_(oldDirectoryData).has(oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
-      } else if(oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
+      } else if(oldDirectoryData[oldname].mode === NODE_TYPE_DIRECTORY) {
         callback(new Errors.EPERM('oldpath refers to a directory'));
       } else {
         find_node(context, newParentPath, read_new_directory_data);
@@ -1049,7 +1049,7 @@ function unlink_node(context, path, callback) {
   function check_if_node_is_directory(error, result) {
     if(error) {
       callback(error);
-    } else if(result.type === NODE_TYPE_DIRECTORY) {
+    } else if(result.mode === NODE_TYPE_DIRECTORY) {
       callback(new Errors.EPERM('unlink not permitted on directories', name));
     } else {
       update_file_node(null, result);
@@ -1100,7 +1100,7 @@ function read_directory(context, path, callback) {
   function read_directory_data(error, result) {
     if(error) {
       callback(error);
-    } else if(result.type !== NODE_TYPE_DIRECTORY) {
+    } else if(result.mode !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
@@ -1151,7 +1151,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   function write_file_node() {
     Node.create({
       guid: context.guid,
-      type: NODE_TYPE_SYMBOLIC_LINK
+      mode: NODE_TYPE_SYMBOLIC_LINK
     }, function(error, result) {
       if(error) {
         callback(error);
@@ -1229,7 +1229,7 @@ function read_link(context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      if(fileNode.type !== NODE_TYPE_SYMBOLIC_LINK) {
+      if(fileNode.mode !== NODE_TYPE_SYMBOLIC_LINK) {
         callback(new Errors.EINVAL('path not a symbolic link', path));
       } else {
         // If we were originally given a relative path, return that now vs. the
@@ -1249,7 +1249,7 @@ function truncate_file(context, path, length, callback) {
   function read_file_data (error, node) {
     if (error) {
       callback(error);
-    } else if(node.type === NODE_TYPE_DIRECTORY ) {
+    } else if(node.mode === NODE_TYPE_DIRECTORY ) {
       callback(new Errors.EISDIR(null, path));
     } else{
       fileNode = node;
@@ -1311,7 +1311,7 @@ function ftruncate_file(context, ofd, length, callback) {
   function read_file_data (error, node) {
     if (error) {
       callback(error);
-    } else if(node.type === NODE_TYPE_DIRECTORY ) {
+    } else if(node.mode === NODE_TYPE_DIRECTORY ) {
       callback(new Errors.EISDIR());
     } else{
       fileNode = node;
@@ -2008,7 +2008,7 @@ function fchmod_file(context, ofd, mode, callback) {
     if (error) {
       callback(error);
     } else {
-      node.mode = mode;
+      node.posix_mode = mode;
       update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
     }
   }
@@ -2339,7 +2339,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   function check_node_type(error, node) {
     if(error) {
       callback(error);
-    } else if(node.type === NODE_TYPE_DIRECTORY) {
+    } else if(node.mode === NODE_TYPE_DIRECTORY) {
       find_node(context, oldParentPath, read_parent_directory_data);
     } else {
       link_node(context, oldpath, newpath, unlink_old_file);

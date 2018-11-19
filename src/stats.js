@@ -4,14 +4,14 @@ var Path = require('./path.js');
 function Stats(path, fileNode, devName) {
   this.dev = devName;
   this.node = fileNode.id;
-  this.type = fileNode.type;
+  this.type = fileNode.mode;
   this.size = fileNode.size;
   this.nlinks = fileNode.nlinks;
   this.atime = fileNode.atime;
   this.mtime = fileNode.mtime;
   this.ctime = fileNode.ctime;
   this.version = fileNode.version;
-  this.mode = fileNode.mode;
+  this.mode = fileNode.posix_mode;
   this.uid = fileNode.uid;
   this.gid = fileNode.gid;
   this.name = Path.basename(path);

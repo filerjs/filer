@@ -27,7 +27,10 @@ function Node(options) {
   var now = Date.now();
 
   this.id = options.id;
-  this.type = options.type || NODE_TYPE_FILE;  // node type (file, directory, etc)
+  // For historical reasons, we still use `mode` here, even though
+  // it's not really the POSIX mode.  See `posix_mode` below and
+  // discussion in https://github.com/filerjs/filer/issues/566
+  this.mode = options.mode || NODE_TYPE_FILE;  // node type (file, directory, etc)
   this.size = options.size || 0; // size (bytes for files, entries for directories)
   this.atime = options.atime || now; // access time (will mirror ctime after creation)
   this.ctime = options.ctime || now; // creation/change time
@@ -39,7 +42,7 @@ function Node(options) {
   this.version = options.version || 1;
 
   // permissions and flags
-  this.mode = options.mode || (getMode(this.type));
+  this.posix_mode = options.posix_mode || (getMode(this.mode));
   this.uid = options.uid || 0x0; // owner name
   this.gid = options.gid || 0x0; // group name
 }
@@ -78,7 +81,7 @@ Node.create = function(options, callback) {
 
 // Update the node's mode (permissions), taking file type bits into account.
 Node.setMode = function(mode, node) {
-  node.mode = getMode(node.type, mode);
+  node.posix_mode = getMode(node.mode, mode);
 };
 
 module.exports = Node;
