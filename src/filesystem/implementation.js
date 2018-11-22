@@ -548,7 +548,11 @@ function remove_directory(context, path, callback) {
   find_node(context, parentPath, read_parent_directory_data);
 }
 
-function open_file(context, path, flags, callback) {
+function open_file(context, path, flags, mode, callback) {
+  if (typeof mode === 'function'){
+    callback = mode;
+    mode = null;
+  }
   path = normalize(path);
   var name = basename(path);
   var parentPath = dirname(path);
@@ -660,6 +664,9 @@ function open_file(context, path, flags, callback) {
       }
       fileNode = result;
       fileNode.nlinks += 1;
+      if(mode){
+        Node.setMode(mode, fileNode);
+      }
       context.putObject(fileNode.id, fileNode, write_file_data);
     });
   }
@@ -1629,23 +1636,14 @@ function pathCheck(path, allowRelative, callback) {
 
 
 function open(fs, context, path, flags, mode, callback) {
-  /**
-   * NOTE: we support the same signature as node with a `mode` arg,
-   * but ignore it. We need to add it.  Here is what node.js does:
-   * function open(path, flags, mode, callback) {
-   *    path = getPathFromURL(path);
-   *  validatePath(path);
-   *  const flagsNumber = stringToFlags(flags);
-   *  if (arguments.length < 4) {
-   *    callback = makeCallback(mode);
-   *    mode = 0o666;
-   *  } else {
-   *    mode = validateAndMaskMode(mode, 'mode', 0o666);
-   *    callback = makeCallback(callback);
-   * }
-  */
-
-  callback = arguments[arguments.length - 1];
+  if (arguments.length < 6 ){
+    callback = arguments[arguments.length - 1];
+    mode = 0o644;
+  }
+  else {
+    mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
+  }
+    
   if(!pathCheck(path, callback)) return;
 
   function check_result(error, fileNode) {
@@ -1669,7 +1667,7 @@ function open(fs, context, path, flags, mode, callback) {
     callback(new Errors.EINVAL('flags is not valid'), path);
   }
 
-  open_file(context, path, flags, check_result);
+  open_file(context, path, flags, mode, check_result);
 }
 
 function close(fs, context, fd, callback) {
