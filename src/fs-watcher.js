@@ -1,7 +1,7 @@
 var EventEmitter = require('../lib/eventemitter.js');
 var Path = require('./path.js');
 var Intercom = require('../lib/intercom.js');
-
+var _watchers = {};
 /**
  * FSWatcher based on node.js' FSWatcher
  * see https://github.com/joyent/node/blob/master/lib/fs.js
@@ -45,9 +45,13 @@ function FSWatcher() {
     if(recursive) {
       recursivePathPrefix = filename === '/' ? '/' : filename + '/';
     }
-
+    _watchers[filename] = self;
     var intercom = Intercom.getInstance();
     intercom.on('change', onchange);
+  };
+
+  self.closeOneListener = function(filename){
+    _watchers[filename].close();
   };
 
   self.close = function() {
@@ -58,5 +62,7 @@ function FSWatcher() {
 }
 FSWatcher.prototype = new EventEmitter();
 FSWatcher.prototype.constructor = FSWatcher;
-
+FSWatcher.getWatcherForFilename = function(filename) {
+  return _watchers[filename];
+};
 module.exports = FSWatcher;

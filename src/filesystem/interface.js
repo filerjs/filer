@@ -159,6 +159,23 @@ function FileSystem(options, callback) {
     return watcher;
   };
 
+  this.unwatchFile = function(filename, listener) {
+    if(isNullPath(filename)) {
+      throw new Error('Path must be a string without null bytes.');
+    }
+    listener = listener || nop;
+
+    var unwatcher = new FSWatcher();
+    unwatcher.start(filename, false, options.recursive);
+    if(listener != nop){
+      unwatcher.closeOneListener(filename);
+    }
+    else{
+      unwatcher.close();
+    }
+    return unwatcher;
+  };
+
   // Deal with various approaches to node ID creation
   function wrappedGuidFn(context) {
     return function(callback) {
@@ -348,7 +365,7 @@ function FileSystem(options, callback) {
         callback(error);
       }
     };
-    
+
     FileSystem.prototype.promises[methodName] = promisify(FileSystem.prototype[methodName].bind(fs));
   });
 
