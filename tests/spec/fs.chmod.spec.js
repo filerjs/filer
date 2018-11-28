@@ -112,36 +112,3 @@ describe('fsPromise.chmod', function() {
       .catch( err => { throw err; });
   });
 });
-
-describe('fsPromise.fchmod', function() {
-  beforeEach(util.setup);
-  afterEach(util.setup);
-
-  it('should be a function', function() {
-    var fsPromise = util.fs().promises;
-    expect(typeof fsPromise.fchmod).to.equal('function');
-  });
-
-  it('should be a promise', function() {
-    var fsPromise = util.fs().promises;
-    expect(fsPromise.fchmod()).to.be.a('Promise');
-  });
-
-  it('should allow for updating mode of a given file', function() {
-    var fsPromise = util.fs().promises;
-    var fdesc;
-
-    return fsPromise.open('/file', 'w')
-      .then( fd => {
-        fdesc = fd;
-        return fsPromise.fchmod(fd, 0o777);
-      })
-      .then( () => {
-        return fsPromise.fstat(fdesc);
-      })
-      .then( stats => {
-        expect(stats.mode & 0o777).to.equal(0o777);
-      })
-      .catch( err => { throw err; });
-  });
-});

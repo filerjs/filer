@@ -265,46 +265,52 @@ function FileSystem(options, callback) {
   });
   FileSystem.prototype.promises = {};
   /**
-   * Public API for FileSystem
-  */
+   * Public API for FileSystem. All node.js methods that are
+   * exposed on fs.promises include `promise: true`.  We also
+   * include our own extra methods, but skip the fd versions
+   * to match node.js, which puts these on a FileHandle object.
+   */
   [
-    'open',
-    'access',
-    'chmod',
-    'fchmod',
-    'chown',
-    'fchown',
-    'close',
-    'mknod',
-    'mkdir',
-    'rmdir',
-    'stat',
-    'fstat',
-    'link',
-    'unlink',
-    'read',
-    'readFile',
-    'write',
-    'writeFile',
-    'appendFile',
-    'exists',
-    'lseek',
-    'readdir',
-    'rename',
-    'readlink',
-    'symlink',
-    'lstat',
-    'truncate',
-    'ftruncate',
-    'utimes',
-    'futimes',
-    'setxattr',
-    'getxattr',
-    'fsetxattr',
-    'fgetxattr',
-    'removexattr',
-    'fremovexattr'
-  ].forEach(function(methodName) {
+    { name: 'open', promises: true },
+    { name: 'access', promises: true },
+    { name: 'chmod', promises: true },
+    { name: 'fchmod' },
+    { name: 'chown', promises: true },
+    { name: 'fchown' },
+    { name: 'close' },
+    { name: 'mknod', promises: true },
+    { name: 'mkdir', promises: true },
+    { name: 'rmdir', promises: true },
+    { name: 'stat', promises: true },
+    { name: 'fstat' },
+    { name: 'link', promises: true },
+    { name: 'unlink', promises: true },
+    { name: 'read' },
+    { name: 'readFile', promises: true },
+    { name: 'write' },
+    { name: 'writeFile', promises: true },
+    { name: 'appendFile', promises: true },
+    { name: 'exists' },
+    { name: 'lseek' },
+    { name: 'readdir', promises: true },
+    { name: 'rename', promises: true },
+    { name: 'readlink', promises: true },
+    { name: 'symlink', promises: true },
+    { name: 'lstat', promises: true },
+    { name: 'truncate', promises: true },
+    { name: 'ftruncate' },
+    { name: 'utimes', promises: true },
+    { name: 'futimes' },
+    { name: 'setxattr', promises: true },
+    { name: 'getxattr', promises: true },
+    { name: 'fsetxattr' },
+    { name: 'fgetxattr' },
+    { name: 'removexattr', promises: true },
+    { name: 'fremovexattr' }
+  ].forEach(function(method) {
+    var methodName = method.name;
+    var shouldPromisify = method.promises === true;
+
     FileSystem.prototype[methodName] = function() {
       var fs = this;
       var args = Array.prototype.slice.call(arguments, 0);
@@ -349,7 +355,10 @@ function FileSystem(options, callback) {
       }
     };
     
-    FileSystem.prototype.promises[methodName] = promisify(FileSystem.prototype[methodName].bind(fs));
+    // Add to fs.promises if appropriate
+    if(shouldPromisify) {
+      FileSystem.prototype.promises[methodName] = promisify(FileSystem.prototype[methodName].bind(fs));
+    }
   });
 
 }
