@@ -96,8 +96,7 @@ describe('fsPromises.readdir', function() {
   it('should return an error if the path is a file', function() {
     var fsPromises = util.fs().promises;
 
-    return fsPromises.open('/myfile', 'w')
-      .then(fd => fsPromises.close(fd))
+    return fsPromises.writeFile('/myfile', 'contents')
       .then(() => fsPromises.readdir('/myfile'))
       .catch(error => {
         expect(error).to.exist;

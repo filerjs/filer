@@ -78,18 +78,6 @@ describe('fs.utimes', function() {
     });
   });
 
-  it('should error when file descriptor is invalid', function(done) {
-    var fs = util.fs();
-    var atime = Date.parse('1 Oct 2000 15:33:22');
-    var mtime = Date.parse('30 Sep 2000 06:43:54');
-
-    fs.futimes(1, atime, mtime, function (error) {
-      expect(error).to.exist;
-      expect(error.code).to.equal('EBADF');
-      done();
-    });
-  });
-
   it('should change atime and mtime of a file path', function(done) {
     var fs = util.fs();
     var atime = Date.parse('1 Oct 2000 15:33:22');
@@ -102,28 +90,6 @@ describe('fs.utimes', function() {
         expect(error).not.to.exist;
 
         fs.stat('/testfile', function (error, stat) {
-          expect(error).not.to.exist;
-          expect(stat.mtime).to.equal(mtime);
-          done();
-        });
-      });
-    });
-  });
-
-  it ('should change atime and mtime for a valid file descriptor', function(done) {
-    var fs = util.fs();
-    var ofd;
-    var atime = Date.parse('1 Oct 2000 15:33:22');
-    var mtime = Date.parse('30 Sep 2000 06:43:54');
-
-    fs.open('/testfile', 'w', function (error, result) {
-      if (error) throw error;
-
-      ofd = result;
-      fs.futimes(ofd, atime, mtime, function (error) {
-        expect(error).not.to.exist;
-
-        fs.fstat(ofd, function (error, stat) {
           expect(error).not.to.exist;
           expect(stat.mtime).to.equal(mtime);
           done();
@@ -237,18 +203,6 @@ describe('fs.promises.utimes', function () {
       });
   });
 
-  it('should error when file descriptor is invalid', function () {
-    var fs = util.fs().promises;
-    var atime = Date.parse('1 Oct 2000 15:33:22');
-    var mtime = Date.parse('30 Sep 2000 06:43:54');
-
-    return fs.futimes(1, atime, mtime)
-      .catch(function (error) {
-        expect(error).to.exist;
-        expect(error.code).to.equal('EBADF');
-      });
-  });
-
   it('should change atime and mtime of a file path', function () {
     var fs = util.fs().promises;
     var atime = Date.parse('1 Oct 2000 15:33:22');
@@ -259,34 +213,6 @@ describe('fs.promises.utimes', function () {
         fs.utimes('/testfile', atime, mtime)
           .then(function () {
             fs.stat('/testfile')
-              .then(function (stat) {
-                expect(stat.mtime).to.equal(mtime);
-              })
-              .catch(function (error) {
-                expect(error).not.to.exist;
-              });
-          })
-          .catch(function (error) {
-            expect(error).not.to.exist;
-          });
-      })
-      .catch(function (error) {
-        throw error;
-      });
-  });
-
-  it('should change atime and mtime for a valid file descriptor', function () {
-    var fs = util.fs().promises;
-    var ofd;
-    var atime = Date.parse('1 Oct 2000 15:33:22');
-    var mtime = Date.parse('30 Sep 2000 06:43:54');
-
-    return fs.open('/testfile', 'w')
-      .then(function (result) {
-        ofd = result;
-        fs.futimes(ofd, atime, mtime)
-          .then(function () {
-            fs.fstat(ofd)
               .then(function (stat) {
                 expect(stat.mtime).to.equal(mtime);
               })
