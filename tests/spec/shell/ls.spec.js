@@ -43,7 +43,7 @@ describe('FileSystemShell.ls', function() {
           expect(item0.nlinks).to.equal(1);
           expect(item0.size).to.equal(1);
           expect(item0.mtime).to.be.a('number');
-          expect(item0.type).to.equal('FILE');
+          expect(item0.isFile()).to.be.true;
           expect(item0.contents).not.to.exist;
 
           var item1 = list[1];
@@ -51,7 +51,7 @@ describe('FileSystemShell.ls', function() {
           expect(item1.nlinks).to.equal(1);
           expect(item1.size).to.equal(2);
           expect(item1.mtime).to.be.a('number');
-          expect(item1.type).to.equal('FILE');
+          expect(item1.isFile()).to.be.true;
           expect(item0.contents).not.to.exist;
 
           done();
@@ -88,7 +88,7 @@ describe('FileSystemShell.ls', function() {
                   expect(item.nlinks).to.equal(1);
                   expect(item.size).to.be.a('number');
                   expect(item.mtime).to.be.a('number');
-                  expect(item.type).to.equal('DIRECTORY');
+                  expect(item.isDirectory()).to.be.true;
                   expect(item.contents).not.to.exist;
                   break;
                 case 'file':
@@ -96,7 +96,7 @@ describe('FileSystemShell.ls', function() {
                   expect(item.nlinks).to.equal(1);
                   expect(item.size).to.equal(1);
                   expect(item.mtime).to.be.a('number');
-                  expect(item.type).to.equal('FILE');
+                  expect(item.isFile()).to.be.true;
                   expect(item.contents).not.to.exist;
                   break;
                 default:
@@ -147,7 +147,7 @@ describe('FileSystemShell.ls', function() {
                     expect(item.nlinks).to.equal(1);
                     expect(item.size).to.be.a('number');
                     expect(item.mtime).to.be.a('number');
-                    expect(item.type).to.equal('DIRECTORY');
+                    expect(item.isDirectory()).to.be.true;
                     expect(item.contents).to.exist;
                     expect(item.contents.length).to.equal(1);
                     var contents0 = item.contents[0];
@@ -155,7 +155,7 @@ describe('FileSystemShell.ls', function() {
                     expect(contents0.nlinks).to.equal(1);
                     expect(contents0.size).to.equal(1);
                     expect(contents0.mtime).to.be.a('number');
-                    expect(contents0.type).to.equal('FILE');
+                    expect(contents0.isFile()).to.be.true;
                     expect(contents0.contents).not.to.exist;
                     break;
                   case 'file':
@@ -163,7 +163,7 @@ describe('FileSystemShell.ls', function() {
                     expect(item.nlinks).to.equal(1);
                     expect(item.size).to.equal(1);
                     expect(item.mtime).to.be.a('number');
-                    expect(item.type).to.equal('FILE');
+                    expect(item.isFile()).to.be.true;
                     expect(item.contents).not.to.exist;
                     break;
                   default:

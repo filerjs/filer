@@ -26,7 +26,7 @@ describe('FileSystemShell.touch', function() {
 
       fs.stat('/newfile', function(error, stats) {
         expect(error).not.to.exist;
-        expect(stats.type).to.equal('FILE');
+        expect(stats.isFile()).to.be.true;
         done();
       });
     });

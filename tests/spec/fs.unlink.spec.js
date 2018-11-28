@@ -97,7 +97,7 @@ describe('fs.unlink', function() {
         fs.stat('/mydir', function (error, stats) {
           expect(error).not.to.exist;
           expect(stats).to.exist;
-          expect(stats.type).to.equal('DIRECTORY');
+          expect(stats.isDirectory()).to.be.true;
           done();
         });
       });

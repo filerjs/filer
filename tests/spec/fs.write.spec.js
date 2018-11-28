@@ -24,7 +24,7 @@ describe('fs.write', function() {
 
         fs.stat('/myfile', function(error, result) {
           expect(error).not.to.exist;
-          expect(result.type).to.equal('FILE');
+          expect(result.isFile()).to.be.true;
           expect(result.size).to.equal(buffer.length);
           done();
         });
