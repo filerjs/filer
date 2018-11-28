@@ -11,6 +11,11 @@ addons:
 before_install:
   - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
 
+after_success:
+  - npm install -g codecov
+  - npm run coverage
+  - codecov
+
 notifications:
   email: false
   irc: "irc.mozilla.org#filer"
