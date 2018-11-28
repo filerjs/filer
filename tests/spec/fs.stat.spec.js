@@ -99,7 +99,10 @@ describe('fs.stat', function() {
   
   it('should return a promise', function() {
     var fs = util.fs();
-    expect(fs.promises.stat()).to.be.a('Promise');
+
+    var p = fs.promises.stat('/');
+    expect(p).to.be.a('Promise');
+    return p;
   });
   
   it('(promise) should return a stat object if file exists', function() {
