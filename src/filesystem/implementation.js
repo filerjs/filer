@@ -1,5 +1,3 @@
-var _ = require('../../lib/nodash.js');
-
 var Path = require('../path.js');
 var normalize = Path.normalize;
 var dirname = Path.dirname;
@@ -48,10 +46,10 @@ const { validateInteger } = require('../shared.js');
 function update_node_times(context, path, node, times, callback) {
   // Honour mount flags for how we update times
   var flags = context.flags;
-  if(_(flags).contains(FS_NOCTIME)) {
+  if(flags.includes(FS_NOCTIME)) {
     delete times.ctime;
   }
-  if(_(flags).contains(FS_NOMTIME)) {
+  if(flags.includes(FS_NOMTIME)) {
     delete times.mtime;
   }
 
@@ -226,7 +224,7 @@ function find_node(context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      if(!_(parentDirectoryData).has(name)) {
+      if(!parentDirectoryData.hasOwnProperty(name)) {
         callback(new Errors.ENOENT(null, path));
       } else {
         var nodeId = parentDirectoryData[name].id;
@@ -482,7 +480,7 @@ function remove_directory(context, path, callback) {
       callback(error);
     } else if(ROOT_DIRECTORY_NAME === name) {
       callback(new Errors.EBUSY(null, path));
-    } else if(!_(result).has(name)) {
+    } else if(!result.hasOwnProperty(name)) {
       callback(new Errors.ENOENT(null, path));
     } else {
       parentDirectoryData = result;
@@ -507,7 +505,7 @@ function remove_directory(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(_(directoryData).size() > 0) {
+      if(Object.keys(directoryData).length > 0) {
         callback(new Errors.ENOTEMPTY(null, path));
       } else {
         remove_directory_entry_from_parent_directory_node();
@@ -566,7 +564,7 @@ function open_file(context, path, flags, mode, callback) {
   var followedCount = 0;
 
   if(ROOT_DIRECTORY_NAME === name) {
-    if(_(flags).contains(O_WRITE)) {
+    if(flags.includes(O_WRITE)) {
       callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
     } else {
       find_node(context, path, set_file_node);
@@ -591,19 +589,19 @@ function open_file(context, path, flags, mode, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(_(directoryData).has(name)) {
-        if(_(flags).contains(O_EXCLUSIVE)) {
+      if(directoryData.hasOwnProperty(name)) {
+        if(flags.includes(O_EXCLUSIVE)) {
           callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
-          if(directoryEntry.type === NODE_TYPE_DIRECTORY && _(flags).contains(O_WRITE)) {
+          if(directoryEntry.type === NODE_TYPE_DIRECTORY && flags.includes(O_WRITE)) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
         }
       } else {
-        if(!_(flags).contains(O_CREATE)) {
+        if(!flags.includes(O_CREATE)) {
           callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist', path));
         } else {
           write_file_node();
@@ -635,7 +633,7 @@ function open_file(context, path, flags, mode, callback) {
     parentPath = dirname(data);
     name = basename(data);
     if(ROOT_DIRECTORY_NAME === name) {
-      if(_(flags).contains(O_WRITE)) {
+      if(flags.includes(O_WRITE)) {
         callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
       } else {
         find_node(context, path, set_file_node);
@@ -897,7 +895,7 @@ function lstat_file(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(!_(directoryData).has(name)) {
+      if(!directoryData.hasOwnProperty(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
       } else {
         context.getObject(directoryData[name].id, callback);
@@ -954,7 +952,7 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       newDirectoryData = result;
-      if(_(newDirectoryData).has(newname)) {
+      if(newDirectoryData.hasOwnProperty(newname)) {
         callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
@@ -978,7 +976,7 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       oldDirectoryData = result;
-      if(!_(oldDirectoryData).has(oldname)) {
+      if(!oldDirectoryData.hasOwnProperty(oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
       } else if(oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
         callback(new Errors.EPERM('oldpath refers to a directory'));
@@ -1068,7 +1066,7 @@ function unlink_node(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(!_(directoryData).has(name)) {
+      if(!directoryData.hasOwnProperty(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_node_is_directory);
@@ -1147,7 +1145,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(_(directoryData).has(name)) {
+      if(directoryData.hasOwnProperty(name)) {
         callback(new Errors.EEXIST(null, name));
       } else {
         write_file_node();
@@ -1224,7 +1222,7 @@ function read_link(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(!_(directoryData).has(name)) {
+      if(!directoryData.hasOwnProperty(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_symbolic);
@@ -1594,10 +1592,7 @@ function fremovexattr_file (context, ofd, name, callback) {
 }
 
 function validate_flags(flags) {
-  if(!_(O_FLAGS).has(flags)) {
-    return null;
-  }
-  return O_FLAGS[flags];
+  return O_FLAGS.hasOwnProperty(flags) ? O_FLAGS[flags] : null;
 }
 
 function validate_file_options(options, enc, fileMode){
@@ -1651,7 +1646,7 @@ function open(fs, context, path, flags, mode, callback) {
       callback(error);
     } else {
       var position;
-      if(_(flags).contains(O_APPEND)) {
+      if(flags.includes(O_APPEND)) {
         position = fileNode.size;
       } else {
         position = 0;
@@ -1671,7 +1666,7 @@ function open(fs, context, path, flags, mode, callback) {
 }
 
 function close(fs, context, fd, callback) {
-  if(!_(fs.openFiles).has(fd)) {
+  if(!fs.openFiles[fd]) {
     callback(new Errors.EBADF());
   } else {
     fs.releaseDescriptor(fd);
@@ -1771,7 +1766,7 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   var ofd = fs.openFiles[fd];
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_READ)) {
+  } else if(!ofd.flags.includes(O_READ)) {
     callback(new Errors.EBADF('descriptor does not permit reading'));
   } else {
     read_data(context, ofd, buffer, offset, length, position, wrapped_cb);
@@ -1844,7 +1839,7 @@ function write(fs, context, fd, buffer, offset, length, position, callback) {
   var ofd = fs.openFiles[fd];
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else if(buffer.length - offset < length) {
     callback(new Errors.EIO('intput buffer is too small'));
@@ -2084,7 +2079,7 @@ function fsetxattr(fs, context, fd, name, value, flag, callback) {
   if (!ofd) {
     callback(new Errors.EBADF());
   }
-  else if (!_(ofd.flags).contains(O_WRITE)) {
+  else if (!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   }
   else {
@@ -2102,7 +2097,7 @@ function fremovexattr(fs, context, fd, name, callback) {
   if (!ofd) {
     callback(new Errors.EBADF());
   }
-  else if (!_(ofd.flags).contains(O_WRITE)) {
+  else if (!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   }
   else {
@@ -2173,7 +2168,7 @@ function futimes(fs, context, fd, atime, mtime, callback) {
   var ofd = fs.openFiles[fd];
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     futimes_file(context, ofd, atime, mtime, callback);
@@ -2195,7 +2190,7 @@ function fchmod(fs, context, fd, mode, callback) {
   var ofd = fs.openFiles[fd];
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchmod_file(context, ofd, mode, callback);
@@ -2225,7 +2220,7 @@ function fchown(fs, context, fd, uid, gid, callback) {
   var ofd = fs.openFiles[fd];
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchown_file(context, ofd, uid, gid, callback);
@@ -2291,7 +2286,7 @@ function rename(fs, context, oldpath, newpath, callback) {
       callback(error);
     } else {
       newParentData = result;
-      if(_(newParentData).has(newName)) {
+      if(newParentData.hasOwnProperty(newName)) {
         remove_directory(context, newpath, update_new_parent_directory_data);
       } else {
         update_new_parent_directory_data();
@@ -2397,7 +2392,7 @@ function ftruncate(fs, context, fd, length, callback) {
   var ofd = fs.openFiles[fd];
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!_(ofd.flags).contains(O_WRITE)) {
+  } else if(!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     ftruncate_file(context, ofd, length, callback);

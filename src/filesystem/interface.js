@@ -1,4 +1,3 @@
-var _ = require('../../lib/nodash.js');
 var { promisify } = require('es6-promisify');
 
 var isNullPath = require('../path.js').isNull;
@@ -80,12 +79,12 @@ function FileSystem(options, callback) {
   options = options || {};
   callback = callback || defaultCallback;
 
-  var flags = options.flags;
+  var flags = options.flags || [];
   var guid = options.guid ? options.guid : defaultGuidFn;
   var provider = options.provider || new providers.Default(options.name || FILE_SYSTEM_NAME);
   // If we're given a provider, match its name unless we get an explicit name
   var name = options.name || provider.name;
-  var forceFormatting = _(flags).contains(FS_FORMAT);
+  var forceFormatting = flags.includes(FS_FORMAT);
 
   var fs = this;
   fs.readyState = FS_PENDING;
@@ -163,7 +162,7 @@ function FileSystem(options, callback) {
   function wrappedGuidFn(context) {
     return function(callback) {
       // Skip the duplicate ID check if asked to
-      if(_(flags).contains(FS_NODUPEIDCHECK)) {
+      if(flags.includes(FS_NODUPEIDCHECK)) {
         callback(null, guid());
         return;
       }
