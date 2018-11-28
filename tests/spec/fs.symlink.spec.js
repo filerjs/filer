@@ -38,7 +38,7 @@ describe('fs.symlink', function() {
 
       fs.stat('/myfile', function(err, stats) {
         expect(error).not.to.exist;
-        expect(stats.type).to.equal('DIRECTORY');
+        expect(stats.isDirectory()).to.be.true;
         done();
       });
     });

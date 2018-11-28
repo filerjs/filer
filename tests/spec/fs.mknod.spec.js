@@ -60,7 +60,7 @@ describe('fs.mknod', function(){
 
       fs.stat('/dir', function(error, stats){
         expect(error).not.to.exist;
-        expect(stats.type).to.equal('DIRECTORY');
+        expect(stats.isDirectory()).to.be.true;
         done();
       });
     });
@@ -74,7 +74,7 @@ describe('fs.mknod', function(){
 
       fs.stat('/file', function(error, result){
         expect(error).not.to.exist;
-        expect(result.type).to.equal('FILE');
+        expect(result.isFile()).to.be.true;
         done();
       });
     });

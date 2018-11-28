@@ -40,7 +40,7 @@ describe('fs.mkdir', function () {
       fs.stat('/tmp', function (error, stats) {
         expect(error).not.to.exist;
         expect(stats).to.exist;
-        expect(stats.type).to.equal('DIRECTORY');
+        expect(stats.isDirectory()).to.be.true;
         done();
       });
     });
@@ -83,7 +83,7 @@ describe('fs.promises.mkdir', function () {
       .then(() => fs.promises.stat('/tmp'))
       .then(stats => {
         expect(stats).to.exist;
-        expect(stats.type).to.equal('DIRECTORY');
+        expect(stats.isDirectory()).to.be.true;
       });
   });
 

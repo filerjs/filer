@@ -117,7 +117,7 @@ describe('fs.stat', function() {
         expect(result.atime).to.be.a('number');
         expect(result.mtime).to.be.a('number');
         expect(result.ctime).to.be.a('number');
-        expect(result.type).to.equal('DIRECTORY');
+        expect(result.isDirectory()).to.be.true;
       }); 
   });
 });

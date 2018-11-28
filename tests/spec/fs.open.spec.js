@@ -100,7 +100,7 @@ describe('fs.open', function() {
       fs.stat('/myfile', function(error, result) {
         expect(error).not.to.exist;
         expect(result).to.exist;
-        expect(result.type).to.equal('FILE');
+        expect(result.isFile()).to.be.true;
         done();
       });
     });

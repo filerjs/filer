@@ -27,7 +27,7 @@ describe('fs.lstat', function() {
     fs.lstat('/', function(error, result) {
       expect(error).not.to.exist;
       expect(result).to.exist;
-      expect(result.type).to.equal('DIRECTORY');
+      expect(result.isDirectory()).to.be.true;
       done();
     });
   });
@@ -41,7 +41,7 @@ describe('fs.lstat', function() {
       fs.lstat('/mylink', function(error, result) {
         expect(error).not.to.exist;
         expect(result).to.exist;
-        expect(result.type).to.equal('SYMLINK');
+        expect(result.isSymbolicLink()).to.be.true;
         done();
       });
     });
