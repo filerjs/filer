@@ -15,7 +15,7 @@ describe('node.js tests: https://github.com/joyent/node/blob/master/test/simple/
       fs.stat(pathname, function(error, result) {
         expect(error).not.to.exist;
         expect(result).to.exist;
-        expect(result.type).to.equal('DIRECTORY');
+        expect(result.isDirectory()).to.be.true;
         done();
       });
     });
@@ -31,7 +31,7 @@ describe('node.js tests: https://github.com/joyent/node/blob/master/test/simple/
       fs.stat(pathname, function(error, result) {
         expect(error).not.to.exist;
         expect(result).to.exist;
-        expect(result.type).to.equal('DIRECTORY');
+        expect(result.isDirectory()).to.be.true;
         done();
       });
     });
