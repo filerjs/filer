@@ -95,14 +95,14 @@ function setup(callback) {
 
 function fs() {
   if(!_fs) {
-    throw 'TestUtil: call setup() before fs()';
+    throw new Error('TestUtil: call setup() before fs()');
   }
   return _fs;
 }
 
 function provider() {
   if(!_provider) {
-    throw 'TestUtil: call setup() before provider()';
+    throw new Error('TestUtil: call setup() before provider()');
   }
   return _provider;
 }
