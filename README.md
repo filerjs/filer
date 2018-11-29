@@ -563,10 +563,12 @@ Create a symbolic link to the file at `dstPath` containing the path `srcPath`. A
 Symbolic links are files that point to other paths.
 
 NOTE: Filer allows for, but ignores the optional `type` parameter used in node.js.
+The `srcPath` may be a relative path, which will be resolved relative to `dstPath`
 
 Example:
 
 ```javascript
+// Absolute path
 fs.symlink('/logs/august.log', '/logs/current', function(err) {
   if(err) throw err;
   fs.readFile('/logs/current', 'utf8', function(err, data) {
@@ -574,11 +576,21 @@ fs.symlink('/logs/august.log', '/logs/current', function(err) {
     var currentLog = data;
   });
 });
+
+// Relative path
+fs.symlink('../file', '/dir/symlink', function(err) {
+  if(err) throw err;
+  // The /dir/symlink file is now a symlink to /file
+});
 ```
 
 #### fs.readlink(path, callback)<a name="readlink"></a>
 
-Reads the contents of a symbolic link. Asynchronous [readlink(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/readlink.html). Callback gets `(error, linkContents)`, where `linkContents` is a string containing the symbolic link's link path.
+Reads the contents of a symbolic link. Asynchronous [readlink(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/readlink.html).
+Callback gets `(error, linkContents)`, where `linkContents` is a string
+containing the symbolic link's link path.  If the original `srcPath` given
+to `symlink()` was a relative path, it will be fully resolved relative
+to `dstPath` when returned by `readlink()`.
 
 Example:
 
