@@ -2,6 +2,8 @@
 
 [![Build Status](https://secure.travis-ci.org/filerjs/filer.png?branch=develop)](http://travis-ci.org/filerjs/filer)
 
+[![codecov](https://codecov.io/gh/filerjs/filer/branch/master/graph/badge.svg)](https://codecov.io/gh/filerjs/filer)
+
 ### Filer
 
 Filer is a POSIX-like file system interface for node.js and browser-based JavaScript.
