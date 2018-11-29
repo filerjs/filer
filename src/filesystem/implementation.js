@@ -2347,8 +2347,7 @@ function symlink(fs, context, srcpath, dstpath, type, callback) {
   callback = arguments[arguments.length - 1];
 
   // Special Case: allow srcpath to be relative, which we normally don't permit.
-  // If the srcpath is relative, we assume it's relative to the dirpath of 
-  // dstpath.
+  // If the srcpath is relative, we assume it's relative to the dirpath of dstpath.
   if(!pathCheck(srcpath, true, callback)) return;
   if(!pathCheck(dstpath, callback)) return;
 

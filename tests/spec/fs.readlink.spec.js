@@ -43,4 +43,32 @@ describe('fs.readlink', function() {
       });
     });
   });
+
+  it('should allow relative paths, but resolve to the dstpath', function(done) {
+    var fs = util.fs();
+    var contents = 'contents';
+
+    fs.mkdir('/dir', function(error) {
+      if(error) throw error;
+
+      fs.writeFile('/file', contents, function(error) {
+        if(error) throw error;
+
+        fs.symlink('../file', '/dir/symlink', function(error) {
+          if(error) throw error;
+
+          fs.readlink('/dir/symlink', function(error, result) {
+            expect(error).not.to.exist;
+            expect(result).to.equal('../file');
+
+            fs.readFile('/dir/symlink', 'utf8', function(error, data) {
+              expect(error).not.to.exist;
+              expect(data).to.equal(contents);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
 });
