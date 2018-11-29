@@ -9,18 +9,6 @@ function guid() {
 
 function nop() {}
 
-/**
- * Convert a Uint8Array to a regular array
- */
-function u8toArray(u8) {
-  var array = [];
-  var len = u8.length;
-  for(var i = 0; i < len; i++) {
-    array[i] = u8[i];
-  }
-  return array;
-}
-
 function validateInteger(value, name) {
   let err;
 
@@ -35,10 +23,8 @@ function validateInteger(value, name) {
   return value;
 }
 
-
 module.exports = {
   guid: guid,
-  u8toArray: u8toArray,
   nop: nop,
   validateInteger: validateInteger,
 };
