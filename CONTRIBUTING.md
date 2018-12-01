@@ -20,10 +20,11 @@ You can now run the following `npm` scripts:
 * `npm run lint` or `npm run eslint` will run `eslint` on the `src` and `tests` directories.
 * `npm run lint:fix` or `npm run eslint:fix` will run `eslint` with `--fix` on the `src` and `tests` directories, automatically fixing minor issues.
 * `npm run test:manual` will build the tests, and allow you to run them in a browser manually by loading http://localhost:1234.
-* `npm run karma-mocha` will build Filer and the tests, and finally run the tests in a headless Chrome browser.
+* `npm run karma-mocha` will build Filer and the tests, and finally run the tests in both headless Chrome and headless Firefox browsers.
+* `npm run karma-mocha-chrome` will build Filer and the tests, and finally run the tests in headless Chrome
+* `npm run karma-mocha-firefox` will build Filer and the tests, and finally run the tests in headless Firefox
 * `npm test` will run `lint` followed by `karma-chrome`, and is what we do on Travis.
 * `npm run build` will bundle two versions of Filer: `dist/filer.js` (unminified) and `dist/filer.min.js` (minified) as well as source map files.
-
 
 Once you've done some hacking and you'd like to have your work merged, you'll need to
 make a pull request. If your patch includes code, make sure to check that all the
