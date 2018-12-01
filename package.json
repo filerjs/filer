@@ -26,8 +26,13 @@
     "test": "npm run karma-mocha",
     "prebuild": "parcel build --global Filer src/index.js --no-minify --out-file filer.js",
     "build": "parcel build --global Filer src/index.js --out-file filer.min.js --detailed-report",
-    "prekarma-mocha": "parcel build tests/index.js --no-source-maps --out-dir tests/dist",
-    "karma-mocha": "karma start karma.conf.js",
+    "build-tests": "parcel build tests/index.js --no-source-maps --out-dir tests/dist",
+    "prekarma-mocha-firefox": "npm run build-tests",
+    "karma-mocha-firefox": "karma start karma.conf.js --browsers FirefoxHeadless",
+    "prekarma-mocha-chrome": "npm run build-tests",
+    "karma-mocha-chrome": "karma start karma.conf.js --browsers ChromeHeadless",
+    "prekarma-mocha": "npm run build-tests",
+    "karma-mocha": "karma start karma.conf.js --browsers ChromeHeadless,FirefoxHeadless",
     "coverage": "nyc mocha tests/index.js"
   },
   "repository": {
@@ -45,6 +50,7 @@
     "karma": "^3.0.0",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
+    "karma-firefox-launcher": "^1.1.0",
     "karma-mocha": "^1.3.0",
     "karma-mocha-reporter": "^2.2.5",
     "mocha": "^5.2.0",

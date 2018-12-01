@@ -37,7 +37,6 @@ var SuperNode = require('../super-node.js');
 var Node = require('../node.js');
 var Stats = require('../stats.js');
 var Buffer = require('../buffer.js');
-const { validateInteger } = require('../shared.js');
 
 /**
  * Update node times. Only passed times are modified (undefined times are ignored)
@@ -1269,12 +1268,6 @@ function truncate_file(context, path, length, callback) {
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
-      try {
-        validateInteger(length, 'len');
-      }
-      catch (error) {
-        return callback(error);
-      }
       var data = new Buffer(length);
       data.fill(0);
       if(fileData) {
@@ -1842,7 +1835,7 @@ function write(fs, context, fd, buffer, offset, length, position, callback) {
   } else if(!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else if(buffer.length - offset < length) {
-    callback(new Errors.EIO('intput buffer is too small'));
+    callback(new Errors.EIO('input buffer is too small'));
   } else {
     write_data(context, ofd, buffer, offset, length, position, callback);
   }
@@ -1928,6 +1921,15 @@ function exists(fs, context, path, callback) {
   }
   console.warn('This method is deprecated. For more details see https://nodejs.org/api/fs.html#fs_fs_exists_path_callback');// eslint-disable-line no-console
   stat(fs, context, path, cb);
+}
+
+function validateInteger(value, callback) {
+  if (typeof value !== 'number') {
+    callback(new Errors.EINVAL('Expected integer', value));
+    return;
+  }
+
+  return value;
 }
 
 // Based on https://github.com/nodejs/node/blob/c700cc42da9cf73af9fec2098520a6c0a631d901/lib/internal/validators.js#L21
@@ -2380,6 +2382,8 @@ function truncate(fs, context, path, length, callback) {
   length = length || 0;
 
   if(!pathCheck(path, callback)) return;
+  if(validateInteger(length, callback) !== length) return;
+
   truncate_file(context, path, length, callback);
 }
 
@@ -2394,6 +2398,7 @@ function ftruncate(fs, context, fd, length, callback) {
   } else if(!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
+    if(validateInteger(length, callback) !== length) return;
     ftruncate_file(context, ofd, length, callback);
   }
 }
