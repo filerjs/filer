@@ -131,12 +131,12 @@ describe('fs.promises.chown', function(){
 
   it('should allow updating uid and gid for a file', function() {
     var fsPromises = util.fs().promises;
-    return fsPromises.writeFile('/file', 'data')
-      .then(() => 
-        fsPromises.chown('/file', 500, 500))
-      .then(() => 
-        fsPromises.stat('/file'))
-      .then((stats) =>{
+
+    return fsPromises
+      .writeFile('/file', 'data')
+      .then(() => fsPromises.chown('/file', 500, 500))
+      .then(() => fsPromises.stat('/file'))
+      .then((stats) => {
         expect(stats.uid).to.equal(500);
         expect(stats.gid).to.equal(500);
       });

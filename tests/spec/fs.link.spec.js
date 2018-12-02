@@ -117,10 +117,20 @@ describe('fs.promises.link', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  it('should return a promise', function() {
-    var fsPromise = util.fs().promises;
-    var returnValue = fsPromise.link('/myfile', '/myotherfile');
-    expect(returnValue).to.be.a('promise');
+  it('should be a function', function(){
+    var fsPromises = util.fs().promises;
+    expect(fsPromises.link).to.be.a('function');
   });
 
+  it('should return a promise', function() {
+    var fsPromise = util.fs().promises;
+
+    var p = fsPromise
+      .writeFile('/myfile', '')
+      .then(() => fsPromise.link('/myfile', '/myotherfile'));
+    
+    expect(p).to.be.a('promise');
+    
+    return p;
+  });
 });
