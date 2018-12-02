@@ -38,8 +38,8 @@ describe('fs.fsync', function() {
         if(error) throw error;
 
         fs.fsync(fd, function(error) {
-          expect(error).to.not.exist;
-          fs.close(done);
+          expect(error).not.to.exist;
+          fs.close(fd, done);
         });
       });
     });

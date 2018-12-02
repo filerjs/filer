@@ -914,7 +914,22 @@ fs.open('/myfile.txt', function(err, fd) {
 
 #### fs.fsync(fd, callback)<a name="fsync"></a>
 
-NOTE: Not yet implemented, see https://github.com/filerjs/filer/issues/87
+Synchronize the data and metadata for the file referred to by `fd` to disk.
+Asynchronous [fsync(2)](http://man7.org/linux/man-pages/man2/fsync.2.html).
+The callback gets `(error)`.
+
+```js
+fs.open('/myfile', 'r', function(error, fd) {
+  if(err) throw err;
+
+  // Use fd, then sync
+
+  fs.fsync(fd, function(error) {
+    if(err) throw err;
+    fs.close(fd, done);
+  });
+});
+```
 
 #### fs.write(fd, buffer, offset, length, position, callback)<a name="write"></a>
 
