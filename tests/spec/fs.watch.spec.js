@@ -73,32 +73,34 @@ describe('fs.watch', function() {
         if(error) throw error;
       });
     });
+  });
 
-    it('should get a change event when a file hardlink is being watched and the original file is changed', function(done) {
-      var fs = util.fs();
+  // Bug to deal with this is filed at https://github.com/filerjs/filer/issues/594
+  it.skip('should get a change event when a hardlink is watched and the original file is changed', function(done) {
+    var fs = util.fs();
 
-      fs.writeFile('/myfile', 'data', function(error) {
+    fs.writeFile('/myfile', 'data', function(error) {
+      if(error) throw error;
+
+      fs.link('/myfile', '/hardlink', function(error) {
         if(error) throw error;
 
-        fs.link('/myfile', '/hardlink', function(error) {
-          if(error) throw error;
+        var watcher = fs.watch('/hardlink', function(event, filename) {
+          expect(event).to.equal('change');
+          expect(filename).to.equal('/hardlink');
 
-          var watcher = fs.watch('/hardlink', function(event, filename) {
-            expect(event).to.equal('change');
-            expect(filename).to.equal('/hardlink');
-            watcher.close();
-            done();
-          });
+          watcher.close();
 
-          fs.appendFile('/myfile', '...more data', function(error) {
+          fs.readFile('/hardlink', 'utf8', function(error, data) {
             if(error) throw error;
 
-            fs.readFile('/hardlink', 'utf8', function(error, data) {
-              if(error) throw error;
-
-              expect(data).to.equal('data...more data')
-            });
+            expect(data).to.equal('data...more data');
+            done();
           });
+        });
+
+        fs.appendFile('/myfile', '...more data', function(error) {
+          if(error) throw error;
         });
       });
     });
@@ -109,19 +111,19 @@ describe('fs.watch', function() {
 
     fs.writeFile('/myfile', 'data', function(error) {
       if(error) throw error;
-    });
 
-    //Normaly A 'rename' event should be thrown, but filer doesn't support that event at this time.
-    //For now renaming a file will throw a change event.
-    var watcher = fs.watch('/myfile', function(event, filename) {
-      expect(event).to.equal('change');
-      expect(filename).to.equal('/myfile');
-      watcher.close();
-      done();
-    });
+      //Normaly A 'rename' event should be thrown, but filer doesn't support that event at this time.
+      //For now renaming a file will throw a change event.
+      var watcher = fs.watch('/myfile', function(event, filename) {
+        expect(event).to.equal('change');
+        expect(filename).to.equal('/myfile');
+        watcher.close();
+        done();
+      });
 
-    fs.rename('/myfile', '/mynewfile', function(error) {
-      if(error) throw error;
+      fs.rename('/myfile', '/mynewfile', function(error) {
+        if(error) throw error;
+      });
     });
   });
 });
