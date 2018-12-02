@@ -1,4 +1,3 @@
-var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
@@ -12,7 +11,7 @@ describe('fs.close', function() {
   });
 
   it('should release the file descriptor', function(done) {
-    var buffer = new Filer.Buffer(0);
+    var buffer = Buffer.alloc(0);
     var fs = util.fs();
 
     fs.open('/myfile', 'w+', function(error, result) {

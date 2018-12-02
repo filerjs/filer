@@ -1,4 +1,3 @@
-var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
@@ -13,9 +12,8 @@ describe('fs.read', function() {
 
   it('should read data from a file', function(done) {
     var fs = util.fs();
-    var wbuffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
-    var rbuffer = new Filer.Buffer(wbuffer.length);
-    rbuffer.fill(0);
+    var wbuffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    var rbuffer = Buffer.alloc(wbuffer.length);
 
     fs.open('/myfile', 'w+', function(error, fd) {
       if(error) throw error;
@@ -35,9 +33,8 @@ describe('fs.read', function() {
 
   it('should update the current file position', function(done) {
     var fs = util.fs();
-    var wbuffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
-    var rbuffer = new Filer.Buffer(wbuffer.length);
-    rbuffer.fill(0);
+    var wbuffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    var rbuffer = Buffer.alloc(wbuffer.length);
     var _result = 0;
 
     fs.open('/myfile', 'w+', function(error, fd) {
@@ -66,10 +63,8 @@ describe('fs.read', function() {
 
   it('should fail to read a directory', function(done) {
     var fs = util.fs();
-    var buf = new Filer.Buffer(20);
-    var buf2 = new Filer.Buffer(20);
-    buf.fill(0);
-    buf2.fill(0);
+    var buf = Buffer.alloc(20);
+    var buf2 = Buffer.alloc(20);
 
     fs.mkdir('/mydir', function(error) {
       if(error) throw error;
@@ -92,8 +87,7 @@ describe('fs.read', function() {
     var fs = util.fs();
 
     var fd = 0;
-    var rbuffer = new Filer.Buffer(8);
-    rbuffer.fill(0);
+    var rbuffer = Buffer.alloc(8);
 
     fs.read(fd, rbuffer, 0, rbuffer.length, 0, function(error, result) {
       expect(error).to.exist;

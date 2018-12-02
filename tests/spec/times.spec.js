@@ -1,4 +1,3 @@
-var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
@@ -355,7 +354,7 @@ describe('node times (atime, mtime, ctime)', function() {
 
   it('should update atime, ctime, mtime when calling fs.write()', function(done) {
     var fs = util.fs();
-    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     createTree(function() {
       fs.open('/myfile', 'w', function(error, fd) {
@@ -384,7 +383,7 @@ describe('node times (atime, mtime, ctime)', function() {
 
   it('should make no change when calling fs.read()', function(done) {
     var fs = util.fs();
-    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     createTree(function() {
       fs.open('/myfile', 'w', function(err, fd) {
@@ -401,8 +400,8 @@ describe('node times (atime, mtime, ctime)', function() {
               if(error) throw error;
 
               stat('/myfile', function(stats1) {
-                var buffer2 = new Filer.Buffer(buffer.length);
-                buffer2.fill(0);
+                var buffer2 = Buffer.alloc(buffer.length);
+
                 fs.read(fd, buffer2, 0, buffer2.length, 0, function(err, nbytes) {
                   if(err) throw err;
                   expect(nbytes).to.equal(buffer2.length);

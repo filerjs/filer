@@ -44,8 +44,8 @@ describe('fs.ftruncate', function() {
 
   it('should truncate a file', function(done) {
     let fs = util.fs();
-    let buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
-    let truncated = new Buffer([1, 2]);
+    let buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    let truncated = Buffer.from([1, 2]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
@@ -76,7 +76,7 @@ describe('fs.ftruncate', function() {
 
   it('should truncate a valid descriptor', function(done) {
     var fs = util.fs();
-    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
@@ -102,8 +102,8 @@ describe('fs.ftruncate', function() {
 
   it('should pad a file with zeros when the length is greater than the file size', function(done) {
     let fs = util.fs();
-    let buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
-    let truncated = new Buffer([1, 2, 3, 4, 5, 6, 7, 8, 0]);
+    let buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    let truncated = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8, 0]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
@@ -133,7 +133,7 @@ describe('fs.ftruncate', function() {
 
   it('should assume a length of 0 if passed undefined', function(done) {
     var fs = util.fs();
-    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
@@ -163,7 +163,7 @@ describe('fs.ftruncate', function() {
 
   it('should update the file size', function(done) {
     var fs = util.fs();
-    var buffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;

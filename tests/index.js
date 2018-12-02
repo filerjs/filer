@@ -5,6 +5,7 @@
 
 // Filer
 require('./spec/filer.spec');
+require('./spec/filer.buffer.spec.js');
 
 // Filer.FileSystem.*
 require('./spec/filer.filesystem.spec');
