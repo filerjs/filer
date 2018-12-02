@@ -59,7 +59,18 @@ describe('fs.readdir', function() {
     var fsPromises = util.fs().promises;
     expect(fsPromises.readdir).to.be.a('function');
   });
-  
+
+  it('should return an error if the path is a file', function() {
+    var fsPromises = util.fs().promises;
+
+    return fsPromises.writeFile('/myfile', 'contents')
+      .then(() => fsPromises.readdir('/myfile'))
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('ENOTDIR');
+      });
+  });
+
   it('(promise) should return a list of files from an existing directory', function() {
     var fsPromises = util.fs().promises;
 
@@ -78,29 +89,6 @@ describe('fs.readdir', function() {
         expect(files).to.exist;
         expect(files.length).to.equal(1);
         expect(files[0]).to.equal('tmp');
-      })
-      .catch(error => {
-        expect(error).not.to.exist;
-      });
-  });
-});
-
-/**
- * fsPromises tests
- */
-
-describe('fsPromises.readdir', function() {
-  beforeEach(util.setup);
-  afterEach(util.cleanup);
-
-  it('should return an error if the path is a file', function() {
-    var fsPromises = util.fs().promises;
-
-    return fsPromises.writeFile('/myfile', 'contents')
-      .then(() => fsPromises.readdir('/myfile'))
-      .catch(error => {
-        expect(error).to.exist;
-        expect(error.code).to.equal('ENOTDIR');
       });
   });
 });

@@ -91,24 +91,12 @@ describe('fsPromise.chmod', function() {
     expect(typeof fsPromise.chmod).to.equal('function');
   });
 
-  it('should return a promise', function() {
-    var fsPromise = util.fs().promises;
-    expect(fsPromise.chmod()).to.be.a('Promise');
-  });
-
   it('should allow for updating mode of a given file', function() {
     var fsPromise = util.fs().promises;
 
     return fsPromise.open('/file', 'w')
-      .then( () => {
-        return fsPromise.chmod('/file', 0o444);
-      })
-      .then( () => {
-        return fsPromise.stat('/file');
-      })
-      .then( stats => {
-        expect(stats.mode & 0o444).to.equal(0o444);
-      })
-      .catch( err => { throw err; });
+      .then(() => fsPromise.chmod('/file', 0o444))
+      .then(() => fsPromise.stat('/file'))
+      .then(stats => expect(stats.mode & 0o444).to.equal(0o444));
   });
 });

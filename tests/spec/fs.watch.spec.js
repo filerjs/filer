@@ -5,7 +5,7 @@ describe('fs.watch', function() {
   // Our watch infrastucture is dependent on document.localStorage
   // see lib/intercom.js. Bail if we don't have access to it.
   before(function() {
-    if(!(global.document && global.document.localStorage)) {
+    if(typeof global.localStorage === 'undefined') {
       /* eslint no-console: 0 */
       console.log('Skipping fs.watch() tests--not supported in current environment.');
       this.skip();
