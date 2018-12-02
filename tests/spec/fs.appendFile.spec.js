@@ -70,9 +70,9 @@ describe('fs.appendFile', function() {
     var fs = util.fs();
 
     // String and utf8 binary encoded versions of the same thing: 'This is a file.'
-    var binary = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
-    var binary2 = new Buffer([32, 65, 112, 112, 101, 110, 100, 101, 100, 46]);
-    var binary3 = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46,
+    var binary = Buffer.from([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
+    var binary2 = Buffer.from([32, 65, 112, 112, 101, 110, 100, 101, 100, 46]);
+    var binary3 = Buffer.from([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46,
       32, 65, 112, 112, 101, 110, 100, 101, 100, 46]);
 
     fs.writeFile('/mybinaryfile', binary, function(error) {

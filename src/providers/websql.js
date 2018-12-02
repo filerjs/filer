@@ -4,7 +4,6 @@ var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
 var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
 var WSQL_DESC = require('../constants.js').WSQL_DESC;
 var Errors = require('../errors.js');
-var FilerBuffer = require('../buffer.js');
 var base64ArrayBuffer = require('base64-arraybuffer');
 
 function WebSQLContext(db, isReadOnly) {
@@ -75,7 +74,7 @@ WebSQLContext.prototype.getBuffer = function(key, callback) {
     // Deal with zero-length ArrayBuffers, which will be encoded as ''
     if(result || result === '') {
       var arrayBuffer = base64ArrayBuffer.decode(result);
-      result = new FilerBuffer(arrayBuffer);
+      result = Buffer.from(arrayBuffer);
     }
 
     callback(null, result);

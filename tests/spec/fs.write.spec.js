@@ -1,4 +1,3 @@
-var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
@@ -13,7 +12,7 @@ describe('fs.write', function() {
 
   it('should write data to a file', function(done) {
     var fs = util.fs();
-    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, fd) {
       if(error) throw error;
@@ -34,7 +33,7 @@ describe('fs.write', function() {
 
   it('should update the current file position', function(done) {
     var fs = util.fs();
-    var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
     var _result = 0;
 
     fs.open('/myfile', 'w', function(error, fd) {

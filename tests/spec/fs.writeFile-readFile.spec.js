@@ -80,7 +80,7 @@ describe('fs.writeFile, fs.readFile', function() {
   it('should write, read a binary file', function(done) {
     var fs = util.fs();
     // String and utf8 binary encoded versions of the same thing: 'This is a file.'
-    var binary = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
+    var binary = Buffer.from([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
     fs.writeFile('/myfile', binary, function(error) {
       if(error) throw error;
@@ -180,7 +180,7 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
   it('should write, read a binary file', function() {
     var fsPromises = util.fs().promises;
     // String and utf8 binary encoded versions of the same thing: 'This is a file.'
-    var binary = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
+    var binary = Buffer.from([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
     return fsPromises.writeFile('/myfile', binary)
       .then( () => fsPromises.readFile('/myfile'))

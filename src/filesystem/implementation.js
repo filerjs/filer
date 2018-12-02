@@ -36,7 +36,6 @@ var OpenFileDescription = require('../open-file-description.js');
 var SuperNode = require('../super-node.js');
 var Node = require('../node.js');
 var Stats = require('../stats.js');
-var Buffer = require('../buffer.js');
 
 /**
  * Update node times. Only passed times are modified (undefined times are ignored)
@@ -672,8 +671,7 @@ function open_file(context, path, flags, mode, callback) {
     if(error) {
       callback(error);
     } else {
-      fileData = new Buffer(0);
-      fileData.fill(0);
+      fileData = Buffer.alloc(0);
       context.putBuffer(fileNode.data, fileData, update_directory_data);
     }
   }
@@ -738,8 +736,8 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
       callback(error);
     } else {
       fileNode = result;
-      var newData = new Buffer(length);
-      newData.fill(0);
+
+      var newData = Buffer.alloc(length);
       buffer.copy(newData, 0, offset, offset + length);
       ofd.position = length;
 
@@ -792,8 +790,7 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       }
       var _position = (!(undefined === position || null === position)) ? position : ofd.position;
       var newSize = Math.max(fileData.length, _position + length);
-      var newData = new Buffer(newSize);
-      newData.fill(0);
+      var newData = Buffer.alloc(newSize);
       if(fileData) {
         fileData.copy(newData);
       }
@@ -1268,8 +1265,7 @@ function truncate_file(context, path, length, callback) {
       if(!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
-      var data = new Buffer(length);
-      data.fill(0);
+      var data = Buffer.alloc(length);
       if(fileData) {
         fileData.copy(data);
       }
@@ -1328,8 +1324,7 @@ function ftruncate_file(context, ofd, length, callback) {
       if(fileData) {
         data = fileData.slice(0, length);
       } else {
-        data = new Buffer(length);
-        data.fill(0);
+        data = Buffer.alloc(length);
       }
       context.putBuffer(fileNode.data, data, update_file_node);
     }
@@ -1802,8 +1797,7 @@ function readFile(fs, context, path, options, callback) {
       }
 
       var size = stats.size;
-      var buffer = new Buffer(size);
-      buffer.fill(0);
+      var buffer = Buffer.alloc(size);
 
       read_data(context, ofd, buffer, 0, size, 0, function(err) {
         cleanup();

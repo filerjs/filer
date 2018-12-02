@@ -213,7 +213,28 @@ When in a node.js environment, native `Buffer`s can be used, or Filer.Buffer, wh
 to node's `Buffer`.  In a browser, you can use also use `Filer.Buffer`.
 
 NOTE: a `Filer.Buffer` in a browser is really an augmented `Uint8Array` (i.e., the node `Buffer` api
-methods are added to the instance). See https://github.com/feross/buffer for more details. Additionally, unlike native `Buffer`, `Filer.Buffer`'s constructor can accept `ArrayBuffer` objects, which will be interpreted as `Uint8Array`s.
+methods are added to the instance). See https://github.com/feross/buffer for more details.
+
+NOTE: `Filer.Buffer` currently includes the older, deprecated [constructor functions](https://nodejs.org/api/buffer.html#buffer_new_buffer_array), but these will be removed
+at some point.  You are encouraged to switch to use the newer class methods `Buffer.from()`
+and `Buffer.alloc()`.  See the [node.js Buffer docs](https://nodejs.org/api/buffer.html).
+
+```js
+/* Deprecated - see https://nodejs.org/api/buffer.html#buffer_new_buffer_array */
+new Buffer(array)
+new Buffer(arrayBuffer[, byteOffset[, length]])
+new Buffer(buffer)
+new Buffer(string[, encoding])
+new Buffer(size)
+
+/* Use Instead */
+Buffer.from(array)
+Buffer.from(arrayBuffer[, byteOffset[, length]])
+Buffer.from(buffer)
+Buffer.from(string[, encoding])
+Buffer.alloc(size)
+Buffer.allocUnsafe(size)
+```
 
 #### Filer.Path<a name="FilerPath"></a>
 
@@ -357,7 +378,7 @@ Example:
 
 ```javascript
 // Create a file, shrink it, expand it.
-var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+var buffer = Filer.Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
 fs.open('/myfile', 'w', function(err, fd) {
   if(err) throw error;
@@ -388,7 +409,7 @@ Example:
 
 ```javascript
 // Create a file, shrink it, expand it.
-var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+var buffer = Filer.Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
 fs.open('/myfile', 'w', function(err, fd) {
   if(err) throw error;
@@ -905,7 +926,7 @@ Example:
 
 ```javascript
 // Create a file with the following bytes.
-var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+var buffer = Filer.Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
 fs.open('/myfile', 'w', function(err, fd) {
   if(err) throw error;
@@ -950,7 +971,7 @@ fs.open('/myfile', 'r', function(err, fd) {
 
     // Create a buffer large enough to hold the file's contents
     var nbytes = expected = stats.size;
-    var buffer = new Filer.Buffer(nbytes);
+    var buffer = Filer.Buffer.alloc(nbytes);
     var read = 0;
 
     function readBytes(offset, position, length) {
@@ -1008,7 +1029,7 @@ fs.writeFile('/myfile.txt', "...data...", function (err) {
 });
 
 // Write binary file
-var buffer = new Filer.Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+var buffer = Filer.Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 fs.writeFile('/myfile', buffer, function (err) {
   if (err) throw err;
 });
@@ -1031,8 +1052,8 @@ fs.appendFile('/myfile.txt', "Data...", function (err) {
 // '/myfile.txt' would now read out 'More...Data...'
 
 // Append binary file
-var data = new Filer.Buffer([1, 2, 3, 4]);
-var more = new Filer.Buffer([5, 6, 7, 8]);
+var data = Filer.Buffer.from([1, 2, 3, 4]);
+var more = Filer.Buffer.from([5, 6, 7, 8]);
 
 fs.writeFile('/myfile', data, function (err) {
   if (err) throw err;

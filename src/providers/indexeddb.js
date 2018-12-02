@@ -2,7 +2,6 @@ var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var IDB_RW = require('../constants.js').IDB_RW;
 var IDB_RO = require('../constants.js').IDB_RO;
-var FilerBuffer = require('../buffer.js');
 
 var indexedDB = global.indexedDB       ||
                 global.mozIndexedDB    ||
@@ -64,7 +63,7 @@ IndexedDBContext.prototype.getBuffer = function(key, callback) {
     if(err) {
       return callback(err);
     }
-    callback(null, new FilerBuffer(arrayBuffer));
+    callback(null, Buffer.from(arrayBuffer));
   });
 };
 

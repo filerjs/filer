@@ -1,6 +1,5 @@
 /* eslint no-console: 0 */
 
-var Buffer = require('../../../src').Buffer;
 var util = require('../../lib/test-utils.js');
 var expect = require('chai').expect;
 
@@ -77,8 +76,7 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
         if(error) throw error;
 
         var context = provider.getReadWriteContext();
-        // Filer Buffer
-        var buf = new Buffer([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        var buf = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
         context.putBuffer('key', buf, function(error) {
           if(error) throw error;
 
@@ -97,8 +95,8 @@ module.exports = function createProviderTestsFor(providerName, testProvider) {
         if(error) throw error;
 
         var context = provider.getReadWriteContext();
-        // Zero-length Filer Buffer
-        var buf = new Buffer(new ArrayBuffer(0));
+        // Zero-length Buffer
+        var buf = Buffer.alloc(0);
         context.putBuffer('key', buf, function(error) {
           if(error) throw error;
 
