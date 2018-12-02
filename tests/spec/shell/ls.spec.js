@@ -14,7 +14,7 @@ describe('FileSystemShell.ls', function() {
     var fs = util.fs();
     var shell = new fs.Shell();
 
-    shell.cat(null, function(error, list) {
+    shell.ls(null, function(error, list) {
       expect(error).to.exist;
       expect(error.code).to.equal('EINVAL');
       expect(list).not.to.exist;
