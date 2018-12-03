@@ -1,238 +1,49 @@
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
+/**
+ * Patch process to add process.cwd(), always giving the root dir.
+ * NOTE: this line needs to happen *before* we require in `path`.
+ */
+process.cwd = () => '/';
 
-// Based on https://github.com/joyent/node/blob/41e53e557992a7d552a8e23de035f9463da25c99/lib/path.js
+/**
+ * https://github.com/browserify/path-browserify via Parcel.
+ * We use is as a base for our own Filer.Path, and patch/add
+ * a few things we need for the browser environment.
+ */
+const nodePath = require('path');
+const filerPath = Object.create(nodePath);
 
-// resolves . and .. elements in a path array with directory names there
-// must be no slashes, empty elements, or device names (c:\) in the array
-// (so also no leading and trailing slashes - it does not distinguish
-// relative and absolute paths)
-function normalizeArray(parts, allowAboveRoot) {
-  // if the path tries to go above the root, `up` ends up > 0
-  var up = 0;
-  for (var i = parts.length - 1; i >= 0; i--) {
-    var last = parts[i];
-    if (last === '.') {
-      parts.splice(i, 1);
-    } else if (last === '..') {
-      parts.splice(i, 1);
-      up++;
-    } else if (up) {
-      parts.splice(i, 1);
-      up--;
-    }
-  }
-
-  // if the path is allowed to go above the root, restore leading ..s
-  if (allowAboveRoot) {
-    for (; up--; up) {
-      parts.unshift('..');
-    }
-  }
-
-  return parts;
-}
-
-// Split a filename into [root, dir, basename, ext], unix version
-// 'root' is just a slash, or nothing.
-var splitPathRe =
-      /^(\/?)([\s\S]+\/(?!$)|\/)?((?:\.{1,2}$|[\s\S]+?)?(\.[^./]*)?)$/;
-var splitPath = function(filename) {
-  var result = splitPathRe.exec(filename);
-  return [result[1] || '', result[2] || '', result[3] || '', result[4] || ''];
+/**
+ * Patch path.basename() to return / vs. ''
+ */
+filerPath.basename = (path, ext) => {
+  const basename = nodePath.basename(path, ext);
+  return basename === '' ? '/' : basename;
 };
 
-// path.resolve([from ...], to)
-function resolve() {
-  var resolvedPath = '',
-    resolvedAbsolute = false;
+/**
+ * Patch path.normalize() to not add a trailing /
+ */
+filerPath.normalize = (path) => {
+  path = nodePath.normalize(path);
+  return path === '/' ? path : filerPath.removeTrailing(path);
+};
 
-  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    // XXXfiler: we don't have process.cwd() so we use '/' as a fallback
-    var path = (i >= 0) ? arguments[i] : '/';
+/**
+ * Add new utility method isNull() to path: check for null paths.
+ */
+filerPath.isNull = path => ('' + path).indexOf('\u0000') !== -1;
 
-    // Skip empty and invalid entries
-    if (typeof path !== 'string' || !path) {
-      continue;
-    }
+/**
+ * Add new utility method addTrailing() to add trailing / without doubling to //.
+ */
+filerPath.addTrailing = path => path.replace(/\/*$/, '/');
 
-    resolvedPath = path + '/' + resolvedPath;
-    resolvedAbsolute = path.charAt(0) === '/';
-  }
-
-  // At this point the path should be resolved to a full absolute path, but
-  // handle relative paths to be safe (might happen when process.cwd() fails)
-
-  // Normalize the path
-  resolvedPath = normalizeArray(resolvedPath.split('/').filter(function(p) {
-    return !!p;
-  }), !resolvedAbsolute).join('/');
-
-  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-}
-
-// path.normalize(path)
-function normalize(path) {
-  var isAbsolute = path.charAt(0) === '/';
-
-  // Normalize the path
-  path = normalizeArray(path.split('/').filter(function(p) {
-    return !!p;
-  }), !isAbsolute).join('/');
-
-  if (!path && !isAbsolute) {
-    path = '.';
-  }
-  /*
-   if (path && trailingSlash) {
-   path += '/';
-   }
-   */
-
-  return (isAbsolute ? '/' : '') + path;
-}
-
-function join() {
-  var paths = Array.prototype.slice.call(arguments, 0);
-  return normalize(paths.filter(function(p) {
-    return p && typeof p === 'string';
-  }).join('/'));
-}
-
-// path.relative(from, to)
-function relative(from, to) {
-  from = resolve(from).substr(1);
-  to = resolve(to).substr(1);
-
-  function trim(arr) {
-    var start = 0;
-    for (; start < arr.length; start++) {
-      if (arr[start] !== '') break;
-    }
-
-    var end = arr.length - 1;
-    for (; end >= 0; end--) {
-      if (arr[end] !== '') break;
-    }
-
-    if (start > end) return [];
-    return arr.slice(start, end - start + 1);
-  }
-
-  var fromParts = trim(from.split('/'));
-  var toParts = trim(to.split('/'));
-
-  var length = Math.min(fromParts.length, toParts.length);
-  var samePartsLength = length;
-  for (var i = 0; i < length; i++) {
-    if (fromParts[i] !== toParts[i]) {
-      samePartsLength = i;
-      break;
-    }
-  }
-
-  var outputParts = [];
-  for (i = samePartsLength; i < fromParts.length; i++) {
-    outputParts.push('..');
-  }
-
-  outputParts = outputParts.concat(toParts.slice(samePartsLength));
-
-  return outputParts.join('/');
-}
-
-function dirname(path) {
-  var result = splitPath(path),
-    root = result[0],
-    dir = result[1];
-
-  if (!root && !dir) {
-    // No dirname whatsoever
-    return '.';
-  }
-
-  if (dir) {
-    // It has a dirname, strip trailing slash
-    dir = dir.substr(0, dir.length - 1);
-  }
-
-  return root + dir;
-}
-
-function basename(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
-  if (ext && f.substr(-1 * ext.length) === ext) {
-    f = f.substr(0, f.length - ext.length);
-  }
-  // XXXfiler: node.js just does `return f`
-  return f === '' ? '/' : f;
-}
-
-function extname(path) {
-  return splitPath(path)[3];
-}
-
-function isAbsolute(path) {
-  if(path.charAt(0) === '/') {
-    return true;
-  }
-  return false;
-}
-
-function isNull(path) {
-  if (('' + path).indexOf('\u0000') !== -1) {
-    return true;
-  }
-  return false;
-}
-
-// Make sure we don't double-add a trailing slash (e.g., '/' -> '//')
-function addTrailing(path) {
-  return path.replace(/\/*$/, '/');
-}
-
-// Deal with multiple slashes at the end, one, or none
-// and make sure we don't return the empty string.
-function removeTrailing(path) {
+/**
+ * Add new utility method removeTrailing() to remove trailing /, dealing with multiple
+ */
+filerPath.removeTrailing = path => {
   path = path.replace(/\/*$/, '');
   return path === '' ? '/' : path;
-}
-
-// XXXfiler: we don't support path.exists() or path.existsSync(), which
-// are deprecated, and need a FileSystem instance to work. Use fs.stat().
-
-module.exports = {
-  normalize: normalize,
-  resolve: resolve,
-  join: join,
-  relative: relative,
-  sep: '/',
-  delimiter: ':',
-  dirname: dirname,
-  basename: basename,
-  extname: extname,
-  isAbsolute: isAbsolute,
-  isNull: isNull,
-  // Non-node but useful...
-  addTrailing: addTrailing,
-  removeTrailing: removeTrailing
 };
+
+module.exports = filerPath;
