@@ -439,15 +439,17 @@ function make_directory(context, path, callback) {
 
 function access_file(context, path, mode, callback) {
   path = normalize(path);
-  find_node(context, path, function (err) {
+  find_node(context, path, function (err, node) {
     if (err) {
       return callback(err);
     }
-    /* 
-    TODO: we currently only support Constants.fsConstants.F_OK
-    Working to fix the issue: https://github.com/filerjs/filer/issues/561
-    */
-    callback(null);
+    if(mode === Constants.F_OK){
+      return callback(null);
+    }
+    if (!(mode & Constants.X_OK) || (node.mode & (Constants.fsConstants.S_IXUSR | Constants.fsConstants.S_IXGRP | Constants.fsConstants.S_IXOTH))){
+      return callback(null);
+    }
+    callback(new Errors.EACCES('permission denied',path)) ; 
   });
 }
 
@@ -1687,7 +1689,7 @@ function access(fs, context, path, mode, callback) {
   }
 
   if (!pathCheck(path, callback)) return;
-  mode = mode | 0;
+  mode = mode | Constants.fsConstants.F_OK;
   access_file(context, path, mode, callback);
 }
 

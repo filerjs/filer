@@ -7,7 +7,7 @@ var errors = {};
   //'0:OK:success',
   //'1:EOF:end of file',
   //'2:EADDRINFO:getaddrinfo error',
-  //'3:EACCES:permission denied',
+  '3:EACCES:permission denied',
   //'4:EAGAIN:resource temporarily unavailable',
   //'5:EADDRINUSE:address already in use',
   //'6:EADDRNOTAVAIL:address not available',
