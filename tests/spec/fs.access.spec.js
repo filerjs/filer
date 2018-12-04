@@ -62,6 +62,7 @@ describe('fs.access', function () {
     });
   });
 
+  // See bug https://github.com/filerjs/filer/issues/602
   it.skip('should return an error if file is not executable and mode = X_OK', function (done) {
     var fs = util.fs();
     var contents = 'This is a file.';

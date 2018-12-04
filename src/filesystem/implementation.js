@@ -448,9 +448,9 @@ function access_file(context, path, mode, callback) {
     if(mode === Constants.F_OK){
       return callback(null);
     }
-    if (!(mode & Constants.X_OK) || (node.mode & (Constants.fsConstants.S_IXUSR | Constants.fsConstants.S_IXGRP | Constants.fsConstants.S_IXOTH)))
+    if (!(mode & Constants.X_OK) || (node.mode & (Constants.fsConstants.S_IXUSR | Constants.fsConstants.S_IXGRP | Constants.fsConstants.S_IXOTH))){
       return callback(null);
-
+    }
     callback(new Errors.EACCES('permission denied',path)) ; 
   });
 }
