@@ -1925,7 +1925,6 @@ function exists(fs, context, path, callback) {
   function cb(err) {
     callback(err ? false : true);
   }
-  console.warn('This method is deprecated. For more details see https://nodejs.org/api/fs.html#fs_fs_exists_path_callback');// eslint-disable-line no-console
   stat(fs, context, path, cb);
 }
 
