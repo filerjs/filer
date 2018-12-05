@@ -140,6 +140,16 @@ function typedArrayEqual(a, b) {
   return true;
 }
 
+/**
+ * Parse JSON with serialized Buffers
+ */
+const parseBJSON = json =>
+  JSON.parse(json, (key, value) =>
+    value && value.type === 'Buffer' ?
+      Buffer.from(value.data) :
+      value
+  );
+
 module.exports = {
   uniqueName: uniqueName,
   setup: setup,
@@ -152,5 +162,6 @@ module.exports = {
     Memory: MemoryTestProvider
   },
   cleanup: cleanup,
-  typedArrayEqual: typedArrayEqual
+  typedArrayEqual: typedArrayEqual,
+  parseBJSON
 };
