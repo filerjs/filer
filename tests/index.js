@@ -51,6 +51,7 @@ require('./spec/providers/providers.spec');
 require('./spec/providers/providers.indexeddb.spec');
 require('./spec/providers/providers.websql.spec');
 require('./spec/providers/providers.memory.spec');
+require('./spec/providers/import-export-provider.spec');
 
 // Filer.FileSystemShell.*
 require('./spec/shell/cd.spec');
