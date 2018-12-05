@@ -1,7 +1,7 @@
 const MemoryProvider = require('../../src/providers/memory');
 const { parseBJSON } = require('../lib/test-utils');
 
-class ImportExportProvider extends MemoryProvider {
+class SerializableMemoryProvider extends MemoryProvider {
 
   constructor(name, jsonImage) {
     super(name);
@@ -33,4 +33,4 @@ class ImportExportProvider extends MemoryProvider {
   }
 }
 
-module.exports = ImportExportProvider;
+module.exports = SerializableMemoryProvider;

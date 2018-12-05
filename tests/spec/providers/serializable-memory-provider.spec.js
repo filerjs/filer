@@ -1,8 +1,8 @@
 var { uniqueName, parseBJSON } = require('../../lib/test-utils.js');
-var ImportExportProvider = require('../../lib/import-export-provider');
+var SerializableMemoryProvider = require('../../lib/serializable-memory-provider');
 var expect = require('chai').expect;
 
-describe('Filer Provider Tests for ImportExportProvider', function() {
+describe('Filer Provider Tests for SerializableMemoryProvider', function() {
   var provider;
 
   /**
@@ -21,7 +21,7 @@ describe('Filer Provider Tests for ImportExportProvider', function() {
   }
 
   beforeEach(function() {
-    provider = new ImportExportProvider(uniqueName(), buildImageJSON());
+    provider = new SerializableMemoryProvider(uniqueName(), buildImageJSON());
   });
 
   afterEach(function() {
