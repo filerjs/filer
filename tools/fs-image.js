@@ -2,10 +2,13 @@
 
 /* eslint-disable no-console */
 'use strict';
+
+// Filer's path messes with process.cwd(), cache the real one
+const cwd = process.cwd();
+
 const meow = require('meow');
 const path = require('path');
 const fs = require('fs');
-const Filer = require('../');
 const SerializableMemoryProvider = require('../tests/lib/serializable-memory-provider');
 const unusedFilename = require('unused-filename');
 const prettyBytes = require('pretty-bytes');
@@ -13,18 +16,28 @@ const walk = require('walk');
 
 const cli = meow(`
 	Usage
-    $ fs-image <input-dir> [<output-filename>] [--verbose]
+    $ fs-image <input-dir> [<output-filename>] [--verbose] [--filer path/to/filer.js]
 
-    Examples
-	  $ fs-image files/ files.json
-	  $ fs-image files/
-	  $ fs-image files/ existing.json --verbose
+  Options
+    --filer, -f    Specify a Filer module path to use. Defaults to current.
+    --verbose, -v  Verbose logging
+
+  Examples
+    $ fs-image files/ files.json
+    $ fs-image files/
+    $ fs-image files/ existing.json --verbose
+    $ fs-image files/ --filer ./versions/filer-0.44.js
 `, {
   description: 'Create a Filer Filesystem Image from a directory',
   flags: {
     verbose: {
       type: 'boolean',
+      alias: 'v',
       default: false
+    },
+    filer: {
+      type: 'string',
+      alias: 'f'
     }
   }
 });
@@ -36,15 +49,32 @@ if(!(cli.input && cli.input.length >= 1)) {
   process.exit(1);
 }
 
-const dirPath = path.normalize(cli.input[0]);
-const exportFilePath = cli.input[1] ? path.normalize(cli.input[1]) : null;
 const verbose = cli.flags.verbose;
-
 const log = msg => {
   if(verbose) {
     console.log(msg);
   }
 };
+
+// Load the version of Filer specified, or use current version in tree.
+let filerModulePath;
+if(cli.flags.filer) {
+  filerModulePath = path.resolve(cwd, filerModulePath);
+} else {
+  filerModulePath = '../';
+}
+
+let Filer;
+try {
+  Filer = require(filerModulePath);
+  log(`Using Filer module at path ${filerModulePath}`);
+} catch(e) {
+  console.error(`Unable to load Filer module at ${filerModulePath}: ${e.message}`);
+  process.exit(1);
+}
+
+const dirPath = path.normalize(cli.input[0]);
+const exportFilePath = cli.input[1] ? path.normalize(cli.input[1]) : null;
 
 fs.stat(dirPath, (err, stats) => {
   if(!(stats && stats.isDirectory())) {
