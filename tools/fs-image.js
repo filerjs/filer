@@ -1,0 +1,150 @@
+#!/usr/bin/env node
+
+/* eslint-disable no-console */
+'use strict';
+const meow = require('meow');
+const path = require('path');
+const fs = require('fs');
+const Filer = require('../');
+const SerializableMemoryProvider = require('../tests/lib/serializable-memory-provider');
+const unusedFilename = require('unused-filename');
+const prettyBytes = require('pretty-bytes');
+const walk = require('walk');
+
+const cli = meow(`
+	Usage
+    $ fs-image <input-dir> [<output-filename>] [--verbose]
+
+    Examples
+	  $ fs-image files/ files.json
+	  $ fs-image files/
+	  $ fs-image files/ existing.json --verbose
+`, {
+  description: 'Create a Filer Filesystem Image from a directory',
+  flags: {
+    verbose: {
+      type: 'boolean',
+      default: false
+    }
+  }
+});
+
+// Get arg list, make sure we get a dir path argument
+cli.flags.app = cli.input.slice(1);
+if(!(cli.input && cli.input.length >= 1)) {
+  console.error('Specify a directory path to use as the image source');
+  process.exit(1);
+}
+
+const dirPath = path.normalize(cli.input[0]);
+const exportFilePath = cli.input[1] ? path.normalize(cli.input[1]) : null;
+const verbose = cli.flags.verbose;
+
+const log = msg => {
+  if(verbose) {
+    console.log(msg);
+  }
+};
+
+fs.stat(dirPath, (err, stats) => {
+  if(!(stats && stats.isDirectory())) {
+    console.error(`Expected existing directory for dirpath: ${dirPath}`);
+    process.exit(1);
+  }
+
+  const provider = new SerializableMemoryProvider();
+  const filer = new Filer.FileSystem({provider: provider});
+  const walker = walk.walk(dirPath);
+
+  // Convert a filesystem path into a Filer path, rooted in /
+  const toFilerPath = fsPath => path.join('/', fsPath.replace(dirPath, ''));
+
+  // Write a file to Filer, including various metadata from the file node
+  const filerWriteFile = (filerPath, stats, data, callback) => {
+    const error = err => console.error(`[Filer] ${err}`);
+    // Convert date to ms
+    const toDateMS = d => (new Date(d)).getTime();
+
+    const mode = stats.mode;
+
+    filer.writeFile(filerPath, data, { mode }, (err) => {
+      if(err) {
+        error(`Error writing ${filerPath}: ${err.message}`);
+        return callback(err);
+      }
+
+      const uid = stats.uid;
+      const gid = stats.gid;
+
+      filer.chown(filerPath, stats.uid, stats.gid, err => {
+        if(err) {
+          error(`Error writing ${filerPath}: ${err.message}`);
+          return callback(err);
+        }
+
+        const atime = toDateMS(stats.atime);
+        const mtime = toDateMS(stats.mtime);
+
+        filer.utimes(filerPath, atime, mtime, err => {
+          if(err) {
+            error(`Error writing ${filerPath}: ${err.message}`);
+            return callback(err);
+          }
+
+          log(`  File Node: mode=${mode} uid=${uid} gid=${gid} atime=${atime} mtime=${mtime}`);
+          callback();
+        });
+      });
+    });
+  };
+
+  walker.on('file', (root, fileStats, next) => {
+    const filePath = path.join(root, fileStats.name);
+    const filerPath = toFilerPath(filePath);
+    log(`Writing file ${filePath} to ${filerPath} [${prettyBytes(fileStats.size)}]`);
+
+    fs.readFile(filePath, null, (err, data) => {
+      if(err) {
+        console.error(`Error reading file ${filePath}: ${err.message}`);
+        return next(err);
+      }
+
+      filerWriteFile(filerPath, stats, data, next);
+    });
+  });
+
+  walker.on('directory', (root, dirStats, next) => {
+    const dirPath = path.join(root, dirStats.name);
+    const filerPath = toFilerPath(dirPath);
+
+    log(`Creating dir ${dirPath} in ${filerPath}`);
+    filer.mkdir(filerPath, err => {
+      if(err && err.code !== 'EEXIST') {
+        console.error(`[Filer] Unable to create dir ${filerPath}: ${err.message}`);
+        return next(err);
+      }
+      next();
+    });
+  });
+
+  walker.on('end', () => {
+    const writeFile = filename => {
+      fs.writeFile(filename, provider.export(), err => {
+        if(err) {
+          console.error(`Error writing exported filesystem: ${err.message}`);
+          process.exit(1);
+        }
+        console.log(`Wrote filesystem JSON to ${filename}`);
+        process.exit(0);
+      });
+    };
+
+    // If we have an explict filename to use, use it.  Otherwise
+    // generate a new one like `filesystem (2).json`
+    if(exportFilePath) {
+      writeFile(exportFilePath);
+    } else {
+      unusedFilename('filesystem.json').then(filename => writeFile(filename));
+    }
+  });
+});
