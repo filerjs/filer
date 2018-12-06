@@ -103,19 +103,25 @@ fs.stat(dirPath, (err, stats) => {
         return callback(err);
       }
 
-      const uid = stats.uid;
-      const gid = stats.gid;
+      const atime = toDateMS(stats.atime);
+      const mtime = toDateMS(stats.mtime);
 
-      filer.chown(filerPath, stats.uid, stats.gid, err => {
+      filer.utimes(filerPath, atime, mtime, err => {
         if(err) {
           error(`Error writing ${filerPath}: ${err.message}`);
           return callback(err);
         }
 
-        const atime = toDateMS(stats.atime);
-        const mtime = toDateMS(stats.mtime);
+        // Not all shipped versions of Filer had chown(), bail if not present
+        if(typeof filer.chown !== 'function') {
+          log(`  File Node: mode=${mode} atime=${atime} mtime=${mtime}`);
+          return callback();
+        }
 
-        filer.utimes(filerPath, atime, mtime, err => {
+        const uid = stats.uid;
+        const gid = stats.gid;
+      
+        filer.chown(filerPath, stats.uid, stats.gid, err => {
           if(err) {
             error(`Error writing ${filerPath}: ${err.message}`);
             return callback(err);
