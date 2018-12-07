@@ -1,18 +1,17 @@
 #!/usr/bin/env node
-
 /* eslint-disable no-console */
 'use strict';
 
 // Filer's path messes with process.cwd(), cache the real one
 const cwd = process.cwd();
 
-const meow = require('meow');
 const path = require('path');
 const fs = require('fs');
 const SerializableMemoryProvider = require('../tests/lib/serializable-memory-provider');
 const unusedFilename = require('unused-filename');
 const prettyBytes = require('pretty-bytes');
 const walk = require('walk');
+const meow = require('meow');
 
 const cli = meow(`
 	Usage
@@ -48,40 +47,35 @@ if(!(cli.input && cli.input.length >= 1)) {
   console.error('Specify a directory path to use as the image source');
   process.exit(1);
 }
+const dirPath = path.normalize(cli.input[0]);
+const exportFilePath = cli.input[1] ? path.normalize(cli.input[1]) : null;
 
-const verbose = cli.flags.verbose;
 const log = msg => {
-  if(verbose) {
+  if(cli.flags.verbose) {
     console.log(msg);
   }
 };
 
-// Load the version of Filer specified, or use current version in tree.
-let filerModulePath;
-if(cli.flags.filer) {
-  filerModulePath = path.resolve(cwd, filerModulePath);
-} else {
-  filerModulePath = '../';
-}
+// Load the version of Filer specified, or use current version in tree (default).
+let filerModulePath = cli.flags.filer ? path.resolve(cwd, cli.flags.filer) : '../';
 
-let Filer;
-try {
-  Filer = require(filerModulePath);
-  log(`Using Filer module at path ${filerModulePath}`);
-} catch(e) {
-  console.error(`Unable to load Filer module at ${filerModulePath}: ${e.message}`);
-  process.exit(1);
-}
-
-const dirPath = path.normalize(cli.input[0]);
-const exportFilePath = cli.input[1] ? path.normalize(cli.input[1]) : null;
-
+// Make sure we have an existing dir as our root
 fs.stat(dirPath, (err, stats) => {
-  if(!(stats && stats.isDirectory())) {
+  if(err || !(stats && stats.isDirectory())) {
     console.error(`Expected existing directory for dirpath: ${dirPath}`);
     process.exit(1);
   }
 
+  let Filer;
+  try {
+    Filer = require(filerModulePath);
+    log(`Using Filer module at path ${filerModulePath}`);
+  } catch(e) {
+    console.error(`Unable to load Filer module at ${filerModulePath}: ${e.message}`);
+    process.exit(1);
+  }
+
+  // Create a filer instance with serializable provider, and start walking dir path
   const provider = new SerializableMemoryProvider();
   const filer = new Filer.FileSystem({provider: provider});
   const walker = walk.walk(dirPath);
@@ -96,15 +90,16 @@ fs.stat(dirPath, (err, stats) => {
     const toDateMS = d => (new Date(d)).getTime();
 
     const mode = stats.mode;
+    const atime = toDateMS(stats.atime);
+    const mtime = toDateMS(stats.mtime);
+    const uid = stats.uid;
+    const gid = stats.gid;
 
     filer.writeFile(filerPath, data, { mode }, (err) => {
       if(err) {
         error(`Error writing ${filerPath}: ${err.message}`);
         return callback(err);
       }
-
-      const atime = toDateMS(stats.atime);
-      const mtime = toDateMS(stats.mtime);
 
       filer.utimes(filerPath, atime, mtime, err => {
         if(err) {
@@ -117,9 +112,6 @@ fs.stat(dirPath, (err, stats) => {
           log(`  File Node: mode=${mode} atime=${atime} mtime=${mtime}`);
           return callback();
         }
-
-        const uid = stats.uid;
-        const gid = stats.gid;
       
         filer.chown(filerPath, stats.uid, stats.gid, err => {
           if(err) {
@@ -134,6 +126,7 @@ fs.stat(dirPath, (err, stats) => {
     });
   };
 
+  // Process every file we find in dirpath
   walker.on('file', (root, fileStats, next) => {
     const filePath = path.join(root, fileStats.name);
     const filerPath = toFilerPath(filePath);
@@ -149,6 +142,7 @@ fs.stat(dirPath, (err, stats) => {
     });
   });
 
+  // Process every dir we find in dirpath
   walker.on('directory', (root, dirStats, next) => {
     const dirPath = path.join(root, dirStats.name);
     const filerPath = toFilerPath(dirPath);
@@ -163,6 +157,7 @@ fs.stat(dirPath, (err, stats) => {
     });
   });
 
+  // When we're done processing entries, serialize filesystem to .json
   walker.on('end', () => {
     const writeFile = filename => {
       fs.writeFile(filename, provider.export(), err => {
@@ -175,7 +170,7 @@ fs.stat(dirPath, (err, stats) => {
       });
     };
 
-    // If we have an explict filename to use, use it.  Otherwise
+    // If we have an explicit filename to use, use it.  Otherwise
     // generate a new one like `filesystem (2).json`
     if(exportFilePath) {
       writeFile(exportFilePath);
