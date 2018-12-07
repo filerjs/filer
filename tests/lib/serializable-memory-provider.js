@@ -18,6 +18,12 @@ class SerializableMemoryProvider extends MemoryProvider {
         return callback(err);
       }
 
+      // If we don't have an image to import, leave db as is
+      if(!this.unparsedJSONImage) {
+        return callback();
+      }
+
+      // Try to import the fs image from JSON
       try {
         this.db = parseBJSON(this.unparsedJSONImage);
         this.unparsedJSONImage = null;
