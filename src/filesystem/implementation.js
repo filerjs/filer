@@ -201,7 +201,7 @@ function find_node(context, path, callback) {
     } else if(!rootDirectoryNode) {
       callback(new Errors.ENOENT());
     } else {
-      callback(null, rootDirectoryNode);
+      Node.create(rootDirectoryNode, callback);
     }
   }
 
@@ -227,9 +227,16 @@ function find_node(context, path, callback) {
         callback(new Errors.ENOENT(null, path));
       } else {
         var nodeId = parentDirectoryData[name].id;
-        context.getObject(nodeId, is_symbolic_link);
+        context.getObject(nodeId, create_node);
       }
     }
+  }
+
+  function create_node(error, data) {
+    if(error) {
+      return callback(error);
+    }
+    Node.create(data, is_symbolic_link);
   }
 
   function is_symbolic_link(error, node) {
@@ -664,7 +671,7 @@ function open_file(context, path, flags, mode, callback) {
       fileNode = result;
       fileNode.nlinks += 1;
       if(mode){
-        Node.setMode(mode, fileNode);
+        fileNode.mode = mode;
       }
       context.putObject(fileNode.id, fileNode, write_file_data);
     });
@@ -2006,7 +2013,7 @@ function chmod_file(context, path, mode, callback) {
     if (error) {
       callback(error);
     } else {
-      Node.setMode(mode, node);
+      node.mode = mode;
       update_node_times(context, path, node, { mtime: Date.now() }, callback);
     }
   }
