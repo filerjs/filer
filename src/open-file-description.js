@@ -1,4 +1,5 @@
-var Errors = require('./errors.js');
+const Errors = require('./errors.js');
+const Node = require('./node');
 
 function OpenFileDescription(path, id, flags, position) {
   this.path = path;
@@ -22,7 +23,7 @@ OpenFileDescription.prototype.getNode = function(context, callback) {
       return callback(new Errors.EBADF('file descriptor refers to unknown node', path));
     }
 
-    callback(null, node);
+    Node.create(node, callback);
   }
 
   context.getObject(id, check_if_node_exists);
