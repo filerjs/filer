@@ -2,9 +2,9 @@ var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
 
-var S_IFREG = require('./constants.js').S_IFREG;
-var S_IFDIR = require('./constants.js').S_IFDIR;
-var S_IFLNK = require('./constants.js').S_IFLNK;
+var S_IFREG = require('./constants.js').fsConstants.S_IFREG;
+var S_IFDIR = require('./constants.js').fsConstants.S_IFDIR;
+var S_IFLNK = require('./constants.js').fsConstants.S_IFLNK;
 
 var DEFAULT_FILE_PERMISSIONS = require('./constants.js').DEFAULT_FILE_PERMISSIONS;
 var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
