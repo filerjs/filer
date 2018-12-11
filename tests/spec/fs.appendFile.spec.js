@@ -126,17 +126,13 @@ describe('fs.appendFile', function() {
   });
 });
 
-
 describe('fs.promises.appendFile', function() {
   beforeEach(function(done) {
     util.setup(function() {
       var fs = util.fs();
-      fs.promises.writeFile('/myfile', 'This is a file.', { encoding: 'utf8' })
-        .then(done())
-        .catch(function (error)
-        {
-          throw error;
-        }); 
+      return fs.promises.writeFile('/myfile', 'This is a file.', { encoding: 'utf8' })
+        .then(done)
+        .catch(done);
     });
   });
   afterEach(util.cleanup);
@@ -146,69 +142,37 @@ describe('fs.promises.appendFile', function() {
     expect(fs.promises.appendFile).to.be.a('function');
   });
 
-  it('should append a utf8 file without specifying utf8 in appendFile', function(done) {
+  it('should append a utf8 file without specifying utf8 in appendFile', function() {
     var fs = util.fs();
     var contents = 'This is a file.';
     var more = ' Appended.';
 
-    fs.promises.appendFile('/myfile', more)
-      .then(function()
-      {
-        fs.readFile('/myfile', 'utf8', function(error, data) {
-          expect(error).not.to.exist;
-          expect(data).to.equal(contents + more);
-          done(); 
-        });
-      })
-      .catch(function(error)
-      {
-        throw error;
-      });
+    return fs.promises.appendFile('/myfile', more)
+      .then(() => fs.promises.readFile('/myfile', 'utf8'))
+      .then(data => expect(data).to.equal(contents + more));
   });
 
-  it('should append a utf8 file with "utf8" option to appendFile', function(done) {
+  it('should append a utf8 file with "utf8" option to appendFile', function() {
     var fs = util.fs();
     var contents = 'This is a file.';
     var more = ' Appended.';
 
-    fs.promises.appendFile('/myfile', more, 'utf8')
-      .then(function() {
-        fs.readFile('/myfile', 'utf8', function(error, data) {
-          expect(error).not.to.exist;
-          expect(data).to.equal(contents + more);
-          done();
-        });
-      })
-      .catch(function(error) {
-        throw error;
-      });
+    return fs.promises.appendFile('/myfile', more, 'utf8')
+      .then(() => fs.promises.readFile('/myfile', 'utf8'))
+      .then(data => expect(data).to.equal(contents + more));
   });
 
-  it('should append a utf8 file with {encoding: "utf8"} option to appendFile', function(done) {
+  it('should append a utf8 file with {encoding: "utf8"} option to appendFile', function() {
     var fs = util.fs();
     var contents = 'This is a file.';
     var more = ' Appended.';
 
-    fs.promises.appendFile('/myfile', more, { encoding: 'utf8' })
-      .then(function() {
-        fs.promises.readFile('/myfile', { encoding: 'utf8' })
-          .then(function(data, error)
-          {
-            expect(error).not.to.exist;
-            expect(data).to.equal(contents + more);
-            done();
-          })
-          .catch(function(error)
-          {
-            throw error;
-          });
-      })
-      .catch(function(error){
-        throw error;
-      });
+    return fs.promises.appendFile('/myfile', more, { encoding: 'utf8' })
+      .then(() => fs.promises.readFile('/myfile', { encoding: 'utf8' }))
+      .then(data => expect(data).to.equal(contents + more));
   });
 
-  it('should append a binary file', function(done) {
+  it('should append a binary file', function() {
     var fs = util.fs();
 
     // String and utf8 binary encoded versions of the same thing: 'This is a file.'
@@ -217,76 +181,29 @@ describe('fs.promises.appendFile', function() {
     var binary3 = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46,
       32, 65, 112, 112, 101, 110, 100, 101, 100, 46]);
 
-    fs.promises.writeFile('/mybinaryfile', binary)
-      .then(function()
-      {
-        fs.promises.appendFile('/mybinaryfile', binary2)
-          .then(function()
-          {
-            fs.promises.readFile('/mybinaryfile', 'ascii')
-              .then(function(data, error)
-              {
-                expect(error).not.to.exist;
-                expect(data).to.deep.equal(binary3);
-                done();
-              });
-          })
-          .catch(function(error)
-          {
-            throw error;
-          });
-      })
-      .catch(function(error)
-      {
-        throw error;
-      });
+    return fs.promises.writeFile('/mybinaryfile', binary)
+      .then(() => fs.promises.appendFile('/mybinaryfile', binary2))
+      .then(() => fs.promises.readFile('/mybinaryfile', 'ascii'))
+      .then(data => expect(data).to.deep.equal(binary3));
   });
 
-  it('should follow symbolic links', function(done) {
+  it('should follow symbolic links', function() {
     var fs = util.fs();
     var contents = 'This is a file.';
     var more = ' Appended.';
 
-    fs.symlink('/myfile', '/myFileLink', function (error) {
-      if (error) throw error;
-
-      fs.promises.appendFile('/myFileLink', more, 'utf8')
-        .then(function()
-        {
-          fs.promises.readFile('/myFileLink', 'utf8')
-            .then(function(data, error)
-            {
-              expect(error).not.to.exist;
-              expect(data).to.equal(contents + more);
-              done();
-            });
-        })
-        .catch(function(error)
-        {
-          throw error;
-        });
-    });
+    return fs.promises.symlink('/myfile', '/myFileLink')
+      .then(() => fs.promises.appendFile('/myFileLink', more, 'utf8'))
+      .then(() => fs.promises.readFile('/myFileLink', 'utf8'))
+      .then(data => expect(data).to.equal(contents + more));
   });
 
-  it('should work when file does not exist, and create the file', function(done) {
+  it('should work when file does not exist, and create the file', function() {
     var fs = util.fs();
     var contents = 'This is a file.';
 
-    fs.promises.appendFile('/newfile', contents, { encoding: 'utf8' })
-      .then(function(error)
-      {
-        expect(error).not.to.exist;
-
-        fs.promises.readFile('/newfile', 'utf8') 
-          .then(function(data)
-          {
-            expect(data).to.equal(contents);
-            done();
-          })
-          .catch(function(err)
-          {
-            throw err;
-          }); 
-      });
+    return fs.promises.appendFile('/newfile', contents, { encoding: 'utf8' })
+      .then(() => fs.promises.readFile('/newfile', 'utf8'))
+      .then(data => expect(data).to.equal(contents));
   });
 });
