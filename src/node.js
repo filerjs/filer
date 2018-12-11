@@ -1,13 +1,14 @@
-var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
-var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
-var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
+var Constants = require('./constants.js');
+var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
+var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
+var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
 
-var S_IFREG = require('./constants.js').fsConstants.S_IFREG;
-var S_IFDIR = require('./constants.js').fsConstants.S_IFDIR;
-var S_IFLNK = require('./constants.js').fsConstants.S_IFLNK;
+var S_IFREG = Constants.fsConstants.S_IFREG;
+var S_IFDIR = Constants.fsConstants.S_IFDIR;
+var S_IFLNK = Constants.fsConstants.S_IFLNK;
 
-var DEFAULT_FILE_PERMISSIONS = require('./constants.js').DEFAULT_FILE_PERMISSIONS;
-var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
+var DEFAULT_FILE_PERMISSIONS = Constants.DEFAULT_FILE_PERMISSIONS;
+var DEFAULT_DIR_PERMISSIONS = Constants.DEFAULT_DIR_PERMISSIONS;
 
 function getMode(type, mode) {
   switch(type) {
