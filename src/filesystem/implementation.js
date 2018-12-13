@@ -1649,7 +1649,7 @@ function open(fs, context, path, flags, mode, callback) {
 
   flags = validate_flags(flags);
   if(!flags) {
-    callback(new Errors.EINVAL('flags is not valid'), path);
+    return callback(new Errors.EINVAL('flags is not valid'), path);
   }
 
   open_file(context, path, flags, mode, check_result);
