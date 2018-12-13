@@ -135,10 +135,6 @@ describe('fs.promises.link', function() {
   });
 });
 
-
-
-
-
 describe('fs.promises.link', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
@@ -148,74 +144,48 @@ describe('fs.promises.link', function() {
     expect(fs.promises.link).to.be.a('function');
   });
 
-  it('should create a link to an existing file', function(done) {
-    var fs = util.fs();
+  it('should create a link to an existing file', function() {
+    var fs = util.fs().promises;
 
-    fs.open('/myfile', 'w+', function(error, fd) {
-      if(error) throw error;
+    return fs.writeFile('/myfile', 'data')
+      .then(() => fs.link('/myfile', '/myotherfile'))
+      .then(() => fs.stat('/myfile'))
+      .then(stats => {
+        var _oldstats = stats;
 
-      fs.close(fd, function(error) {
-        if(error) throw error;
-
-        fs.promises.link('/myfile', '/myotherfile').then(function(){
-
-          fs.stat('/myfile', function(error, result) {
-            if(error) throw error;
-      
-            var _oldstats = result;
-            fs.stat('/myotherfile', function(error, result) {
-              expect(error).not.to.exist;
-              expect(result.nlinks).to.equal(2);
-              expect(result.dev).to.equal(_oldstats.dev);
-              expect(result.node).to.equal(_oldstats.node);
-              expect(result.size).to.equal(_oldstats.size);
-              expect(result.type).to.equal(_oldstats.type);
-              done();
-            });
-          },
-          function(error){throw error;}
-          );
-        });
-      });
-    });
-  });
-
-  it('should create hard link to identical data node', function(done) {
-    var fs = util.fs();
-    var contents = 'Hello World!';
-
-    fs.writeFile('/file', contents, function(err) {
-      if(err) throw err;
-
-      fs.link('/file', '/hlink', function(err) {
-        if(err) throw err;
-
-        fs.readFile('/file', 'utf8', function(err, fileData) {
-          if(err) throw err;
-
-          fs.readFile('/hlink', 'utf8', function(err, hlinkData) {
-            if(err) throw err;
-
-            expect(fileData).to.equal(hlinkData);
-            done();
+        return fs.stat('/myotherfile')
+          .then(stats => {
+            expect(stats.nlinks).to.equal(2);
+            expect(stats.dev).to.equal(_oldstats.dev);
+            expect(stats.node).to.equal(_oldstats.node);
+            expect(stats.size).to.equal(_oldstats.size);
+            expect(stats.type).to.equal(_oldstats.type);
           });
-        });
       });
-    });
-  });
-
-  it('should not allow links to a directory', function(done) {
-    var fs = util.fs();
-
-    fs.mkdir('/mydir', function(error) {
-      if(error) throw error;
-
-      fs.promises.link('/mydir', '/mydirlink', function(error) {
-        expect(error).to.exist;
-        expect(error.code).to.equal('EPERM');
-        done();
-      });
-    });
   });
   
+  it('should create hard link to identical data node', function() {
+    var fs = util.fs().promises;
+    var contents = 'Hello World!';
+
+    return fs.writeFile('/file', contents)
+      .then(() => fs.link('/file', '/hlink'))
+      .then(() => fs.readFile('/file', 'utf8'))
+      .then(fileData => {
+        
+        return fs.readFile('/hlink', 'utf8')
+          .then(hlinkData => expect(fileData).to.equal(hlinkData));
+      });
+  });
+
+  it('should not allow links to a directory', function() {
+    var fs = util.fs().promises;
+
+    return fs.mkdir('/mydir')
+      .then(() => fs.link('/mydir', '/mydirlink'))
+      .catch(error => {
+        expect(error).to.exist;
+        expect(error.code).to.equal('EPERM');
+      });
+  });
 });
