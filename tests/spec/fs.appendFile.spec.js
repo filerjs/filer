@@ -2,10 +2,12 @@ var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
 describe('fs.appendFile', function() {
+  const contents = 'This is a file.';
+
   beforeEach(function(done) {
     util.setup(function() {
       var fs = util.fs();
-      fs.writeFile('/myfile', 'This is a file.', { encoding: 'utf8' }, function(error) {
+      fs.writeFile('/myfile', contents, function(error) {
         if(error) throw error;
         done();
       });
@@ -20,7 +22,6 @@ describe('fs.appendFile', function() {
 
   it('should append a utf8 file without specifying utf8 in appendFile', function(done) {
     var fs = util.fs();
-    var contents = 'This is a file.';
     var more = ' Appended.';
 
     fs.appendFile('/myfile', more, function(error) {
@@ -36,7 +37,6 @@ describe('fs.appendFile', function() {
 
   it('should append a utf8 file with "utf8" option to appendFile', function(done) {
     var fs = util.fs();
-    var contents = 'This is a file.';
     var more = ' Appended.';
 
     fs.appendFile('/myfile', more, 'utf8', function(error) {
@@ -52,7 +52,6 @@ describe('fs.appendFile', function() {
 
   it('should append a utf8 file with {encoding: "utf8"} option to appendFile', function(done) {
     var fs = util.fs();
-    var contents = 'This is a file.';
     var more = ' Appended.';
 
     fs.appendFile('/myfile', more, { encoding: 'utf8' }, function(error) {
@@ -112,7 +111,6 @@ describe('fs.appendFile', function() {
 
   it('should work when file does not exist, and create the file', function(done) {
     var fs = util.fs();
-    var contents = 'This is a file.';
 
     fs.appendFile('/newfile', contents, { encoding: 'utf8' }, function(error) {
       expect(error).not.to.exist;
@@ -125,9 +123,8 @@ describe('fs.appendFile', function() {
     });
   });
   
-  it('should accept numbers and appends them to the file', function(done) {
+  it('should accept numbers and append them to the file', function(done) {
     var fs = util.fs();
-    var contents = 'This is a file.';
     var more = 10000;
 
     fs.appendFile('/myfile', more, 'utf8', function(error) {
