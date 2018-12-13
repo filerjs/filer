@@ -170,13 +170,14 @@ describe('fs.open', function() {
     });
   });
 
-  it('should return an error when flag in invalid', function(done) { 
+  it('should error when flag is invalid', function(done) { 
     var fs = util.fs();
 
-    expect(fs.open('/myfile', 'abcd', function(){
+    fs.open('/myfile', 'abcd', function(err) {
+      expect(err).to.exist;
+      expect(err.code).to.equal('EINVAL');
       done();
-    })).to.throw('flags is not valid');
-    
+    });
   });
 });
 
