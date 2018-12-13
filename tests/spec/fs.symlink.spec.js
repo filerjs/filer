@@ -43,10 +43,12 @@ describe('fs.symlink', function () {
       });
     });
   });
+
   /** Tests for fsPromises API */
   describe('fsPromises.symlink', function () {
     it('should return an error if destination path does not exist', function () {
       var fsPromises = util.fs().promises;
+  
       return fsPromises.symlink('/', '/tmp/link')
         .catch(error => {
           expect(error).to.exist;
@@ -56,6 +58,7 @@ describe('fs.symlink', function () {
 
     it('should return an error if source path does not exist', function () {
       var fsPromises = util.fs().promises;
+  
       return fsPromises.symlink('/tmp/myLink', '/myLink')
         .catch(error => {
           expect(error).to.exist;
@@ -65,36 +68,24 @@ describe('fs.symlink', function () {
 
     it('Promise should create a symlink of type DIRECTORY when directory provided', function () {
       var fsPromises = util.fs().promises;
+  
       return fsPromises.symlink('/', '/myDirLink')
-        .then(() => {
-          return fsPromises.stat('/myDirLink')
-            .then(stats => {
-              expect(stats).to.exist;
-              expect(stats.type).to.equal('DIRECTORY');
-            })
-            .catch(error => {
-              expect(error).not.to.exist;
-              expect(error.code).to.equal('ENOENT');
-            });
+        .then(() => fsPromises.stat('/myDirLink'))
+        .then(stats => {
+          expect(stats).to.exist;
+          expect(stats.type).to.equal('DIRECTORY');
         });
     });
 
     it('Promise should create a symlink of type FILE when file provided', function () {
       var fsPromises = util.fs().promises;
-      fsPromises.open('/myFile', 'w+').catch((error) => {
-        expect(error).not.to.exist;
-      });
-      return fsPromises.symlink('/myFile', '/myFileLink')
-        .then(() => {
-          return fsPromises.stat('/myFileLink')
-            .then(stats => {
-              expect(stats).to.exist;
-              expect(stats.type).to.equal('FILE');
-            })
-            .catch(error => {
-              expect(error).not.to.exist;
-              expect(error.code).to.equal('ENOENT');
-            });
+
+      return fsPromises.writeFile('/myFile', 'data')
+        .then(() => fsPromises.symlink('/myFile', '/myFileLink'))
+        .then(() => fsPromises.stat('/myFileLink'))
+        .then(stats => {
+          expect(stats).to.exist;
+          expect(stats.type).to.equal('FILE');
         });
     });
 
@@ -107,7 +98,6 @@ describe('fs.symlink', function () {
           expect(error.code).to.equal('EEXIST');
         });
     });
-    
   });
 });
 
