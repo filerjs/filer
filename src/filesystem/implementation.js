@@ -2184,14 +2184,14 @@ function futimes(fs, context, fd, atime, mtime, callback) {
 
 function chmod(fs, context, path, mode, callback) {
   if(!pathCheck(path, callback)) return;
-  mode = validateAndMaskMode(mode, 'mode');
+  mode = validateAndMaskMode(mode, 'mode', callback);
   if(!mode) return;
 
   chmod_file(context, path, mode, callback);
 }
 
 function fchmod(fs, context, fd, mode, callback) {
-  mode = validateAndMaskMode(mode, 'mode');
+  mode = validateAndMaskMode(mode, 'mode', callback);
   if(!mode) return;
 
   var ofd = fs.openFiles[fd];
