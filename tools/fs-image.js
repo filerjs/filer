@@ -7,6 +7,7 @@ const cwd = process.cwd();
 
 const path = require('path');
 const fs = require('fs');
+const { S_IFMT }  = fs.constants;
 const SerializableMemoryProvider = require('../tests/lib/serializable-memory-provider');
 const unusedFilename = require('unused-filename');
 const prettyBytes = require('pretty-bytes');
@@ -50,6 +51,7 @@ if(!(cli.input && cli.input.length >= 1)) {
 const dirPath = path.normalize(cli.input[0]);
 const exportFilePath = cli.input[1] ? path.normalize(cli.input[1]) : null;
 
+// Log in verbose mode
 const log = msg => {
   if(cli.flags.verbose) {
     console.log(msg);
@@ -77,7 +79,7 @@ fs.stat(dirPath, (err, stats) => {
 
   // Create a filer instance with serializable provider, and start walking dir path
   const provider = new SerializableMemoryProvider();
-  const filer = new Filer.FileSystem({provider: provider});
+  const filer = new Filer.FileSystem({provider});
   const walker = walk.walk(dirPath);
 
   // Convert a filesystem path into a Filer path, rooted in /
@@ -86,12 +88,12 @@ fs.stat(dirPath, (err, stats) => {
   // Write a file to Filer, including various metadata from the file node
   const filerWriteFile = (filerPath, stats, data, callback) => {
     const error = err => console.error(`[Filer] ${err}`);
-    // Convert date to ms
-    const toDateMS = d => (new Date(d)).getTime();
 
-    const mode = stats.mode;
-    const atime = toDateMS(stats.atime);
-    const mtime = toDateMS(stats.mtime);
+    // Mask out the type, we only care about the various permission bits
+    const mode = stats.mode & ~S_IFMT;
+    // Prefer Unix Timestamps ms
+    const atimeMs = stats.atimeMs;
+    const mtimeMs = stats.mtimeMs;
     const uid = stats.uid;
     const gid = stats.gid;
 
@@ -101,7 +103,7 @@ fs.stat(dirPath, (err, stats) => {
         return callback(err);
       }
 
-      filer.utimes(filerPath, atime, mtime, err => {
+      filer.utimes(filerPath, atimeMs, mtimeMs, err => {
         if(err) {
           error(`Error writing ${filerPath}: ${err.message}`);
           return callback(err);
@@ -109,7 +111,7 @@ fs.stat(dirPath, (err, stats) => {
 
         // Not all shipped versions of Filer had chown(), bail if not present
         if(typeof filer.chown !== 'function') {
-          log(`  File Node: mode=${mode} atime=${atime} mtime=${mtime}`);
+          log(`  File Node: mode=${mode.toString('8')} atime=${atimeMs} mtime=${mtimeMs}`);
           return callback();
         }
       
@@ -119,7 +121,7 @@ fs.stat(dirPath, (err, stats) => {
             return callback(err);
           }
 
-          log(`  File Node: mode=${mode} uid=${uid} gid=${gid} atime=${atime} mtime=${mtime}`);
+          log(`  File Node: mode=${mode.toString('8')} uid=${uid} gid=${gid} atime=${atimeMs} mtime=${mtimeMs}`);
           callback();
         });
       });
@@ -131,6 +133,8 @@ fs.stat(dirPath, (err, stats) => {
     const filePath = path.join(root, fileStats.name);
     const filerPath = toFilerPath(filePath);
     log(`Writing file ${filePath} to ${filerPath} [${prettyBytes(fileStats.size)}]`);
+
+    // TODO: deal with symlinks...
 
     fs.readFile(filePath, null, (err, data) => {
       if(err) {
