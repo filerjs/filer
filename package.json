@@ -22,6 +22,7 @@
     "lint": "eslint src tests",
     "lint:fix": "eslint --fix src tests",
     "test:manual": "parcel tests/index.html --out-dir tests/dist",
+    "test:migrations": "mocha tests/filesystems/migrations",
     "pretest": "npm run lint",
     "test": "npm run karma-mocha",
     "prebuild": "parcel build --global Filer src/index.js --no-minify --out-file filer.js",
