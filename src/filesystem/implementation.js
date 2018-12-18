@@ -185,10 +185,15 @@ function find_node(context, path, callback) {
   var parentPath = dirname(path);
   var followedCount = 0;
 
-  function read_root_directory_node(error, superNode) {
+  function read_root_directory_node(error, nodeData) {
     if(error) {
-      callback(error);
-    } else if(!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
+      return callback(error);
+    }
+
+    // Parse existing node as SuperNode
+    const superNode = new SuperNode(nodeData);
+
+    if(!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
       callback(new Errors.EFILESYSTEMERROR());
     } else {
       context.getObject(superNode.rnode, check_root_directory_node);

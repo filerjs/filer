@@ -40,8 +40,7 @@ describe('Migration tests from Filer 0.43 to current', () => {
       if(err) throw err;
 
       expect(entries).to.be.an('array');
-      expect(entries.length).to.equal(3);
-      expect(entries).to.contain('README.md');
+      expect(entries.length).to.equal(2);
       expect(entries).to.contain('file.txt');
       expect(entries).to.contain('dir');
       done();
@@ -80,10 +79,10 @@ describe('Migration tests from Filer 0.43 to current', () => {
     nodeFs.readFile(file2TxtPath, null, (err, nodeData) => {
       if(err) throw err;
 
-      filerFs.readFile('/dir/file.txt', null, (err, filerData) => {
+      filerFs.readFile('/dir/file2.txt', null, (err, filerData) => {
         if(err) throw err;
   
-        expect(nodeData).to.equal(filerData);
+        expect(nodeData).to.deep.equal(filerData);
         done();
       });  
     });
