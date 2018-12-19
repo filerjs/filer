@@ -10,6 +10,27 @@ describe('fs.ftruncate', function() {
     expect(fs.ftruncate).to.be.a('function');
   });
 
+  it('should return an error if length is not an integer', function(done) {
+    let fs = util.fs();
+    let contents = 'This is a file.';
+
+    fs.writeFile('/myfile', contents, function(error) {
+      if(error) throw error;
+
+      fs.open('/myfile', 'w', function(err, fd) {
+
+        fs.ftruncate(fd, 'notAnInteger', function(error) {
+          expect(error).to.exist;
+          expect(error.code).to.equal('EINVAL');
+          done();
+        });
+
+        // Close file descriptor when done
+        fs.close(fd);
+      });
+    });
+  });
+
   it('should return an error if length is negative', function(done) {
     let fs = util.fs();
     let contents = 'This is a file.';
