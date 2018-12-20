@@ -411,7 +411,7 @@ Shell.prototype.mkdirp = function(path, callback) {
         var parent = Path.dirname(path);
         if(parent === '/') {
           fs.mkdir(path, function (err) {
-            if (err && err.code != 'EEXIST') {
+            if (err && err.code !== 'EEXIST') {
               callback(err);
               return;
             }
@@ -423,7 +423,7 @@ Shell.prototype.mkdirp = function(path, callback) {
           _mkdirp(parent, function (err) {
             if (err) return callback(err);
             fs.mkdir(path, function (err) {
-              if (err && err.code != 'EEXIST') {
+              if (err && err.code !== 'EEXIST') {
                 callback(err);
                 return;
               }
