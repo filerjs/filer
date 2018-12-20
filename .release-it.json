@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "beforeStart": "npm run test",
+    "beforeBump": "npm run build"
+  },
+  "git": {
+    "pushRepo": "git@github.com:filerjs/filer.git"
+  },
+  "npm": {
+    "publish": true
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Filer.js %s Released",
+    "assets": [ "dist/*.zip" ]
+  }
+}

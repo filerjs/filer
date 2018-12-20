@@ -35,7 +35,8 @@
     "karma-mocha-chrome": "karma start karma.conf.js --browsers ChromeHeadless",
     "prekarma-mocha": "npm run build-tests",
     "karma-mocha": "karma start karma.conf.js --browsers ChromeHeadless,FirefoxHeadless",
-    "coverage": "nyc mocha tests/index.js"
+    "coverage": "nyc mocha tests/index.js",
+    "release": "run.env release-it"
   },
   "repository": {
     "type": "git",
@@ -62,6 +63,8 @@
     "nyc": "^13.1.0",
     "parcel-bundler": "^1.10.3",
     "pretty-bytes": "^5.1.0",
+    "release-it": "^9.2.0",
+    "run.env": "^1.1.0",
     "unused-filename": "^1.0.0",
     "walk": "^2.3.14"
   },
