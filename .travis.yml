@@ -1,16 +1,24 @@
+sudo: false
 language: node_js
+
 node_js:
   - "lts/*"
 
+cache:
+  directories:
+    - "node_modules"
+
+os:
+  - linux
+  - osx
+
+# Setup headless Firefox and Chrome support
+# https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-the-Chrome-addon-in-the-headless-mode
 env:
   - MOZ_HEADLESS=1
-
-# Setup headless Chrome support
-# https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-the-Chrome-addon-in-the-headless-mode
 addons:
   chrome: stable
   firefox: latest
-
 before_install:
   - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
 
