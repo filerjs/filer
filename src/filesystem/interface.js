@@ -122,9 +122,9 @@ function FileSystem(options, callback) {
   this.queueOrRun = function(operation) {
     var error;
 
-    if(FS_READY == fs.readyState) {
+    if(FS_READY === fs.readyState) {
       operation.call(fs);
-    } else if(FS_ERROR == fs.readyState) {
+    } else if(FS_ERROR === fs.readyState) {
       error = new Errors.EFILESYSTEMERROR('unknown error');
     } else {
       queue.push(operation);
