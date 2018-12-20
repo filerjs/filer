@@ -31,7 +31,6 @@ make a pull request. If your patch includes code, make sure to check that all th
 unit tests pass, including any new tests you wrote. Finally, make sure you add yourself
 to the `AUTHORS` file.
 
-=======
 ## Tests
 
 Tests are writting using [Mocha](http://visionmedia.github.io/mocha/) and [Chai](http://chaijs.com/api/bdd/).
@@ -57,3 +56,12 @@ an example.
 ## Communication
 
 If you'd like to talk to someone about the project, you can reach us on irc.mozilla.org in the #filer or #mofodev channel. Look for "ack" or "humph".
+
+## Releases
+
+In order to perform a release, you'll need commit access to the main Filer repo,
+as well as access to publish to Filer's npm module.  To do a release:
+
+1. Make sure you have a .env file, with your `GITHUB_TOKEN` included.  See [`env.sample`](env.sample) for more info on how to create one.
+1. Login to the `npm` registry if you haven't already using `npm login`
+1. Run `npm run release`.  Releases are done interactively using [release-it](https://www.npmjs.com/package/release-it), and our config is defined in [`.release-it.json`](.release-it.json).
