@@ -17,7 +17,7 @@ describe('FileSystemShell.cd', function() {
 
   it('should allow changing the path to a valid dir', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -33,7 +33,7 @@ describe('FileSystemShell.cd', function() {
 
   it('should fail when changing the path to an invalid dir', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -50,7 +50,7 @@ describe('FileSystemShell.cd', function() {
 
   it('should fail when changing the path to a file', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     fs.writeFile('/file', 'file', function(err) {
       if(err) throw err;
@@ -67,7 +67,7 @@ describe('FileSystemShell.cd', function() {
 
   it('should allow relative paths for a valid dir', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -83,7 +83,7 @@ describe('FileSystemShell.cd', function() {
 
   it('should allow .. in paths for a valid dir', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -110,7 +110,7 @@ describe('FileSystemShell.cd', function() {
       fs.symlink('/dir', '/link', function(error) {
         if(error) throw error;
 
-        var shell = new fs.Shell();
+        var shell = util.shell();
         shell.cd('link', function(error) {
           expect(error).not.to.exist;
           expect(shell.pwd()).to.equal('/link');

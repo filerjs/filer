@@ -8,8 +8,7 @@ describe('sh.ls and deep directory trees', function() {
   afterEach(util.cleanup);
 
   it('should not crash when calling sh.ls() on deep directory layouts', function(done) {
-    var fs = util.fs();
-    var sh = new fs.Shell();
+    var sh = util.shell();
 
     var path = '';
     for(var i=0; i<50; i++) {
@@ -29,7 +28,7 @@ describe('sh.ls and deep directory trees', function() {
 
   it('should not crash when calling sh.ls() on wide directory layouts', function(done) {
     var fs = util.fs();
-    var sh = new fs.Shell();
+    var sh = util.shell();
 
     var dirName = '/dir';
 

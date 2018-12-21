@@ -32,8 +32,7 @@ describe('FileSystemShell.env', function() {
   });
 
   it('should fail when dirs argument is absent', function(done) {
-    var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     shell.ls(null, function(error, list) {
       expect(error).to.exist;
@@ -45,7 +44,7 @@ describe('FileSystemShell.env', function() {
 
   it('should give new value for shell.pwd() when cwd changes', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -60,8 +59,7 @@ describe('FileSystemShell.env', function() {
   });
 
   it('should create/return the default tmp dir', function(done) {
-    var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     expect(shell.env.get('TMP')).to.equal('/tmp');
     shell.tempDir(function(err, tmp) {
@@ -75,8 +73,7 @@ describe('FileSystemShell.env', function() {
   });
 
   it('should create/return the tmp dir specified in env.TMP', function(done) {
-    var fs = util.fs();
-    var shell = new fs.Shell({
+    var shell = util.shell({
       env: {
         TMP: '/tempdir'
       }
@@ -94,8 +91,7 @@ describe('FileSystemShell.env', function() {
   });
 
   it('should allow repeated calls to tempDir()', function(done) {
-    var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     expect(shell.env.get('TMP')).to.equal('/tmp');
     shell.tempDir(function(err, tmp) {

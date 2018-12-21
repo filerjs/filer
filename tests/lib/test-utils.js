@@ -3,6 +3,7 @@ var IndexedDBTestProvider = require('./indexeddb.js');
 var WebSQLTestProvider = require('./websql.js');
 var MemoryTestProvider = require('./memory.js');
 var Url = require('url');
+var Shell = require('../../src/shell');
 
 var _provider;
 var _fs;
@@ -108,8 +109,7 @@ function provider() {
 }
 
 function shell(options) {
-  var _fs = fs();
-  return new _fs.Shell(options);
+  return new Shell(fs(), options);
 }
 
 function cleanup(callback) {
