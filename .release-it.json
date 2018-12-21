@@ -1,17 +1,18 @@
 {
   "scripts": {
     "beforeStart": "npm run test",
-    "beforeBump": "npm run build"
+    "beforeBump": "npm run build",
+    "changelogCommand": "git log --pretty=format:'* %s (%h)' [REV_RANGE]"
   },
   "git": {
-    "pushRepo": "git@github.com:filerjs/filer.git"
+    "pushRepo": "git@github.com:filerjs/filer.git",
+    "tagName": "v%s"
   },
   "npm": {
     "publish": true
   },
   "github": {
     "release": true,
-    "releaseName": "Filer.js %s Released",
-    "assets": [ "dist/*.zip" ]
+    "releaseName": "Filer.js %s Released"
   }
 }

@@ -70,6 +70,9 @@
   },
   "main": "./src/index.js",
   "browser": "./dist/filer.min.js",
+  "files": [
+    "dist"
+  ],
   "nyc": {
     "exclude": [
       "tests/**/*.js",
