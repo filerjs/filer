@@ -8,19 +8,27 @@ cache:
   directories:
     - "node_modules"
 
-os:
-  - linux
-  - osx
+env:
+  - MOZ_HEADLESS=1
+
+matrix:
+  include:
+    - os: linux
+      addons:
+        chrome: stable
+        firefox: latest
+    - os: osx
+      addons:
+        chrome: stable
+        firefox: latest
+    - os: windows
 
 # Setup headless Firefox and Chrome support
 # https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-the-Chrome-addon-in-the-headless-mode
-env:
-  - MOZ_HEADLESS=1
-addons:
-  chrome: stable
-  firefox: latest
 before_install:
-  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
+  - [[ "$TRAVIS_OS_NAME" == "linux" ]]   && google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
+  - [[ "$TRAVIS_OS_NAME" == "osx" ]]     && google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
+  - [[ "$TRAVIS_OS_NAME" == "windows" ]] && choco install firefox googlechrome
 
 after_success:
   - npm install -g codecov
