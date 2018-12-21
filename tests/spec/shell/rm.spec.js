@@ -11,8 +11,7 @@ describe('FileSystemShell.rm', function() {
   });
 
   it('should fail when path argument is absent', function(done) {
-    var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     shell.rm(null, function(error, list) {
       expect(error).to.exist;
@@ -24,7 +23,7 @@ describe('FileSystemShell.rm', function() {
 
   it('should remove a single file', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
     var contents = 'a';
 
     fs.writeFile('/file', contents, function(err) {
@@ -44,7 +43,7 @@ describe('FileSystemShell.rm', function() {
 
   it('should remove an empty dir', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -63,7 +62,7 @@ describe('FileSystemShell.rm', function() {
 
   it('should fail to remove a non-empty dir', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -82,7 +81,7 @@ describe('FileSystemShell.rm', function() {
 
   it('should remove a non-empty dir with option.recursive set', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -105,7 +104,7 @@ describe('FileSystemShell.rm', function() {
 
   it('should work on a complex dir structure', function(done) {
     var fs = util.fs();
-    var shell = new fs.Shell();
+    var shell = util.shell();
     var contents = 'a';
 
     fs.mkdir('/dir', function(err) {

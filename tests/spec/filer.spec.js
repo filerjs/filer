@@ -10,10 +10,6 @@ describe('Filer', function() {
     expect(typeof Filer.FileSystem).to.equal('function');
   });
 
-  it('has Shell constructor', function() {
-    expect(typeof Filer.Shell).to.equal('function');
-  });
-
   it('must honor the \'FORMAT\' flag', function(done) {
     var name = 'local-test';
     // Because we need to use a bunch of Filer filesystems

@@ -13,7 +13,6 @@ var FS_NODUPEIDCHECK = Constants.FS_NODUPEIDCHECK;
 
 var providers = require('../providers/index.js');
 
-var Shell = require('../shell/shell.js');
 var Intercom = require('../../lib/intercom.js');
 var FSWatcher = require('../fs-watcher.js');
 var Errors = require('../errors.js');
@@ -97,9 +96,6 @@ function FileSystem(options, callback) {
 
   // Expose Node's fs.constants to users
   fs.constants = Constants.fsConstants;
-
-  // Expose Shell constructor
-  this.Shell = Shell.bind(undefined, this);
 
   // Safely expose the list of open files and file
   // descriptor management functions
