@@ -1,12 +1,10 @@
 [![NPM](https://nodei.co/npm/filer.png?downloads=true&stars=true)](https://nodei.co/npm/filer/)
 
-[![Build Status](https://secure.travis-ci.org/filerjs/filer.png?branch=develop)](http://travis-ci.org/filerjs/filer)
-
-[![codecov](https://codecov.io/gh/filerjs/filer/branch/master/graph/badge.svg)](https://codecov.io/gh/filerjs/filer)
+[![Build Status](https://secure.travis-ci.org/filerjs/filer.png?branch=develop)](http://travis-ci.org/filerjs/filer) [![codecov](https://codecov.io/gh/filerjs/filer/branch/master/graph/badge.svg)](https://codecov.io/gh/filerjs/filer)
 
 ### Filer
 
-Filer is a POSIX-like file system interface for node.js and browser-based JavaScript.
+Filer is a POSIX-like file system for browsers.
 
 ### Compatibility
 
@@ -32,16 +30,15 @@ Want to join the fun? We'd love to have you! See [CONTRIBUTING](https://github.c
 
 Filer can be obtained in a number of ways:
 
-1. npm - `npm install filer`
-2. bower - `bower install filer`
-3. download pre-built versions: [filer.js](https://raw.github.com/filerjs/filer/develop/dist/filer.js), [filer.min.js](https://raw.github.com/filerjs/filer/develop/dist/filer.min.js)
+1. Via npm: `npm install filer`
+3. Via unpkg: `<script src="https://unpkg.com/filer"></script>` or specify a version directly, for example: [https://unpkg.com/filer@1.0.1/dist/filer.min.js](https://unpkg.com/filer@1.0.1/dist/filer.min.js)
 
 ### Loading and Usage
 
 Filer is built as a UMD module and can therefore be loaded as a CommonJS or AMD module, or used via the global.
 
 ```javascript
-// Option 1: Filer loaded via require() in node/browserify
+// Option 1: Filer loaded via require()
 var Filer = require('filer');
 
 // Option 2: Filer loaded via RequireJS
@@ -100,7 +97,7 @@ fs.open('/myfile', 'w+', function(err, fd) {
 For a complete list of `FileSystem` methods and examples, see the [FileSystem Instance Methods](#FileSystemMethods)
 section below.
 
-Filer also supports node's Path module. See the [Filer.Path](#FilerPath) section below.
+Filer also includes node's `path` and `Buffer` modules. See the [Filer.Path](#FilerPath) and [Filer.Buffer](#FilerBuffer) sections below.
 
 In addition, common shell operations (e.g., rm, touch, cat, etc.) are supported via the
 `FileSystemShell` object, which can be obtained from, and used with a `FileSystem`.
@@ -113,20 +110,19 @@ you omit the callback, errors will be thrown as exceptions). The first callback 
 reserved for passing errors. It will be `null` if no errors occurred and should always be checked.
 
 #### Support for Promises
-The Promise based API mimics the way Node [implements](https://nodejs.org/api/fs.html#fs_fs_promises_api) them. Both `Shell` and `FileSystem` now have a `promises` object attached alongside the regular callback style methods. Method names are identical to their callback counterparts with the difference that instead of receiving a final argument as a callback, they return a Promise that is resolved or rejected based on the success of method execution.
-> Please note that `exists` method will always throw, since it was [deprecated](https://nodejs.org/api/fs.html#fs_fs_exists_path_callback) by Node.
+
+The Promise based API mimics the way node [implements](https://nodejs.org/api/fs.html#fs_fs_promises_api) them. Both `Shell` and `FileSystem` now have a `promises` property, which gives access to Promise based versions of methods in addition to the regular callback style methods. Method names are identical to their callback counterparts with the difference that instead of receiving a final argument as a callback, they return a Promise that is resolved or rejected based on the success of method execution.
 
 See example below:
 
 ```javascript
 const fs = new Filer.FileSystem().promises;
-fs.open('/myfile', 'w+')
-  .then(fd => fs.close(fd))
+fs.writeFile('/myfile', 'some data')
   .then(() => fs.stat('/myfile'))
   .then(stats => { console.log(`stats: ${JSON.stringify(stats)}`); })
-  .catch(err => { console.error(err); })
+  .catch(err => { console.error(err); });
 ```
-> The callback style usage could be found [here](#overviewExample).
+
 #### Filer.FileSystem(options, callback) constructor
 
 File system constructor, invoked to open an existing file system or create a new one.
@@ -239,8 +235,11 @@ Buffer.allocUnsafe(size)
 #### Filer.Path<a name="FilerPath"></a>
 
 The node.js [path module](http://nodejs.org/api/path.html) is available via the `Filer.Path` object. It is
-identical to the node.js version with the following differences:
-* No notion of a current working directory in `resolve` (the root dir is used instead)
+identical to the node.js (see [https://github.com/browserify/path-browserify](https://github.com/browserify/path-browserify)) version with the following differences:
+
+* The CWD always defaults to `/`
+* No support for Windows style paths
+* Additional utility methods (see below)
 
 ```javascript
 var path = Filer.Path;
@@ -258,15 +257,21 @@ var newpath = path.join('/foo', 'bar', 'baz/asdf', 'quux', '..');
 ```
 
 For more info see the docs in the [path module](http://nodejs.org/api/path.html) for a particular method:
-* `path.normalize(p)`
+* `path.normalize(p)` - NOTE: Filer.Path.normalize does *not* add a trailing slash
 * `path.join([path1], [path2], [...])`
 * `path.resolve([from ...], to)`
 * `path.relative(from, to)`
 * `path.dirname(p)`
-* `path.basename(p, [ext])`
+* `path.basename(p, [ext])` - NOTE: Filer.Path.basename will return `'/'` vs. `''`
 * `path.extname(p)`
 * `path.sep`
 * `path.delimiter`
+
+Filer.Path also includes the following extra methods:
+
+* `isNull(p)` returns `true` or `false` if the path contains a null character (`'\u0000'`)
+* `addTrailing(p)` returns the path `p` with a single trailing slash added
+* `removeTrailing(p)` returns the path `p` with trailing slash(es) removed
 
 #### Filer.Errors<a name="Errors"></a>
 
