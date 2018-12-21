@@ -42,6 +42,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
       }
 
       localRequire.resolve = resolve;
+      localRequire.cache = {};
 
       var module = cache[name] = new newRequire.Module(name);
 
@@ -103,106 +104,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({"96cB":[function(require,module,exports) {
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-// Cherry-picked bits of underscore.js, lodash.js
-
-/**
- * Lo-Dash 2.4.0 <http://lodash.com/>
- * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
- * Based on Underscore.js 1.5.2 <http://underscorejs.org/LICENSE>
- * Copyright 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
- * Available under MIT license <http://lodash.com/license>
- */
-var ArrayProto = Array.prototype;
-var nativeForEach = ArrayProto.forEach;
-var nativeIndexOf = ArrayProto.indexOf;
-var nativeSome = ArrayProto.some;
-
-var ObjProto = Object.prototype;
-var hasOwnProperty = ObjProto.hasOwnProperty;
-var nativeKeys = Object.keys;
-
-var breaker = {};
-
-function has(obj, key) {
-  return hasOwnProperty.call(obj, key);
-}
-
-var keys = nativeKeys || function (obj) {
-  if (obj !== Object(obj)) throw new TypeError('Invalid object');
-  var keys = [];
-  for (var key in obj) {
-    if (has(obj, key)) keys.push(key);
-  }return keys;
-};
-
-function size(obj) {
-  if (obj == null) return 0;
-  return obj.length === +obj.length ? obj.length : keys(obj).length;
-}
-
-function identity(value) {
-  return value;
-}
-
-function each(obj, iterator, context) {
-  var i, length;
-  if (obj == null) return;
-  if (nativeForEach && obj.forEach === nativeForEach) {
-    obj.forEach(iterator, context);
-  } else if (obj.length === +obj.length) {
-    for (i = 0, length = obj.length; i < length; i++) {
-      if (iterator.call(context, obj[i], i, obj) === breaker) return;
-    }
-  } else {
-    var keys = keys(obj);
-    for (i = 0, length = keys.length; i < length; i++) {
-      if (iterator.call(context, obj[keys[i]], keys[i], obj) === breaker) return;
-    }
-  }
-};
-
-function any(obj, iterator, context) {
-  iterator || (iterator = identity);
-  var result = false;
-  if (obj == null) return result;
-  if (nativeSome && obj.some === nativeSome) return obj.some(iterator, context);
-  each(obj, function (value, index, list) {
-    if (result || (result = iterator.call(context, value, index, list))) return breaker;
-  });
-  return !!result;
-};
-
-function contains(obj, target) {
-  if (obj == null) return false;
-  if (nativeIndexOf && obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
-  return any(obj, function (value) {
-    return value === target;
-  });
-};
-
-function Wrapped(value) {
-  this.value = value;
-}
-Wrapped.prototype.has = function (key) {
-  return has(this.value, key);
-};
-Wrapped.prototype.contains = function (target) {
-  return contains(this.value, target);
-};
-Wrapped.prototype.size = function () {
-  return size(this.value);
-};
-
-function nodash(value) {
-  // don't wrap if already wrapped, even if wrapped by a different `lodash` constructor
-  return value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'object' && !Array.isArray(value) && hasOwnProperty.call(value, '__wrapped__') ? value : new Wrapped(value);
-}
-
-module.exports = nodash;
-},{}],"0c0E":[function(require,module,exports) {
+})({"0c0E":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -287,7 +189,218 @@ promisify.Promise = undefined;
 
 // Export the public API
 exports.promisify = promisify;
-},{}],"UzoP":[function(require,module,exports) {
+},{}],"pBGv":[function(require,module,exports) {
+
+// shim for using process in browser
+var process = module.exports = {}; // cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+  throw new Error('setTimeout has not been defined');
+}
+
+function defaultClearTimeout() {
+  throw new Error('clearTimeout has not been defined');
+}
+
+(function () {
+  try {
+    if (typeof setTimeout === 'function') {
+      cachedSetTimeout = setTimeout;
+    } else {
+      cachedSetTimeout = defaultSetTimout;
+    }
+  } catch (e) {
+    cachedSetTimeout = defaultSetTimout;
+  }
+
+  try {
+    if (typeof clearTimeout === 'function') {
+      cachedClearTimeout = clearTimeout;
+    } else {
+      cachedClearTimeout = defaultClearTimeout;
+    }
+  } catch (e) {
+    cachedClearTimeout = defaultClearTimeout;
+  }
+})();
+
+function runTimeout(fun) {
+  if (cachedSetTimeout === setTimeout) {
+    //normal enviroments in sane situations
+    return setTimeout(fun, 0);
+  } // if setTimeout wasn't available but was latter defined
+
+
+  if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+    cachedSetTimeout = setTimeout;
+    return setTimeout(fun, 0);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedSetTimeout(fun, 0);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+      return cachedSetTimeout.call(null, fun, 0);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+      return cachedSetTimeout.call(this, fun, 0);
+    }
+  }
+}
+
+function runClearTimeout(marker) {
+  if (cachedClearTimeout === clearTimeout) {
+    //normal enviroments in sane situations
+    return clearTimeout(marker);
+  } // if clearTimeout wasn't available but was latter defined
+
+
+  if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+    cachedClearTimeout = clearTimeout;
+    return clearTimeout(marker);
+  }
+
+  try {
+    // when when somebody has screwed with setTimeout but no I.E. maddness
+    return cachedClearTimeout(marker);
+  } catch (e) {
+    try {
+      // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+      return cachedClearTimeout.call(null, marker);
+    } catch (e) {
+      // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+      // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+      return cachedClearTimeout.call(this, marker);
+    }
+  }
+}
+
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+  if (!draining || !currentQueue) {
+    return;
+  }
+
+  draining = false;
+
+  if (currentQueue.length) {
+    queue = currentQueue.concat(queue);
+  } else {
+    queueIndex = -1;
+  }
+
+  if (queue.length) {
+    drainQueue();
+  }
+}
+
+function drainQueue() {
+  if (draining) {
+    return;
+  }
+
+  var timeout = runTimeout(cleanUpNextTick);
+  draining = true;
+  var len = queue.length;
+
+  while (len) {
+    currentQueue = queue;
+    queue = [];
+
+    while (++queueIndex < len) {
+      if (currentQueue) {
+        currentQueue[queueIndex].run();
+      }
+    }
+
+    queueIndex = -1;
+    len = queue.length;
+  }
+
+  currentQueue = null;
+  draining = false;
+  runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+  var args = new Array(arguments.length - 1);
+
+  if (arguments.length > 1) {
+    for (var i = 1; i < arguments.length; i++) {
+      args[i - 1] = arguments[i];
+    }
+  }
+
+  queue.push(new Item(fun, args));
+
+  if (queue.length === 1 && !draining) {
+    runTimeout(drainQueue);
+  }
+}; // v8 likes predictible objects
+
+
+function Item(fun, array) {
+  this.fun = fun;
+  this.array = array;
+}
+
+Item.prototype.run = function () {
+  this.fun.apply(null, this.array);
+};
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) {
+  return [];
+};
+
+process.binding = function (name) {
+  throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () {
+  return '/';
+};
+
+process.chdir = function (dir) {
+  throw new Error('process.chdir is not supported');
+};
+
+process.umask = function () {
+  return 0;
+};
+},{}],"UUq2":[function(require,module,exports) {
+var process = require("process");
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -308,8 +421,6 @@ exports.promisify = promisify;
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// Based on https://github.com/joyent/node/blob/41e53e557992a7d552a8e23de035f9463da25c99/lib/path.js
 
 // resolves . and .. elements in a path array with directory names there
 // must be no slashes, empty elements, or device names (c:\) in the array
@@ -343,23 +454,25 @@ function normalizeArray(parts, allowAboveRoot) {
 
 // Split a filename into [root, dir, basename, ext], unix version
 // 'root' is just a slash, or nothing.
-var splitPathRe = /^(\/?)([\s\S]+\/(?!$)|\/)?((?:\.{1,2}$|[\s\S]+?)?(\.[^./]*)?)$/;
-var splitPath = function splitPath(filename) {
-  var result = splitPathRe.exec(filename);
-  return [result[1] || '', result[2] || '', result[3] || '', result[4] || ''];
+var splitPathRe =
+    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
+var splitPath = function(filename) {
+  return splitPathRe.exec(filename).slice(1);
 };
 
 // path.resolve([from ...], to)
-function resolve() {
+// posix version
+exports.resolve = function() {
   var resolvedPath = '',
       resolvedAbsolute = false;
 
   for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    // XXXfiler: we don't have process.cwd() so we use '/' as a fallback
-    var path = i >= 0 ? arguments[i] : '/';
+    var path = (i >= 0) ? arguments[i] : process.cwd();
 
     // Skip empty and invalid entries
-    if (typeof path !== 'string' || !path) {
+    if (typeof path !== 'string') {
+      throw new TypeError('Arguments to path.resolve must be strings');
+    } else if (!path) {
       continue;
     }
 
@@ -371,45 +484,56 @@ function resolve() {
   // handle relative paths to be safe (might happen when process.cwd() fails)
 
   // Normalize the path
-  resolvedPath = normalizeArray(resolvedPath.split('/').filter(function (p) {
+  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
     return !!p;
   }), !resolvedAbsolute).join('/');
 
-  return (resolvedAbsolute ? '/' : '') + resolvedPath || '.';
-}
+  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+};
 
 // path.normalize(path)
-function normalize(path) {
-  var isAbsolute = path.charAt(0) === '/';
+// posix version
+exports.normalize = function(path) {
+  var isAbsolute = exports.isAbsolute(path),
+      trailingSlash = substr(path, -1) === '/';
 
   // Normalize the path
-  path = normalizeArray(path.split('/').filter(function (p) {
+  path = normalizeArray(filter(path.split('/'), function(p) {
     return !!p;
   }), !isAbsolute).join('/');
 
   if (!path && !isAbsolute) {
     path = '.';
   }
-  /*
-   if (path && trailingSlash) {
-   path += '/';
-   }
-   */
+  if (path && trailingSlash) {
+    path += '/';
+  }
 
   return (isAbsolute ? '/' : '') + path;
-}
+};
 
-function join() {
+// posix version
+exports.isAbsolute = function(path) {
+  return path.charAt(0) === '/';
+};
+
+// posix version
+exports.join = function() {
   var paths = Array.prototype.slice.call(arguments, 0);
-  return normalize(paths.filter(function (p) {
-    return p && typeof p === 'string';
+  return exports.normalize(filter(paths, function(p, index) {
+    if (typeof p !== 'string') {
+      throw new TypeError('Arguments to path.join must be strings');
+    }
+    return p;
   }).join('/'));
-}
+};
+
 
 // path.relative(from, to)
-function relative(from, to) {
-  from = resolve(from).substr(1);
-  to = resolve(to).substr(1);
+// posix version
+exports.relative = function(from, to) {
+  from = exports.resolve(from).substr(1);
+  to = exports.resolve(to).substr(1);
 
   function trim(arr) {
     var start = 0;
@@ -439,16 +563,19 @@ function relative(from, to) {
   }
 
   var outputParts = [];
-  for (i = samePartsLength; i < fromParts.length; i++) {
+  for (var i = samePartsLength; i < fromParts.length; i++) {
     outputParts.push('..');
   }
 
   outputParts = outputParts.concat(toParts.slice(samePartsLength));
 
   return outputParts.join('/');
-}
+};
 
-function dirname(path) {
+exports.sep = '/';
+exports.delimiter = ':';
+
+exports.dirname = function(path) {
   var result = splitPath(path),
       root = result[0],
       dir = result[1];
@@ -464,210 +591,135 @@ function dirname(path) {
   }
 
   return root + dir;
-}
+};
 
-function basename(path, ext) {
+
+exports.basename = function(path, ext) {
   var f = splitPath(path)[2];
   // TODO: make this comparison case-insensitive on windows?
   if (ext && f.substr(-1 * ext.length) === ext) {
     f = f.substr(0, f.length - ext.length);
   }
-  // XXXfiler: node.js just does `return f`
-  return f === '' ? '/' : f;
-}
+  return f;
+};
 
-function extname(path) {
+
+exports.extname = function(path) {
   return splitPath(path)[3];
+};
+
+function filter (xs, f) {
+    if (xs.filter) return xs.filter(f);
+    var res = [];
+    for (var i = 0; i < xs.length; i++) {
+        if (f(xs[i], i, xs)) res.push(xs[i]);
+    }
+    return res;
 }
 
-function isAbsolute(path) {
-  if (path.charAt(0) === '/') {
-    return true;
-  }
-  return false;
-}
+// String.prototype.substr - negative index don't work in IE8
+var substr = 'ab'.substr(-1) === 'b'
+    ? function (str, start, len) { return str.substr(start, len) }
+    : function (str, start, len) {
+        if (start < 0) start = str.length + start;
+        return str.substr(start, len);
+    }
+;
 
-function isNull(path) {
-  if (('' + path).indexOf('\0') !== -1) {
-    return true;
-  }
-  return false;
-}
+},{"process":"pBGv"}],"UzoP":[function(require,module,exports) {
+var process = require("process");
+/**
+ * Patch process to add process.cwd(), always giving the root dir.
+ * NOTE: this line needs to happen *before* we require in `path`.
+ */
+process.cwd = function () {
+  return '/';
+};
+/**
+ * https://github.com/browserify/path-browserify via Parcel.
+ * We use is as a base for our own Filer.Path, and patch/add
+ * a few things we need for the browser environment.
+ */
 
-// Make sure we don't double-add a trailing slash (e.g., '/' -> '//')
-function addTrailing(path) {
+
+var nodePath = require('path');
+
+var filerPath = Object.create(nodePath);
+/**
+ * Patch path.basename() to return / vs. ''
+ */
+
+filerPath.basename = function (path, ext) {
+  var basename = nodePath.basename(path, ext);
+  return basename === '' ? '/' : basename;
+};
+/**
+ * Patch path.normalize() to not add a trailing /
+ */
+
+
+filerPath.normalize = function (path) {
+  path = nodePath.normalize(path);
+  return path === '/' ? path : filerPath.removeTrailing(path);
+};
+/**
+ * Add new utility method isNull() to path: check for null paths.
+ */
+
+
+filerPath.isNull = function (path) {
+  return ('' + path).indexOf("\0") !== -1;
+};
+/**
+ * Add new utility method addTrailing() to add trailing / without doubling to //.
+ */
+
+
+filerPath.addTrailing = function (path) {
   return path.replace(/\/*$/, '/');
-}
+};
+/**
+ * Add new utility method removeTrailing() to remove trailing /, dealing with multiple
+ */
 
-// Deal with multiple slashes at the end, one, or none
-// and make sure we don't return the empty string.
-function removeTrailing(path) {
+
+filerPath.removeTrailing = function (path) {
   path = path.replace(/\/*$/, '');
   return path === '' ? '/' : path;
+};
+
+module.exports = filerPath;
+},{"path":"UUq2","process":"pBGv"}],"3zBM":[function(require,module,exports) {
+function generateRandom(template) {
+  return template.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0,
+        v = c === 'x' ? r : r & 0x3 | 0x8;
+    return v.toString(16);
+  });
 }
 
-// XXXfiler: we don't support path.exists() or path.existsSync(), which
-// are deprecated, and need a FileSystem instance to work. Use fs.stat().
-
-module.exports = {
-  normalize: normalize,
-  resolve: resolve,
-  join: join,
-  relative: relative,
-  sep: '/',
-  delimiter: ':',
-  dirname: dirname,
-  basename: basename,
-  extname: extname,
-  isAbsolute: isAbsolute,
-  isNull: isNull,
-  // Non-node but useful...
-  addTrailing: addTrailing,
-  removeTrailing: removeTrailing
-};
-},{}],"p8GN":[function(require,module,exports) {
-var errors = {};
-[
-/**
- * node.js errors - we only use some of these, add as needed.
- */
-//'-1:UNKNOWN:unknown error',
-//'0:OK:success',
-//'1:EOF:end of file',
-//'2:EADDRINFO:getaddrinfo error',
-//'3:EACCES:permission denied',
-//'4:EAGAIN:resource temporarily unavailable',
-//'5:EADDRINUSE:address already in use',
-//'6:EADDRNOTAVAIL:address not available',
-//'7:EAFNOSUPPORT:address family not supported',
-//'8:EALREADY:connection already in progress',
-'9:EBADF:bad file descriptor', '10:EBUSY:resource busy or locked',
-//'11:ECONNABORTED:software caused connection abort',
-//'12:ECONNREFUSED:connection refused',
-//'13:ECONNRESET:connection reset by peer',
-//'14:EDESTADDRREQ:destination address required',
-//'15:EFAULT:bad address in system call argument',
-//'16:EHOSTUNREACH:host is unreachable',
-//'17:EINTR:interrupted system call',
-'18:EINVAL:invalid argument',
-//'19:EISCONN:socket is already connected',
-//'20:EMFILE:too many open files',
-//'21:EMSGSIZE:message too long',
-//'22:ENETDOWN:network is down',
-//'23:ENETUNREACH:network is unreachable',
-//'24:ENFILE:file table overflow',
-//'25:ENOBUFS:no buffer space available',
-//'26:ENOMEM:not enough memory',
-'27:ENOTDIR:not a directory', '28:EISDIR:illegal operation on a directory',
-//'29:ENONET:machine is not on the network',
-// errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-//'31:ENOTCONN:socket is not connected',
-//'32:ENOTSOCK:socket operation on non-socket',
-//'33:ENOTSUP:operation not supported on socket',
-'34:ENOENT:no such file or directory',
-//'35:ENOSYS:function not implemented',
-//'36:EPIPE:broken pipe',
-//'37:EPROTO:protocol error',
-//'38:EPROTONOSUPPORT:protocol not supported',
-//'39:EPROTOTYPE:protocol wrong type for socket',
-//'40:ETIMEDOUT:connection timed out',
-//'41:ECHARSET:invalid Unicode character',
-//'42:EAIFAMNOSUPPORT:address family for hostname not supported',
-// errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-//'44:EAISERVICE:servname not supported for ai_socktype',
-//'45:EAISOCKTYPE:ai_socktype not supported',
-//'46:ESHUTDOWN:cannot send after transport endpoint shutdown',
-'47:EEXIST:file already exists',
-//'48:ESRCH:no such process',
-//'49:ENAMETOOLONG:name too long',
-'50:EPERM:operation not permitted', '51:ELOOP:too many symbolic links encountered',
-//'52:EXDEV:cross-device link not permitted',
-'53:ENOTEMPTY:directory not empty',
-//'54:ENOSPC:no space left on device',
-'55:EIO:i/o error',
-//'56:EROFS:read-only file system',
-//'57:ENODEV:no such device',
-//'58:ESPIPE:invalid seek',
-//'59:ECANCELED:operation canceled',
-
-/**
- * Filer specific errors
- */
-'1000:ENOTMOUNTED:not mounted', '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.', '1002:ENOATTR:attribute does not exist'].forEach(function (e) {
-  e = e.split(':');
-  var errno = +e[0];
-  var errName = e[1];
-  var defaultMessage = e[2];
-
-  function FilerError(msg, path) {
-    Error.call(this);
-
-    this.name = errName;
-    this.code = errName;
-    this.errno = errno;
-    this.message = msg || defaultMessage;
-    if (path) {
-      this.path = path;
-    }
-    this.stack = new Error(this.message).stack;
-  }
-  FilerError.prototype = Object.create(Error.prototype);
-  FilerError.prototype.constructor = FilerError;
-  FilerError.prototype.toString = function () {
-    var pathInfo = this.path ? ', \'' + this.path + '\'' : '';
-    return this.name + ': ' + this.message + pathInfo;
-  };
-
-  // We expose the error as both Errors.EINVAL and Errors[18]
-  errors[errName] = errors[errno] = FilerError;
-});
-
-module.exports = errors;
-},{}],"3zBM":[function(require,module,exports) {
-var Errors = require('./errors.js');
-
 function guid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = Math.random() * 16 | 0,
-        v = c == 'x' ? r : r & 0x3 | 0x8;
-    return v.toString(16);
-  }).toUpperCase();
+  return generateRandom('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').toUpperCase();
+}
+/**
+ * Generate a string of n random characters.  Defaults to n=6.
+ */
+
+
+function randomChars(n) {
+  n = n || 6;
+  var template = 'x'.repeat(n);
+  return generateRandom(template);
 }
 
 function nop() {}
 
-/**
- * Convert a Uint8Array to a regular array
- */
-function u8toArray(u8) {
-  var array = [];
-  var len = u8.length;
-  for (var i = 0; i < len; i++) {
-    array[i] = u8[i];
-  }
-  return array;
-}
-
-function validateInteger(value, name) {
-  var err = void 0;
-
-  if (typeof value !== 'number') err = new Errors.EINVAL(name, 'number', value);
-
-  if (err) {
-    Error.captureStackTrace(err, validateInteger);
-    throw err;
-  }
-
-  return value;
-}
-
 module.exports = {
   guid: guid,
-  u8toArray: u8toArray,
   nop: nop,
-  validateInteger: validateInteger
+  randomChars: randomChars
 };
-},{"./errors.js":"p8GN"}],"iJA9":[function(require,module,exports) {
+},{}],"iJA9":[function(require,module,exports) {
 var O_READ = 'READ';
 var O_WRITE = 'WRITE';
 var O_CREATE = 'CREATE';
@@ -676,46 +728,36 @@ var O_TRUNCATE = 'TRUNCATE';
 var O_APPEND = 'APPEND';
 var XATTR_CREATE = 'CREATE';
 var XATTR_REPLACE = 'REPLACE';
-
 module.exports = {
   FILE_SYSTEM_NAME: 'local',
-
   FILE_STORE_NAME: 'files',
-
   IDB_RO: 'readonly',
   IDB_RW: 'readwrite',
-
   WSQL_VERSION: '1',
   WSQL_SIZE: 5 * 1024 * 1024,
   WSQL_DESC: 'FileSystem Storage',
-
   NODE_TYPE_FILE: 'FILE',
   NODE_TYPE_DIRECTORY: 'DIRECTORY',
   NODE_TYPE_SYMBOLIC_LINK: 'SYMLINK',
   NODE_TYPE_META: 'META',
-
-  S_IFREG: 0x8000,
-  S_IFDIR: 0x4000,
-  S_IFLNK: 0xA000,
-
-  DEFAULT_DIR_PERMISSIONS: 0x1ED, // 755
-  DEFAULT_FILE_PERMISSIONS: 0x1A4, // 644
-  FULL_READ_WRITE_EXEC_PERMISSIONS: 0x1FF, // 777
-  READ_WRITE_PERMISSIONS: 0x1B6, /// 666
-
+  DEFAULT_DIR_PERMISSIONS: 0x1ED,
+  // 755
+  DEFAULT_FILE_PERMISSIONS: 0x1A4,
+  // 644
+  FULL_READ_WRITE_EXEC_PERMISSIONS: 0x1FF,
+  // 777
+  READ_WRITE_PERMISSIONS: 0x1B6,
+  /// 666
   SYMLOOP_MAX: 10,
-
   BINARY_MIME_TYPE: 'application/octet-stream',
   JSON_MIME_TYPE: 'application/json',
-
-  ROOT_DIRECTORY_NAME: '/', // basename(normalize(path))
-
+  ROOT_DIRECTORY_NAME: '/',
+  // basename(normalize(path))
   // FS Mount Flags
   FS_FORMAT: 'FORMAT',
   FS_NOCTIME: 'NOCTIME',
   FS_NOMTIME: 'NOMTIME',
   FS_NODUPEIDCHECK: 'FS_NODUPEIDCHECK',
-
   // FS File Open Flags
   O_READ: O_READ,
   O_WRITE: O_WRITE,
@@ -723,7 +765,6 @@ module.exports = {
   O_EXCLUSIVE: O_EXCLUSIVE,
   O_TRUNCATE: O_TRUNCATE,
   O_APPEND: O_APPEND,
-
   O_FLAGS: {
     'r': [O_READ],
     'r+': [O_READ, O_WRITE],
@@ -736,27 +777,21 @@ module.exports = {
     'ax': [O_WRITE, O_CREATE, O_EXCLUSIVE, O_APPEND],
     'ax+': [O_WRITE, O_READ, O_CREATE, O_EXCLUSIVE, O_APPEND]
   },
-
   XATTR_CREATE: XATTR_CREATE,
   XATTR_REPLACE: XATTR_REPLACE,
-
   FS_READY: 'READY',
   FS_PENDING: 'PENDING',
   FS_ERROR: 'ERROR',
-
   SUPER_NODE_ID: '00000000-0000-0000-0000-000000000000',
-
   // Reserved File Descriptors for streams
   STDIN: 0,
   STDOUT: 1,
   STDERR: 2,
   FIRST_DESCRIPTOR: 3,
-
   ENVIRONMENT: {
     TMP: '/tmp',
     PATH: ''
   },
-
   // Duplicate Node's fs.constants
   fsConstants: {
     O_RDONLY: 0,
@@ -2840,38 +2875,16 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":"yh9p","ieee754":"JgNJ","isarray":"REa7","buffer":"dskh"}],"xfwq":[function(require,module,exports) {
-var Buffer = require("buffer").Buffer;
-function FilerBuffer(subject, encoding, nonZero) {
-
-  // Automatically turn ArrayBuffer into Uint8Array so that underlying
-  // Buffer code doesn't just throw away and ignore ArrayBuffer data.
-  if (subject instanceof ArrayBuffer) {
-    subject = new Uint8Array(subject);
-  }
-
-  return new Buffer(subject, encoding, nonZero);
-}
-
-// Inherit prototype from Buffer
-FilerBuffer.prototype = Object.create(Buffer.prototype);
-FilerBuffer.prototype.constructor = FilerBuffer;
-
-// Also copy static methods onto FilerBuffer ctor
-Object.keys(Buffer).forEach(function (p) {
-  if (Buffer.hasOwnProperty(p)) {
-    FilerBuffer[p] = Buffer[p];
-  }
-});
-
-module.exports = FilerBuffer;
-},{"buffer":"dskh"}],"QO4x":[function(require,module,exports) {
+},{"base64-js":"yh9p","ieee754":"JgNJ","isarray":"REa7","buffer":"dskh"}],"QO4x":[function(require,module,exports) {
 var global = arguments[3];
+var Buffer = require("buffer").Buffer;
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
+
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
+
 var IDB_RW = require('../constants.js').IDB_RW;
+
 var IDB_RO = require('../constants.js').IDB_RO;
-var FilerBuffer = require('../buffer.js');
 
 var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB;
 
@@ -2893,10 +2906,13 @@ IndexedDBContext.prototype._getObjectStore = function () {
 IndexedDBContext.prototype.clear = function (callback) {
   try {
     var objectStore = this._getObjectStore();
+
     var request = objectStore.clear();
+
     request.onsuccess = function () {
       callback();
     };
+
     request.onerror = function (event) {
       event.preventDefault();
       callback(event.error);
@@ -2909,11 +2925,14 @@ IndexedDBContext.prototype.clear = function (callback) {
 IndexedDBContext.prototype._get = function (key, callback) {
   try {
     var objectStore = this._getObjectStore();
+
     var request = objectStore.get(key);
+
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
     };
+
     request.onerror = function (event) {
       event.preventDefault();
       callback(event.error);
@@ -2922,26 +2941,32 @@ IndexedDBContext.prototype._get = function (key, callback) {
     callback(err);
   }
 };
+
 IndexedDBContext.prototype.getObject = function (key, callback) {
   this._get(key, callback);
 };
+
 IndexedDBContext.prototype.getBuffer = function (key, callback) {
   this._get(key, function (err, arrayBuffer) {
     if (err) {
       return callback(err);
     }
-    callback(null, new FilerBuffer(arrayBuffer));
+
+    callback(null, Buffer.from(arrayBuffer));
   });
 };
 
 IndexedDBContext.prototype._put = function (key, value, callback) {
   try {
     var objectStore = this._getObjectStore();
+
     var request = objectStore.put(value, key);
+
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
     };
+
     request.onerror = function (event) {
       event.preventDefault();
       callback(event.error);
@@ -2950,22 +2975,28 @@ IndexedDBContext.prototype._put = function (key, value, callback) {
     callback(err);
   }
 };
+
 IndexedDBContext.prototype.putObject = function (key, value, callback) {
   this._put(key, value, callback);
 };
+
 IndexedDBContext.prototype.putBuffer = function (key, uint8BackedBuffer, callback) {
   var buf = uint8BackedBuffer.buffer;
+
   this._put(key, buf, callback);
 };
 
 IndexedDBContext.prototype.delete = function (key, callback) {
   try {
     var objectStore = this._getObjectStore();
+
     var request = objectStore.delete(key);
+
     request.onsuccess = function onsuccess(event) {
       var result = event.target.result;
       callback(null, result);
     };
+
     request.onerror = function (event) {
       event.preventDefault();
       callback(event.error);
@@ -2979,29 +3010,29 @@ function IndexedDB(name) {
   this.name = name || FILE_SYSTEM_NAME;
   this.db = null;
 }
+
 IndexedDB.isSupported = function () {
   return !!indexedDB;
 };
 
 IndexedDB.prototype.open = function (callback) {
-  var that = this;
+  var that = this; // Bail if we already have a db open
 
-  // Bail if we already have a db open
   if (that.db) {
     return callback();
   }
 
   try {
     // NOTE: we're not using versioned databases.
-    var openRequest = indexedDB.open(that.name);
+    var openRequest = indexedDB.open(that.name); // If the db doesn't exist, we'll create it
 
-    // If the db doesn't exist, we'll create it
     openRequest.onupgradeneeded = function onupgradeneeded(event) {
       var db = event.target.result;
 
       if (db.objectStoreNames.contains(FILE_STORE_NAME)) {
         db.deleteObjectStore(FILE_STORE_NAME);
       }
+
       db.createObjectStore(FILE_STORE_NAME);
     };
 
@@ -3009,6 +3040,7 @@ IndexedDB.prototype.open = function (callback) {
       that.db = event.target.result;
       callback();
     };
+
     openRequest.onerror = function onerror(event) {
       event.preventDefault();
       callback(event.error);
@@ -3021,12 +3053,104 @@ IndexedDB.prototype.open = function (callback) {
 IndexedDB.prototype.getReadOnlyContext = function () {
   return new IndexedDBContext(this.db, IDB_RO);
 };
+
 IndexedDB.prototype.getReadWriteContext = function () {
   return new IndexedDBContext(this.db, IDB_RW);
 };
 
 module.exports = IndexedDB;
-},{"../constants.js":"iJA9","../buffer.js":"xfwq"}],"vLJO":[function(require,module,exports) {
+},{"../constants.js":"iJA9","buffer":"dskh"}],"p8GN":[function(require,module,exports) {
+var errors = {};
+[
+/**
+ * node.js errors - we only use some of these, add as needed.
+ */
+//'-1:UNKNOWN:unknown error',
+//'0:OK:success',
+//'1:EOF:end of file',
+//'2:EADDRINFO:getaddrinfo error',
+'3:EACCES:permission denied', //'4:EAGAIN:resource temporarily unavailable',
+//'5:EADDRINUSE:address already in use',
+//'6:EADDRNOTAVAIL:address not available',
+//'7:EAFNOSUPPORT:address family not supported',
+//'8:EALREADY:connection already in progress',
+'9:EBADF:bad file descriptor', '10:EBUSY:resource busy or locked', //'11:ECONNABORTED:software caused connection abort',
+//'12:ECONNREFUSED:connection refused',
+//'13:ECONNRESET:connection reset by peer',
+//'14:EDESTADDRREQ:destination address required',
+//'15:EFAULT:bad address in system call argument',
+//'16:EHOSTUNREACH:host is unreachable',
+//'17:EINTR:interrupted system call',
+'18:EINVAL:invalid argument', //'19:EISCONN:socket is already connected',
+//'20:EMFILE:too many open files',
+//'21:EMSGSIZE:message too long',
+//'22:ENETDOWN:network is down',
+//'23:ENETUNREACH:network is unreachable',
+//'24:ENFILE:file table overflow',
+//'25:ENOBUFS:no buffer space available',
+//'26:ENOMEM:not enough memory',
+'27:ENOTDIR:not a directory', '28:EISDIR:illegal operation on a directory', //'29:ENONET:machine is not on the network',
+// errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+//'31:ENOTCONN:socket is not connected',
+//'32:ENOTSOCK:socket operation on non-socket',
+//'33:ENOTSUP:operation not supported on socket',
+'34:ENOENT:no such file or directory', //'35:ENOSYS:function not implemented',
+//'36:EPIPE:broken pipe',
+//'37:EPROTO:protocol error',
+//'38:EPROTONOSUPPORT:protocol not supported',
+//'39:EPROTOTYPE:protocol wrong type for socket',
+//'40:ETIMEDOUT:connection timed out',
+//'41:ECHARSET:invalid Unicode character',
+//'42:EAIFAMNOSUPPORT:address family for hostname not supported',
+// errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+//'44:EAISERVICE:servname not supported for ai_socktype',
+//'45:EAISOCKTYPE:ai_socktype not supported',
+//'46:ESHUTDOWN:cannot send after transport endpoint shutdown',
+'47:EEXIST:file already exists', //'48:ESRCH:no such process',
+//'49:ENAMETOOLONG:name too long',
+'50:EPERM:operation not permitted', '51:ELOOP:too many symbolic links encountered', //'52:EXDEV:cross-device link not permitted',
+'53:ENOTEMPTY:directory not empty', //'54:ENOSPC:no space left on device',
+'55:EIO:i/o error', //'56:EROFS:read-only file system',
+//'57:ENODEV:no such device',
+//'58:ESPIPE:invalid seek',
+//'59:ECANCELED:operation canceled',
+
+/**
+ * Filer specific errors
+ */
+'1000:ENOTMOUNTED:not mounted', '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.', '1002:ENOATTR:attribute does not exist'].forEach(function (e) {
+  e = e.split(':');
+  var errno = +e[0];
+  var errName = e[1];
+  var defaultMessage = e[2];
+
+  function FilerError(msg, path) {
+    Error.call(this);
+    this.name = errName;
+    this.code = errName;
+    this.errno = errno;
+    this.message = msg || defaultMessage;
+
+    if (path) {
+      this.path = path;
+    }
+
+    this.stack = new Error(this.message).stack;
+  }
+
+  FilerError.prototype = Object.create(Error.prototype);
+  FilerError.prototype.constructor = FilerError;
+
+  FilerError.prototype.toString = function () {
+    var pathInfo = this.path ? ', \'' + this.path + '\'' : '';
+    return this.name + ': ' + this.message + pathInfo;
+  }; // We expose the error as both Errors.EINVAL and Errors[18]
+
+
+  errors[errName] = errors[errno] = FilerError;
+});
+module.exports = errors;
+},{}],"vLJO":[function(require,module,exports) {
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -3037,10 +3161,10 @@ module.exports = IndexedDB;
 (function () {
   "use strict";
 
-  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; // Use a lookup table to find the index.
 
-  // Use a lookup table to find the index.
   var lookup = new Uint8Array(256);
+
   for (var i = 0; i < chars.length; i++) {
     lookup[chars.charCodeAt(i)] = i;
   }
@@ -3079,6 +3203,7 @@ module.exports = IndexedDB;
 
     if (base64[base64.length - 1] === "=") {
       bufferLength--;
+
       if (base64[base64.length - 2] === "=") {
         bufferLength--;
       }
@@ -3092,7 +3217,6 @@ module.exports = IndexedDB;
       encoded2 = lookup[base64.charCodeAt(i + 1)];
       encoded3 = lookup[base64.charCodeAt(i + 2)];
       encoded4 = lookup[base64.charCodeAt(i + 3)];
-
       bytes[p++] = encoded1 << 2 | encoded2 >> 4;
       bytes[p++] = (encoded2 & 15) << 4 | encoded3 >> 2;
       bytes[p++] = (encoded3 & 3) << 6 | encoded4 & 63;
@@ -3102,24 +3226,32 @@ module.exports = IndexedDB;
   };
 })();
 },{}],"hW+K":[function(require,module,exports) {
+var Buffer = require("buffer").Buffer;
 var global = arguments[3];
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
+
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
+
 var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
+
 var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
+
 var WSQL_DESC = require('../constants.js').WSQL_DESC;
+
 var Errors = require('../errors.js');
-var FilerBuffer = require('../buffer.js');
+
 var base64ArrayBuffer = require('base64-arraybuffer');
 
 function WebSQLContext(db, isReadOnly) {
   var that = this;
+
   this.getTransaction = function (callback) {
     if (that.transaction) {
       callback(that.transaction);
       return;
-    }
-    // Either do readTransaction() (read-only) or transaction() (read/write)
+    } // Either do readTransaction() (read-only) or transaction() (read/write)
+
+
     db[isReadOnly ? 'readTransaction' : 'transaction'](function (transaction) {
       that.transaction = transaction;
       callback(transaction);
@@ -3131,9 +3263,11 @@ WebSQLContext.prototype.clear = function (callback) {
   function onError(transaction, error) {
     callback(error);
   }
+
   function onSuccess() {
     callback(null);
   }
+
   this.getTransaction(function (transaction) {
     transaction.executeSql('DELETE FROM ' + FILE_STORE_NAME + ';', [], onSuccess, onError);
   });
@@ -3145,13 +3279,16 @@ function _get(getTransaction, key, callback) {
     var value = result.rows.length === 0 ? null : result.rows.item(0).data;
     callback(null, value);
   }
+
   function onError(transaction, error) {
     callback(error);
   }
+
   getTransaction(function (transaction) {
     transaction.executeSql('SELECT data FROM ' + FILE_STORE_NAME + ' WHERE id = ? LIMIT 1;', [key], onSuccess, onError);
   });
 }
+
 WebSQLContext.prototype.getObject = function (key, callback) {
   _get(this.getTransaction, key, function (err, result) {
     if (err) {
@@ -3169,16 +3306,17 @@ WebSQLContext.prototype.getObject = function (key, callback) {
     callback(null, result);
   });
 };
+
 WebSQLContext.prototype.getBuffer = function (key, callback) {
   _get(this.getTransaction, key, function (err, result) {
     if (err) {
       return callback(err);
-    }
+    } // Deal with zero-length ArrayBuffers, which will be encoded as ''
 
-    // Deal with zero-length ArrayBuffers, which will be encoded as ''
+
     if (result || result === '') {
       var arrayBuffer = base64ArrayBuffer.decode(result);
-      result = new FilerBuffer(arrayBuffer);
+      result = Buffer.from(arrayBuffer);
     }
 
     callback(null, result);
@@ -3189,19 +3327,25 @@ function _put(getTransaction, key, value, callback) {
   function onSuccess() {
     callback(null);
   }
+
   function onError(transaction, error) {
     callback(error);
   }
+
   getTransaction(function (transaction) {
     transaction.executeSql('INSERT OR REPLACE INTO ' + FILE_STORE_NAME + ' (id, data) VALUES (?, ?);', [key, value], onSuccess, onError);
   });
 }
+
 WebSQLContext.prototype.putObject = function (key, value, callback) {
   var json = JSON.stringify(value);
+
   _put(this.getTransaction, key, json, callback);
 };
+
 WebSQLContext.prototype.putBuffer = function (key, uint8BackedBuffer, callback) {
   var base64 = base64ArrayBuffer.encode(uint8BackedBuffer.buffer);
+
   _put(this.getTransaction, key, base64, callback);
 };
 
@@ -3209,9 +3353,11 @@ WebSQLContext.prototype.delete = function (key, callback) {
   function onSuccess() {
     callback(null);
   }
+
   function onError(transaction, error) {
     callback(error);
   }
+
   this.getTransaction(function (transaction) {
     transaction.executeSql('DELETE FROM ' + FILE_STORE_NAME + ' WHERE id = ?;', [key], onSuccess, onError);
   });
@@ -3221,19 +3367,20 @@ function WebSQL(name) {
   this.name = name || FILE_SYSTEM_NAME;
   this.db = null;
 }
+
 WebSQL.isSupported = function () {
   return !!global.openDatabase;
 };
 
 WebSQL.prototype.open = function (callback) {
-  var that = this;
+  var that = this; // Bail if we already have a db open
 
-  // Bail if we already have a db open
   if (that.db) {
     return callback();
   }
 
   var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
+
   if (!db) {
     callback('[WebSQL] Unable to open database.');
     return;
@@ -3243,217 +3390,35 @@ WebSQL.prototype.open = function (callback) {
     if (error.code === 5) {
       callback(new Errors.EINVAL('WebSQL cannot be accessed. If private browsing is enabled, disable it.'));
     }
+
     callback(error);
   }
+
   function onSuccess() {
     that.db = db;
     callback();
-  }
+  } // Create the table and index we'll need to store the fs data.
 
-  // Create the table and index we'll need to store the fs data.
+
   db.transaction(function (transaction) {
     function createIndex(transaction) {
       transaction.executeSql('CREATE INDEX IF NOT EXISTS idx_' + FILE_STORE_NAME + '_id' + ' on ' + FILE_STORE_NAME + ' (id);', [], onSuccess, onError);
     }
+
     transaction.executeSql('CREATE TABLE IF NOT EXISTS ' + FILE_STORE_NAME + ' (id unique, data TEXT);', [], createIndex, onError);
   });
 };
+
 WebSQL.prototype.getReadOnlyContext = function () {
   return new WebSQLContext(this.db, true);
 };
+
 WebSQL.prototype.getReadWriteContext = function () {
   return new WebSQLContext(this.db, false);
 };
 
 module.exports = WebSQL;
-},{"../constants.js":"iJA9","../errors.js":"p8GN","../buffer.js":"xfwq","base64-arraybuffer":"vLJO"}],"pBGv":[function(require,module,exports) {
-
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout() {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-})();
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e) {
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e) {
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while (len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) {
-    return [];
-};
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () {
-    return '/';
-};
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function () {
-    return 0;
-};
-},{}],"u4Zs":[function(require,module,exports) {
+},{"../constants.js":"iJA9","../errors.js":"p8GN","base64-arraybuffer":"vLJO","buffer":"dskh"}],"u4Zs":[function(require,module,exports) {
 var process = require("process");
 var define;
 /*global setImmediate: false, setTimeout: false, console: false */
@@ -3462,94 +3427,100 @@ var define;
  * async.js shim, based on https://raw.github.com/caolan/async/master/lib/async.js Feb 18, 2014
  * Used under MIT - https://github.com/caolan/async/blob/master/LICENSE
  */
-
 (function () {
+  var async = {}; // async.js functions used in Filer
+  //// nextTick implementation with browser-compatible fallback ////
 
-    var async = {};
+  if (typeof process === 'undefined' || !process.nextTick) {
+    if (typeof setImmediate === 'function') {
+      async.nextTick = function (fn) {
+        // not a direct alias for IE10 compatibility
+        setImmediate(fn);
+      };
 
-    // async.js functions used in Filer
-
-    //// nextTick implementation with browser-compatible fallback ////
-    if (typeof process === 'undefined' || !process.nextTick) {
-        if (typeof setImmediate === 'function') {
-            async.nextTick = function (fn) {
-                // not a direct alias for IE10 compatibility
-                setImmediate(fn);
-            };
-            async.setImmediate = async.nextTick;
-        } else {
-            async.nextTick = function (fn) {
-                setTimeout(fn, 0);
-            };
-            async.setImmediate = async.nextTick;
-        }
+      async.setImmediate = async.nextTick;
     } else {
-        async.nextTick = process.nextTick;
-        if (typeof setImmediate !== 'undefined') {
-            async.setImmediate = function (fn) {
-                // not a direct alias for IE10 compatibility
-                setImmediate(fn);
-            };
+      async.nextTick = function (fn) {
+        setTimeout(fn, 0);
+      };
+
+      async.setImmediate = async.nextTick;
+    }
+  } else {
+    async.nextTick = process.nextTick;
+
+    if (typeof setImmediate !== 'undefined') {
+      async.setImmediate = function (fn) {
+        // not a direct alias for IE10 compatibility
+        setImmediate(fn);
+      };
+    } else {
+      async.setImmediate = async.nextTick;
+    }
+  }
+
+  async.eachSeries = function (arr, iterator, callback) {
+    callback = callback || function () {};
+
+    if (!arr.length) {
+      return callback();
+    }
+
+    var completed = 0;
+
+    var iterate = function iterate() {
+      iterator(arr[completed], function (err) {
+        if (err) {
+          callback(err);
+
+          callback = function callback() {};
         } else {
-            async.setImmediate = async.nextTick;
-        }
-    }
+          completed += 1;
 
-    async.eachSeries = function (arr, iterator, callback) {
-        callback = callback || function () {};
-        if (!arr.length) {
-            return callback();
+          if (completed >= arr.length) {
+            callback();
+          } else {
+            iterate();
+          }
         }
-        var completed = 0;
-        var iterate = function iterate() {
-            iterator(arr[completed], function (err) {
-                if (err) {
-                    callback(err);
-                    callback = function callback() {};
-                } else {
-                    completed += 1;
-                    if (completed >= arr.length) {
-                        callback();
-                    } else {
-                        iterate();
-                    }
-                }
-            });
-        };
-        iterate();
+      });
     };
-    async.forEachSeries = async.eachSeries;
 
-    // AMD / RequireJS
-    if (typeof define !== 'undefined' && define.amd) {
-        define([], function () {
-            return async;
-        });
-    }
-    // Node.js
-    else if (typeof module !== 'undefined' && module.exports) {
-            module.exports = async;
-        }
-        // included directly via <script> tag
-        else {
-                root.async = async;
-            }
+    iterate();
+  };
+
+  async.forEachSeries = async.eachSeries; // AMD / RequireJS
+
+  if (typeof define !== 'undefined' && define.amd) {
+    define([], function () {
+      return async;
+    });
+  } // Node.js
+  else if (typeof module !== 'undefined' && module.exports) {
+      module.exports = async;
+    } // included directly via <script> tag
+    else {
+        root.async = async;
+      }
 })();
 },{"process":"pBGv"}],"3OWy":[function(require,module,exports) {
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-// NOTE: prefer setImmediate to nextTick for proper recursion yielding.
+var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME; // NOTE: prefer setImmediate to nextTick for proper recursion yielding.
 // see https://github.com/js-platform/filer/pull/24
-var asyncCallback = require('../../lib/async.js').setImmediate;
 
+
+var asyncCallback = require('../../lib/async.js').setImmediate;
 /**
  * Make shared in-memory DBs possible when using the same name.
  */
+
+
 var createDB = function () {
   var pool = {};
   return function getOrCreate(name) {
     if (!pool.hasOwnProperty(name)) {
       pool[name] = {};
     }
+
     return pool[name];
   };
 }();
@@ -3566,20 +3537,22 @@ MemoryContext.prototype.clear = function (callback) {
     });
     return;
   }
+
   var objectStore = this.objectStore;
   Object.keys(objectStore).forEach(function (key) {
     delete objectStore[key];
   });
   asyncCallback(callback);
-};
+}; // Memory context doesn't care about differences between Object and Buffer
 
-// Memory context doesn't care about differences between Object and Buffer
+
 MemoryContext.prototype.getObject = MemoryContext.prototype.getBuffer = function (key, callback) {
   var that = this;
   asyncCallback(function () {
     callback(null, that.objectStore[key]);
   });
 };
+
 MemoryContext.prototype.putObject = MemoryContext.prototype.putBuffer = function (key, value, callback) {
   if (this.readOnly) {
     asyncCallback(function () {
@@ -3587,6 +3560,7 @@ MemoryContext.prototype.putObject = MemoryContext.prototype.putBuffer = function
     });
     return;
   }
+
   this.objectStore[key] = value;
   asyncCallback(callback);
 };
@@ -3598,6 +3572,7 @@ MemoryContext.prototype.delete = function (key, callback) {
     });
     return;
   }
+
   delete this.objectStore[key];
   asyncCallback(callback);
 };
@@ -3605,6 +3580,7 @@ MemoryContext.prototype.delete = function (key, callback) {
 function Memory(name) {
   this.name = name || FILE_SYSTEM_NAME;
 }
+
 Memory.isSupported = function () {
   return true;
 };
@@ -3613,9 +3589,11 @@ Memory.prototype.open = function (callback) {
   this.db = createDB(this.name);
   asyncCallback(callback);
 };
+
 Memory.prototype.getReadOnlyContext = function () {
   return new MemoryContext(this.db, true);
 };
+
 Memory.prototype.getReadWriteContext = function () {
   return new MemoryContext(this.db, false);
 };
@@ -3623,7 +3601,9 @@ Memory.prototype.getReadWriteContext = function () {
 module.exports = Memory;
 },{"../constants.js":"iJA9","../../lib/async.js":"u4Zs"}],"AiW7":[function(require,module,exports) {
 var IndexedDB = require('./indexeddb.js');
+
 var WebSQL = require('./websql.js');
+
 var Memory = require('./memory.js');
 
 module.exports = {
@@ -3634,10 +3614,8 @@ module.exports = {
   /**
    * Convenience Provider references
    */
-
   // The default provider to use when none is specified
   Default: IndexedDB,
-
   // The Fallback provider does automatic fallback checks
   Fallback: function () {
     if (IndexedDB.isSupported()) {
@@ -3651,9 +3629,11 @@ module.exports = {
     function NotSupported() {
       throw '[Filer Error] Your browser doesn\'t support IndexedDB or WebSQL.';
     }
+
     NotSupported.isSupported = function () {
       return false;
     };
+
     return NotSupported;
   }()
 };
@@ -3673,234 +3653,7 @@ module.exports = function Environment(env) {
     env[name] = value;
   };
 };
-},{"../constants.js":"iJA9"}],"UUq2":[function(require,module,exports) {
-var process = require("process");
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// resolves . and .. elements in a path array with directory names there
-// must be no slashes, empty elements, or device names (c:\) in the array
-// (so also no leading and trailing slashes - it does not distinguish
-// relative and absolute paths)
-function normalizeArray(parts, allowAboveRoot) {
-  // if the path tries to go above the root, `up` ends up > 0
-  var up = 0;
-  for (var i = parts.length - 1; i >= 0; i--) {
-    var last = parts[i];
-    if (last === '.') {
-      parts.splice(i, 1);
-    } else if (last === '..') {
-      parts.splice(i, 1);
-      up++;
-    } else if (up) {
-      parts.splice(i, 1);
-      up--;
-    }
-  }
-
-  // if the path is allowed to go above the root, restore leading ..s
-  if (allowAboveRoot) {
-    for (; up--; up) {
-      parts.unshift('..');
-    }
-  }
-
-  return parts;
-}
-
-// Split a filename into [root, dir, basename, ext], unix version
-// 'root' is just a slash, or nothing.
-var splitPathRe =
-    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-var splitPath = function(filename) {
-  return splitPathRe.exec(filename).slice(1);
-};
-
-// path.resolve([from ...], to)
-// posix version
-exports.resolve = function() {
-  var resolvedPath = '',
-      resolvedAbsolute = false;
-
-  for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-    var path = (i >= 0) ? arguments[i] : process.cwd();
-
-    // Skip empty and invalid entries
-    if (typeof path !== 'string') {
-      throw new TypeError('Arguments to path.resolve must be strings');
-    } else if (!path) {
-      continue;
-    }
-
-    resolvedPath = path + '/' + resolvedPath;
-    resolvedAbsolute = path.charAt(0) === '/';
-  }
-
-  // At this point the path should be resolved to a full absolute path, but
-  // handle relative paths to be safe (might happen when process.cwd() fails)
-
-  // Normalize the path
-  resolvedPath = normalizeArray(filter(resolvedPath.split('/'), function(p) {
-    return !!p;
-  }), !resolvedAbsolute).join('/');
-
-  return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
-};
-
-// path.normalize(path)
-// posix version
-exports.normalize = function(path) {
-  var isAbsolute = exports.isAbsolute(path),
-      trailingSlash = substr(path, -1) === '/';
-
-  // Normalize the path
-  path = normalizeArray(filter(path.split('/'), function(p) {
-    return !!p;
-  }), !isAbsolute).join('/');
-
-  if (!path && !isAbsolute) {
-    path = '.';
-  }
-  if (path && trailingSlash) {
-    path += '/';
-  }
-
-  return (isAbsolute ? '/' : '') + path;
-};
-
-// posix version
-exports.isAbsolute = function(path) {
-  return path.charAt(0) === '/';
-};
-
-// posix version
-exports.join = function() {
-  var paths = Array.prototype.slice.call(arguments, 0);
-  return exports.normalize(filter(paths, function(p, index) {
-    if (typeof p !== 'string') {
-      throw new TypeError('Arguments to path.join must be strings');
-    }
-    return p;
-  }).join('/'));
-};
-
-
-// path.relative(from, to)
-// posix version
-exports.relative = function(from, to) {
-  from = exports.resolve(from).substr(1);
-  to = exports.resolve(to).substr(1);
-
-  function trim(arr) {
-    var start = 0;
-    for (; start < arr.length; start++) {
-      if (arr[start] !== '') break;
-    }
-
-    var end = arr.length - 1;
-    for (; end >= 0; end--) {
-      if (arr[end] !== '') break;
-    }
-
-    if (start > end) return [];
-    return arr.slice(start, end - start + 1);
-  }
-
-  var fromParts = trim(from.split('/'));
-  var toParts = trim(to.split('/'));
-
-  var length = Math.min(fromParts.length, toParts.length);
-  var samePartsLength = length;
-  for (var i = 0; i < length; i++) {
-    if (fromParts[i] !== toParts[i]) {
-      samePartsLength = i;
-      break;
-    }
-  }
-
-  var outputParts = [];
-  for (var i = samePartsLength; i < fromParts.length; i++) {
-    outputParts.push('..');
-  }
-
-  outputParts = outputParts.concat(toParts.slice(samePartsLength));
-
-  return outputParts.join('/');
-};
-
-exports.sep = '/';
-exports.delimiter = ':';
-
-exports.dirname = function(path) {
-  var result = splitPath(path),
-      root = result[0],
-      dir = result[1];
-
-  if (!root && !dir) {
-    // No dirname whatsoever
-    return '.';
-  }
-
-  if (dir) {
-    // It has a dirname, strip trailing slash
-    dir = dir.substr(0, dir.length - 1);
-  }
-
-  return root + dir;
-};
-
-
-exports.basename = function(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
-  if (ext && f.substr(-1 * ext.length) === ext) {
-    f = f.substr(0, f.length - ext.length);
-  }
-  return f;
-};
-
-
-exports.extname = function(path) {
-  return splitPath(path)[3];
-};
-
-function filter (xs, f) {
-    if (xs.filter) return xs.filter(f);
-    var res = [];
-    for (var i = 0; i < xs.length; i++) {
-        if (f(xs[i], i, xs)) res.push(xs[i]);
-    }
-    return res;
-}
-
-// String.prototype.substr - negative index don't work in IE8
-var substr = 'ab'.substr(-1) === 'b'
-    ? function (str, start, len) { return str.substr(start, len) }
-    : function (str, start, len) {
-        if (start < 0) start = str.length + start;
-        return str.substr(start, len);
-    }
-;
-
-},{"process":"pBGv"}],"bQx9":[function(require,module,exports) {
+},{"../constants.js":"iJA9"}],"bQx9":[function(require,module,exports) {
 module.exports = function (xs, fn) {
     var res = [];
     for (var i = 0; i < xs.length; i++) {
@@ -5109,54 +4862,58 @@ var _require = require('es6-promisify'),
     promisify = _require.promisify;
 
 var Path = require('../path.js');
+
 var Errors = require('../errors.js');
+
 var Environment = require('./environment.js');
+
 var async = require('../../lib/async.js');
+
 var minimatch = require('minimatch');
 
 function Shell(fs, options) {
   var _this = this;
 
   options = options || {};
-
   var env = new Environment(options.env);
   var cwd = '/';
-
   /**
    * The bound FileSystem (cannot be changed)
    */
+
   Object.defineProperty(this, 'fs', {
     get: function get() {
       return fs;
     },
     enumerable: true
   });
-
   /**
    * The shell's environment (e.g., for things like
    * path, tmp, and other env vars). Use env.get()
    * and env.set() to work with variables.
    */
+
   Object.defineProperty(this, 'env', {
     get: function get() {
       return env;
     },
     enumerable: true
   });
-
   /**
    * Change the current working directory. We
    * include `cd` on the `this` vs. proto so that
    * we can access cwd without exposing it externally.
    */
+
   this.cd = function (path, callback) {
-    path = Path.resolve(cwd, path);
-    // Make sure the path actually exists, and is a dir
+    path = Path.resolve(cwd, path); // Make sure the path actually exists, and is a dir
+
     fs.stat(path, function (err, stats) {
       if (err) {
         callback(new Errors.ENOTDIR(null, path));
         return;
       }
+
       if (stats.type === 'DIRECTORY') {
         cwd = path;
         callback();
@@ -5165,10 +4922,11 @@ function Shell(fs, options) {
       }
     });
   };
-
   /**
    * Get the current working directory (changed with `cd()`)
    */
+
+
   this.pwd = function () {
     return cwd;
   };
@@ -5177,11 +4935,11 @@ function Shell(fs, options) {
   /**
   * Public API for Shell converted to Promise based
   */
+
   ['cd', 'exec', 'touch', 'cat', 'ls', 'rm', 'tempDir', 'mkdirp', 'find'].forEach(function (methodName) {
     _this.promises[methodName] = promisify(_this[methodName].bind(_this));
   });
 }
-
 /**
  * Execute the .js command located at `path`. Such commands
  * should assume the existence of 3 arguments, which will be
@@ -5198,23 +4956,29 @@ function Shell(fs, options) {
  *   // .js code here
  * }
  */
+
+
 Shell.prototype.exec = function (path, args, callback) {
   /* jshint evil:true */
   var sh = this;
   var fs = sh.fs;
+
   if (typeof args === 'function') {
     callback = args;
     args = [];
   }
-  args = args || [];
-  callback = callback || function () {};
-  path = Path.resolve(sh.pwd(), path);
 
+  args = args || [];
+
+  callback = callback || function () {};
+
+  path = Path.resolve(sh.pwd(), path);
   fs.readFile(path, 'utf8', function (error, data) {
     if (error) {
       callback(error);
       return;
     }
+
     try {
       var cmd = new Function('fs', 'args', 'callback', data);
       cmd(fs, args, callback);
@@ -5223,7 +4987,6 @@ Shell.prototype.exec = function (path, args, callback) {
     }
   });
 };
-
 /**
  * Create a file if it does not exist, or update access and
  * modified times if it does. Valid options include:
@@ -5231,15 +4994,21 @@ Shell.prototype.exec = function (path, args, callback) {
  *  * updateOnly - whether to create the file if missing (defaults to false)
  *  * date - use the provided Date value instead of current date/time
  */
+
+
 Shell.prototype.touch = function (path, options, callback) {
   var sh = this;
   var fs = sh.fs;
+
   if (typeof options === 'function') {
     callback = options;
     options = {};
   }
+
   options = options || {};
+
   callback = callback || function () {};
+
   path = Path.resolve(sh.pwd(), path);
 
   function createFile(path) {
@@ -5250,7 +5019,6 @@ Shell.prototype.touch = function (path, options, callback) {
     var now = Date.now();
     var atime = options.date || now;
     var mtime = options.date || now;
-
     fs.utimes(path, atime, mtime, callback);
   }
 
@@ -5266,17 +5034,19 @@ Shell.prototype.touch = function (path, options, callback) {
     }
   });
 };
-
 /**
  * Concatenate multiple files into a single String, with each
  * file separated by a newline. The `files` argument should
  * be a String (path to single file) or an Array of Strings
  * (multiple file paths).
  */
+
+
 Shell.prototype.cat = function (files, callback) {
   var sh = this;
   var fs = sh.fs;
   var all = '';
+
   callback = callback || function () {};
 
   if (!files) {
@@ -5293,6 +5063,7 @@ Shell.prototype.cat = function (files, callback) {
         callback(error);
         return;
       }
+
       all += data + '\n';
       callback();
     });
@@ -5306,7 +5077,6 @@ Shell.prototype.cat = function (files, callback) {
     }
   });
 };
-
 /**
  * Get the listing of a directory, returning an array of
  * file entries in the following form:
@@ -5324,14 +5094,19 @@ Shell.prototype.cat = function (files, callback) {
  * to follow directories as they are encountered, use
  * the `recursive=true` option.
  */
+
+
 Shell.prototype.ls = function (dir, options, callback) {
   var sh = this;
   var fs = sh.fs;
+
   if (typeof options === 'function') {
     callback = options;
     options = {};
   }
+
   options = options || {};
+
   callback = callback || function () {};
 
   if (!dir) {
@@ -5342,7 +5117,6 @@ Shell.prototype.ls = function (dir, options, callback) {
   function list(path, callback) {
     var pathname = Path.resolve(sh.pwd(), path);
     var result = [];
-
     fs.readdir(pathname, function (error, entries) {
       if (error) {
         callback(error);
@@ -5356,6 +5130,7 @@ Shell.prototype.ls = function (dir, options, callback) {
             callback(error);
             return;
           }
+
           var entry = stats;
 
           if (options.recursive && stats.type === 'DIRECTORY') {
@@ -5364,6 +5139,7 @@ Shell.prototype.ls = function (dir, options, callback) {
                 callback(error);
                 return;
               }
+
               entry.contents = items;
               result.push(entry);
               callback();
@@ -5383,7 +5159,6 @@ Shell.prototype.ls = function (dir, options, callback) {
 
   list(dir, callback);
 };
-
 /**
  * Removes the file or directory at `path`. If `path` is a file
  * it will be removed. If `path` is a directory, it will be
@@ -5391,14 +5166,19 @@ Shell.prototype.ls = function (dir, options, callback) {
  * an error. In order to remove non-empty directories, use the
  * `recursive=true` option.
  */
+
+
 Shell.prototype.rm = function (path, options, callback) {
   var sh = this;
   var fs = sh.fs;
+
   if (typeof options === 'function') {
     callback = options;
     options = {};
   }
+
   options = options || {};
+
   callback = callback || function () {};
 
   if (!path) {
@@ -5412,34 +5192,34 @@ Shell.prototype.rm = function (path, options, callback) {
       if (error) {
         callback(error);
         return;
-      }
+      } // If this is a file, delete it and we're done
 
-      // If this is a file, delete it and we're done
+
       if (stats.type === 'FILE') {
         fs.unlink(pathname, callback);
         return;
-      }
+      } // If it's a dir, check if it's empty
 
-      // If it's a dir, check if it's empty
+
       fs.readdir(pathname, function (error, entries) {
         if (error) {
           callback(error);
           return;
-        }
+        } // If dir is empty, delete it and we're done
 
-        // If dir is empty, delete it and we're done
+
         if (entries.length === 0) {
           fs.rmdir(pathname, callback);
           return;
-        }
+        } // If not, see if we're allowed to delete recursively
 
-        // If not, see if we're allowed to delete recursively
+
         if (!options.recursive) {
           callback(new Errors.ENOTEMPTY(null, pathname));
           return;
-        }
+        } // Remove each dir entry recursively, then delete the dir.
 
-        // Remove each dir entry recursively, then delete the dir.
+
         entries = entries.map(function (filename) {
           // Root dir entries absolutely
           return Path.join(pathname, filename);
@@ -5449,6 +5229,7 @@ Shell.prototype.rm = function (path, options, callback) {
             callback(error);
             return;
           }
+
           fs.rmdir(pathname, callback);
         });
       });
@@ -5457,25 +5238,26 @@ Shell.prototype.rm = function (path, options, callback) {
 
   remove(path, callback);
 };
-
 /**
  * Gets the path to the temporary directory, creating it if not
  * present. The directory used is the one specified in
  * env.TMP. The callback receives (error, tempDirName).
  */
+
+
 Shell.prototype.tempDir = function (callback) {
   var sh = this;
   var fs = sh.fs;
   var tmp = sh.env.get('TMP');
-  callback = callback || function () {};
 
-  // Try and create it, and it will either work or fail
+  callback = callback || function () {}; // Try and create it, and it will either work or fail
   // but either way it's now there.
+
+
   fs.mkdir(tmp, function () {
     callback(null, tmp);
   });
 };
-
 /**
  * Recursively creates the directory at `path`. If the parent
  * of `path` does not exist, it will be created.
@@ -5483,9 +5265,12 @@ Shell.prototype.tempDir = function (callback) {
  * https://www.npmjs.org/package/ensureDir
  * MIT License
  */
+
+
 Shell.prototype.mkdirp = function (path, callback) {
   var sh = this;
   var fs = sh.fs;
+
   callback = callback || function () {};
 
   if (!path) {
@@ -5495,6 +5280,7 @@ Shell.prototype.mkdirp = function (path, callback) {
     callback();
     return;
   }
+
   function _mkdirp(path, callback) {
     fs.stat(path, function (err, stat) {
       if (stat) {
@@ -5510,12 +5296,14 @@ Shell.prototype.mkdirp = function (path, callback) {
         return;
       } else {
         var parent = Path.dirname(path);
+
         if (parent === '/') {
           fs.mkdir(path, function (err) {
-            if (err && err.code != 'EEXIST') {
+            if (err && err.code !== 'EEXIST') {
               callback(err);
               return;
             }
+
             callback();
             return;
           });
@@ -5523,10 +5311,11 @@ Shell.prototype.mkdirp = function (path, callback) {
           _mkdirp(parent, function (err) {
             if (err) return callback(err);
             fs.mkdir(path, function (err) {
-              if (err && err.code != 'EEXIST') {
+              if (err && err.code !== 'EEXIST') {
                 callback(err);
                 return;
               }
+
               callback();
               return;
             });
@@ -5538,7 +5327,6 @@ Shell.prototype.mkdirp = function (path, callback) {
 
   _mkdirp(path, callback);
 };
-
 /**
  * Recursively walk a directory tree, reporting back all paths
  * that were found along the way. The `path` must be a dir.
@@ -5550,19 +5338,25 @@ Shell.prototype.mkdirp = function (path, callback) {
  * `find` returns a flat array of absolute paths for all matching/found
  * paths as the final argument to the callback.
  */
+
+
 Shell.prototype.find = function (path, options, callback) {
   var sh = this;
   var fs = sh.fs;
+
   if (typeof options === 'function') {
     callback = options;
     options = {};
   }
+
   options = options || {};
+
   callback = callback || function () {};
 
   var exec = options.exec || function (path, next) {
     next();
   };
+
   var found = [];
 
   if (!path) {
@@ -5585,21 +5379,20 @@ Shell.prototype.find = function (path, options, callback) {
   function maybeProcessPath(path, callback) {
     // Test the path against the user's regex, name, path primaries (if any)
     // and remove any trailing slashes added previously.
-    var rawPath = Path.removeTrailing(path);
+    var rawPath = Path.removeTrailing(path); // Check entire path against provided regex, if any
 
-    // Check entire path against provided regex, if any
     if (options.regex && !options.regex.test(rawPath)) {
       callback();
       return;
-    }
+    } // Check basename for matches against name primary, if any
 
-    // Check basename for matches against name primary, if any
+
     if (options.name && !minimatch(Path.basename(rawPath), options.name)) {
       callback();
       return;
-    }
+    } // Check dirname for matches against path primary, if any
 
-    // Check dirname for matches against path primary, if any
+
     if (options.path && !minimatch(Path.dirname(rawPath), options.path)) {
       callback();
       return;
@@ -5609,22 +5402,24 @@ Shell.prototype.find = function (path, options, callback) {
   }
 
   function walk(path, callback) {
-    path = Path.resolve(sh.pwd(), path);
-
-    // The path is either a file or dir, and instead of doing
+    path = Path.resolve(sh.pwd(), path); // The path is either a file or dir, and instead of doing
     // a stat() to determine it first, we just try to readdir()
     // and it will either work or not, and we handle the non-dir error.
+
     fs.readdir(path, function (err, entries) {
       if (err) {
-        if (err.code === 'ENOTDIR' /* file case, ignore error */) {
+        if (err.code === 'ENOTDIR'
+        /* file case, ignore error */
+        ) {
             maybeProcessPath(path, callback);
           } else {
           callback(err);
         }
-        return;
-      }
 
-      // Path is really a dir, add a trailing / and report it found
+        return;
+      } // Path is really a dir, add a trailing / and report it found
+
+
       maybeProcessPath(Path.addTrailing(path), function (err) {
         if (err) {
           callback(err);
@@ -5634,20 +5429,20 @@ Shell.prototype.find = function (path, options, callback) {
         entries = entries.map(function (entry) {
           return Path.join(path, entry);
         });
-
         async.eachSeries(entries, walk, function (err) {
           callback(err, found);
         });
       });
     });
-  }
+  } // Make sure we are starting with a dir path
 
-  // Make sure we are starting with a dir path
+
   fs.stat(path, function (err, stats) {
     if (err) {
       callback(err);
       return;
     }
+
     if (!stats.isDirectory()) {
       callback(new Errors.ENOTDIR(null, path));
       return;
@@ -5662,13 +5457,13 @@ module.exports = Shell;
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
-
 function removeItem(item, array) {
   for (var i = array.length - 1; i >= 0; i--) {
     if (array[i] === item) {
       array.splice(i, 1);
     }
   }
+
   return array;
 }
 
@@ -5681,14 +5476,17 @@ EventEmitter.createInterface = function (space) {
     if (typeof this[space] === 'undefined') {
       this[space] = {};
     }
+
     if (!this[space].hasOwnProperty(name)) {
       this[space][name] = [];
     }
+
     this[space][name].push(fn);
   };
 
   methods.off = function (name, fn) {
     if (typeof this[space] === 'undefined') return;
+
     if (this[space].hasOwnProperty(name)) {
       removeItem(fn, this[space][name]);
     }
@@ -5697,6 +5495,7 @@ EventEmitter.createInterface = function (space) {
   methods.trigger = function (name) {
     if (typeof this[space] !== 'undefined' && this[space].hasOwnProperty(name)) {
       var args = Array.prototype.slice.call(arguments, 1);
+
       for (var i = 0; i < this[space][name].length; i++) {
         this[space][name][i].apply(this[space][name][i], args);
       }
@@ -5718,33 +5517,35 @@ var pvt = EventEmitter.createInterface('_handlers');
 EventEmitter.prototype._on = pvt.on;
 EventEmitter.prototype._off = pvt.off;
 EventEmitter.prototype._trigger = pvt.trigger;
-
 var pub = EventEmitter.createInterface('handlers');
+
 EventEmitter.prototype.on = function () {
   pub.on.apply(this, arguments);
   Array.prototype.unshift.call(arguments, 'on');
+
   this._trigger.apply(this, arguments);
 };
+
 EventEmitter.prototype.off = pub.off;
 EventEmitter.prototype.trigger = pub.trigger;
 EventEmitter.prototype.removeAllListeners = pub.removeAllListeners;
-
 module.exports = EventEmitter;
 },{}],"u7Jv":[function(require,module,exports) {
 var global = arguments[3];
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 // Based on https://github.com/diy/intercom.js/blob/master/lib/intercom.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
-
 var EventEmitter = require('./eventemitter.js');
+
 var guid = require('../src/shared.js').guid;
 
 function throttle(delay, fn) {
   var last = 0;
   return function () {
     var now = Date.now();
+
     if (now - last > delay) {
       last = now;
       fn.apply(this, arguments);
@@ -5756,13 +5557,15 @@ function extend(a, b) {
   if (typeof a === 'undefined' || !a) {
     a = {};
   }
-  if ((typeof b === 'undefined' ? 'undefined' : _typeof(b)) === 'object') {
+
+  if (_typeof(b) === 'object') {
     for (var key in b) {
       if (b.hasOwnProperty(key)) {
         a[key] = b[key];
       }
     }
   }
+
   return a;
 }
 
@@ -5774,13 +5577,13 @@ var localStorage = function (window) {
       removeItem: function removeItem() {}
     };
   }
+
   return window.localStorage;
 }(global);
 
 function Intercom() {
   var self = this;
   var now = Date.now();
-
   this.origin = guid();
   this.lastMessage = now;
   this.receivedIDs = {};
@@ -5788,9 +5591,9 @@ function Intercom() {
 
   var storageHandler = function storageHandler() {
     self._onStorageEvent.apply(self, arguments);
-  };
+  }; // If we're in node.js, skip event registration
 
-  // If we're in node.js, skip event registration
+
   if (typeof document === 'undefined') {
     return;
   }
@@ -5817,17 +5620,20 @@ Intercom.prototype._transaction = function (fn) {
 
     var now = Date.now();
     var activeLock = localStorage.getItem(INDEX_LOCK) | 0;
+
     if (activeLock && now - activeLock < TIMEOUT) {
       if (!listening) {
         self._on('storage', lock);
+
         listening = true;
       }
+
       waitTimer = setTimeout(lock, WAIT);
       return;
     }
+
     executed = true;
     localStorage.setItem(INDEX_LOCK, now);
-
     fn();
     unlock();
   }
@@ -5836,9 +5642,11 @@ Intercom.prototype._transaction = function (fn) {
     if (listening) {
       self._off('storage', lock);
     }
+
     if (waitTimer) {
       clearTimeout(waitTimer);
     }
+
     localStorage.removeItem(INDEX_LOCK);
   }
 
@@ -5859,18 +5667,19 @@ Intercom.prototype._cleanup_emit = throttle(100, function () {
     } catch (e) {
       messages = [];
     }
+
     for (var i = messages.length - 1; i >= 0; i--) {
       if (messages[i].timestamp < threshold) {
         messages.splice(i, 1);
         changed++;
       }
     }
+
     if (changed > 0) {
       localStorage.setItem(INDEX_EMIT, JSON.stringify(messages));
     }
   });
 });
-
 Intercom.prototype._cleanup_once = throttle(100, function () {
   var self = this;
 
@@ -5885,6 +5694,7 @@ Intercom.prototype._cleanup_once = throttle(100, function () {
     } catch (e) {
       table = {};
     }
+
     for (key in table) {
       if (self._once_expired(key, table)) {
         delete table[key];
@@ -5902,9 +5712,11 @@ Intercom.prototype._once_expired = function (key, table) {
   if (!table) {
     return true;
   }
+
   if (!table.hasOwnProperty(key)) {
     return true;
   }
+
   if (_typeof(table[key]) !== 'object') {
     return true;
   }
@@ -5921,9 +5733,11 @@ Intercom.prototype._localStorageChanged = function (event, field) {
   }
 
   var currentValue = localStorage.getItem(field);
+
   if (currentValue === this.previousValues[field]) {
     return false;
   }
+
   this.previousValues[field] = currentValue;
   return true;
 };
@@ -5943,15 +5757,19 @@ Intercom.prototype._onStorageEvent = function (event) {
       } catch (e) {
         messages = [];
       }
+
       for (var i = 0; i < messages.length; i++) {
         if (messages[i].origin === self.origin) continue;
         if (messages[i].timestamp < self.lastMessage) continue;
+
         if (messages[i].id) {
           if (self.receivedIDs.hasOwnProperty(messages[i].id)) continue;
           self.receivedIDs[messages[i].id] = true;
         }
+
         self.trigger(messages[i].name, messages[i].payload);
       }
+
       self.lastMessage = now;
     });
   }
@@ -5961,6 +5779,7 @@ Intercom.prototype._onStorageEvent = function (event) {
 
 Intercom.prototype._emit = function (name, message, id) {
   id = typeof id === 'string' || typeof id === 'number' ? String(id) : null;
+
   if (id && id.length) {
     if (this.receivedIDs.hasOwnProperty(id)) return;
     this.receivedIDs[id] = true;
@@ -5973,15 +5792,14 @@ Intercom.prototype._emit = function (name, message, id) {
     timestamp: Date.now(),
     payload: message
   };
-
   var self = this;
+
   this._transaction(function () {
     var data = localStorage.getItem(INDEX_EMIT) || '[]';
     var delimiter = data === '[]' ? '' : ',';
     data = [data.substring(0, data.length - 1), delimiter, JSON.stringify(packet), ']'].join('');
     localStorage.setItem(INDEX_EMIT, data);
     self.trigger(name, message);
-
     setTimeout(function () {
       self._cleanup_emit();
     }, 50);
@@ -5990,6 +5808,7 @@ Intercom.prototype._emit = function (name, message, id) {
 
 Intercom.prototype.emit = function (name, message) {
   this._emit.apply(this, arguments);
+
   this._trigger('emit', name, message);
 };
 
@@ -5999,26 +5818,29 @@ Intercom.prototype.once = function (key, fn, ttl) {
   }
 
   var self = this;
+
   this._transaction(function () {
     var data;
+
     try {
       data = JSON.parse(localStorage.getItem(INDEX_ONCE) || '{}');
     } catch (e) {
       data = {};
     }
+
     if (!self._once_expired(key, data)) {
       return;
     }
 
     data[key] = {};
     data[key].timestamp = Date.now();
+
     if (typeof ttl === 'number') {
       data[key].ttl = ttl * 1000;
     }
 
     localStorage.setItem(INDEX_ONCE, JSON.stringify(data));
     fn();
-
     setTimeout(function () {
       self._cleanup_once();
     }, 50);
@@ -6026,13 +5848,10 @@ Intercom.prototype.once = function (key, fn, ttl) {
 };
 
 extend(Intercom.prototype, EventEmitter.prototype);
-
 Intercom.supported = typeof localStorage !== 'undefined';
-
 var INDEX_EMIT = 'intercom';
 var INDEX_ONCE = 'intercom_once';
 var INDEX_LOCK = 'intercom_lock';
-
 var THRESHOLD_TTL_EMIT = 50000;
 var THRESHOLD_TTL_ONCE = 1000 * 3600;
 
@@ -6048,6 +5867,7 @@ Intercom.getInstance = function () {
     if (!intercom) {
       intercom = new Intercom();
     }
+
     return intercom;
   };
 }();
@@ -6055,13 +5875,16 @@ Intercom.getInstance = function () {
 module.exports = Intercom;
 },{"./eventemitter.js":"J4Qg","../src/shared.js":"3zBM"}],"VLEe":[function(require,module,exports) {
 var EventEmitter = require('../lib/eventemitter.js');
-var Path = require('./path.js');
-var Intercom = require('../lib/intercom.js');
 
+var Path = require('./path.js');
+
+var Intercom = require('../lib/intercom.js');
 /**
  * FSWatcher based on node.js' FSWatcher
  * see https://github.com/joyent/node/blob/master/lib/fs.js
  */
+
+
 function FSWatcher() {
   EventEmitter.call(this);
   var self = this;
@@ -6074,9 +5897,9 @@ function FSWatcher() {
     if (filename === path || recursive && path.indexOf(recursivePathPrefix) === 0) {
       self.trigger('change', 'change', path);
     }
-  }
+  } // We support, but ignore the second arg, which node.js uses.
 
-  // We support, but ignore the second arg, which node.js uses.
+
   self.start = function (filename_, persistent_, recursive_) {
     // Bail if we've already started (and therefore have a filename);
     if (filename) {
@@ -6085,19 +5908,17 @@ function FSWatcher() {
 
     if (Path.isNull(filename_)) {
       throw new Error('Path must be a string without null bytes.');
-    }
-
-    // TODO: get realpath for symlinks on filename...
-
+    } // TODO: get realpath for symlinks on filename...
     // Filer's Path.normalize strips trailing slashes, which we use here.
     // See https://github.com/js-platform/filer/issues/105
-    filename = Path.normalize(filename_);
 
-    // Whether to watch beneath this path or not
-    recursive = recursive_ === true;
-    // If recursive, construct a path prefix portion for comparisons later
+
+    filename = Path.normalize(filename_); // Whether to watch beneath this path or not
+
+    recursive = recursive_ === true; // If recursive, construct a path prefix portion for comparisons later
     // (i.e., '/path' becomes '/path/' so we can search within a filename for the
     // prefix). We also take care to allow for '/' on its own.
+
     if (recursive) {
       recursivePathPrefix = filename === '/' ? '/' : filename + '/';
     }
@@ -6112,24 +5933,19 @@ function FSWatcher() {
     self.removeAllListeners('change');
   };
 }
+
 FSWatcher.prototype = new EventEmitter();
 FSWatcher.prototype.constructor = FSWatcher;
-
 module.exports = FSWatcher;
 },{"../lib/eventemitter.js":"J4Qg","./path.js":"UzoP","../lib/intercom.js":"u7Jv"}],"03yF":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
-// Adapt encodings to work with Buffer or Uint8Array, they expect the latter
-function decode(buf) {
-  return buf.toString('utf8');
-}
-
-function encode(string) {
-  return new Buffer(string, 'utf8');
-}
-
 module.exports = {
-  encode: encode,
-  decode: decode
+  encode: function encode(string) {
+    return Buffer.from(string);
+  },
+  decode: function decode(buffer) {
+    return buffer.toString('utf8');
+  }
 };
 },{"buffer":"dskh"}],"ZECt":[function(require,module,exports) {
 var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
@@ -6138,18 +5954,185 @@ module.exports = function DirectoryEntry(id, type) {
   this.id = id;
   this.type = type || NODE_TYPE_FILE;
 };
-},{"./constants.js":"iJA9"}],"XWaV":[function(require,module,exports) {
+},{"./constants.js":"iJA9"}],"KKNo":[function(require,module,exports) {
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var _require = require('./constants'),
+    NODE_TYPE_FILE = _require.NODE_TYPE_FILE,
+    NODE_TYPE_DIRECTORY = _require.NODE_TYPE_DIRECTORY,
+    NODE_TYPE_SYMBOLIC_LINK = _require.NODE_TYPE_SYMBOLIC_LINK,
+    DEFAULT_FILE_PERMISSIONS = _require.DEFAULT_FILE_PERMISSIONS,
+    DEFAULT_DIR_PERMISSIONS = _require.DEFAULT_DIR_PERMISSIONS;
+
+var _require$fsConstants = require('./constants').fsConstants,
+    S_IFREG = _require$fsConstants.S_IFREG,
+    S_IFDIR = _require$fsConstants.S_IFDIR,
+    S_IFLNK = _require$fsConstants.S_IFLNK;
+/**
+ * Make sure the options object has an id on property,
+ * either from caller or one we generate using supplied guid fn.
+ */
+
+
+function ensureID(options, prop, callback) {
+  if (options[prop]) {
+    return callback();
+  }
+
+  options.guid(function (err, id) {
+    if (err) {
+      return callback(err);
+    }
+
+    options[prop] = id;
+    callback();
+  });
+}
+/**
+ * Generate a POSIX mode (integer) for the node type and permissions.
+ * Use default permissions if we aren't passed any.
+ */
+
+
+function generateMode(nodeType, modePermissions) {
+  switch (nodeType) {
+    case NODE_TYPE_DIRECTORY:
+      return (modePermissions || DEFAULT_DIR_PERMISSIONS) | S_IFDIR;
+
+    case NODE_TYPE_SYMBOLIC_LINK:
+      return (modePermissions || DEFAULT_FILE_PERMISSIONS) | S_IFLNK;
+
+    case NODE_TYPE_FILE: // falls through
+
+    default:
+      return (modePermissions || DEFAULT_FILE_PERMISSIONS) | S_IFREG;
+  }
+}
+/**
+ * Common properties for the layout of a Node
+ */
+
+
+var Node =
+/*#__PURE__*/
+function () {
+  function Node(options) {
+    _classCallCheck(this, Node);
+
+    var now = Date.now();
+    this.id = options.id;
+    this.data = options.data; // id for data object
+
+    this.size = options.size || 0; // size (bytes for files, entries for directories)
+
+    this.atime = options.atime || now; // access time (will mirror ctime after creation)
+
+    this.ctime = options.ctime || now; // creation/change time
+
+    this.mtime = options.mtime || now; // modified time
+
+    this.flags = options.flags || []; // file flags
+
+    this.xattrs = options.xattrs || {}; // extended attributes
+
+    this.nlinks = options.nlinks || 0; // links count
+    // Historically, Filer's node layout has referred to the
+    // node type as `mode`, and done so using a String.  In
+    // a POSIX filesystem, the mode is a number that combines
+    // both node type and permission bits. Internal we use `type`,
+    // but store it in the database as `mode` for backward
+    // compatibility.
+
+    if (typeof options.type === 'string') {
+      this.type = options.type;
+    } else if (typeof options.mode === 'string') {
+      this.type = options.mode;
+    } else {
+      this.type = NODE_TYPE_FILE;
+    } // Extra mode permissions and ownership info
+
+
+    this.permissions = options.permissions || generateMode(this.type);
+    this.uid = options.uid || 0x0; // owner name
+
+    this.gid = options.gid || 0x0; // group name
+  }
+  /**
+   * Serialize a Node to JSON.  Everything is as expected except
+   * that we use `mode` for `type` to maintain backward compatibility.
+   */
+
+
+  _createClass(Node, [{
+    key: "toJSON",
+    value: function toJSON() {
+      return {
+        id: this.id,
+        data: this.data,
+        size: this.size,
+        atime: this.atime,
+        ctime: this.ctime,
+        mtime: this.ctime,
+        flags: this.flags,
+        xattrs: this.xattrs,
+        nlinks: this.nlinks,
+        // Use `mode` for `type` to keep backward compatibility
+        mode: this.type,
+        permissions: this.permissions,
+        uid: this.uid,
+        gid: this.gid
+      };
+    } // Return complete POSIX `mode` for node type + permissions. See:
+    // http://man7.org/linux/man-pages/man2/chmod.2.html
+
+  }, {
+    key: "mode",
+    get: function get() {
+      return generateMode(this.type, this.permissions);
+    } // When setting the `mode` we assume permissions bits only (not changing type)
+    ,
+    set: function set(value) {
+      this.permissions = value;
+    }
+  }]);
+
+  return Node;
+}();
+
+module.exports.create = function create(options, callback) {
+  // We expect both options.id and options.data to be provided/generated.
+  ensureID(options, 'id', function (err) {
+    if (err) {
+      return callback(err);
+    }
+
+    ensureID(options, 'data', function (err) {
+      if (err) {
+        return callback(err);
+      }
+
+      callback(null, new Node(options));
+    });
+  });
+};
+},{"./constants":"iJA9"}],"XWaV":[function(require,module,exports) {
 var Errors = require('./errors.js');
+
+var Node = require('./node');
 
 function OpenFileDescription(path, id, flags, position) {
   this.path = path;
   this.id = id;
   this.flags = flags;
   this.position = position;
-}
-
-// Tries to find the node associated with an ofd's `id`.
+} // Tries to find the node associated with an ofd's `id`.
 // If not found, an error is returned on the callback.
+
+
 OpenFileDescription.prototype.getNode = function (context, callback) {
   var id = this.id;
   var path = this.path;
@@ -6163,25 +6146,24 @@ OpenFileDescription.prototype.getNode = function (context, callback) {
       return callback(new Errors.EBADF('file descriptor refers to unknown node', path));
     }
 
-    callback(null, node);
+    Node.create(node, callback);
   }
 
   context.getObject(id, check_if_node_exists);
 };
 
 module.exports = OpenFileDescription;
-},{"./errors.js":"p8GN"}],"33JE":[function(require,module,exports) {
+},{"./errors.js":"p8GN","./node":"KKNo"}],"33JE":[function(require,module,exports) {
 var Constants = require('./constants.js');
 
 function SuperNode(options) {
   var now = Date.now();
-
   this.id = Constants.SUPER_NODE_ID;
   this.type = Constants.NODE_TYPE_META;
   this.atime = options.atime || now;
   this.ctime = options.ctime || now;
-  this.mtime = options.mtime || now;
-  // root node id (randomly generated)
+  this.mtime = options.mtime || now; // root node id (randomly generated)
+
   this.rnode = options.rnode;
 }
 
@@ -6191,110 +6173,37 @@ SuperNode.create = function (options, callback) {
       callback(err);
       return;
     }
+
     options.rnode = options.rnode || rnode;
     callback(null, new SuperNode(options));
   });
 };
 
 module.exports = SuperNode;
-},{"./constants.js":"iJA9"}],"KKNo":[function(require,module,exports) {
-var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
-var NODE_TYPE_DIRECTORY = require('./constants.js').NODE_TYPE_DIRECTORY;
-var NODE_TYPE_SYMBOLIC_LINK = require('./constants.js').NODE_TYPE_SYMBOLIC_LINK;
-
-var S_IFREG = require('./constants.js').S_IFREG;
-var S_IFDIR = require('./constants.js').S_IFDIR;
-var S_IFLNK = require('./constants.js').S_IFLNK;
-
-var DEFAULT_FILE_PERMISSIONS = require('./constants.js').DEFAULT_FILE_PERMISSIONS;
-var DEFAULT_DIR_PERMISSIONS = require('./constants.js').DEFAULT_DIR_PERMISSIONS;
-
-function getMode(type, mode) {
-  switch (type) {
-    case NODE_TYPE_DIRECTORY:
-      return (mode || DEFAULT_DIR_PERMISSIONS) | S_IFDIR;
-    case NODE_TYPE_SYMBOLIC_LINK:
-      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFLNK;
-    /* jshint -W086 */
-    case NODE_TYPE_FILE:
-    // falls through
-    default:
-      return (mode || DEFAULT_FILE_PERMISSIONS) | S_IFREG;
-  }
-}
-
-function Node(options) {
-  var now = Date.now();
-
-  this.id = options.id;
-  this.type = options.type || NODE_TYPE_FILE; // node type (file, directory, etc)
-  this.size = options.size || 0; // size (bytes for files, entries for directories)
-  this.atime = options.atime || now; // access time (will mirror ctime after creation)
-  this.ctime = options.ctime || now; // creation/change time
-  this.mtime = options.mtime || now; // modified time
-  this.flags = options.flags || []; // file flags
-  this.xattrs = options.xattrs || {}; // extended attributes
-  this.nlinks = options.nlinks || 0; // links count
-  this.data = options.data; // id for data object
-  this.version = options.version || 1;
-
-  // permissions and flags
-  this.mode = options.mode || getMode(this.type);
-  this.uid = options.uid || 0x0; // owner name
-  this.gid = options.gid || 0x0; // group name
-}
-
-// Make sure the options object has an id on property,
-// either from caller or one we generate using supplied guid fn.
-function ensureID(options, prop, callback) {
-  if (options[prop]) {
-    callback(null);
-  } else {
-    options.guid(function (err, id) {
-      options[prop] = id;
-      callback(err);
-    });
-  }
-}
-
-Node.create = function (options, callback) {
-  // We expect both options.id and options.data to be provided/generated.
-  ensureID(options, 'id', function (err) {
-    if (err) {
-      callback(err);
-      return;
-    }
-
-    ensureID(options, 'data', function (err) {
-      if (err) {
-        callback(err);
-        return;
-      }
-
-      callback(null, new Node(options));
-    });
-  });
-};
-
-// Update the node's mode (permissions), taking file type bits into account.
-Node.setMode = function (mode, node) {
-  node.mode = getMode(node.type, mode);
-};
-
-module.exports = Node;
 },{"./constants.js":"iJA9"}],"6dsC":[function(require,module,exports) {
 var Constants = require('./constants.js');
-var Path = require('./path.js');
+
+var Path = require('./path.js'); // https://github.com/nodejs/node/blob/4f1297f259b09d129ac01afbd4c674263b7ac124/lib/internal/fs/utils.js#L231
+
+
+function dateFromNumeric(num) {
+  return new Date(Number(num) * 1000);
+}
 
 function Stats(path, fileNode, devName) {
   this.dev = devName;
   this.node = fileNode.id;
   this.type = fileNode.type;
   this.size = fileNode.size;
-  this.nlinks = fileNode.nlinks;
-  this.atime = fileNode.atime;
-  this.mtime = fileNode.mtime;
-  this.ctime = fileNode.ctime;
+  this.nlinks = fileNode.nlinks; // Date objects
+
+  this.atime = dateFromNumeric(fileNode.atime);
+  this.mtime = dateFromNumeric(fileNode.mtime);
+  this.ctime = dateFromNumeric(fileNode.ctime); // Unix timestamp Numbers
+
+  this.atimeMs = fileNode.atime;
+  this.mtimeMs = fileNode.mtime;
+  this.ctimeMs = fileNode.ctime;
   this.version = fileNode.version;
   this.mode = fileNode.mode;
   this.uid = fileNode.uid;
@@ -6312,61 +6221,62 @@ Stats.prototype.isDirectory = function () {
 
 Stats.prototype.isSymbolicLink = function () {
   return this.type === Constants.NODE_TYPE_SYMBOLIC_LINK;
-};
+}; // These will always be false in Filer.
 
-// These will always be false in Filer.
+
 Stats.prototype.isSocket = Stats.prototype.isFIFO = Stats.prototype.isCharacterDevice = Stats.prototype.isBlockDevice = function () {
   return false;
 };
 
 module.exports = Stats;
 },{"./constants.js":"iJA9","./path.js":"UzoP"}],"bsBG":[function(require,module,exports) {
-
-var _ = require('../../lib/nodash.js');
+var Buffer = require("buffer").Buffer;
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var Path = require('../path.js');
+
 var normalize = Path.normalize;
 var dirname = Path.dirname;
 var basename = Path.basename;
 var isAbsolutePath = Path.isAbsolute;
 var isNullPath = Path.isNull;
 
+var shared = require('../shared.js');
+
 var Constants = require('../constants.js');
+
 var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
 var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
 var NODE_TYPE_META = Constants.NODE_TYPE_META;
-
 var FULL_READ_WRITE_EXEC_PERMISSIONS = Constants.FULL_READ_WRITE_EXEC_PERMISSIONS;
-
 var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
 var SUPER_NODE_ID = Constants.SUPER_NODE_ID;
 var SYMLOOP_MAX = Constants.SYMLOOP_MAX;
-
 var O_READ = Constants.O_READ;
 var O_WRITE = Constants.O_WRITE;
 var O_CREATE = Constants.O_CREATE;
 var O_EXCLUSIVE = Constants.O_EXCLUSIVE;
 var O_APPEND = Constants.O_APPEND;
 var O_FLAGS = Constants.O_FLAGS;
-
 var XATTR_CREATE = Constants.XATTR_CREATE;
 var XATTR_REPLACE = Constants.XATTR_REPLACE;
 var FS_NOMTIME = Constants.FS_NOMTIME;
 var FS_NOCTIME = Constants.FS_NOCTIME;
 
 var Encoding = require('../encoding.js');
+
 var Errors = require('../errors.js');
+
 var DirectoryEntry = require('../directory-entry.js');
+
 var OpenFileDescription = require('../open-file-description.js');
+
 var SuperNode = require('../super-node.js');
+
 var Node = require('../node.js');
+
 var Stats = require('../stats.js');
-var Buffer = require('../buffer.js');
-
-var _require = require('../shared.js'),
-    validateInteger = _require.validateInteger;
-
 /**
  * Update node times. Only passed times are modified (undefined times are ignored)
  * and filesystem flags are examined in order to override update logic.
@@ -6376,27 +6286,32 @@ var _require = require('../shared.js'),
 function update_node_times(context, path, node, times, callback) {
   // Honour mount flags for how we update times
   var flags = context.flags;
-  if (_(flags).contains(FS_NOCTIME)) {
+
+  if (flags.includes(FS_NOCTIME)) {
     delete times.ctime;
   }
-  if (_(flags).contains(FS_NOMTIME)) {
-    delete times.mtime;
-  }
 
-  // Only do the update if required (i.e., times are still present)
+  if (flags.includes(FS_NOMTIME)) {
+    delete times.mtime;
+  } // Only do the update if required (i.e., times are still present)
+
+
   var update = false;
+
   if (times.ctime) {
-    node.ctime = times.ctime;
-    // We don't do atime tracking for perf reasons, but do mirror ctime
+    node.ctime = times.ctime; // We don't do atime tracking for perf reasons, but do mirror ctime
+
     node.atime = times.ctime;
     update = true;
   }
+
   if (times.atime) {
     // The only time we explicitly pass atime is when utimes(), futimes() is called.
     // Override ctime mirror here if so
     node.atime = times.atime;
     update = true;
   }
+
   if (times.mtime) {
     node.mtime = times.mtime;
     update = true;
@@ -6405,7 +6320,10 @@ function update_node_times(context, path, node, times, callback) {
   function complete(error) {
     // Queue this change so we can send watch events.
     // Unlike node.js, we send the full path vs. basename/dirname only.
-    context.changes.push({ event: 'change', path: path });
+    context.changes.push({
+      event: 'change',
+      path: path
+    });
     callback(error);
   }
 
@@ -6415,26 +6333,25 @@ function update_node_times(context, path, node, times, callback) {
     complete();
   }
 }
-
 /**
  * make_node()
  */
 // in: file or directory path
 // out: new node representing file/directory
+
+
 function make_node(context, path, type, callback) {
   if (type !== NODE_TYPE_DIRECTORY && type !== NODE_TYPE_FILE) {
     return callback(new Errors.EINVAL('type must be a directory or file', path));
   }
 
   path = normalize(path);
-
   var name = basename(path);
   var parentPath = dirname(path);
   var parentNode;
   var parentNodeData;
-  var node;
+  var node; // Check if the parent node exists
 
-  // Check if the parent node exists
   function create_node_in_parent(error, parentDirectoryNode) {
     if (error) {
       callback(error);
@@ -6444,9 +6361,9 @@ function make_node(context, path, type, callback) {
       parentNode = parentDirectoryNode;
       find_node(context, path, check_if_node_exists);
     }
-  }
+  } // Check if the node to be created already exists
 
-  // Check if the node to be created already exists
+
   function check_if_node_exists(error, result) {
     if (!error && result) {
       callback(new Errors.EEXIST('path name already exists', path));
@@ -6455,9 +6372,9 @@ function make_node(context, path, type, callback) {
     } else {
       context.getObject(parentNode.data, create_node);
     }
-  }
+  } // Create the new node
 
-  // Create the new node
+
   function create_node(error, result) {
     if (error) {
       callback(error);
@@ -6471,24 +6388,28 @@ function make_node(context, path, type, callback) {
           callback(error);
           return;
         }
+
         node = result;
         node.nlinks += 1;
         context.putObject(node.id, node, update_parent_node_data);
       });
     }
-  }
+  } // Update parent node time
 
-  // Update parent node time
+
   function update_time(error) {
     if (error) {
       callback(error);
     } else {
       var now = Date.now();
-      update_node_times(context, parentPath, node, { mtime: now, ctime: now }, callback);
+      update_node_times(context, parentPath, node, {
+        mtime: now,
+        ctime: now
+      }, callback);
     }
-  }
+  } // Update the parent nodes data
 
-  // Update the parent nodes data
+
   function update_parent_node_data(error) {
     if (error) {
       callback(error);
@@ -6496,30 +6417,38 @@ function make_node(context, path, type, callback) {
       parentNodeData[name] = new DirectoryEntry(node.id, type);
       context.putObject(parentNode.data, parentNodeData, update_time);
     }
-  }
+  } // Find the parent node
 
-  // Find the parent node
+
   find_node(context, parentPath, create_node_in_parent);
 }
-
 /**
  * find_node
  */
 // in: file or directory path
 // out: node structure, or error
+
+
 function find_node(context, path, callback) {
   path = normalize(path);
+
   if (!path) {
     return callback(new Errors.ENOENT('path is an empty string'));
   }
+
   var name = basename(path);
   var parentPath = dirname(path);
   var followedCount = 0;
 
-  function read_root_directory_node(error, superNode) {
+  function read_root_directory_node(error, nodeData) {
     if (error) {
-      callback(error);
-    } else if (!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
+      return callback(error);
+    } // Parse existing node as SuperNode
+
+
+    var superNode = new SuperNode(nodeData);
+
+    if (!superNode || superNode.type !== NODE_TYPE_META || !superNode.rnode) {
       callback(new Errors.EFILESYSTEMERROR());
     } else {
       context.getObject(superNode.rnode, check_root_directory_node);
@@ -6532,12 +6461,12 @@ function find_node(context, path, callback) {
     } else if (!rootDirectoryNode) {
       callback(new Errors.ENOENT());
     } else {
-      callback(null, rootDirectoryNode);
+      Node.create(rootDirectoryNode, callback);
     }
-  }
-
-  // in: parent directory node
+  } // in: parent directory node
   // out: parent directory data
+
+
   function read_parent_directory_data(error, parentDirectoryNode) {
     if (error) {
       callback(error);
@@ -6546,21 +6475,29 @@ function find_node(context, path, callback) {
     } else {
       context.getObject(parentDirectoryNode.data, get_node_from_parent_directory_data);
     }
-  }
-
-  // in: parent directory data
+  } // in: parent directory data
   // out: searched node
+
+
   function get_node_from_parent_directory_data(error, parentDirectoryData) {
     if (error) {
       callback(error);
     } else {
-      if (!_(parentDirectoryData).has(name)) {
+      if (!parentDirectoryData.hasOwnProperty(name)) {
         callback(new Errors.ENOENT(null, path));
       } else {
         var nodeId = parentDirectoryData[name].id;
-        context.getObject(nodeId, is_symbolic_link);
+        context.getObject(nodeId, create_node);
       }
     }
+  }
+
+  function create_node(error, data) {
+    if (error) {
+      return callback(error);
+    }
+
+    Node.create(data, is_symbolic_link);
   }
 
   function is_symbolic_link(error, node) {
@@ -6569,6 +6506,7 @@ function find_node(context, path, callback) {
     } else {
       if (node.type === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
+
         if (followedCount > SYMLOOP_MAX) {
           callback(new Errors.ELOOP(null, path));
         } else {
@@ -6584,6 +6522,7 @@ function find_node(context, path, callback) {
     data = normalize(data);
     parentPath = dirname(data);
     name = basename(data);
+
     if (ROOT_DIRECTORY_NAME === name) {
       context.getObject(SUPER_NODE_ID, read_root_directory_node);
     } else {
@@ -6597,16 +6536,19 @@ function find_node(context, path, callback) {
     find_node(context, parentPath, read_parent_directory_data);
   }
 }
-
 /**
  * set extended attribute (refactor)
  */
+
+
 function set_extended_attribute(context, path, node, name, value, flag, callback) {
   function update_time(error) {
     if (error) {
       callback(error);
     } else {
-      update_node_times(context, path, node, { ctime: Date.now() }, callback);
+      update_node_times(context, path, node, {
+        ctime: Date.now()
+      }, callback);
     }
   }
 
@@ -6621,7 +6563,6 @@ function set_extended_attribute(context, path, node, name, value, flag, callback
     context.putObject(node.id, node, update_time);
   }
 }
-
 /**
  * ensure_root_directory. Creates a root node if necessary.
  *
@@ -6629,6 +6570,8 @@ function set_extended_attribute(context, path, node, name, value, flag, callback
  * Multiple invocations of this by separate instances will still result
  * in only a single super node.
  */
+
+
 function ensure_root_directory(context, callback) {
   var superNode;
   var directoryNode;
@@ -6641,11 +6584,14 @@ function ensure_root_directory(context, callback) {
     } else if (error && !(error instanceof Errors.ENOENT)) {
       callback(error);
     } else {
-      SuperNode.create({ guid: context.guid }, function (error, result) {
+      SuperNode.create({
+        guid: context.guid
+      }, function (error, result) {
         if (error) {
           callback(error);
           return;
         }
+
         superNode = result;
         context.putObject(superNode.id, superNode, write_directory_node);
       });
@@ -6665,6 +6611,7 @@ function ensure_root_directory(context, callback) {
           callback(error);
           return;
         }
+
         directoryNode = result;
         directoryNode.nlinks += 1;
         context.putObject(directoryNode.id, directoryNode, write_directory_data);
@@ -6683,15 +6630,15 @@ function ensure_root_directory(context, callback) {
 
   context.getObject(SUPER_NODE_ID, ensure_super_node);
 }
-
 /**
  * make_directory
  */
+
+
 function make_directory(context, path, callback) {
   path = normalize(path);
   var name = basename(path);
   var parentPath = dirname(path);
-
   var directoryNode;
   var directoryData;
   var parentDirectoryNode;
@@ -6729,6 +6676,7 @@ function make_directory(context, path, callback) {
           callback(error);
           return;
         }
+
         directoryNode = result;
         directoryNode.nlinks += 1;
         context.putObject(directoryNode.id, directoryNode, write_directory_data);
@@ -6750,7 +6698,10 @@ function make_directory(context, path, callback) {
       callback(error);
     } else {
       var now = Date.now();
-      update_node_times(context, parentPath, parentDirectoryNode, { mtime: now, ctime: now }, callback);
+      update_node_times(context, parentPath, parentDirectoryNode, {
+        mtime: now,
+        ctime: now
+      }, callback);
     }
   }
 
@@ -6766,14 +6717,33 @@ function make_directory(context, path, callback) {
   find_node(context, path, check_if_directory_exists);
 }
 
+function access_file(context, path, mode, callback) {
+  path = normalize(path);
+  find_node(context, path, function (err, node) {
+    if (err) {
+      return callback(err);
+    }
+
+    if (mode === Constants.F_OK) {
+      return callback(null);
+    }
+
+    if (!(mode & Constants.X_OK) || node.mode & (Constants.fsConstants.S_IXUSR | Constants.fsConstants.S_IXGRP | Constants.fsConstants.S_IXOTH)) {
+      return callback(null);
+    }
+
+    callback(new Errors.EACCES('permission denied', path));
+  });
+}
 /**
  * remove_directory
  */
+
+
 function remove_directory(context, path, callback) {
   path = normalize(path);
   var name = basename(path);
   var parentPath = dirname(path);
-
   var directoryNode;
   var directoryData;
   var parentDirectoryNode;
@@ -6793,7 +6763,7 @@ function remove_directory(context, path, callback) {
       callback(error);
     } else if (ROOT_DIRECTORY_NAME === name) {
       callback(new Errors.EBUSY(null, path));
-    } else if (!_(result).has(name)) {
+    } else if (!result.hasOwnProperty(name)) {
       callback(new Errors.ENOENT(null, path));
     } else {
       parentDirectoryData = result;
@@ -6818,7 +6788,8 @@ function remove_directory(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if (_(directoryData).size() > 0) {
+
+      if (Object.keys(directoryData).length > 0) {
         callback(new Errors.ENOTEMPTY(null, path));
       } else {
         remove_directory_entry_from_parent_directory_node();
@@ -6831,7 +6802,10 @@ function remove_directory(context, path, callback) {
       callback(error);
     } else {
       var now = Date.now();
-      update_node_times(context, parentPath, parentDirectoryNode, { mtime: now, ctime: now }, remove_directory_node);
+      update_node_times(context, parentPath, parentDirectoryNode, {
+        mtime: now,
+        ctime: now
+      }, remove_directory_node);
     }
   }
 
@@ -6859,21 +6833,24 @@ function remove_directory(context, path, callback) {
   find_node(context, parentPath, read_parent_directory_data);
 }
 
-function open_file(context, path, flags, callback) {
+function open_file(context, path, flags, mode, callback) {
+  if (typeof mode === 'function') {
+    callback = mode;
+    mode = null;
+  }
+
   path = normalize(path);
   var name = basename(path);
   var parentPath = dirname(path);
-
   var directoryNode;
   var directoryData;
   var directoryEntry;
   var fileNode;
   var fileData;
-
   var followedCount = 0;
 
   if (ROOT_DIRECTORY_NAME === name) {
-    if (_(flags).contains(O_WRITE)) {
+    if (flags.includes(O_WRITE)) {
       callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
     } else {
       find_node(context, path, set_file_node);
@@ -6898,19 +6875,21 @@ function open_file(context, path, flags, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if (_(directoryData).has(name)) {
-        if (_(flags).contains(O_EXCLUSIVE)) {
+
+      if (directoryData.hasOwnProperty(name)) {
+        if (flags.includes(O_EXCLUSIVE)) {
           callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
-          if (directoryEntry.type === NODE_TYPE_DIRECTORY && _(flags).contains(O_WRITE)) {
+
+          if (directoryEntry.type === NODE_TYPE_DIRECTORY && flags.includes(O_WRITE)) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
         }
       } else {
-        if (!_(flags).contains(O_CREATE)) {
+        if (!flags.includes(O_CREATE)) {
           callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist', path));
         } else {
           write_file_node();
@@ -6924,8 +6903,10 @@ function open_file(context, path, flags, callback) {
       callback(error);
     } else {
       var node = result;
+
       if (node.type === NODE_TYPE_SYMBOLIC_LINK) {
         followedCount++;
+
         if (followedCount > SYMLOOP_MAX) {
           callback(new Errors.ELOOP(null, path));
         } else {
@@ -6941,13 +6922,15 @@ function open_file(context, path, flags, callback) {
     data = normalize(data);
     parentPath = dirname(data);
     name = basename(data);
+
     if (ROOT_DIRECTORY_NAME === name) {
-      if (_(flags).contains(O_WRITE)) {
+      if (flags.includes(O_WRITE)) {
         callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
       } else {
         find_node(context, path, set_file_node);
       }
     }
+
     find_node(context, parentPath, read_directory_data);
   }
 
@@ -6969,8 +6952,14 @@ function open_file(context, path, flags, callback) {
         callback(error);
         return;
       }
+
       fileNode = result;
       fileNode.nlinks += 1;
+
+      if (mode) {
+        fileNode.mode = mode;
+      }
+
       context.putObject(fileNode.id, fileNode, write_file_data);
     });
   }
@@ -6979,8 +6968,7 @@ function open_file(context, path, flags, callback) {
     if (error) {
       callback(error);
     } else {
-      fileData = new Buffer(0);
-      fileData.fill(0);
+      fileData = Buffer.alloc(0);
       context.putBuffer(fileNode.data, fileData, update_directory_data);
     }
   }
@@ -6990,7 +6978,10 @@ function open_file(context, path, flags, callback) {
       callback(error);
     } else {
       var now = Date.now();
-      update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, handle_update_result);
+      update_node_times(context, parentPath, directoryNode, {
+        mtime: now,
+        ctime: now
+      }, handle_update_result);
     }
   }
 
@@ -7028,7 +7019,10 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
       callback(error);
     } else {
       var now = Date.now();
-      update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, return_nbytes);
+      update_node_times(context, ofd.path, fileNode, {
+        mtime: now,
+        ctime: now
+      }, return_nbytes);
     }
   }
 
@@ -7045,14 +7039,11 @@ function replace_data(context, ofd, buffer, offset, length, callback) {
       callback(error);
     } else {
       fileNode = result;
-      var newData = new Buffer(length);
-      newData.fill(0);
+      var newData = Buffer.alloc(length);
       buffer.copy(newData, 0, offset, offset + length);
       ofd.position = length;
-
       fileNode.size = length;
       fileNode.version += 1;
-
       context.putBuffer(fileNode.data, newData, update_file_node);
     }
   }
@@ -7077,7 +7068,10 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       callback(error);
     } else {
       var now = Date.now();
-      update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, return_nbytes);
+      update_node_times(context, ofd.path, fileNode, {
+        mtime: now,
+        ctime: now
+      }, return_nbytes);
     }
   }
 
@@ -7094,24 +7088,28 @@ function write_data(context, ofd, buffer, offset, length, position, callback) {
       callback(error);
     } else {
       fileData = result;
+
       if (!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
+
       var _position = !(undefined === position || null === position) ? position : ofd.position;
+
       var newSize = Math.max(fileData.length, _position + length);
-      var newData = new Buffer(newSize);
-      newData.fill(0);
+      var newData = Buffer.alloc(newSize);
+
       if (fileData) {
         fileData.copy(newData);
       }
+
       buffer.copy(newData, _position, offset, offset + length);
+
       if (undefined === position) {
         ofd.position += length;
       }
 
       fileNode.size = newSize;
       fileNode.version += 1;
-
       context.putBuffer(fileNode.data, newData, update_file_node);
     }
   }
@@ -7137,15 +7135,20 @@ function read_data(context, ofd, buffer, offset, length, position, callback) {
       callback(error);
     } else {
       fileData = result;
+
       if (!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
+
       var _position = !(undefined === position || null === position) ? position : ofd.position;
+
       length = _position + length > buffer.length ? length - _position : length;
       fileData.copy(buffer, offset, _position, _position + length);
+
       if (undefined === position) {
         ofd.position += length;
       }
+
       callback(null, length);
     }
   }
@@ -7177,7 +7180,6 @@ function lstat_file(context, path, callback) {
   path = normalize(path);
   var name = basename(path);
   var parentPath = dirname(path);
-
   var directoryNode;
   var directoryData;
 
@@ -7201,7 +7203,8 @@ function lstat_file(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if (!_(directoryData).has(name)) {
+
+      if (!directoryData.hasOwnProperty(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
       } else {
         context.getObject(directoryData[name].id, callback);
@@ -7214,12 +7217,10 @@ function link_node(context, oldpath, newpath, callback) {
   oldpath = normalize(oldpath);
   var oldname = basename(oldpath);
   var oldParentPath = dirname(oldpath);
-
   newpath = normalize(newpath);
   var newname = basename(newpath);
   var newParentPath = dirname(newpath);
   var ctime = Date.now();
-
   var oldDirectoryNode;
   var oldDirectoryData;
   var newDirectoryNode;
@@ -7231,7 +7232,9 @@ function link_node(context, oldpath, newpath, callback) {
     if (error) {
       callback(error);
     } else {
-      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
+      update_node_times(context, newpath, fileNode, {
+        ctime: ctime
+      }, callback);
     }
   }
 
@@ -7258,7 +7261,8 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       newDirectoryData = result;
-      if (_(newDirectoryData).has(newname)) {
+
+      if (newDirectoryData.hasOwnProperty(newname)) {
         callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
@@ -7282,7 +7286,8 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       oldDirectoryData = result;
-      if (!_(oldDirectoryData).has(oldname)) {
+
+      if (!oldDirectoryData.hasOwnProperty(oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
       } else if (oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
         callback(new Errors.EPERM('oldpath refers to a directory'));
@@ -7308,7 +7313,6 @@ function unlink_node(context, path, callback) {
   path = normalize(path);
   var name = basename(path);
   var parentPath = dirname(path);
-
   var directoryNode;
   var directoryData;
   var fileNode;
@@ -7323,7 +7327,10 @@ function unlink_node(context, path, callback) {
           callback(error);
         } else {
           var now = Date.now();
-          update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
+          update_node_times(context, parentPath, directoryNode, {
+            mtime: now,
+            ctime: now
+          }, callback);
         }
       });
     }
@@ -7343,6 +7350,7 @@ function unlink_node(context, path, callback) {
     } else {
       fileNode = result;
       fileNode.nlinks -= 1;
+
       if (fileNode.nlinks < 1) {
         context.delete(fileNode.id, delete_file_data);
       } else {
@@ -7350,7 +7358,9 @@ function unlink_node(context, path, callback) {
           if (error) {
             callback(error);
           } else {
-            update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
+            update_node_times(context, path, fileNode, {
+              ctime: Date.now()
+            }, update_directory_data);
           }
         });
       }
@@ -7372,7 +7382,8 @@ function unlink_node(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if (!_(directoryData).has(name)) {
+
+      if (!directoryData.hasOwnProperty(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_node_is_directory);
@@ -7394,7 +7405,6 @@ function unlink_node(context, path, callback) {
 
 function read_directory(context, path, callback) {
   path = normalize(path);
-
   var directoryNode;
   var directoryData;
 
@@ -7426,7 +7436,6 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
   dstpath = normalize(dstpath);
   var name = basename(dstpath);
   var parentPath = dirname(dstpath);
-
   var directoryNode;
   var directoryData;
   var fileNode;
@@ -7451,7 +7460,8 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if (_(directoryData).has(name)) {
+
+      if (directoryData.hasOwnProperty(name)) {
         callback(new Errors.EEXIST(null, name));
       } else {
         write_file_node();
@@ -7468,11 +7478,11 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
         callback(error);
         return;
       }
-      fileNode = result;
-      fileNode.nlinks += 1;
 
-      // If the srcpath isn't absolute, resolve it relative to the dstpath
+      fileNode = result;
+      fileNode.nlinks += 1; // If the srcpath isn't absolute, resolve it relative to the dstpath
       // but store both versions, since we'll use the relative one in readlink().
+
       if (!isAbsolutePath(srcpath)) {
         fileNode.symlink_relpath = srcpath;
         srcpath = Path.resolve(parentPath, srcpath);
@@ -7480,7 +7490,6 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
 
       fileNode.size = srcpath.length;
       fileNode.data = srcpath;
-
       context.putObject(fileNode.id, fileNode, update_directory_data);
     });
   }
@@ -7490,7 +7499,10 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       callback(error);
     } else {
       var now = Date.now();
-      update_node_times(context, parentPath, directoryNode, { mtime: now, ctime: now }, callback);
+      update_node_times(context, parentPath, directoryNode, {
+        mtime: now,
+        ctime: now
+      }, callback);
     }
   }
 
@@ -7508,10 +7520,8 @@ function read_link(context, path, callback) {
   path = normalize(path);
   var name = basename(path);
   var parentPath = dirname(path);
-
   var directoryNode;
   var directoryData;
-
   find_node(context, parentPath, read_directory_data);
 
   function read_directory_data(error, result) {
@@ -7528,7 +7538,8 @@ function read_link(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if (!_(directoryData).has(name)) {
+
+      if (!directoryData.hasOwnProperty(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_symbolic);
@@ -7554,7 +7565,6 @@ function read_link(context, path, callback) {
 
 function truncate_file(context, path, length, callback) {
   path = normalize(path);
-
   var fileNode;
 
   function read_file_data(error, node) {
@@ -7575,16 +7585,13 @@ function truncate_file(context, path, length, callback) {
       if (!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
-      try {
-        validateInteger(length, 'len');
-      } catch (error) {
-        return callback(error);
-      }
-      var data = new Buffer(length);
-      data.fill(0);
+
+      var data = Buffer.alloc(length);
+
       if (fileData) {
         fileData.copy(data);
       }
+
       context.putBuffer(fileNode.data, data, update_file_node);
     }
   }
@@ -7594,7 +7601,10 @@ function truncate_file(context, path, length, callback) {
       callback(error);
     } else {
       var now = Date.now();
-      update_node_times(context, path, fileNode, { mtime: now, ctime: now }, callback);
+      update_node_times(context, path, fileNode, {
+        mtime: now,
+        ctime: now
+      }, callback);
     }
   }
 
@@ -7634,15 +7644,17 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(error);
     } else {
       var data;
+
       if (!fileData) {
         return callback(new Errors.EIO('Expected Buffer'));
       }
+
       if (fileData) {
         data = fileData.slice(0, length);
       } else {
-        data = new Buffer(length);
-        data.fill(0);
+        data = Buffer.alloc(length);
       }
+
       context.putBuffer(fileNode.data, data, update_file_node);
     }
   }
@@ -7652,7 +7664,10 @@ function ftruncate_file(context, ofd, length, callback) {
       callback(error);
     } else {
       var now = Date.now();
-      update_node_times(context, ofd.path, fileNode, { mtime: now, ctime: now }, callback);
+      update_node_times(context, ofd.path, fileNode, {
+        mtime: now,
+        ctime: now
+      }, callback);
     }
   }
 
@@ -7680,7 +7695,11 @@ function utimes_file(context, path, atime, mtime, callback) {
     if (error) {
       callback(error);
     } else {
-      update_node_times(context, path, node, { atime: atime, ctime: mtime, mtime: mtime }, callback);
+      update_node_times(context, path, node, {
+        atime: atime,
+        ctime: mtime,
+        mtime: mtime
+      }, callback);
     }
   }
 
@@ -7694,12 +7713,15 @@ function utimes_file(context, path, atime, mtime, callback) {
 }
 
 function futimes_file(context, ofd, atime, mtime, callback) {
-
   function update_times(error, node) {
     if (error) {
       callback(error);
     } else {
-      update_node_times(context, ofd.path, node, { atime: atime, ctime: mtime, mtime: mtime }, callback);
+      update_node_times(context, ofd.path, node, {
+        atime: atime,
+        ctime: mtime,
+        mtime: mtime
+      }, callback);
     }
   }
 
@@ -7719,6 +7741,7 @@ function setxattr_file(context, path, name, value, flag, callback) {
     if (error) {
       return callback(error);
     }
+
     set_extended_attribute(context, path, node, name, value, flag, callback);
   }
 
@@ -7738,6 +7761,7 @@ function fsetxattr_file(context, ofd, name, value, flag, callback) {
     if (error) {
       return callback(error);
     }
+
     set_extended_attribute(context, ofd.path, node, name, value, flag, callback);
   }
 
@@ -7779,7 +7803,6 @@ function getxattr_file(context, path, name, callback) {
 }
 
 function fgetxattr_file(context, ofd, name, callback) {
-
   function get_xattr(error, node) {
     if (error) {
       return callback(error);
@@ -7815,7 +7838,9 @@ function removexattr_file(context, path, name, callback) {
       if (error) {
         callback(error);
       } else {
-        update_node_times(context, path, node, { ctime: Date.now() }, callback);
+        update_node_times(context, path, node, {
+          ctime: Date.now()
+        }, callback);
       }
     }
 
@@ -7839,7 +7864,6 @@ function removexattr_file(context, path, name, callback) {
 }
 
 function fremovexattr_file(context, ofd, name, callback) {
-
   function remove_xattr(error, node) {
     if (error) {
       return callback(error);
@@ -7849,7 +7873,9 @@ function fremovexattr_file(context, ofd, name, callback) {
       if (error) {
         callback(error);
       } else {
-        update_node_times(context, ofd.path, node, { ctime: Date.now() }, callback);
+        update_node_times(context, ofd.path, node, {
+          ctime: Date.now()
+        }, callback);
       }
     }
 
@@ -7873,20 +7899,27 @@ function fremovexattr_file(context, ofd, name, callback) {
 }
 
 function validate_flags(flags) {
-  if (!_(O_FLAGS).has(flags)) {
-    return null;
-  }
-  return O_FLAGS[flags];
+  return O_FLAGS.hasOwnProperty(flags) ? O_FLAGS[flags] : null;
 }
 
 function validate_file_options(options, enc, fileMode) {
   if (!options) {
-    options = { encoding: enc, flag: fileMode };
+    options = {
+      encoding: enc,
+      flag: fileMode
+    };
   } else if (typeof options === 'function') {
-    options = { encoding: enc, flag: fileMode };
+    options = {
+      encoding: enc,
+      flag: fileMode
+    };
   } else if (typeof options === 'string') {
-    options = { encoding: options, flag: fileMode };
+    options = {
+      encoding: options,
+      flag: fileMode
+    };
   }
+
   return options;
 }
 
@@ -7910,27 +7943,18 @@ function pathCheck(path, allowRelative, callback) {
     callback(err);
     return false;
   }
+
   return true;
 }
 
 function open(fs, context, path, flags, mode, callback) {
-  /**
-   * NOTE: we support the same signature as node with a `mode` arg,
-   * but ignore it. We need to add it.  Here is what node.js does:
-   * function open(path, flags, mode, callback) {
-   *    path = getPathFromURL(path);
-   *  validatePath(path);
-   *  const flagsNumber = stringToFlags(flags);
-   *  if (arguments.length < 4) {
-   *    callback = makeCallback(mode);
-   *    mode = 0o666;
-   *  } else {
-   *    mode = validateAndMaskMode(mode, 'mode', 0o666);
-   *    callback = makeCallback(callback);
-   * }
-  */
+  if (arguments.length < 6) {
+    callback = arguments[arguments.length - 1];
+    mode = 420;
+  } else {
+    mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
+  }
 
-  callback = arguments[arguments.length - 1];
   if (!pathCheck(path, callback)) return;
 
   function check_result(error, fileNode) {
@@ -7938,11 +7962,13 @@ function open(fs, context, path, flags, mode, callback) {
       callback(error);
     } else {
       var position;
-      if (_(flags).contains(O_APPEND)) {
+
+      if (flags.includes(O_APPEND)) {
         position = fileNode.size;
       } else {
         position = 0;
       }
+
       var openFileDescription = new OpenFileDescription(path, fileNode.id, flags, position);
       var fd = fs.allocDescriptor(openFileDescription);
       callback(null, fd);
@@ -7950,15 +7976,16 @@ function open(fs, context, path, flags, mode, callback) {
   }
 
   flags = validate_flags(flags);
+
   if (!flags) {
-    callback(new Errors.EINVAL('flags is not valid'), path);
+    return callback(new Errors.EINVAL('flags is not valid'), path);
   }
 
-  open_file(context, path, flags, check_result);
+  open_file(context, path, flags, mode, check_result);
 }
 
 function close(fs, context, fd, callback) {
-  if (!_(fs.openFiles).has(fd)) {
+  if (!fs.openFiles[fd]) {
     callback(new Errors.EBADF());
   } else {
     fs.releaseDescriptor(fd);
@@ -7982,6 +8009,32 @@ function mkdir(fs, context, path, mode, callback) {
 
   if (!pathCheck(path, callback)) return;
   make_directory(context, path, callback);
+}
+
+function access(fs, context, path, mode, callback) {
+  if (typeof mode === 'function') {
+    callback = mode;
+    mode = Constants.fsConstants.F_OK;
+  }
+
+  if (!pathCheck(path, callback)) return;
+  mode = mode | Constants.fsConstants.F_OK;
+  access_file(context, path, mode, callback);
+}
+
+function mkdtemp(fs, context, prefix, options, callback) {
+  callback = arguments[arguments.length - 1];
+
+  if (!prefix) {
+    return callback(new Error('filename prefix is required'));
+  }
+
+  var random = shared.randomChars(6);
+  var path = prefix + '-' + random;
+  if (!pathCheck(path, callback)) return;
+  make_directory(context, path, function (error) {
+    callback(error, path);
+  });
 }
 
 function rmdir(fs, context, path, callback) {
@@ -8015,6 +8068,7 @@ function fstat(fs, context, fd, callback) {
   }
 
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
   } else {
@@ -8043,24 +8097,34 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   offset = undefined === offset ? 0 : offset;
   length = undefined === length ? buffer.length - offset : length;
   callback = arguments[arguments.length - 1];
-
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_READ)) {
+  } else if (!ofd.flags.includes(O_READ)) {
     callback(new Errors.EBADF('descriptor does not permit reading'));
   } else {
     read_data(context, ofd, buffer, offset, length, position, wrapped_cb);
   }
 }
 
+function fsync(fs, context, fd, callback) {
+  if (validateInteger(fd, callback) !== fd) return;
+  var ofd = fs.openFiles[fd];
+
+  if (!ofd) {
+    callback(new Errors.EBADF());
+  } else {
+    callback();
+  }
+}
+
 function readFile(fs, context, path, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, null, 'r');
-
   if (!pathCheck(path, callback)) return;
-
   var flags = validate_flags(options.flag || 'r');
+
   if (!flags) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
@@ -8069,6 +8133,7 @@ function readFile(fs, context, path, options, callback) {
     if (err) {
       return callback(err);
     }
+
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
 
@@ -8090,9 +8155,7 @@ function readFile(fs, context, path, options, callback) {
       }
 
       var size = stats.size;
-      var buffer = new Buffer(size);
-      buffer.fill(0);
-
+      var buffer = Buffer.alloc(size);
       read_data(context, ofd, buffer, 0, size, 0, function (err) {
         cleanup();
 
@@ -8101,11 +8164,13 @@ function readFile(fs, context, path, options, callback) {
         }
 
         var data;
+
         if (options.encoding === 'utf8') {
           data = Encoding.decode(buffer);
         } else {
           data = buffer;
         }
+
         callback(null, data);
       });
     });
@@ -8116,14 +8181,14 @@ function write(fs, context, fd, buffer, offset, length, position, callback) {
   callback = arguments[arguments.length - 1];
   offset = undefined === offset ? 0 : offset;
   length = undefined === length ? buffer.length - offset : length;
-
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if (!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else if (buffer.length - offset < length) {
-    callback(new Errors.EIO('intput buffer is too small'));
+    callback(new Errors.EIO('input buffer is too small'));
   } else {
     write_data(context, ofd, buffer, offset, length, position, callback);
   }
@@ -8132,18 +8197,19 @@ function write(fs, context, fd, buffer, offset, length, position, callback) {
 function writeFile(fs, context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'w');
-
   if (!pathCheck(path, callback)) return;
-
   var flags = validate_flags(options.flag || 'w');
+
   if (!flags) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
   data = data || '';
+
   if (typeof data === 'number') {
     data = '' + data;
   }
+
   if (typeof data === 'string' && options.encoding === 'utf8') {
     data = Encoding.encode(data);
   }
@@ -8152,15 +8218,16 @@ function writeFile(fs, context, path, data, options, callback) {
     if (err) {
       return callback(err);
     }
+
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
     var fd = fs.allocDescriptor(ofd);
-
     replace_data(context, ofd, data, 0, data.length, function (err) {
       fs.releaseDescriptor(fd);
 
       if (err) {
         return callback(err);
       }
+
       callback(null);
     });
   });
@@ -8169,18 +8236,19 @@ function writeFile(fs, context, path, data, options, callback) {
 function appendFile(fs, context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'a');
-
   if (!pathCheck(path, callback)) return;
-
   var flags = validate_flags(options.flag || 'a');
+
   if (!flags) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
   data = data || '';
+
   if (typeof data === 'number') {
     data = '' + data;
   }
+
   if (typeof data === 'string' && options.encoding === 'utf8') {
     data = Encoding.encode(data);
   }
@@ -8189,15 +8257,16 @@ function appendFile(fs, context, path, data, options, callback) {
     if (err) {
       return callback(err);
     }
+
     var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
     var fd = fs.allocDescriptor(ofd);
-
     write_data(context, ofd, data, 0, data.length, ofd.position, function (err) {
       fs.releaseDescriptor(fd);
 
       if (err) {
         return callback(err);
       }
+
       callback(null);
     });
   });
@@ -8207,17 +8276,28 @@ function exists(fs, context, path, callback) {
   function cb(err) {
     callback(err ? false : true);
   }
-  console.warn('This method is deprecated. For more details see https://nodejs.org/api/fs.html#fs_fs_exists_path_callback'); // eslint-disable-line no-console
+
   stat(fs, context, path, cb);
 }
 
-// Based on https://github.com/nodejs/node/blob/c700cc42da9cf73af9fec2098520a6c0a631d901/lib/internal/validators.js#L21
+function validateInteger(value, callback) {
+  if (typeof value !== 'number') {
+    callback(new Errors.EINVAL('Expected integer', value));
+    return;
+  }
+
+  return value;
+} // Based on https://github.com/nodejs/node/blob/c700cc42da9cf73af9fec2098520a6c0a631d901/lib/internal/validators.js#L21
+
+
 var octalReg = /^[0-7]+$/;
+
 function isUint32(value) {
   return value === value >>> 0;
-}
-// Validator for mode_t (the S_* constants). Valid numbers or octal strings
+} // Validator for mode_t (the S_* constants). Valid numbers or octal strings
 // will be masked with 0o777 to be consistent with the behavior in POSIX APIs.
+
+
 function validateAndMaskMode(value, def, callback) {
   if (typeof def === 'function') {
     callback = def;
@@ -8244,11 +8324,12 @@ function validateAndMaskMode(value, def, callback) {
       callback(new Errors.EINVAL('mode not a valid octal string', value));
       return false;
     }
+
     var parsed = parseInt(value, 8);
     return parsed & FULL_READ_WRITE_EXEC_PERMISSIONS;
-  }
+  } // TODO(BridgeAR): Only return `def` in case `value === null`
 
-  // TODO(BridgeAR): Only return `def` in case `value === null`
+
   if (def !== undefined) {
     return def;
   }
@@ -8264,8 +8345,10 @@ function chmod_file(context, path, mode, callback) {
     if (error) {
       callback(error);
     } else {
-      Node.setMode(mode, node);
-      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+      node.mode = mode;
+      update_node_times(context, path, node, {
+        mtime: Date.now()
+      }, callback);
     }
   }
 
@@ -8282,7 +8365,9 @@ function fchmod_file(context, ofd, mode, callback) {
       callback(error);
     } else {
       node.mode = mode;
-      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
+      update_node_times(context, ofd.path, node, {
+        mtime: Date.now()
+      }, callback);
     }
   }
 
@@ -8302,7 +8387,9 @@ function chown_file(context, path, uid, gid, callback) {
     } else {
       node.uid = uid;
       node.gid = gid;
-      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+      update_node_times(context, path, node, {
+        mtime: Date.now()
+      }, callback);
     }
   }
 
@@ -8316,7 +8403,9 @@ function fchown_file(context, ofd, uid, gid, callback) {
     } else {
       node.uid = uid;
       node.gid = gid;
-      update_node_times(context, ofd.path, node, { mtime: Date.now() }, callback);
+      update_node_times(context, ofd.path, node, {
+        mtime: Date.now()
+      }, callback);
     }
   }
 
@@ -8330,6 +8419,7 @@ function getxattr(fs, context, path, name, callback) {
 
 function fgetxattr(fs, context, fd, name, callback) {
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
   } else {
@@ -8354,9 +8444,10 @@ function fsetxattr(fs, context, fd, name, value, flag, callback) {
   }
 
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if (!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fsetxattr_file(context, ofd, name, value, flag, callback);
@@ -8370,9 +8461,10 @@ function removexattr(fs, context, path, name, callback) {
 
 function fremovexattr(fs, context, fd, name, callback) {
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if (!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fremovexattr_file(context, ofd, name, callback);
@@ -8394,6 +8486,7 @@ function lseek(fs, context, fd, offset, whence, callback) {
   }
 
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
   }
@@ -8424,25 +8517,33 @@ function readdir(fs, context, path, callback) {
   read_directory(context, path, callback);
 }
 
+function toUnixTimestamp(time) {
+  if (typeof time === 'number') {
+    return time;
+  }
+
+  if (_typeof(time) === 'object' && typeof time.getTime === 'function') {
+    return time.getTime() / 1000;
+  }
+}
+
 function utimes(fs, context, path, atime, mtime, callback) {
   if (!pathCheck(path, callback)) return;
-
   var currentTime = Date.now();
-  atime = atime ? atime : currentTime;
-  mtime = mtime ? mtime : currentTime;
-
+  atime = atime ? toUnixTimestamp(atime) : toUnixTimestamp(currentTime);
+  mtime = mtime ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
   utimes_file(context, path, atime, mtime, callback);
 }
 
 function futimes(fs, context, fd, atime, mtime, callback) {
   var currentTime = Date.now();
-  atime = atime ? atime : currentTime;
-  mtime = mtime ? mtime : currentTime;
-
+  atime = atime ? toUnixTimestamp(atime) : toUnixTimestamp(currentTime);
+  mtime = mtime ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if (!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     futimes_file(context, ofd, atime, mtime, callback);
@@ -8451,20 +8552,19 @@ function futimes(fs, context, fd, atime, mtime, callback) {
 
 function chmod(fs, context, path, mode, callback) {
   if (!pathCheck(path, callback)) return;
-  mode = validateAndMaskMode(mode, 'mode');
+  mode = validateAndMaskMode(mode, 'mode', callback);
   if (!mode) return;
-
   chmod_file(context, path, mode, callback);
 }
 
 function fchmod(fs, context, fd, mode, callback) {
-  mode = validateAndMaskMode(mode, 'mode');
+  mode = validateAndMaskMode(mode, 'mode', callback);
   if (!mode) return;
-
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if (!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchmod_file(context, ofd, mode, callback);
@@ -8473,9 +8573,11 @@ function fchmod(fs, context, fd, mode, callback) {
 
 function chown(fs, context, path, uid, gid, callback) {
   if (!pathCheck(path, callback)) return;
+
   if (!isUint32(uid)) {
     return callback(new Errors.EINVAL('uid must be a valid integer', uid));
   }
+
   if (!isUint32(gid)) {
     return callback(new Errors.EINVAL('gid must be a valid integer', gid));
   }
@@ -8487,14 +8589,16 @@ function fchown(fs, context, fd, uid, gid, callback) {
   if (!isUint32(uid)) {
     return callback(new Errors.EINVAL('uid must be a valid integer', uid));
   }
+
   if (!isUint32(gid)) {
     return callback(new Errors.EINVAL('gid must be a valid integer', gid));
   }
 
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if (!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchown_file(context, ofd, uid, gid, callback);
@@ -8504,10 +8608,8 @@ function fchown(fs, context, fd, uid, gid, callback) {
 function rename(fs, context, oldpath, newpath, callback) {
   if (!pathCheck(oldpath, callback)) return;
   if (!pathCheck(newpath, callback)) return;
-
   oldpath = normalize(oldpath);
   newpath = normalize(newpath);
-
   var oldParentPath = Path.dirname(oldpath);
   var newParentPath = Path.dirname(oldpath);
   var oldName = Path.basename(oldpath);
@@ -8522,7 +8624,9 @@ function rename(fs, context, oldpath, newpath, callback) {
       callback(error);
     } else {
       fileNode = result;
-      update_node_times(context, newpath, fileNode, { ctime: ctime }, callback);
+      update_node_times(context, newpath, fileNode, {
+        ctime: ctime
+      }, callback);
     }
   }
 
@@ -8541,6 +8645,7 @@ function rename(fs, context, oldpath, newpath, callback) {
       if (oldParentDirectory.id === newParentDirectory.id) {
         oldParentData = newParentData;
       }
+
       delete oldParentData[oldName];
       context.putObject(oldParentDirectory.data, oldParentData, read_new_directory);
     }
@@ -8560,7 +8665,8 @@ function rename(fs, context, oldpath, newpath, callback) {
       callback(error);
     } else {
       newParentData = result;
-      if (_(newParentData).has(newName)) {
+
+      if (newParentData.hasOwnProperty(newName)) {
         remove_directory(context, newpath, update_new_parent_directory_data);
       } else {
         update_new_parent_directory_data();
@@ -8618,14 +8724,11 @@ function rename(fs, context, oldpath, newpath, callback) {
 
 function symlink(fs, context, srcpath, dstpath, type, callback) {
   // NOTE: we support passing the `type` arg, but ignore it.
-  callback = arguments[arguments.length - 1];
+  callback = arguments[arguments.length - 1]; // Special Case: allow srcpath to be relative, which we normally don't permit.
+  // If the srcpath is relative, we assume it's relative to the dirpath of dstpath.
 
-  // Special Case: allow srcpath to be relative, which we normally don't permit.
-  // If the srcpath is relative, we assume it's relative to the dirpath of 
-  // dstpath.
   if (!pathCheck(srcpath, true, callback)) return;
   if (!pathCheck(dstpath, callback)) return;
-
   make_symbolic_link(context, srcpath, dstpath, callback);
 }
 
@@ -8653,8 +8756,8 @@ function truncate(fs, context, path, length, callback) {
   // NOTE: length is optional
   callback = arguments[arguments.length - 1];
   length = length || 0;
-
   if (!pathCheck(path, callback)) return;
+  if (validateInteger(length, callback) !== length) return;
   truncate_file(context, path, length, callback);
 }
 
@@ -8662,13 +8765,14 @@ function ftruncate(fs, context, fd, length, callback) {
   // NOTE: length is optional
   callback = arguments[arguments.length - 1];
   length = length || 0;
-
   var ofd = fs.openFiles[fd];
+
   if (!ofd) {
     callback(new Errors.EBADF());
-  } else if (!_(ofd.flags).contains(O_WRITE)) {
+  } else if (!ofd.flags.includes(O_WRITE)) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
+    if (validateInteger(length, callback) !== length) return;
     ftruncate_file(context, ofd, length, callback);
   }
 }
@@ -8677,17 +8781,20 @@ module.exports = {
   ensureRootDirectory: ensure_root_directory,
   open: open,
   chmod: chmod,
+  access: access,
   fchmod: fchmod,
   chown: chown,
   fchown: fchown,
   close: close,
   mknod: mknod,
   mkdir: mkdir,
+  mkdtemp: mkdtemp,
   rmdir: rmdir,
   unlink: unlink,
   stat: stat,
   fstat: fstat,
   link: link,
+  fsync: fsync,
   read: read,
   readFile: readFile,
   write: write,
@@ -8711,16 +8818,16 @@ module.exports = {
   truncate: truncate,
   ftruncate: ftruncate
 };
-},{"../../lib/nodash.js":"96cB","../path.js":"UzoP","../constants.js":"iJA9","../encoding.js":"03yF","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","../buffer.js":"xfwq","../shared.js":"3zBM"}],"GMi4":[function(require,module,exports) {
-var _ = require('../../lib/nodash.js');
-
+},{"../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../encoding.js":"03yF","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","buffer":"dskh"}],"GMi4":[function(require,module,exports) {
 var _require = require('es6-promisify'),
     promisify = _require.promisify;
 
 var isNullPath = require('../path.js').isNull;
+
 var nop = require('../shared.js').nop;
 
 var Constants = require('../constants.js');
+
 var FILE_SYSTEM_NAME = Constants.FILE_SYSTEM_NAME;
 var FS_FORMAT = Constants.FS_FORMAT;
 var FS_READY = Constants.FS_READY;
@@ -8731,39 +8838,42 @@ var FS_NODUPEIDCHECK = Constants.FS_NODUPEIDCHECK;
 var providers = require('../providers/index.js');
 
 var Shell = require('../shell/shell.js');
+
 var Intercom = require('../../lib/intercom.js');
+
 var FSWatcher = require('../fs-watcher.js');
+
 var Errors = require('../errors.js');
+
 var defaultGuidFn = require('../shared.js').guid;
 
 var STDIN = Constants.STDIN;
 var STDOUT = Constants.STDOUT;
 var STDERR = Constants.STDERR;
-var FIRST_DESCRIPTOR = Constants.FIRST_DESCRIPTOR;
+var FIRST_DESCRIPTOR = Constants.FIRST_DESCRIPTOR; // The core fs operations live on impl
 
-// The core fs operations live on impl
-var impl = require('./implementation.js');
+var impl = require('./implementation.js'); // node.js supports a calling pattern that leaves off a callback.
 
-// node.js supports a calling pattern that leaves off a callback.
+
 function maybeCallback(callback) {
   if (typeof callback === 'function') {
     return callback;
   }
+
   return function (err) {
     if (err) {
       throw err;
     }
   };
-}
+} // Default callback that logs an error if passed in
 
-// Default callback that logs an error if passed in
+
 function defaultCallback(err) {
   if (err) {
     /* eslint no-console: 0 */
     console.error('Filer error: ', err);
   }
 }
-
 /**
  * FileSystem
  *
@@ -8792,34 +8902,30 @@ function defaultCallback(err) {
  *           users should check the file system's `readyState` and `error`
  *           properties to make sure it is usable.
  */
+
+
 function FileSystem(options, callback) {
   options = options || {};
   callback = callback || defaultCallback;
-
-  var flags = options.flags;
+  var flags = options.flags || [];
   var guid = options.guid ? options.guid : defaultGuidFn;
-  var provider = options.provider || new providers.Default(options.name || FILE_SYSTEM_NAME);
-  // If we're given a provider, match its name unless we get an explicit name
-  var name = options.name || provider.name;
-  var forceFormatting = _(flags).contains(FS_FORMAT);
+  var provider = options.provider || new providers.Default(options.name || FILE_SYSTEM_NAME); // If we're given a provider, match its name unless we get an explicit name
 
+  var name = options.name || provider.name;
+  var forceFormatting = flags.includes(FS_FORMAT);
   var fs = this;
   fs.readyState = FS_PENDING;
   fs.name = name;
   fs.error = null;
-
   fs.stdin = STDIN;
   fs.stdout = STDOUT;
-  fs.stderr = STDERR;
+  fs.stderr = STDERR; // Expose Node's fs.constants to users
 
-  // Expose Node's fs.constants to users
-  fs.constants = Constants.fsConstants;
+  fs.constants = Constants.fsConstants; // Expose Shell constructor
 
-  // Expose Shell constructor
-  this.Shell = Shell.bind(undefined, this);
-
-  // Safely expose the list of open files and file
+  this.Shell = Shell.bind(undefined, this); // Safely expose the list of open files and file
   // descriptor management functions
+
   var openFiles = {};
   var nextDescriptor = FIRST_DESCRIPTOR;
   Object.defineProperty(this, 'openFiles', {
@@ -8827,23 +8933,26 @@ function FileSystem(options, callback) {
       return openFiles;
     }
   });
+
   this.allocDescriptor = function (openFileDescription) {
     var fd = nextDescriptor++;
     openFiles[fd] = openFileDescription;
     return fd;
   };
+
   this.releaseDescriptor = function (fd) {
     delete openFiles[fd];
-  };
+  }; // Safely expose the operation queue
 
-  // Safely expose the operation queue
+
   var queue = [];
+
   this.queueOrRun = function (operation) {
     var error;
 
-    if (FS_READY == fs.readyState) {
+    if (FS_READY === fs.readyState) {
       operation.call(fs);
-    } else if (FS_ERROR == fs.readyState) {
+    } else if (FS_ERROR === fs.readyState) {
       error = new Errors.EFILESYSTEMERROR('unknown error');
     } else {
       queue.push(operation);
@@ -8851,51 +8960,52 @@ function FileSystem(options, callback) {
 
     return error;
   };
+
   function runQueued() {
     queue.forEach(function (operation) {
       operation.call(this);
     }.bind(fs));
     queue = null;
-  }
+  } // We support the optional `options` arg from node, but ignore it
 
-  // We support the optional `options` arg from node, but ignore it
+
   this.watch = function (filename, options, listener) {
     if (isNullPath(filename)) {
       throw new Error('Path must be a string without null bytes.');
     }
+
     if (typeof options === 'function') {
       listener = options;
       options = {};
     }
+
     options = options || {};
     listener = listener || nop;
-
     var watcher = new FSWatcher();
     watcher.start(filename, false, options.recursive);
     watcher.on('change', listener);
-
     return watcher;
-  };
+  }; // Deal with various approaches to node ID creation
 
-  // Deal with various approaches to node ID creation
+
   function wrappedGuidFn(context) {
     return function (callback) {
       // Skip the duplicate ID check if asked to
-      if (_(flags).contains(FS_NODUPEIDCHECK)) {
+      if (flags.includes(FS_NODUPEIDCHECK)) {
         callback(null, guid());
         return;
-      }
+      } // Otherwise (default) make sure this id is unused first
 
-      // Otherwise (default) make sure this id is unused first
+
       function guidWithCheck(callback) {
         var id = guid();
         context.getObject(id, function (err, value) {
           if (err) {
             callback(err);
             return;
-          }
+          } // If this id is unused, use it, otherwise find another
 
-          // If this id is unused, use it, otherwise find another
+
           if (!value) {
             callback(null, id);
           } else {
@@ -8903,32 +9013,33 @@ function FileSystem(options, callback) {
           }
         });
       }
+
       guidWithCheck(callback);
     };
-  }
-
-  // Let other instances (in this or other windows) know about
+  } // Let other instances (in this or other windows) know about
   // any changes to this fs instance.
+
+
   function broadcastChanges(changes) {
     if (!changes.length) {
       return;
     }
+
     var intercom = Intercom.getInstance();
     changes.forEach(function (change) {
       intercom.emit(change.event, change.path);
     });
-  }
+  } // Open file system storage provider
 
-  // Open file system storage provider
+
   provider.open(function (err) {
     function complete(error) {
       function wrappedContext(methodName) {
         var context = provider[methodName]();
         context.flags = flags;
         context.changes = [];
-        context.guid = wrappedGuidFn(context);
+        context.guid = wrappedGuidFn(context); // When the context is finished, let the fs deal with any change events
 
-        // When the context is finished, let the fs deal with any change events
         context.close = function () {
           var changes = context.changes;
           broadcastChanges(changes);
@@ -8936,12 +9047,12 @@ function FileSystem(options, callback) {
         };
 
         return context;
-      }
-
-      // Wrap the provider so we can extend the context with fs flags and
+      } // Wrap the provider so we can extend the context with fs flags and
       // an array of changes (e.g., watch event 'change' and 'rename' events
       // for paths updated during the lifetime of the context). From this
       // point forward we won't call open again, so it's safe to drop it.
+
+
       fs.provider = {
         openReadWriteContext: function openReadWriteContext() {
           return wrappedContext('getReadWriteContext');
@@ -8956,6 +9067,7 @@ function FileSystem(options, callback) {
       } else {
         fs.readyState = FS_READY;
       }
+
       runQueued();
       callback(error, fs);
     }
@@ -8965,15 +9077,15 @@ function FileSystem(options, callback) {
     }
 
     var context = provider.getReadWriteContext();
-    context.guid = wrappedGuidFn(context);
+    context.guid = wrappedGuidFn(context); // Mount the filesystem, formatting if necessary
 
-    // Mount the filesystem, formatting if necessary
     if (forceFormatting) {
       // Wipe the storage provider, then write root block
       context.clear(function (err) {
         if (err) {
           return complete(err);
         }
+
         impl.ensureRootDirectory(context, complete);
       });
     } else {
@@ -8983,68 +9095,176 @@ function FileSystem(options, callback) {
   });
   FileSystem.prototype.promises = {};
   /**
-   * Public API for FileSystem
-  */
-  ['open', 'chmod', 'fchmod', 'chown', 'fchown', 'close', 'mknod', 'mkdir', 'rmdir', 'stat', 'fstat', 'link', 'unlink', 'read', 'readFile', 'write', 'writeFile', 'appendFile', 'exists', 'lseek', 'readdir', 'rename', 'readlink', 'symlink', 'lstat', 'truncate', 'ftruncate', 'utimes', 'futimes', 'setxattr', 'getxattr', 'fsetxattr', 'fgetxattr', 'removexattr', 'fremovexattr'].forEach(function (methodName) {
+   * Public API for FileSystem. All node.js methods that are
+   * exposed on fs.promises include `promise: true`.  We also
+   * include our own extra methods, but skip the fd versions
+   * to match node.js, which puts these on a FileHandle object.
+   */
+
+  [{
+    name: 'open',
+    promises: true
+  }, {
+    name: 'access',
+    promises: true
+  }, {
+    name: 'chmod',
+    promises: true
+  }, {
+    name: 'fchmod'
+  }, {
+    name: 'chown',
+    promises: true
+  }, {
+    name: 'fchown'
+  }, {
+    name: 'close'
+  }, {
+    name: 'mknod',
+    promises: true
+  }, {
+    name: 'mkdir',
+    promises: true
+  }, {
+    name: 'mkdtemp',
+    promises: true
+  }, {
+    name: 'rmdir',
+    promises: true
+  }, {
+    name: 'stat',
+    promises: true
+  }, {
+    name: 'fstat'
+  }, {
+    name: 'fsync'
+  }, {
+    name: 'link',
+    promises: true
+  }, {
+    name: 'unlink',
+    promises: true
+  }, {
+    name: 'read'
+  }, {
+    name: 'readFile',
+    promises: true
+  }, {
+    name: 'write'
+  }, {
+    name: 'writeFile',
+    promises: true
+  }, {
+    name: 'appendFile',
+    promises: true
+  }, {
+    name: 'exists'
+  }, {
+    name: 'lseek'
+  }, {
+    name: 'readdir',
+    promises: true
+  }, {
+    name: 'rename',
+    promises: true
+  }, {
+    name: 'readlink',
+    promises: true
+  }, {
+    name: 'symlink',
+    promises: true
+  }, {
+    name: 'lstat',
+    promises: true
+  }, {
+    name: 'truncate',
+    promises: true
+  }, {
+    name: 'ftruncate'
+  }, {
+    name: 'utimes',
+    promises: true
+  }, {
+    name: 'futimes'
+  }, {
+    name: 'setxattr',
+    promises: true
+  }, {
+    name: 'getxattr',
+    promises: true
+  }, {
+    name: 'fsetxattr'
+  }, {
+    name: 'fgetxattr'
+  }, {
+    name: 'removexattr',
+    promises: true
+  }, {
+    name: 'fremovexattr'
+  }].forEach(function (method) {
+    var methodName = method.name;
+    var shouldPromisify = method.promises === true;
+
     FileSystem.prototype[methodName] = function () {
       var fs = this;
       var args = Array.prototype.slice.call(arguments, 0);
-      var lastArgIndex = args.length - 1;
-
-      // We may or may not get a callback, and since node.js supports
+      var lastArgIndex = args.length - 1; // We may or may not get a callback, and since node.js supports
       // fire-and-forget style fs operations, we have to dance a bit here.
+
       var missingCallback = typeof args[lastArgIndex] !== 'function';
       var callback = maybeCallback(args[lastArgIndex]);
-
       var error = fs.queueOrRun(function () {
-        var context = fs.provider.openReadWriteContext();
-
-        // Fail early if the filesystem is in an error state (e.g.,
+        var context = fs.provider.openReadWriteContext(); // Fail early if the filesystem is in an error state (e.g.,
         // provider failed to open.
+
         if (FS_ERROR === fs.readyState) {
           var err = new Errors.EFILESYSTEMERROR('filesystem unavailable, operation canceled');
           return callback.call(fs, err);
-        }
+        } // Wrap the callback so we can explicitly close the context
 
-        // Wrap the callback so we can explicitly close the context
+
         function complete() {
           context.close();
           callback.apply(fs, arguments);
-        }
+        } // Either add or replace the callback with our wrapper complete()
 
-        // Either add or replace the callback with our wrapper complete()
+
         if (missingCallback) {
           args.push(complete);
         } else {
           args[lastArgIndex] = complete;
-        }
-
-        // Forward this call to the impl's version, using the following
+        } // Forward this call to the impl's version, using the following
         // call signature, with complete() as the callback/last-arg now:
         // fn(fs, context, arg0, arg1, ... , complete);
+
+
         var fnArgs = [fs, context].concat(args);
         impl[methodName].apply(null, fnArgs);
       });
+
       if (error) {
         callback(error);
       }
-    };
+    }; // Add to fs.promises if appropriate
 
-    FileSystem.prototype.promises[methodName] = promisify(FileSystem.prototype[methodName].bind(fs));
+
+    if (shouldPromisify) {
+      FileSystem.prototype.promises[methodName] = promisify(FileSystem.prototype[methodName].bind(fs));
+    }
   });
-}
+} // Expose storage providers on FileSystem constructor
 
-// Expose storage providers on FileSystem constructor
+
 FileSystem.providers = providers;
-
 module.exports = FileSystem;
-},{"../../lib/nodash.js":"96cB","es6-promisify":"0c0E","../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","./implementation.js":"bsBG"}],"Focm":[function(require,module,exports) {
+},{"es6-promisify":"0c0E","../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","./implementation.js":"bsBG"}],"Focm":[function(require,module,exports) {
+var Buffer = require("buffer").Buffer;
 module.exports = {
   FileSystem: require('./filesystem/interface.js'),
-  Buffer: require('./buffer.js'),
+  Buffer: Buffer,
   Path: require('./path.js'),
   Errors: require('./errors.js'),
   Shell: require('./shell/shell.js')
 };
-},{"./filesystem/interface.js":"GMi4","./buffer.js":"xfwq","./path.js":"UzoP","./errors.js":"p8GN","./shell/shell.js":"D1Ra"}]},{},["Focm"], "Filer")
+},{"./filesystem/interface.js":"GMi4","./path.js":"UzoP","./errors.js":"p8GN","./shell/shell.js":"D1Ra","buffer":"dskh"}]},{},["Focm"], "Filer")
 //# sourceMappingURL=/filer.map
