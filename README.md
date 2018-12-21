@@ -103,7 +103,7 @@ section below.
 Filer also supports node's Path module. See the [Filer.Path](#FilerPath) section below.
 
 In addition, common shell operations (e.g., rm, touch, cat, etc.) are supported via the
-`FileSystemShell` object, which can be obtained from, and used with a `FileSystem`.
+`FileSystemShell` object, which can be used with a `FileSystem`.
 See the[FileSystemShell](#FileSystemShell) section below.
 
 ### API Reference
@@ -113,6 +113,7 @@ you omit the callback, errors will be thrown as exceptions). The first callback 
 reserved for passing errors. It will be `null` if no errors occurred and should always be checked.
 
 #### Support for Promises
+
 The Promise based API mimics the way Node [implements](https://nodejs.org/api/fs.html#fs_fs_promises_api) them. Both `Shell` and `FileSystem` now have a `promises` object attached alongside the regular callback style methods. Method names are identical to their callback counterparts with the difference that instead of receiving a final argument as a callback, they return a Promise that is resolved or rejected based on the success of method execution.
 > Please note that `exists` method will always throw, since it was [deprecated](https://nodejs.org/api/fs.html#fs_fs_exists_path_callback) by Node.
 
@@ -1295,34 +1296,27 @@ and provides augmented features. Many separate `FileSystemShell` objects can exi
 `FileSystem`, but each `FileSystemShell` is bound to a single instance of a `FileSystem`
 for its lifetime.
 
-A `FileSystemShell` is created by instantiating `Filer.FileSystem().Shell`:
+> NOTE: previous versions of Filer (`v0.44` and before) bundled the `Shell` with `Filer`. This is no longer done, because it added too much size to the bundle. 
+
+To use the `FileSystemShell`, first include the separate `shell.js` dependency.
+This allows you to create new instances with `new Shell(fs, options)`:
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = new fs.Shell(options);
-var sh2 = new fs.Shell(options);
+var sh = new Shell(fs, options);
+var sh2 = new Shell(fs, options);
 // sh and sh2 are two separate shells, each bound to fs
 ```
 
-In addition, the constructor function can be accessed through `Filer`:
-
-```javascript
-var fs = new Filer.FileSystem();
-var sh = new fs.Shell();
-
-Filer.Shell.prototype.newFunction = ...;
-
-sh.newFunction();
-```
-
-The `FileSystemShell` can take an optional `options` object. The `options` object
-can include `env`, which is a set of environment variables. Currently supported variables
+In addition to the `fs` instance, The `Shell` constructor can take an optional
+`options` object. The `options` object can include `env` (an `Object`), which is
+a set of environment variables. Currently supported variables
 include `TMP` (the path to the temporary directory), and `PATH` (the list of known paths) and
 others may be added in the future. You can also add your own, or update existing variables.
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = new fs.Shell({
+var sh = new Shell(fs, {
   env: {
     TMP: '/tempdir',
     PATH: '/one:/two'
@@ -1348,7 +1342,7 @@ Example:
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = new fs.Shell();
+var sh = new Shell(fs);
 var p = sh.env.get('PATH');
 
 // Store the current location
@@ -1368,7 +1362,7 @@ examples below assume a `FileSystemShell` instance named `sh` has been created l
 
 ```javascript
 var fs = new Filer.FileSystem();
-var sh = new fs.Shell();
+var sh = new Shell(fs);
 ```
 
 * [sh.cd(path, callback)](#cd)
