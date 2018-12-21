@@ -71,6 +71,8 @@
   "main": "./src/index.js",
   "browser": "./dist/filer.min.js",
   "files": [
+    "src",
+    "lib",
     "dist"
   ],
   "nyc": {
