@@ -6718,19 +6718,38 @@ function make_directory(context, path, callback) {
 }
 
 function access_file(context, path, mode, callback) {
+  var _Constants$fsConstant = Constants.fsConstants,
+      F_OK = _Constants$fsConstant.F_OK,
+      R_OK = _Constants$fsConstant.R_OK,
+      W_OK = _Constants$fsConstant.W_OK,
+      X_OK = _Constants$fsConstant.X_OK,
+      S_IXUSR = _Constants$fsConstant.S_IXUSR,
+      S_IXGRP = _Constants$fsConstant.S_IXGRP,
+      S_IXOTH = _Constants$fsConstant.S_IXOTH;
   path = normalize(path);
   find_node(context, path, function (err, node) {
     if (err) {
       return callback(err);
-    }
+    } // If we have a node, F_OK is true.
 
-    if (mode === Constants.F_OK) {
+
+    if (mode === F_OK) {
       return callback(null);
     }
 
-    if (!(mode & Constants.X_OK) || node.mode & (Constants.fsConstants.S_IXUSR | Constants.fsConstants.S_IXGRP | Constants.fsConstants.S_IXOTH)) {
+    var st_mode = validateAndMaskMode(node.mode, callback);
+    if (!st_mode) return; // For any other combo of F_OK, R_OK, W_OK, always allow. Filer user is a root user,
+    // so existing files are always OK, readable, and writable
+
+    if (mode & (R_OK | W_OK)) {
       return callback(null);
-    }
+    } // For the case of X_OK, actually check if this file is executable
+
+
+    if (mode & X_OK && st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
+      return callback(null);
+    } // In any other case, the file isn't accessible
+
 
     callback(new Errors.EACCES('permission denied', path));
   });
@@ -8552,13 +8571,13 @@ function futimes(fs, context, fd, atime, mtime, callback) {
 
 function chmod(fs, context, path, mode, callback) {
   if (!pathCheck(path, callback)) return;
-  mode = validateAndMaskMode(mode, 'mode', callback);
+  mode = validateAndMaskMode(mode, callback);
   if (!mode) return;
   chmod_file(context, path, mode, callback);
 }
 
 function fchmod(fs, context, fd, mode, callback) {
-  mode = validateAndMaskMode(mode, 'mode', callback);
+  mode = validateAndMaskMode(mode, callback);
   if (!mode) return;
   var ofd = fs.openFiles[fd];
 
