@@ -15,47 +15,56 @@ To get a working build system do the following:
 npm install
 ```
 
-You can now run the following `npm` scripts:
-
-* `npm run lint` or `npm run eslint` will run `eslint` on the `src` and `tests` directories.
-* `npm run lint:fix` or `npm run eslint:fix` will run `eslint` with `--fix` on the `src` and `tests` directories, automatically fixing minor issues.
-* `npm run test:manual` will build the tests, and allow you to run them in a browser manually by loading http://localhost:1234.
-* `npm run karma-mocha` will build Filer and the tests, and finally run the tests in both headless Chrome and headless Firefox browsers.
-* `npm run karma-mocha-chrome` will build Filer and the tests, and finally run the tests in headless Chrome
-* `npm run karma-mocha-firefox` will build Filer and the tests, and finally run the tests in headless Firefox
-* `npm test` will run `lint` followed by `karma-chrome`, and is what we do on Travis.
-* `npm run build` will bundle two versions of Filer: `dist/filer.js` (unminified) and `dist/filer.min.js` (minified) as well as source map files.
-
-Once you've done some hacking and you'd like to have your work merged, you'll need to
-make a pull request. If your patch includes code, make sure to check that all the
-unit tests pass, including any new tests you wrote. Finally, make sure you add yourself
-to the `AUTHORS` file.
+Next, make sure you have installed Chrome and Firefox, which are needed for
+running headless versions of the tests with `npm test`.
 
 ## Tests
 
-Tests are writting using [Mocha](http://visionmedia.github.io/mocha/) and [Chai](http://chaijs.com/api/bdd/).
-You can run the tests in your browser by running `npm test` and opening your browser to `http://localhost:1234`.
+Tests are written using [Mocha](https://mochajs.org/) and [Chai](http://chaijs.com/api/bdd/).
+There are a number of ways to run the tests.  The preferred way is:
+
+```
+npm test
+```
+
+This will do a build, run the linting, start a server, and load the tests into
+headless versions of Chrome and Firefox.
+
+If you want more control over how tests are run, you can use other scripts:
+
+* Linting is done via `npm run lint` or `npm run eslint`, both of which will run `eslint` on the `src` and `tests` directories.  You can also use `npm run lint:fix` or `npm run eslint:fix`, which will run `eslint` with `--fix` on the `src` and `tests` directories, automatically fixing minor issues.  Linting is run by default as part of `npm test`
+
+* In headless versions of Chrome and Firefox using `npm test`.  A report at the end will tell you what happened with each browser.  Browser tests are preferred because they also test our providers (e.g., IndexedDB).  They do take longer to run.  You can also use `npm run karma-mocha-firefox` or `npm run karma-mocha-chrome` to run the tests in only one of the two headless browsers.
+
+* In node.js using the Memory provider using `npm run test:node`.  These run much faster, but don't run all tests (e.g., providers, watches).
+
+* If you need to debug browser tests, or want to run them in a different browser, use `npm run test:manual`, which will start a server and you can point your browser to [http://localhost:1234](http://localhost:1234).  Running the tests this way will also automatically watch your files, and hot-reload your code and tests, which is useful for debugging and trial/error testing.
+
+* If you need to debug node.js test runs, you can do so using `npm run test:node-debug`.  Then, open Chrome and browse to [chrome://inspect](chrome://inspect) and click on your tests in the inspector.  The easiest way to get a breakpoint is to manually add a `debugger` keyword to your test code where you want the tests to stop.
+
+> Tip: you can add `skip()` to any `it()` or `describe()` in Mocha to skip a test, or `only()` to have only that test run.  For example: `describe.skip(...)` or `it.only(...)`.
+
+* If you want to run migration tests separate from unit tests, use `npm run test:migrations`.  Migration tests run at the end of a typical `npm test` run.  If you need to create a new migration test, see [`tools/fs-image.js`](tools/fs-image.js) for details on how to generate a filesystem image, and [tests/filesystems/images/README.md](tests/filesystems/images/README.md) for more docs.
+
+* If you want to manually generate coverage info for the tests, use `npm run coverage`.  This is done automatically in Travis, so you shouldn't need to do it.  You can see [https://codecov.io/gh/filerjs/filer](https://codecov.io/gh/filerjs/filer) for detailed reports.
 
 There are a number of configurable options for the test suite, which are set via query string params.
-First, you can choose which filer source to use (i.e., src/, dist/filer-test.js, dist/filer.js or dist/filer.min.js).
-The default is to use what is in /dist/filer-test.js, and you can switch to other versions like so:
+First, you can choose which filer source to use (i.e., src/, dist/filer-test.js, dist/filer.js or dist/filer.min.js). The default is to use what is in /dist/filer-test.js, and you can switch to other versions like so:
+
 * tests/index.html?filer-dist/filer.js
 * tests/index.html?filer-dist/filer.min.js
 * tests/index.html?filer-src/filer.js (from src)
 
 Second, you can specify which provider to use for all non-provider specific tests (i.e., most of the tests).
 The default provider is `Memory`, and you can switch it like so:
+
 * tests/index.html?filer-provider=memory
 * tests/index.html?filer-provider=indexeddb
 * tests/index.html?filer-provider=websql
 
 If you're writing tests, make sure you write them in the same style as existing tests, which are
-provider agnostic. See `tests/lib/test-utils.js` and how it gets used in various tests as
-an example.
-
-## Communication
-
-If you'd like to talk to someone about the project, you can reach us on irc.mozilla.org in the #filer or #mofodev channel. Look for "ack" or "humph".
+provider agnostic. See [`tests/lib/test-utils.js`](tests/lib/test-utils.js) and how it gets used
+in various tests as an example.
 
 ## Releases
 
