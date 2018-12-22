@@ -62,15 +62,14 @@ describe('fs.access', function () {
     });
   });
 
-  // See bug https://github.com/filerjs/filer/issues/602
-  it.skip('should return an error if file is not executable and mode = X_OK', function (done) {
+  it('should return an error if file is not executable and mode = X_OK', function (done) {
     var fs = util.fs();
     var contents = 'This is a file.';
    
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
 
-      fs.chmod('/myfile', 0o644, function(error){
+      fs.chmod('/myfile', '644', function(error){
         if (error) throw error;
       
         fs.access('/myfile', fs.constants.X_OK, function (error) {
@@ -89,7 +88,7 @@ describe('fs.access', function () {
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
 
-      fs.chmod('/myfile', 0o777, function(error){
+      fs.chmod('/myfile', 0o777, function(error) {
         if (error) throw error;
       
         fs.access('/myfile', fs.constants.X_OK, function (error) {
