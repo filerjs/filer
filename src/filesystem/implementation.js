@@ -1750,7 +1750,7 @@ function stat(fs, context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      var stats = new Stats(path, result, fs.name);
+      var stats = new Stats(path, result, context.name);
       callback(null, stats);
     }
   }
@@ -1763,7 +1763,7 @@ function fstat(fs, context, fd, callback) {
     if(error) {
       callback(error);
     } else {
-      var stats = new Stats(ofd.path, result, fs.name);
+      var stats = new Stats(ofd.path, result, context.name);
       callback(null, stats);
     }
   }
@@ -1846,7 +1846,7 @@ function readFile(fs, context, path, options, callback) {
         return callback(err);
       }
 
-      var stats = new Stats(ofd.path, fstatResult, fs.name);
+      var stats = new Stats(ofd.path, fstatResult, context.name);
 
       if(stats.isDirectory()) {
         cleanup();
@@ -2427,7 +2427,7 @@ function lstat(fs, context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      var stats = new Stats(path, result, fs.name);
+      var stats = new Stats(path, result, context.name);
       callback(null, stats);
     }
   }
