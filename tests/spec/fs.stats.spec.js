@@ -21,9 +21,11 @@ describe('fs.stats', function() {
 
       fs.open('/myfile', 'w+', function(error, fd) {
         if(error) throw error;
+
         fs.fstat(fd, function(error, stats) {
+          expect(error).not.to.exist;
           expect(stats.isFile()).to.be.true;
-          done();
+          fs.close(fd, done);
         });
       });
     });
@@ -50,6 +52,7 @@ describe('fs.stats', function() {
           fs.symlink('/myfile', '/myfilelink', function(error) {
             if(error) throw error;
             fs.lstat('/myfilelink', function(error, stats) {
+              expect(error).not.to.exist;
               expect(stats.isFile()).to.be.false;
               done();
             });
@@ -78,8 +81,9 @@ describe('fs.stats', function() {
       fs.open('/myfile', 'w+', function(error, fd) {
         if(error) throw error;
         fs.fstat(fd, function(error, stats) {
+          expect(error).not.to.exist;
           expect(stats.isDirectory()).to.be.false;
-          done();
+          fs.close(fd, done);
         });
       });
     });
@@ -178,8 +182,9 @@ describe('fs.stats', function() {
       fs.open('/myfile', 'w+', function(error, fd) {
         if(error) throw error;
         fs.fstat(fd, function(error, stats) {
+          expect(error).not.to.exist;
           expect(stats.isSymbolicLink()).to.be.false;
-          done();
+          fs.close(fd, done);
         });
       });
     });
@@ -290,7 +295,7 @@ describe('fs.stats', function() {
           if(err) throw err;
 
           expect(stats.name).to.equal(Path.basename(filepath));
-          done();
+          fs.close(fd, done);
         });
       });
     });

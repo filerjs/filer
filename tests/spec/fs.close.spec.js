@@ -23,6 +23,7 @@ describe('fs.close', function() {
 
         fs.read(fd, buffer, 0, buffer.length, undefined, function(error, result) {
           expect(error).to.exist;
+          expect(error.code).to.equal('EBADF');
           expect(result).not.to.exist;
           done();
         });

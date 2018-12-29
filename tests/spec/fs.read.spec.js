@@ -17,6 +17,7 @@ describe('fs.read', function() {
 
     fs.open('/myfile', 'w+', function(error, fd) {
       if(error) throw error;
+
       fs.write(fd, wbuffer, 0, wbuffer.length, 0, function(error, result) {
         if(error) throw error;
         expect(result).to.equal(wbuffer.length);
@@ -25,7 +26,7 @@ describe('fs.read', function() {
           expect(error).not.to.exist;
           expect(result).to.equal(rbuffer.length);
           expect(wbuffer).to.deep.equal(rbuffer);
-          done();
+          fs.close(fd, done);
         });
       });
     });
@@ -54,7 +55,7 @@ describe('fs.read', function() {
             expect(error).not.to.exist;
             expect(_result).to.equal(rbuffer.length);
             expect(wbuffer).to.deep.equal(rbuffer);
-            done();
+            fs.close(fd, done);
           });
         });
       });
@@ -77,7 +78,7 @@ describe('fs.read', function() {
           expect(error.code).to.equal('EISDIR');
           expect(result).to.equal(0);
           expect(buf).to.deep.equal(buf2);
-          done();
+          fs.close(fd, done);
         });
       });
     });
