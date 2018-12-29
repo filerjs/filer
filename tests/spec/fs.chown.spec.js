@@ -36,7 +36,7 @@ describe('fs.chown, fs.fchown', function() {
       fs.fchown(fd, '1001', 1001, function(err) {
         expect(err).to.exist;
         expect(err.code).to.equal('EINVAL');
-        done();
+        fs.close(fd, done);
       });
     });
   });
@@ -64,7 +64,7 @@ describe('fs.chown, fs.fchown', function() {
       fs.fchown(fd, 1001, '1001', function(err) {
         expect(err).to.exist;
         expect(err.code).to.equal('EINVAL');
-        done();
+        fs.close(fd, done);
       });
     });
   });

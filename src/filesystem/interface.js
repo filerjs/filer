@@ -22,7 +22,6 @@ var defaultGuidFn = require('../shared.js').guid;
 var STDIN = Constants.STDIN;
 var STDOUT = Constants.STDOUT;
 var STDERR = Constants.STDERR;
-var FIRST_DESCRIPTOR = Constants.FIRST_DESCRIPTOR;
 
 // The core fs operations live on impl
 var impl = require('./implementation.js');
@@ -100,22 +99,6 @@ function FileSystem(options, callback) {
 
   // Expose Shell constructor
   this.Shell = Shell.bind(undefined, this);
-
-  // Safely expose the list of open files and file
-  // descriptor management functions
-  var openFiles = {};
-  var nextDescriptor = FIRST_DESCRIPTOR;
-  Object.defineProperty(this, 'openFiles', {
-    get: function() { return openFiles; }
-  });
-  this.allocDescriptor = function(openFileDescription) {
-    var fd = nextDescriptor ++;
-    openFiles[fd] = openFileDescription;
-    return fd;
-  };
-  this.releaseDescriptor = function(fd) {
-    delete openFiles[fd];
-  };
 
   // Safely expose the operation queue
   var queue = [];
@@ -349,7 +332,7 @@ function FileSystem(options, callback) {
         // Forward this call to the impl's version, using the following
         // call signature, with complete() as the callback/last-arg now:
         // fn(fs, context, arg0, arg1, ... , complete);
-        var fnArgs = [fs, context].concat(args);
+        var fnArgs = [context].concat(args);
         impl[methodName].apply(null, fnArgs);
       });
       if(error) {

@@ -35,7 +35,7 @@ describe('fs.write', function() {
           expect(error).not.to.exist;
           expect(result.isFile()).to.be.true;
           expect(result.size).to.equal(buffer.length);
-          done();
+          fs.close(fd, done);
         });
       });
     });
@@ -62,7 +62,7 @@ describe('fs.write', function() {
             expect(error).not.to.exist;
             expect(_result).to.equal(2 * buffer.length);
             expect(result.size).to.equal(_result);
-            done();
+            fs.close(fd, done);
           });
         });
       });

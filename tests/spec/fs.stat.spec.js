@@ -113,7 +113,7 @@ describe('fs.stat', function() {
         expect(result['ctimeMs']).to.be.a('number');
         expect(result['type']).to.equal('FILE');
 
-        done();
+        fs.close(fd, done);
       });
     });
   });

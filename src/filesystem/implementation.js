@@ -33,6 +33,7 @@ var FS_NOCTIME = Constants.FS_NOCTIME;
 var Encoding = require('../encoding.js');
 var Errors = require('../errors.js');
 var DirectoryEntry = require('../directory-entry.js');
+var openFiles = require('../open-files.js');
 var OpenFileDescription = require('../open-file-description.js');
 var SuperNode = require('../super-node.js');
 var Node = require('../node.js');
@@ -1650,8 +1651,8 @@ function pathCheck(path, allowRelative, callback) {
 }
 
 
-function open(fs, context, path, flags, mode, callback) {
-  if (arguments.length < 6 ){
+function open(context, path, flags, mode, callback) {
+  if (arguments.length < 5 ){
     callback = arguments[arguments.length - 1];
     mode = 0o644;
   }
@@ -1672,7 +1673,7 @@ function open(fs, context, path, flags, mode, callback) {
         position = 0;
       }
       var openFileDescription = new OpenFileDescription(path, fileNode.id, flags, position);
-      var fd = fs.allocDescriptor(openFileDescription);
+      var fd = openFiles.allocDescriptor(openFileDescription);
       callback(null, fd);
     }
   }
@@ -1685,22 +1686,22 @@ function open(fs, context, path, flags, mode, callback) {
   open_file(context, path, flags, mode, check_result);
 }
 
-function close(fs, context, fd, callback) {
-  if(!fs.openFiles[fd]) {
+function close(context, fd, callback) {
+  if(!openFiles.getOpenFileDescription(fd)) {
     callback(new Errors.EBADF());
   } else {
-    fs.releaseDescriptor(fd);
+    openFiles.releaseDescriptor(fd);
     callback(null);
   }
 }
 
-function mknod(fs, context, path, type, callback) {
+function mknod(context, path, type, callback) {
   if(!pathCheck(path, callback)) return;
   make_node(context, path, type, callback);
 }
 
-function mkdir(fs, context, path, mode, callback) {
-  if (arguments.length < 5) {
+function mkdir(context, path, mode, callback) {
+  if (arguments.length < 4) {
     callback = mode;
     mode = FULL_READ_WRITE_EXEC_PERMISSIONS;
   } else {
@@ -1712,7 +1713,7 @@ function mkdir(fs, context, path, mode, callback) {
   make_directory(context, path, callback);
 }
 
-function access(fs, context, path, mode, callback) {
+function access(context, path, mode, callback) {
   if (typeof mode === 'function') {
     callback = mode;
     mode = Constants.fsConstants.F_OK;
@@ -1723,7 +1724,7 @@ function access(fs, context, path, mode, callback) {
   access_file(context, path, mode, callback);
 }
 
-function mkdtemp(fs, context, prefix, options, callback) { 
+function mkdtemp(context, prefix, options, callback) {
   callback = arguments[arguments.length - 1];
   if(!prefix) {
     return callback(new Error('filename prefix is required'));
@@ -1738,12 +1739,12 @@ function mkdtemp(fs, context, prefix, options, callback) {
   });  
 }
 
-function rmdir(fs, context, path, callback) {
+function rmdir(context, path, callback) {
   if(!pathCheck(path, callback)) return;
   remove_directory(context, path, callback);
 }
 
-function stat(fs, context, path, callback) {
+function stat(context, path, callback) {
   if(!pathCheck(path, callback)) return;
 
   function check_result(error, result) {
@@ -1758,7 +1759,7 @@ function stat(fs, context, path, callback) {
   stat_file(context, path, check_result);
 }
 
-function fstat(fs, context, fd, callback) {
+function fstat(context, fd, callback) {
   function check_result(error, result) {
     if(error) {
       callback(error);
@@ -1768,7 +1769,7 @@ function fstat(fs, context, fd, callback) {
     }
   }
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
     callback(new Errors.EBADF());
   } else {
@@ -1776,18 +1777,18 @@ function fstat(fs, context, fd, callback) {
   }
 }
 
-function link(fs, context, oldpath, newpath, callback) {
+function link(context, oldpath, newpath, callback) {
   if(!pathCheck(oldpath, callback)) return;
   if(!pathCheck(newpath, callback)) return;
   link_node(context, oldpath, newpath, callback);
 }
 
-function unlink(fs, context, path, callback) {
+function unlink(context, path, callback) {
   if(!pathCheck(path, callback)) return;
   unlink_node(context, path, callback);
 }
 
-function read(fs, context, fd, buffer, offset, length, position, callback) {
+function read(context, fd, buffer, offset, length, position, callback) {
   // Follow how node.js does this
   function wrapped_cb(err, bytesRead) {
     // Retain a reference to buffer so that it can't be GC'ed too soon.
@@ -1798,7 +1799,7 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   length = (undefined === length) ? buffer.length - offset : length;
   callback = arguments[arguments.length - 1];
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags.includes(O_READ)) {
@@ -1808,9 +1809,9 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   }
 }
 
-function fsync(fs, context, fd, callback) {
+function fsync(context, fd, callback) {
   if(validateInteger(fd, callback) !== fd) return;
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
     callback(new Errors.EBADF());
   } else {
@@ -1818,7 +1819,7 @@ function fsync(fs, context, fd, callback) {
   }
 }
 
-function readFile(fs, context, path, options, callback) {
+function readFile(context, path, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, null, 'r');
 
@@ -1834,10 +1835,10 @@ function readFile(fs, context, path, options, callback) {
       return callback(err);
     }
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
-    var fd = fs.allocDescriptor(ofd);
+    var fd = openFiles.allocDescriptor(ofd);
 
     function cleanup() {
-      fs.releaseDescriptor(fd);
+      openFiles.releaseDescriptor(fd);
     }
 
     fstat_file(context, ofd, function(err, fstatResult) {
@@ -1875,12 +1876,12 @@ function readFile(fs, context, path, options, callback) {
   });
 }
 
-function write(fs, context, fd, buffer, offset, length, position, callback) {
+function write(context, fd, buffer, offset, length, position, callback) {
   callback = arguments[arguments.length - 1];
   offset = (undefined === offset) ? 0 : offset;
   length = (undefined === length) ? buffer.length - offset : length;
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags.includes(O_WRITE)) {
@@ -1892,7 +1893,7 @@ function write(fs, context, fd, buffer, offset, length, position, callback) {
   }
 }
 
-function writeFile(fs, context, path, data, options, callback) {
+function writeFile(context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'w');
 
@@ -1916,10 +1917,10 @@ function writeFile(fs, context, path, data, options, callback) {
       return callback(err);
     }
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
-    var fd = fs.allocDescriptor(ofd);
+    var fd = openFiles.allocDescriptor(ofd);
 
     replace_data(context, ofd, data, 0, data.length, function(err) {
-      fs.releaseDescriptor(fd);
+      openFiles.releaseDescriptor(fd);
 
       if(err) {
         return callback(err);
@@ -1929,7 +1930,7 @@ function writeFile(fs, context, path, data, options, callback) {
   });
 }
 
-function appendFile(fs, context, path, data, options, callback) {
+function appendFile(context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'a');
 
@@ -1953,10 +1954,10 @@ function appendFile(fs, context, path, data, options, callback) {
       return callback(err);
     }
     var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
-    var fd = fs.allocDescriptor(ofd);
+    var fd = openFiles.allocDescriptor(ofd);
 
     write_data(context, ofd, data, 0, data.length, ofd.position, function(err) {
-      fs.releaseDescriptor(fd);
+      openFiles.releaseDescriptor(fd);
 
       if(err) {
         return callback(err);
@@ -1966,11 +1967,11 @@ function appendFile(fs, context, path, data, options, callback) {
   });
 }
 
-function exists(fs, context, path, callback) {
+function exists(context, path, callback) {
   function cb(err) {
     callback(err ? false : true);
   }
-  stat(fs, context, path, cb);
+  stat(context, path, cb);
 }
 
 function validateInteger(value, callback) {
@@ -2096,13 +2097,13 @@ function fchown_file(context, ofd, uid, gid, callback) {
   ofd.getNode(context, update_owner);
 }
 
-function getxattr(fs, context, path, name, callback) {
+function getxattr(context, path, name, callback) {
   if (!pathCheck(path, callback)) return;
   getxattr_file(context, path, name, callback);
 }
 
-function fgetxattr(fs, context, fd, name, callback) {
-  var ofd = fs.openFiles[fd];
+function fgetxattr(context, fd, name, callback) {
+  var ofd = openFiles.getOpenFileDescription(fd);
   if (!ofd) {
     callback(new Errors.EBADF());
   }
@@ -2111,7 +2112,7 @@ function fgetxattr(fs, context, fd, name, callback) {
   }
 }
 
-function setxattr(fs, context, path, name, value, flag, callback) {
+function setxattr(context, path, name, value, flag, callback) {
   if(typeof flag === 'function') {
     callback = flag;
     flag = null;
@@ -2121,13 +2122,13 @@ function setxattr(fs, context, path, name, value, flag, callback) {
   setxattr_file(context, path, name, value, flag, callback);
 }
 
-function fsetxattr(fs, context, fd, name, value, flag, callback) {
+function fsetxattr(context, fd, name, value, flag, callback) {
   if(typeof flag === 'function') {
     callback = flag;
     flag = null;
   }
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if (!ofd) {
     callback(new Errors.EBADF());
   }
@@ -2139,13 +2140,13 @@ function fsetxattr(fs, context, fd, name, value, flag, callback) {
   }
 }
 
-function removexattr(fs, context, path, name, callback) {
+function removexattr(context, path, name, callback) {
   if (!pathCheck(path, callback)) return;
   removexattr_file(context, path, name, callback);
 }
 
-function fremovexattr(fs, context, fd, name, callback) {
-  var ofd = fs.openFiles[fd];
+function fremovexattr(context, fd, name, callback) {
+  var ofd = openFiles.getOpenFileDescription(fd);
   if (!ofd) {
     callback(new Errors.EBADF());
   }
@@ -2157,7 +2158,7 @@ function fremovexattr(fs, context, fd, name, callback) {
   }
 }
 
-function lseek(fs, context, fd, offset, whence, callback) {
+function lseek(context, fd, offset, whence, callback) {
   function update_descriptor_position(error, stats) {
     if(error) {
       callback(error);
@@ -2171,7 +2172,7 @@ function lseek(fs, context, fd, offset, whence, callback) {
     }
   }
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
     callback(new Errors.EBADF());
   }
@@ -2197,7 +2198,7 @@ function lseek(fs, context, fd, offset, whence, callback) {
   }
 }
 
-function readdir(fs, context, path, callback) {
+function readdir(context, path, callback) {
   if(!pathCheck(path, callback)) return;
   read_directory(context, path, callback);
 }
@@ -2211,7 +2212,7 @@ function toUnixTimestamp(time) {
   }
 }
 
-function utimes(fs, context, path, atime, mtime, callback) {
+function utimes(context, path, atime, mtime, callback) {
   if(!pathCheck(path, callback)) return;
 
   var currentTime = Date.now();
@@ -2221,12 +2222,12 @@ function utimes(fs, context, path, atime, mtime, callback) {
   utimes_file(context, path, atime, mtime, callback);
 }
 
-function futimes(fs, context, fd, atime, mtime, callback) {
+function futimes(context, fd, atime, mtime, callback) {
   var currentTime = Date.now();
   atime = (atime) ? toUnixTimestamp(atime) : toUnixTimestamp(currentTime);
   mtime = (mtime) ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags.includes(O_WRITE)) {
@@ -2236,7 +2237,7 @@ function futimes(fs, context, fd, atime, mtime, callback) {
   }
 }
 
-function chmod(fs, context, path, mode, callback) {
+function chmod(context, path, mode, callback) {
   if(!pathCheck(path, callback)) return;
   mode = validateAndMaskMode(mode, callback);
   if(!mode) return;
@@ -2244,11 +2245,11 @@ function chmod(fs, context, path, mode, callback) {
   chmod_file(context, path, mode, callback);
 }
 
-function fchmod(fs, context, fd, mode, callback) {
+function fchmod(context, fd, mode, callback) {
   mode = validateAndMaskMode(mode, callback);
   if(!mode) return;
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags.includes(O_WRITE)) {
@@ -2258,7 +2259,7 @@ function fchmod(fs, context, fd, mode, callback) {
   }
 }
 
-function chown(fs, context, path, uid, gid, callback) {
+function chown(context, path, uid, gid, callback) {
   if(!pathCheck(path, callback)) return;
   if(!isUint32(uid)) {
     return callback(new Errors.EINVAL('uid must be a valid integer', uid));
@@ -2270,7 +2271,7 @@ function chown(fs, context, path, uid, gid, callback) {
   chown_file(context, path, uid, gid, callback);
 }
 
-function fchown(fs, context, fd, uid, gid, callback) {
+function fchown(context, fd, uid, gid, callback) {
   if(!isUint32(uid)) {
     return callback(new Errors.EINVAL('uid must be a valid integer', uid));
   }
@@ -2278,7 +2279,7 @@ function fchown(fs, context, fd, uid, gid, callback) {
     return callback(new Errors.EINVAL('gid must be a valid integer', gid));
   }
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags.includes(O_WRITE)) {
@@ -2288,7 +2289,7 @@ function fchown(fs, context, fd, uid, gid, callback) {
   }
 }
 
-function rename(fs, context, oldpath, newpath, callback) {
+function rename(context, oldpath, newpath, callback) {
   if(!pathCheck(oldpath, callback)) return;
   if(!pathCheck(newpath, callback)) return;
 
@@ -2403,7 +2404,7 @@ function rename(fs, context, oldpath, newpath, callback) {
   find_node(context, oldpath, check_node_type);
 }
 
-function symlink(fs, context, srcpath, dstpath, type, callback) {
+function symlink(context, srcpath, dstpath, type, callback) {
   // NOTE: we support passing the `type` arg, but ignore it.
   callback = arguments[arguments.length - 1];
 
@@ -2415,12 +2416,12 @@ function symlink(fs, context, srcpath, dstpath, type, callback) {
   make_symbolic_link(context, srcpath, dstpath, callback);
 }
 
-function readlink(fs, context, path, callback) {
+function readlink(context, path, callback) {
   if(!pathCheck(path, callback)) return;
   read_link(context, path, callback);
 }
 
-function lstat(fs, context, path, callback) {
+function lstat(context, path, callback) {
   if(!pathCheck(path, callback)) return;
 
   function check_result(error, result) {
@@ -2435,7 +2436,7 @@ function lstat(fs, context, path, callback) {
   lstat_file(context, path, check_result);
 }
 
-function truncate(fs, context, path, length, callback) {
+function truncate(context, path, length, callback) {
   // NOTE: length is optional
   callback = arguments[arguments.length - 1];
   length = length || 0;
@@ -2446,12 +2447,12 @@ function truncate(fs, context, path, length, callback) {
   truncate_file(context, path, length, callback);
 }
 
-function ftruncate(fs, context, fd, length, callback) {
+function ftruncate(context, fd, length, callback) {
   // NOTE: length is optional
   callback = arguments[arguments.length - 1];
   length = length || 0;
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags.includes(O_WRITE)) {

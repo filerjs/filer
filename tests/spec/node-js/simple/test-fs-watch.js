@@ -52,20 +52,30 @@ describe('node.js tests: https://github.com/joyent/node/blob/master/test/simple/
 
   it('should allow watches on dirs', function(done) {
     var fs = util.fs();
+
     fs.mkdir('/tmp', function(error) {
       if(error) throw error;
+      var steps = 0;
+
+      function cleanup() {
+        steps++;
+        
+        if(steps === 2) {
+          done();
+        }
+      }
 
       var watcher = fs.watch('/tmp', function(event, filename) {
         // TODO: node thinks this should be 'rename', need to add rename along with change.
         expect(event).to.equal('change');
         expect(filename).to.equal('/tmp');
         watcher.close();
-        done();
+        cleanup();
       });
 
       fs.open('/tmp/newfile.txt', 'w', function(error, fd) {
         if(error) throw error;
-        fs.close(fd);
+        fs.close(fd, cleanup);
       });
     });
   });

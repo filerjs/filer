@@ -517,7 +517,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
               expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
               expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
               expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
-              done();
+              fs.close(fd, done);
             });
           });
         });
@@ -568,7 +568,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
                 expect(stats2.ctimeMs).to.equal(stats1.ctimeMs);
                 expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
                 expect(stats2.atimeMs).to.equal(stats1.atimeMs);
-                done();
+                fs.close(fd, done);
               });
             });
           });
@@ -618,7 +618,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
                 expect(stats2.ctimeMs).to.be.at.least(stats1.ctimeMs);
                 expect(stats2.mtimeMs).to.equal(stats1.mtimeMs);
                 expect(stats2.atimeMs).to.be.at.least(stats1.atimeMs);
-                done();
+                fs.close(fd, done);
               });
             });
           });

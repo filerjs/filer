@@ -77,7 +77,7 @@ describe('fs.lseek', function() {
                 expect(result.size).to.equal(offset + buffer.length);
                 var expected = Buffer.from([1, 2, 3, 1, 2, 3, 4, 5, 6, 7, 8]);
                 expect(result_buffer).to.deep.equal(expected);
-                done();
+                fs.close(fd, done);
               });
             });
           });
@@ -117,7 +117,7 @@ describe('fs.lseek', function() {
                 expect(result.size).to.equal(offset + 2 * buffer.length);
                 var expected = Buffer.from([1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 7, 8]);
                 expect(result_buffer).to.deep.equal(expected);
-                done();
+                fs.close(fd, done);
               });
             });
           });
@@ -163,7 +163,12 @@ describe('fs.lseek', function() {
 
                   var expected = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
                   expect(result_buffer).to.deep.equal(expected);
-                  done();
+
+                  fs.close(fd1, function(error) {
+                    if(error) throw error;
+
+                    fs.close(fd2, done);
+                  });
                 });
               });
             });

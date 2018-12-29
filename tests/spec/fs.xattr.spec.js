@@ -236,7 +236,7 @@ describe('fs.xattr', function() {
         fs.fgetxattr(ofd, 'test', function (error, value) {
           expect(error).not.to.exist;
           expect(value).to.equal('value');
-          done();
+          fs.close(ofd, done);
         });
       });
     });
@@ -368,7 +368,7 @@ describe('fs.xattr', function() {
             fs.fgetxattr(ofd, 'test', function (error) {
               expect(error).to.exist;
               expect(error.code).to.equal('ENOATTR');
-              done();
+              fs.close(ofd, done);
             });
           });
         });
