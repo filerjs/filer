@@ -205,6 +205,7 @@ function FileSystem(options, callback) {
     function complete(error) {
       function wrappedContext(methodName) {
         var context = provider[methodName]();
+        context.name = name;
         context.flags = flags;
         context.changes = [];
         context.guid = wrappedGuidFn(context);
