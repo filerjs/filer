@@ -3,7 +3,6 @@ var normalize = Path.normalize;
 var dirname = Path.dirname;
 var basename = Path.basename;
 var isAbsolutePath = Path.isAbsolute;
-var isNullPath = Path.isNull;
 var shared = require('../shared.js');
 
 var Constants = require('../constants.js');
@@ -1627,30 +1626,6 @@ function validate_file_options(options, enc, fileMode){
   return options;
 }
 
-function pathCheck(path, allowRelative, callback) {
-  var err;
-
-  if(typeof allowRelative === 'function') {
-    callback = allowRelative;
-    allowRelative = false;
-  }
-
-  if(!path) {
-    err = new Errors.EINVAL('Path must be a string', path);
-  } else if(isNullPath(path)) {
-    err = new Errors.EINVAL('Path must be a string without null bytes.', path);
-  } else if(!allowRelative && !isAbsolutePath(path)) {
-    err = new Errors.EINVAL('Path must be absolute.', path);
-  }
-
-  if(err) {
-    callback(err);
-    return false;
-  }
-  return true;
-}
-
-
 function open(context, path, flags, mode, callback) {
   if (arguments.length < 5 ){
     callback = arguments[arguments.length - 1];
@@ -1659,8 +1634,6 @@ function open(context, path, flags, mode, callback) {
   else {
     mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
   }
-    
-  if(!pathCheck(path, callback)) return;
 
   function check_result(error, fileNode) {
     if(error) {
@@ -1696,7 +1669,6 @@ function close(context, fd, callback) {
 }
 
 function mknod(context, path, type, callback) {
-  if(!pathCheck(path, callback)) return;
   make_node(context, path, type, callback);
 }
 
@@ -1709,7 +1681,6 @@ function mkdir(context, path, mode, callback) {
     if(!mode) return;
   }
  
-  if(!pathCheck(path, callback)) return;
   make_directory(context, path, callback);
 }
 
@@ -1719,7 +1690,6 @@ function access(context, path, mode, callback) {
     mode = Constants.fsConstants.F_OK;
   }
 
-  if (!pathCheck(path, callback)) return;
   mode = mode | Constants.fsConstants.F_OK;
   access_file(context, path, mode, callback);
 }
@@ -1733,20 +1703,16 @@ function mkdtemp(context, prefix, options, callback) {
   let random = shared.randomChars(6);
   var path = prefix + '-' + random; 
 
-  if(!pathCheck(path, callback)) return;
   make_directory(context, path, function(error) {
     callback(error, path);
   });  
 }
 
 function rmdir(context, path, callback) {
-  if(!pathCheck(path, callback)) return;
   remove_directory(context, path, callback);
 }
 
 function stat(context, path, callback) {
-  if(!pathCheck(path, callback)) return;
-
   function check_result(error, result) {
     if(error) {
       callback(error);
@@ -1778,13 +1744,10 @@ function fstat(context, fd, callback) {
 }
 
 function link(context, oldpath, newpath, callback) {
-  if(!pathCheck(oldpath, callback)) return;
-  if(!pathCheck(newpath, callback)) return;
   link_node(context, oldpath, newpath, callback);
 }
 
 function unlink(context, path, callback) {
-  if(!pathCheck(path, callback)) return;
   unlink_node(context, path, callback);
 }
 
@@ -1822,8 +1785,6 @@ function fsync(context, fd, callback) {
 function readFile(context, path, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, null, 'r');
-
-  if(!pathCheck(path, callback)) return;
 
   var flags = validate_flags(options.flag || 'r');
   if(!flags) {
@@ -1897,8 +1858,6 @@ function writeFile(context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'w');
 
-  if(!pathCheck(path, callback)) return;
-
   var flags = validate_flags(options.flag || 'w');
   if(!flags) {
     return callback(new Errors.EINVAL('flags is not valid', path));
@@ -1933,8 +1892,6 @@ function writeFile(context, path, data, options, callback) {
 function appendFile(context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'a');
-
-  if(!pathCheck(path, callback)) return;
 
   var flags = validate_flags(options.flag || 'a');
   if(!flags) {
@@ -2098,7 +2055,6 @@ function fchown_file(context, ofd, uid, gid, callback) {
 }
 
 function getxattr(context, path, name, callback) {
-  if (!pathCheck(path, callback)) return;
   getxattr_file(context, path, name, callback);
 }
 
@@ -2118,7 +2074,6 @@ function setxattr(context, path, name, value, flag, callback) {
     flag = null;
   }
 
-  if (!pathCheck(path, callback)) return;
   setxattr_file(context, path, name, value, flag, callback);
 }
 
@@ -2141,7 +2096,6 @@ function fsetxattr(context, fd, name, value, flag, callback) {
 }
 
 function removexattr(context, path, name, callback) {
-  if (!pathCheck(path, callback)) return;
   removexattr_file(context, path, name, callback);
 }
 
@@ -2199,7 +2153,6 @@ function lseek(context, fd, offset, whence, callback) {
 }
 
 function readdir(context, path, callback) {
-  if(!pathCheck(path, callback)) return;
   read_directory(context, path, callback);
 }
 
@@ -2213,8 +2166,6 @@ function toUnixTimestamp(time) {
 }
 
 function utimes(context, path, atime, mtime, callback) {
-  if(!pathCheck(path, callback)) return;
-
   var currentTime = Date.now();
   atime = (atime) ? toUnixTimestamp(atime) : toUnixTimestamp(currentTime);
   mtime = (mtime) ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
@@ -2238,7 +2189,6 @@ function futimes(context, fd, atime, mtime, callback) {
 }
 
 function chmod(context, path, mode, callback) {
-  if(!pathCheck(path, callback)) return;
   mode = validateAndMaskMode(mode, callback);
   if(!mode) return;
 
@@ -2260,7 +2210,6 @@ function fchmod(context, fd, mode, callback) {
 }
 
 function chown(context, path, uid, gid, callback) {
-  if(!pathCheck(path, callback)) return;
   if(!isUint32(uid)) {
     return callback(new Errors.EINVAL('uid must be a valid integer', uid));
   }
@@ -2290,9 +2239,6 @@ function fchown(context, fd, uid, gid, callback) {
 }
 
 function rename(context, oldpath, newpath, callback) {
-  if(!pathCheck(oldpath, callback)) return;
-  if(!pathCheck(newpath, callback)) return;
-
   oldpath = normalize(oldpath);
   newpath = normalize(newpath);
 
@@ -2407,23 +2353,14 @@ function rename(context, oldpath, newpath, callback) {
 function symlink(context, srcpath, dstpath, type, callback) {
   // NOTE: we support passing the `type` arg, but ignore it.
   callback = arguments[arguments.length - 1];
-
-  // Special Case: allow srcpath to be relative, which we normally don't permit.
-  // If the srcpath is relative, we assume it's relative to the dirpath of dstpath.
-  if(!pathCheck(srcpath, true, callback)) return;
-  if(!pathCheck(dstpath, callback)) return;
-
   make_symbolic_link(context, srcpath, dstpath, callback);
 }
 
 function readlink(context, path, callback) {
-  if(!pathCheck(path, callback)) return;
   read_link(context, path, callback);
 }
 
 function lstat(context, path, callback) {
-  if(!pathCheck(path, callback)) return;
-
   function check_result(error, result) {
     if(error) {
       callback(error);
@@ -2441,7 +2378,6 @@ function truncate(context, path, length, callback) {
   callback = arguments[arguments.length - 1];
   length = length || 0;
 
-  if(!pathCheck(path, callback)) return;
   if(validateInteger(length, callback) !== length) return;
 
   truncate_file(context, path, length, callback);

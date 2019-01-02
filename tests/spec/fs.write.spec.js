@@ -10,14 +10,10 @@ describe('fs.write', function() {
     expect(fs.write).to.be.a('function');
   });
 
-  it('should error if file path is undefined',function(done) {
+  it('should error if file path is undefined', function() {
     var fs = util.fs();
-
-    fs.writeFile(undefined, 'data', function(error) {
-      expect(error).to.exist;
-      expect(error.code).to.equal('EINVAL');
-      done();
-    });
+    var fn = () => fs.writeFile(undefined, 'data');
+    expect(fn).to.throw();
   });
 
   it('should write data to a file', function(done) {

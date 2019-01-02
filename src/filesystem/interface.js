@@ -1,6 +1,6 @@
 var { promisify } = require('es6-promisify');
 
-var isNullPath = require('../path.js').isNull;
+var Path = require('../path.js');
 var nop = require('../shared.js').nop;
 
 var Constants = require('../constants.js');
@@ -44,6 +44,61 @@ function defaultCallback(err) {
     /* eslint no-console: 0 */
     console.error('Filer error: ', err);
   }
+}
+// Get a path (String) from a file:// URL. Support URL() like objects
+// https://github.com/nodejs/node/blob/968e901aff38a343b1de4addebf79fd8fa991c59/lib/internal/url.js#L1381
+function toPathIfFileURL(fileURLOrPath) {
+  if(!(fileURLOrPath &&
+       fileURLOrPath.protocol &&
+       fileURLOrPath.pathname)) {
+    return fileURLOrPath;
+  }
+
+  if(fileURLOrPath.protocol !== 'file:') {
+    throw new Errors.EINVAL('only file: URLs are supported for paths', fileURLOrPath);
+  }
+
+  var pathname = fileURLOrPath.pathname;
+  for (var n = 0; n < pathname.length; n++) {
+    if (pathname[n] === '%') {
+      var third = pathname.codePointAt(n + 2) | 0x20;
+      if (pathname[n + 1] === '2' && third === 102) {
+        throw new Errors.EINVAL('file: URLs must not include encoded / characters', fileURLOrPath);
+      }
+    }
+  }
+
+  return decodeURIComponent(pathname);
+}
+
+// Allow Buffers for paths. Assumes we want UTF8.
+function toPathIfBuffer(bufferOrPath) {
+  return Buffer.isBuffer(bufferOrPath) ? bufferOrPath.toString() : bufferOrPath;
+}
+
+function validatePath(path, allowRelative) {
+  if(!path) {
+    return new Errors.EINVAL('Path must be a string', path);
+  } else if(Path.isNull(path)) {
+    return new Errors.EINVAL('Path must be a string without null bytes.', path);
+  } else if(!allowRelative && !Path.isAbsolute(path)) {
+    return new Errors.EINVAL('Path must be absolute.', path);
+  }
+}
+
+function processPathArg(args, idx, allowRelative) {
+  var path = args[idx];
+  path = toPathIfFileURL(path);
+  path = toPathIfBuffer(path);
+
+  // Some methods specifically allow for rel paths (eg symlink with srcPath)
+  var err = validatePath(path, allowRelative);
+  if(err) {
+    throw err;
+  }
+
+  // Overwrite path arg with converted and validated path
+  args[idx] = path;
 }
 
 /**
@@ -124,7 +179,7 @@ function FileSystem(options, callback) {
 
   // We support the optional `options` arg from node, but ignore it
   this.watch = function(filename, options, listener) {
-    if(isNullPath(filename)) {
+    if(Path.isNull(filename)) {
       throw new Error('Path must be a string without null bytes.');
     }
     if(typeof options === 'function') {
@@ -247,50 +302,53 @@ function FileSystem(options, callback) {
     }
   });
   FileSystem.prototype.promises = {};
+
   /**
-   * Public API for FileSystem. All node.js methods that are
-   * exposed on fs.promises include `promise: true`.  We also
-   * include our own extra methods, but skip the fd versions
-   * to match node.js, which puts these on a FileHandle object.
+   * Public API for FileSystem. All node.js methods that are exposed on fs.promises
+   * include `promise: true`.  We also include our own extra methods, but skip the
+   * fd versions to match node.js, which puts these on a `FileHandle` object.
+   * Any method that deals with path argument(s) also includes the position of
+   * those args in one of `absPathArgs: [...]` or `relPathArgs: [...]`, so they
+   * can be processed and validated before being passed on to the method.
    */
   [
-    { name: 'open', promises: true },
-    { name: 'access', promises: true },
-    { name: 'chmod', promises: true },
+    { name: 'open', promises: true, absPathArgs: [ 0 ] },
+    { name: 'access', promises: true, absPathArgs: [ 0 ] },
+    { name: 'chmod', promises: true, absPathArgs: [ 0 ] },
     { name: 'fchmod' },
-    { name: 'chown', promises: true },
+    { name: 'chown', promises: true, absPathArgs: [ 0 ] },
     { name: 'fchown' },
     { name: 'close' },
-    { name: 'mknod', promises: true },
-    { name: 'mkdir', promises: true },
+    { name: 'mknod', promises: true, absPathArgs: [ 0 ] },
+    { name: 'mkdir', promises: true, absPathArgs: [ 0 ] },
     { name: 'mkdtemp', promises: true },
-    { name: 'rmdir', promises: true },
-    { name: 'stat', promises: true },
+    { name: 'rmdir', promises: true, absPathArgs: [ 0 ] },
+    { name: 'stat', promises: true, absPathArgs: [ 0 ] },
     { name: 'fstat' },
     { name: 'fsync' },
-    { name: 'link', promises: true },
-    { name: 'unlink', promises: true },
+    { name: 'link', promises: true, absPathArgs: [0, 1] },
+    { name: 'unlink', promises: true, absPathArgs: [ 0 ] },
     { name: 'read' },
-    { name: 'readFile', promises: true },
+    { name: 'readFile', promises: true, absPathArgs: [ 0 ] },
     { name: 'write' },
-    { name: 'writeFile', promises: true },
-    { name: 'appendFile', promises: true },
-    { name: 'exists' },
+    { name: 'writeFile', promises: true, absPathArgs: [ 0 ] },
+    { name: 'appendFile', promises: true, absPathArgs: [ 0 ] },
+    { name: 'exists', absPathArgs: [ 0 ] },
     { name: 'lseek' },
-    { name: 'readdir', promises: true },
-    { name: 'rename', promises: true },
-    { name: 'readlink', promises: true },
-    { name: 'symlink', promises: true },
+    { name: 'readdir', promises: true, absPathArgs: [ 0 ] },
+    { name: 'rename', promises: true, absPathArgs: [0, 1] },
+    { name: 'readlink', promises: true, absPathArgs: [ 0 ] },
+    { name: 'symlink', promises: true, relPathPargs: [ 0 ], absPathArgs: [ 1 ] },
     { name: 'lstat', promises: true },
-    { name: 'truncate', promises: true },
+    { name: 'truncate', promises: true, absPathArgs: [ 0 ] },
     { name: 'ftruncate' },
-    { name: 'utimes', promises: true },
+    { name: 'utimes', promises: true, absPathArgs: [ 0 ] },
     { name: 'futimes' },
-    { name: 'setxattr', promises: true },
-    { name: 'getxattr', promises: true },
+    { name: 'setxattr', promises: true, absPathArgs: [ 0 ] },
+    { name: 'getxattr', promises: true, absPathArgs: [ 0 ] },
     { name: 'fsetxattr' },
     { name: 'fgetxattr' },
-    { name: 'removexattr', promises: true },
+    { name: 'removexattr', promises: true, absPathArgs: [ 0 ] },
     { name: 'fremovexattr' }
   ].forEach(function(method) {
     var methodName = method.name;
@@ -305,6 +363,14 @@ function FileSystem(options, callback) {
       // fire-and-forget style fs operations, we have to dance a bit here.
       var missingCallback = typeof args[lastArgIndex] !== 'function';
       var callback = maybeCallback(args[lastArgIndex]);
+
+      // Deal with path arguments, validating and normalizing Buffer and file:// URLs
+      if(method.absPathArgs) {
+        method.absPathArgs.forEach(pathArg => processPathArg(args, pathArg, false));
+      }
+      if(method.relPathPargs) {
+        method.relPathPargs.forEach(pathArg => processPathArg(args, pathArg, true));
+      }
 
       var error = fs.queueOrRun(function() {
         var context = fs.provider.openReadWriteContext();
