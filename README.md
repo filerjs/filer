@@ -4,23 +4,23 @@
 
 ### Filer
 
-Filer is a POSIX-like file system for browsers.
+Filer is a drop-in replacement for node's `fs` module, a POSIX-like file system
+for browsers.
 
 ### Compatibility
 
-Filer is known to work in the following browsers/versions, with the specified [Storage Providers](#providers):
+Filer uses [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
+and is [known to work in the following browsers/versions](https://caniuse.com/#feat=indexeddb):
 
 * node.js: v0.10.*+
-* IE: 10+ (IndexedDB)
-* Firefox: 26+ (IndexedDB)
-* Chrome: 31+ (IndexedDB, WebSQL)
-* Safari: 7.0+ (WebSQL)
-* Opera: 19+ (IndexedDB, WebSQL)
-* iOS: 3.2+ (WebSQL)
-* Android Browser: 2.1-4.4 (WebSQL), 4.4+ (IndexedDB)
-
-NOTE: if you're interested in maximum compatibility, use the `Fallback` provider instead of `Default`.
-See the section on [Storage Providers](#providers).
+* IE: 10+
+* Edge: 12+
+* Firefox: 10+
+* Chrome: 23+
+* Safari: 10+
+* Opera: 15+
+* iOS: 10+
+* Android Browser: 4.4+
 
 ### Contributing
 
@@ -31,7 +31,7 @@ Want to join the fun? We'd love to have you! See [CONTRIBUTING](https://github.c
 Filer can be obtained in a number of ways:
 
 1. Via npm: `npm install filer`
-3. Via unpkg: `<script src="https://unpkg.com/filer"></script>` or specify a version directly, for example: [https://unpkg.com/filer@1.0.1/dist/filer.min.js](https://unpkg.com/filer@1.0.1/dist/filer.min.js)
+1. Via unpkg: `<script src="https://unpkg.com/filer"></script>` or specify a version directly, for example: [https://unpkg.com/filer@1.0.1/dist/filer.min.js](https://unpkg.com/filer@1.0.1/dist/filer.min.js)
 
 ### Loading and Usage
 
@@ -76,11 +76,11 @@ they are invoked. Ensure proper ordering by chaining operations in callbacks.
 To create a new file system or open an existing one, create a new `FileSystem`
 instance.  By default, a new [IndexedDB](https://developer.mozilla.org/en/docs/IndexedDB)
 database is created for each file system. The file system can also use other
-backend storage providers, for example [WebSQL](http://en.wikipedia.org/wiki/Web_SQL_Database)
-or even RAM (i.e., for temporary storage). See the section on [Storage Providers](#providers).
+backend storage providers, for example `Memory`. See the section on [Storage Providers](#providers).
+
 <a name="overviewExample"></a>
 
-```javascript
+```js
 var fs = new Filer.FileSystem();
 fs.open('/myfile', 'w+', function(err, fd) {
   if (err) throw err;
@@ -162,14 +162,16 @@ it becomes ready.
 
 #### Filer.FileSystem.providers - Storage Providers<a name="providers"></a>
 
-Filer can be configured to use a number of different storage providers. The provider object encapsulates all aspects
-of data access, making it possible to swap in different backend storage options.  There are currently 4 different
-providers to choose from:
+Filer can be configured to use a number of different storage providers. The provider object encapsulates all aspects of data access, making it possible to swap in different backend storage options.  There are currently 2 providers to choose from:
 
 * `FileSystem.providers.IndexedDB()` - uses IndexedDB
-* `FileSystem.providers.WebSQL()` - uses WebSQL
-* `FileSystem.providers.Fallback()` - attempts to use IndexedDB if possible, falling-back to WebSQL if necessary
+if necessary
 * `FileSystem.providers.Memory()` - uses memory (not suitable for data that needs to survive the current session)
+
+**NOTE**: previous versions of Filer also supported `FileSystem.providers.WebSQL()` and
+`FileSystem.providers.Fallback()`, which could be used in browsers that supported
+WebSQL but not IndexedDB.  [WebSQL has been deprecated](https://www.w3.org/TR/webdatabase/),
+and this functionality was removed in `v1.0.0`.  If for some reason you still need it, use [`v0.0.44`](https://github.com/filerjs/filer/releases/tag/v0.0.44).
 
 You can choose your provider when creating a `FileSystem`:
 
@@ -180,27 +182,19 @@ var providers = FileSystem.providers;
 // Example 1: Use the default provider (currently IndexedDB)
 var fs1 = new FileSystem();
 
-// Example 2: Explicitly use IndexedDB
-var fs2 = new FileSystem({ provider: new providers.IndexedDB() });
-
-// Example 3: Use one of IndexedDB or WebSQL, whichever is supported
-var fs3 = new FileSystem({ provider: new providers.Fallback() });
+// Example 2: Use the Memory provider
+var fs2 = new FileSystem({ provider: new providers.Memory() });
 ```
 
 Every provider has an `isSupported()` method, which returns `true` if the browser supports this provider:
 
 ```javascript
-if( Filer.FileSystem.providers.WebSQL.isSupported() ) {
-  // WebSQL provider will work in current environment...
+if( Filer.FileSystem.providers.IndexedDB.isSupported() ) {
+  // IndexedDB provider will work in current environment...
 }
 ```
 
 You can also write your own provider if you need a different backend. See the code in `src/providers` for details.
-
-A number of other providers have been written, including:
-
-* node.js fs provider: https://github.com/humphd/filer-fs
-* node.js Amazon S3 provider: https://github.com/alicoding/filer-s3
 
 #### Filer.Buffer<a name="FilerBuffer"></a>
 
