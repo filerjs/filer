@@ -5,23 +5,15 @@ describe('undefined and relative paths, issue270', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  it('should fail with EINVAL when called on an undefined path', function(done) {
+  it('should fail with EINVAL when called on an undefined path', function() {
     var fs = util.fs();
-
-    fs.writeFile(undefined, 'data', function(err) {
-      expect(err).to.exist;
-      expect(err.code).to.equal('EINVAL');
-      done();
-    });
+    var fn = () => fs.writeFile(undefined, 'data');
+    expect(fn).to.throw();
   });
 
-  it('should fail with EINVAL when called on a relative path', function(done) {
+  it('should fail with EINVAL when called on a relative path', function() {
     var fs = util.fs();
-
-    fs.writeFile('relpath/file.txt', 'data', function(err) {
-      expect(err).to.exist;
-      expect(err.code).to.equal('EINVAL');
-      done();
-    });
+    var fn = () => fs.writeFile('relpath/file.txt', 'data');
+    expect(fn).to.throw();
   });
 });

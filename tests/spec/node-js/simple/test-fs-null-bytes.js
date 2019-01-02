@@ -9,23 +9,18 @@ describe('node.js tests: https://github.com/joyent/node/blob/master/test/simple/
     var checks = [];
     var fnCount = 0;
     var fnTotal = 16;
-    var expected = 'Path must be a string without null bytes.';
     var fs = util.fs();
 
     // Make sure function fails with null path error in callback.
     function check(fn) {
       var args = Array.prototype.slice.call(arguments, 1);
-      args = args.concat(function(err) {
-        checks.push(function(){
-          expect(err).to.exist;
-          expect(err.message).to.equal(expected);
-        });
-        fnCount++;
-        if(fnCount === fnTotal) {
-          done();
-        }
-      });
-      fn.apply(fs, args);
+      fn = () => fn.apply(fs, args);
+      expect(fn).to.throw();
+
+      fnCount++;
+      if(fnCount === fnTotal) {
+        done();
+      }
     }
 
     check(fs.link,        '/foo\u0000bar', 'foobar');

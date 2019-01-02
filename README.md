@@ -232,7 +232,7 @@ The node.js [path module](http://nodejs.org/api/path.html) is available via the 
 identical to the node.js (see [https://github.com/browserify/path-browserify](https://github.com/browserify/path-browserify)) version with the following differences:
 
 * The CWD always defaults to `/`
-* No support for Windows style paths
+* No support for Windows style paths (assume you are on a POSIX system)
 * Additional utility methods (see below)
 
 ```javascript
@@ -266,6 +266,21 @@ Filer.Path also includes the following extra methods:
 * `isNull(p)` returns `true` or `false` if the path contains a null character (`'\u0000'`)
 * `addTrailing(p)` returns the path `p` with a single trailing slash added
 * `removeTrailing(p)` returns the path `p` with trailing slash(es) removed
+
+[As with node.js](https://nodejs.org/api/fs.html#fs_file_paths), all methods below that
+accept a `path` argument as a `String` can also take a [`file://` URL](https://nodejs.org/api/fs.html#fs_url_object_support)
+or a `Buffer`. For example, all of the following cases will work the same way with Filer:
+
+```js
+// 1. path as a String
+fs.writeFile('/dir/file.txt', 'data', function(err) {...});
+
+// 2. path as a URL
+fs.writeFile(new URL('file:///dir/file.txt'), 'data', function(err) {...});
+
+// 3. path as a Buffer
+fs.writeFile(Buffer.from('/dir/file.txt'), 'data', function(err) {...});
+```
 
 #### Filer.Errors<a name="Errors"></a>
 

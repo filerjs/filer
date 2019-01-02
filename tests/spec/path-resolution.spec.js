@@ -2,6 +2,9 @@ var Filer = require('../../src');
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
+// Support global URL and node's url module
+var URL = global.URL || require('url').URL;
+
 describe('path resolution', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
@@ -244,5 +247,53 @@ describe('path resolution', function() {
     expect(Path.removeTrailing('./')).to.equal('.');
     expect(Path.removeTrailing('/dir/')).to.equal('/dir');
     expect(Path.removeTrailing('/dir//')).to.equal('/dir');
+  });
+
+  it('should allow using Buffer for paths', function(done) {
+    var fs = util.fs();
+    var filePath = '/file';
+    var bufferPath = Buffer.from(filePath);
+    var data = 'data';
+
+    fs.writeFile(bufferPath, data, function(err) {
+      if(err) throw err;
+
+      fs.readFile(filePath, 'utf8', function(err, result) {
+        if(err) throw err;
+        expect(result).to.equal(data);
+        done();
+      });
+    });
+  });
+
+  it('should allow using file: URLs for paths', function(done) {
+    var fs = util.fs();
+    var filePath = '/file';
+    var fileUrl = new URL(`file://${filePath}`);
+    var data = 'data';
+
+    fs.writeFile(fileUrl, data, function(err) {
+      if(err) throw err;
+
+      fs.readFile(filePath, 'utf8', function(err, result) {
+        if(err) throw err;
+        expect(result).to.equal(data);
+        done();
+      });
+    });
+  });
+
+  it('should error for non file: URLs for paths', function() {
+    var fs = util.fs();
+    var fileUrl = new URL('http://file');
+    var fn = () => fs.writeFile(fileUrl, 1);
+    expect(fn).to.throw();
+  });
+
+  it('should error if file: URLs include escaped / characters', function() {
+    var fs = util.fs();
+    var fileUrl = new URL('file:///p/a/t/h/%2F');
+    var fn = () => fs.writeFile(fileUrl, 1);
+    expect(fn).to.throw();
   });
 });
