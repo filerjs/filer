@@ -52,7 +52,6 @@ require('./spec/fs.copyFile.spec');
 // Filer.FileSystem.providers.*
 require('./spec/providers/providers.spec');
 require('./spec/providers/providers.indexeddb.spec');
-require('./spec/providers/providers.websql.spec');
 require('./spec/providers/providers.memory.spec');
 require('./spec/providers/serializable-memory-provider.spec');
 

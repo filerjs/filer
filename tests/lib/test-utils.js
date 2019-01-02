@@ -1,6 +1,5 @@
 var Filer = require('../../src');
 var IndexedDBTestProvider = require('./indexeddb.js');
-var WebSQLTestProvider = require('./websql.js');
 var MemoryTestProvider = require('./memory.js');
 var Url = require('url');
 
@@ -16,13 +15,8 @@ function uniqueName() {
 
 function findBestProvider() {
   var providers = Filer.FileSystem.providers;
-  if(providers.IndexedDB.isSupported()) {
-    return IndexedDBTestProvider;
-  }
-  if(providers.WebSQL.isSupported()) {
-    return WebSQLTestProvider;
-  }
-  return MemoryTestProvider;
+  return providers.IndexedDB.isSupported() ?
+    IndexedDBTestProvider : MemoryTestProvider;
 }
 
 function getUrlParams() {
@@ -60,9 +54,6 @@ function setup(callback) {
   switch(providerType.toLowerCase()) {
   case 'indexeddb':
     _provider = new IndexedDBTestProvider(name);
-    break;
-  case 'websql':
-    _provider = new WebSQLTestProvider(name);
     break;
   case 'memory':
     _provider = new MemoryTestProvider(name);
@@ -158,7 +149,6 @@ module.exports = {
   provider: provider,
   providers: {
     IndexedDB: IndexedDBTestProvider,
-    WebSQL: WebSQLTestProvider,
     Memory: MemoryTestProvider
   },
   cleanup: cleanup,

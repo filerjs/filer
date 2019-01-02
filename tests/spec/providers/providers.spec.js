@@ -10,19 +10,11 @@ describe('Filer.FileSystem.providers', function() {
     expect(Filer.FileSystem.providers.IndexedDB).to.be.a('function');
   });
 
-  it('has WebSQL constructor', function() {
-    expect(Filer.FileSystem.providers.WebSQL).to.be.a('function');
-  });
-
   it('has Memory constructor', function() {
     expect(Filer.FileSystem.providers.Memory).to.be.a('function');
   });
 
   it('has a Default constructor', function() {
     expect(Filer.FileSystem.providers.Default).to.be.a('function');
-  });
-
-  it('has Fallback constructor', function() {
-    expect(Filer.FileSystem.providers.Fallback).to.be.a('function');
   });
 });

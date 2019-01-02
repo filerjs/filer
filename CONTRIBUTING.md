@@ -60,7 +60,6 @@ The default provider is `Memory`, and you can switch it like so:
 
 * tests/index.html?filer-provider=memory
 * tests/index.html?filer-provider=indexeddb
-* tests/index.html?filer-provider=websql
 
 If you're writing tests, make sure you write them in the same style as existing tests, which are
 provider agnostic. See [`tests/lib/test-utils.js`](tests/lib/test-utils.js) and how it gets used
