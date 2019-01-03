@@ -5,6 +5,26 @@ describe('fs.access', function () {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
+  it('should expose access mode flags on fs and fs.constants', function() {
+    var fs = util.fs();
+
+    // F_OK
+    expect(fs.F_OK).to.equal(0);
+    expect(fs.constants.F_OK).to.equal(0);
+
+    // R_OK
+    expect(fs.R_OK).to.equal(4);
+    expect(fs.constants.R_OK).to.equal(4);
+
+    // W_OK
+    expect(fs.W_OK).to.equal(2);
+    expect(fs.constants.W_OK).to.equal(2);
+    
+    // X_OK
+    expect(fs.X_OK).to.equal(1);
+    expect(fs.constants.X_OK).to.equal(1);
+  });
+
   it('should be a function', function () {
     var fs = util.fs();
     expect(typeof fs.access).to.equal('function');
