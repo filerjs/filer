@@ -10,6 +10,37 @@ describe('Filer', function() {
     expect(typeof Filer.FileSystem).to.equal('function');
   });
 
+  it('has Buffer constructor', function() {
+    expect(typeof Filer.Buffer).to.equal('function');
+  });
+
+  it('has Path and path objects', function() {
+    expect(typeof Filer.Path).to.equal('object');
+    expect(typeof Filer.path).to.equal('object');
+    expect(Filer.Path).to.equal(Filer.path);
+  });
+
+  it('has Errors object', function() {
+    expect(typeof Filer.Errors).to.equal('object');
+  });
+
+  it('has an fs object that returns a Filer.FileSystem', function() {
+    // Depends on IndexedDB being available, since we can't
+    // configure our own test provider.
+    if(!Filer.FileSystem.providers.IndexedDB.isSupported()) {
+      this.skip();
+    }
+
+    expect(typeof Filer.fs).to.equal('object');
+
+    const fs1 = Filer.fs;
+    const fs2 = Filer.fs;
+
+    expect(fs1).to.be.an.instanceof(Filer.FileSystem);
+    expect(fs2).to.be.an.instanceof(Filer.FileSystem);
+    expect(fs1).to.equal(fs2);
+  });
+
   it('has Shell constructor', function() {
     expect(typeof Filer.Shell).to.equal('function');
   });
@@ -24,8 +55,6 @@ describe('Filer', function() {
     var Provider;
     if(providers.IndexedDB.isSupported()) {
       Provider = providers.IndexedDB;
-    } else if(providers.WebSQL.isSupported()) {
-      Provider = providers.WebSQL;
     } else {
       Provider = providers.Memory;
     }
