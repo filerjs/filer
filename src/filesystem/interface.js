@@ -151,6 +151,11 @@ function FileSystem(options, callback) {
 
   // Expose Node's fs.constants to users
   fs.constants = Constants.fsConstants;
+  // Node also forwards the access mode flags onto fs
+  fs.F_OK = Constants.fsConstants.F_OK;
+  fs.R_OK = Constants.fsConstants.R_OK;
+  fs.W_OK = Constants.fsConstants.W_OK;
+  fs.X_OK = Constants.fsConstants.X_OK;
 
   // Expose Shell constructor
   this.Shell = Shell.bind(undefined, this);
