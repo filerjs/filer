@@ -1,4 +1,5 @@
 var Filer = require('../../src');
+var util = require('../lib/test-utils');
 var expect = require('chai').expect;
 
 describe('Filer', function() {
@@ -26,19 +27,17 @@ describe('Filer', function() {
 
   it('has an fs object that returns a Filer.FileSystem', function() {
     // Depends on IndexedDB being available, since we can't
-    // configure our own test provider.
-    if(!Filer.FileSystem.providers.IndexedDB.isSupported()) {
-      this.skip();
-    }
+    // configure our own test provider.  Shim for coverage.
+    util.shimIndexedDB(function() {
+      expect(typeof Filer.fs).to.equal('object');
 
-    expect(typeof Filer.fs).to.equal('object');
-
-    const fs1 = Filer.fs;
-    const fs2 = Filer.fs;
-
-    expect(fs1).to.be.an.instanceof(Filer.FileSystem);
-    expect(fs2).to.be.an.instanceof(Filer.FileSystem);
-    expect(fs1).to.equal(fs2);
+      const fs1 = Filer.fs;
+      const fs2 = Filer.fs;
+  
+      expect(fs1).to.be.an.instanceof(Filer.FileSystem);
+      expect(fs2).to.be.an.instanceof(Filer.FileSystem);
+      expect(fs1).to.equal(fs2);  
+    });
   });
 
   it('has Shell constructor', function() {
