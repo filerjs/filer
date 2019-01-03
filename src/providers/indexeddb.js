@@ -3,11 +3,6 @@ var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var IDB_RW = require('../constants.js').IDB_RW;
 var IDB_RO = require('../constants.js').IDB_RO;
 
-var indexedDB = global.indexedDB       ||
-                global.mozIndexedDB    ||
-                global.webkitIndexedDB ||
-                global.msIndexedDB;
-
 function IndexedDBContext(db, mode) {
   this.db = db;
   this.mode = mode;
@@ -114,6 +109,10 @@ function IndexedDB(name) {
   this.db = null;
 }
 IndexedDB.isSupported = function() {
+  var indexedDB = global.indexedDB       ||
+                  global.mozIndexedDB    ||
+                  global.webkitIndexedDB ||
+                  global.msIndexedDB;
   return !!indexedDB;
 };
 
@@ -126,6 +125,11 @@ IndexedDB.prototype.open = function(callback) {
   }
 
   try {
+    var indexedDB = global.indexedDB       ||
+                    global.mozIndexedDB    ||
+                    global.webkitIndexedDB ||
+                    global.msIndexedDB;
+
     // NOTE: we're not using versioned databases.
     var openRequest = indexedDB.open(that.name);
 

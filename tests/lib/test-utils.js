@@ -43,6 +43,22 @@ function getProviderType() {
   return queryString['filer-provider'] || defaultProvider;
 }
 
+// Run fn() in an environment with indexedDB available
+// either as-is, or shimmed, removing when done.
+function shimIndexedDB(fn) {
+  var addShim = !Filer.FileSystem.providers.IndexedDB.isSupported();
+
+  if(addShim) {
+    global.indexedDB = require('fake-indexeddb');
+  }
+
+  fn();
+
+  if(addShim) {
+    delete global.indexedDB;
+  }
+}
+
 function setup(callback) {
   // In browser we support specifying the provider via the query string
   // (e.g., ?filer-provider=IndexedDB). If not specified, we use
@@ -153,5 +169,6 @@ module.exports = {
   },
   cleanup: cleanup,
   typedArrayEqual: typedArrayEqual,
-  parseBJSON
+  parseBJSON,
+  shimIndexedDB
 };

@@ -1,10 +1,5 @@
 var Filer = require('../../src');
 
-var indexedDB = global.indexedDB       ||
-                global.mozIndexedDB    ||
-                global.webkitIndexedDB ||
-                global.msIndexedDB;
-
 var needsCleanup = [];
 if(global.addEventListener) {
   global.addEventListener('beforeunload', function() {
@@ -35,6 +30,11 @@ function IndexedDBTestProvider(name) {
       if(that.provider.db) {
         that.provider.db.close();
       }
+
+      var indexedDB = global.indexedDB       ||
+                      global.mozIndexedDB    ||
+                      global.webkitIndexedDB ||
+                      global.msIndexedDB;
 
       var request = indexedDB.deleteDatabase(name);
       request.onsuccess = finished;
