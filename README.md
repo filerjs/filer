@@ -81,20 +81,28 @@ backend storage providers, for example `Memory`. See the section on [Storage Pro
 <a name="overviewExample"></a>
 
 ```js
-// You can easily use Filer.fs in place of node's `fs`
-const { fs } = require('filer');
+const { fs, path } = require('filer');
 
-fs.writeFile('/myfile', 'Hello World!', (err) => {
+fs.mkdir('/docs', (err) => {
   if (err) {
-    return console.error('Unable to write /myfile', err);
+    return console.error('Unable to create /docs dir', err);
   }
+  
+  const filename = path.join('/docs', 'first.txt');
+  const data = 'Hello World!\n';
 
-  fs.stat('/myfile', (err, stats) =>  {
+  fs.writeFile(filename, data, (err) => {
     if (err) {
-      return console.error('Unable to stat /myfile', err);
+      return console.error('Unable to write /docs/first.txt', err);
     }
 
-    console.log('Wrote /myfile, stats are:', stats);
+    fs.stat(filename, (err, stats) =>  {
+      if (err) {
+        return console.error('Unable to stat /docs/first.txt', err);
+      }
+
+      console.log('Stats for /docs/first.txt:', stats);
+    });
   });
 });
 ```
@@ -237,15 +245,16 @@ Buffer.allocUnsafe(size)
 
 #### Filer.Path<a name="FilerPath"></a>
 
-The node.js [path module](http://nodejs.org/api/path.html) is available via the `Filer.Path` object. It is
-identical to the node.js (see [https://github.com/browserify/path-browserify](https://github.com/browserify/path-browserify)) version with the following differences:
+The node.js [path module](http://nodejs.org/api/path.html) is available via `Filer.path` or
+`Filer.Path` (both are supported for historical reasons, and to match node). The Filer `path`
+module is identical to the node.js version (see [https://github.com/browserify/path-browserify](https://github.com/browserify/path-browserify)), with the following differences:
 
 * The CWD always defaults to `/`
 * No support for Windows style paths (assume you are on a POSIX system)
 * Additional utility methods (see below)
 
 ```javascript
-var path = Filer.Path;
+var path = Filer.path;
 var dir = path.dirname('/foo/bar/baz/asdf/quux');
 // dir is now '/foo/bar/baz/asdf'
 

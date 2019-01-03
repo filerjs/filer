@@ -4,7 +4,9 @@ let Filer = null;
 module.exports = Filer = {
   FileSystem: require('./filesystem/interface.js'),
   Buffer: Buffer,
+  // We previously called this Path, but node calls it path. Do both
   Path: require('./path.js'),
+  path: require('./path.js'),
   Errors: require('./errors.js'),
   Shell: require('./shell/shell.js')
 };

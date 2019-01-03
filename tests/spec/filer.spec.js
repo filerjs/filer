@@ -14,8 +14,10 @@ describe('Filer', function() {
     expect(typeof Filer.Buffer).to.equal('function');
   });
 
-  it('has Path object', function() {
+  it('has Path and path objects', function() {
     expect(typeof Filer.Path).to.equal('object');
+    expect(typeof Filer.path).to.equal('object');
+    expect(Filer.Path).to.equal(Filer.path);
   });
 
   it('has Errors object', function() {
