@@ -317,44 +317,52 @@ function FileSystem(options, callback) {
    * can be processed and validated before being passed on to the method.
    */
   [
-    { name: 'open', promises: true, absPathArgs: [ 0 ] },
+    { name: 'appendFile', promises: true, absPathArgs: [ 0 ] },
     { name: 'access', promises: true, absPathArgs: [ 0 ] },
-    { name: 'chmod', promises: true, absPathArgs: [ 0 ] },
-    { name: 'fchmod' },
     { name: 'chown', promises: true, absPathArgs: [ 0 ] },
-    { name: 'fchown' },
+    { name: 'chmod', promises: true, absPathArgs: [ 0 ] },
     { name: 'close' },
-    { name: 'mknod', promises: true, absPathArgs: [ 0 ] },
-    { name: 'mkdir', promises: true, absPathArgs: [ 0 ] },
-    { name: 'mkdtemp', promises: true },
-    { name: 'rmdir', promises: true, absPathArgs: [ 0 ] },
-    { name: 'stat', promises: true, absPathArgs: [ 0 ] },
+    // copyFile - https://github.com/filerjs/filer/issues/436
+    { name: 'exists', absPathArgs: [ 0 ] },
+    { name: 'fchown' },
+    { name: 'fchmod' },
+    // fdatasync - https://github.com/filerjs/filer/issues/653
+    { name: 'fgetxattr' },
+    { name: 'fremovexattr' },
+    { name: 'fsetxattr' },
     { name: 'fstat' },
     { name: 'fsync' },
+    { name: 'ftruncate' },
+    { name: 'futimes' },
+    { name: 'getxattr', promises: true, absPathArgs: [ 0 ] },
+    // lchown - https://github.com/filerjs/filer/issues/620
+    // lchmod - https://github.com/filerjs/filer/issues/619
     { name: 'link', promises: true, absPathArgs: [0, 1] },
-    { name: 'unlink', promises: true, absPathArgs: [ 0 ] },
+    { name: 'lseek' },
+    { name: 'lstat', promises: true },
+    { name: 'mkdir', promises: true, absPathArgs: [ 0 ] },
+    { name: 'mkdtemp', promises: true },
+    { name: 'mknod', promises: true, absPathArgs: [ 0 ] },
+    { name: 'open', promises: true, absPathArgs: [ 0 ] },
+    { name: 'readdir', promises: true, absPathArgs: [ 0 ] },
     { name: 'read' },
     { name: 'readFile', promises: true, absPathArgs: [ 0 ] },
-    { name: 'write' },
-    { name: 'writeFile', promises: true, absPathArgs: [ 0 ] },
-    { name: 'appendFile', promises: true, absPathArgs: [ 0 ] },
-    { name: 'exists', absPathArgs: [ 0 ] },
-    { name: 'lseek' },
-    { name: 'readdir', promises: true, absPathArgs: [ 0 ] },
-    { name: 'rename', promises: true, absPathArgs: [0, 1] },
     { name: 'readlink', promises: true, absPathArgs: [ 0 ] },
-    { name: 'symlink', promises: true, relPathPargs: [ 0 ], absPathArgs: [ 1 ] },
-    { name: 'lstat', promises: true },
-    { name: 'truncate', promises: true, absPathArgs: [ 0 ] },
-    { name: 'ftruncate' },
-    { name: 'utimes', promises: true, absPathArgs: [ 0 ] },
-    { name: 'futimes' },
-    { name: 'setxattr', promises: true, absPathArgs: [ 0 ] },
-    { name: 'getxattr', promises: true, absPathArgs: [ 0 ] },
-    { name: 'fsetxattr' },
-    { name: 'fgetxattr' },
+    // realpath - https://github.com/filerjs/filer/issues/85
     { name: 'removexattr', promises: true, absPathArgs: [ 0 ] },
-    { name: 'fremovexattr' }
+    { name: 'rename', promises: true, absPathArgs: [0, 1] },
+    { name: 'rmdir', promises: true, absPathArgs: [ 0 ] },
+    { name: 'setxattr', promises: true, absPathArgs: [ 0 ] },
+    { name: 'stat', promises: true, absPathArgs: [ 0 ] },
+    { name: 'symlink', promises: true, relPathArgs: [ 0 ], absPathArgs: [ 1 ] },
+    { name: 'truncate', promises: true, absPathArgs: [ 0 ] },
+    // unwatchFile - https://github.com/filerjs/filer/pull/553
+    { name: 'unlink', promises: true, absPathArgs: [ 0 ] },
+    { name: 'utimes', promises: true, absPathArgs: [ 0 ] },
+    // watch - implemented above in `this.watch`
+    // watchFile - https://github.com/filerjs/filer/issues/654
+    { name: 'writeFile', promises: true, absPathArgs: [ 0 ] },
+    { name: 'write' }
   ].forEach(function(method) {
     var methodName = method.name;
     var shouldPromisify = method.promises === true;
@@ -373,8 +381,8 @@ function FileSystem(options, callback) {
       if(method.absPathArgs) {
         method.absPathArgs.forEach(pathArg => processPathArg(args, pathArg, false));
       }
-      if(method.relPathPargs) {
-        method.relPathPargs.forEach(pathArg => processPathArg(args, pathArg, true));
+      if(method.relPathArgs) {
+        method.relPathArgs.forEach(pathArg => processPathArg(args, pathArg, true));
       }
 
       var error = fs.queueOrRun(function() {
