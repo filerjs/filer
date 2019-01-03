@@ -110,9 +110,9 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-// Symbols is a better way to do this, but if we don't have support we'll just
-// have to make do with an unlikely token
-var customArgumentsToken = Symbol ? Symbol("__ES6-PROMISIFY--CUSTOM-ARGUMENTS__") : "__ES6-PROMISIFY--CUSTOM-ARGUMENTS__";
+// Symbols is a better way to do this, but not all browsers have good support,
+// so instead we'll just make do with a very unlikely string.
+var customArgumentsToken = "__ES6-PROMISIFY--CUSTOM-ARGUMENTS__";
 
 /**
  * promisify()
@@ -3059,366 +3059,7 @@ IndexedDB.prototype.getReadWriteContext = function () {
 };
 
 module.exports = IndexedDB;
-},{"../constants.js":"iJA9","buffer":"dskh"}],"p8GN":[function(require,module,exports) {
-var errors = {};
-[
-/**
- * node.js errors - we only use some of these, add as needed.
- */
-//'-1:UNKNOWN:unknown error',
-//'0:OK:success',
-//'1:EOF:end of file',
-//'2:EADDRINFO:getaddrinfo error',
-'3:EACCES:permission denied', //'4:EAGAIN:resource temporarily unavailable',
-//'5:EADDRINUSE:address already in use',
-//'6:EADDRNOTAVAIL:address not available',
-//'7:EAFNOSUPPORT:address family not supported',
-//'8:EALREADY:connection already in progress',
-'9:EBADF:bad file descriptor', '10:EBUSY:resource busy or locked', //'11:ECONNABORTED:software caused connection abort',
-//'12:ECONNREFUSED:connection refused',
-//'13:ECONNRESET:connection reset by peer',
-//'14:EDESTADDRREQ:destination address required',
-//'15:EFAULT:bad address in system call argument',
-//'16:EHOSTUNREACH:host is unreachable',
-//'17:EINTR:interrupted system call',
-'18:EINVAL:invalid argument', //'19:EISCONN:socket is already connected',
-//'20:EMFILE:too many open files',
-//'21:EMSGSIZE:message too long',
-//'22:ENETDOWN:network is down',
-//'23:ENETUNREACH:network is unreachable',
-//'24:ENFILE:file table overflow',
-//'25:ENOBUFS:no buffer space available',
-//'26:ENOMEM:not enough memory',
-'27:ENOTDIR:not a directory', '28:EISDIR:illegal operation on a directory', //'29:ENONET:machine is not on the network',
-// errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-//'31:ENOTCONN:socket is not connected',
-//'32:ENOTSOCK:socket operation on non-socket',
-//'33:ENOTSUP:operation not supported on socket',
-'34:ENOENT:no such file or directory', //'35:ENOSYS:function not implemented',
-//'36:EPIPE:broken pipe',
-//'37:EPROTO:protocol error',
-//'38:EPROTONOSUPPORT:protocol not supported',
-//'39:EPROTOTYPE:protocol wrong type for socket',
-//'40:ETIMEDOUT:connection timed out',
-//'41:ECHARSET:invalid Unicode character',
-//'42:EAIFAMNOSUPPORT:address family for hostname not supported',
-// errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
-//'44:EAISERVICE:servname not supported for ai_socktype',
-//'45:EAISOCKTYPE:ai_socktype not supported',
-//'46:ESHUTDOWN:cannot send after transport endpoint shutdown',
-'47:EEXIST:file already exists', //'48:ESRCH:no such process',
-//'49:ENAMETOOLONG:name too long',
-'50:EPERM:operation not permitted', '51:ELOOP:too many symbolic links encountered', //'52:EXDEV:cross-device link not permitted',
-'53:ENOTEMPTY:directory not empty', //'54:ENOSPC:no space left on device',
-'55:EIO:i/o error', //'56:EROFS:read-only file system',
-//'57:ENODEV:no such device',
-//'58:ESPIPE:invalid seek',
-//'59:ECANCELED:operation canceled',
-
-/**
- * Filer specific errors
- */
-'1000:ENOTMOUNTED:not mounted', '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.', '1002:ENOATTR:attribute does not exist'].forEach(function (e) {
-  e = e.split(':');
-  var errno = +e[0];
-  var errName = e[1];
-  var defaultMessage = e[2];
-
-  function FilerError(msg, path) {
-    Error.call(this);
-    this.name = errName;
-    this.code = errName;
-    this.errno = errno;
-    this.message = msg || defaultMessage;
-
-    if (path) {
-      this.path = path;
-    }
-
-    this.stack = new Error(this.message).stack;
-  }
-
-  FilerError.prototype = Object.create(Error.prototype);
-  FilerError.prototype.constructor = FilerError;
-
-  FilerError.prototype.toString = function () {
-    var pathInfo = this.path ? ', \'' + this.path + '\'' : '';
-    return this.name + ': ' + this.message + pathInfo;
-  }; // We expose the error as both Errors.EINVAL and Errors[18]
-
-
-  errors[errName] = errors[errno] = FilerError;
-});
-module.exports = errors;
-},{}],"vLJO":[function(require,module,exports) {
-/*
- * base64-arraybuffer
- * https://github.com/niklasvh/base64-arraybuffer
- *
- * Copyright (c) 2012 Niklas von Hertzen
- * Licensed under the MIT license.
- */
-(function () {
-  "use strict";
-
-  var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"; // Use a lookup table to find the index.
-
-  var lookup = new Uint8Array(256);
-
-  for (var i = 0; i < chars.length; i++) {
-    lookup[chars.charCodeAt(i)] = i;
-  }
-
-  exports.encode = function (arraybuffer) {
-    var bytes = new Uint8Array(arraybuffer),
-        i,
-        len = bytes.length,
-        base64 = "";
-
-    for (i = 0; i < len; i += 3) {
-      base64 += chars[bytes[i] >> 2];
-      base64 += chars[(bytes[i] & 3) << 4 | bytes[i + 1] >> 4];
-      base64 += chars[(bytes[i + 1] & 15) << 2 | bytes[i + 2] >> 6];
-      base64 += chars[bytes[i + 2] & 63];
-    }
-
-    if (len % 3 === 2) {
-      base64 = base64.substring(0, base64.length - 1) + "=";
-    } else if (len % 3 === 1) {
-      base64 = base64.substring(0, base64.length - 2) + "==";
-    }
-
-    return base64;
-  };
-
-  exports.decode = function (base64) {
-    var bufferLength = base64.length * 0.75,
-        len = base64.length,
-        i,
-        p = 0,
-        encoded1,
-        encoded2,
-        encoded3,
-        encoded4;
-
-    if (base64[base64.length - 1] === "=") {
-      bufferLength--;
-
-      if (base64[base64.length - 2] === "=") {
-        bufferLength--;
-      }
-    }
-
-    var arraybuffer = new ArrayBuffer(bufferLength),
-        bytes = new Uint8Array(arraybuffer);
-
-    for (i = 0; i < len; i += 4) {
-      encoded1 = lookup[base64.charCodeAt(i)];
-      encoded2 = lookup[base64.charCodeAt(i + 1)];
-      encoded3 = lookup[base64.charCodeAt(i + 2)];
-      encoded4 = lookup[base64.charCodeAt(i + 3)];
-      bytes[p++] = encoded1 << 2 | encoded2 >> 4;
-      bytes[p++] = (encoded2 & 15) << 4 | encoded3 >> 2;
-      bytes[p++] = (encoded3 & 3) << 6 | encoded4 & 63;
-    }
-
-    return arraybuffer;
-  };
-})();
-},{}],"hW+K":[function(require,module,exports) {
-var Buffer = require("buffer").Buffer;
-var global = arguments[3];
-var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
-
-var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
-
-var WSQL_VERSION = require('../constants.js').WSQL_VERSION;
-
-var WSQL_SIZE = require('../constants.js').WSQL_SIZE;
-
-var WSQL_DESC = require('../constants.js').WSQL_DESC;
-
-var Errors = require('../errors.js');
-
-var base64ArrayBuffer = require('base64-arraybuffer');
-
-function WebSQLContext(db, isReadOnly) {
-  var that = this;
-
-  this.getTransaction = function (callback) {
-    if (that.transaction) {
-      callback(that.transaction);
-      return;
-    } // Either do readTransaction() (read-only) or transaction() (read/write)
-
-
-    db[isReadOnly ? 'readTransaction' : 'transaction'](function (transaction) {
-      that.transaction = transaction;
-      callback(transaction);
-    });
-  };
-}
-
-WebSQLContext.prototype.clear = function (callback) {
-  function onError(transaction, error) {
-    callback(error);
-  }
-
-  function onSuccess() {
-    callback(null);
-  }
-
-  this.getTransaction(function (transaction) {
-    transaction.executeSql('DELETE FROM ' + FILE_STORE_NAME + ';', [], onSuccess, onError);
-  });
-};
-
-function _get(getTransaction, key, callback) {
-  function onSuccess(transaction, result) {
-    // If the key isn't found, return null
-    var value = result.rows.length === 0 ? null : result.rows.item(0).data;
-    callback(null, value);
-  }
-
-  function onError(transaction, error) {
-    callback(error);
-  }
-
-  getTransaction(function (transaction) {
-    transaction.executeSql('SELECT data FROM ' + FILE_STORE_NAME + ' WHERE id = ? LIMIT 1;', [key], onSuccess, onError);
-  });
-}
-
-WebSQLContext.prototype.getObject = function (key, callback) {
-  _get(this.getTransaction, key, function (err, result) {
-    if (err) {
-      return callback(err);
-    }
-
-    try {
-      if (result) {
-        result = JSON.parse(result);
-      }
-    } catch (e) {
-      return callback(e);
-    }
-
-    callback(null, result);
-  });
-};
-
-WebSQLContext.prototype.getBuffer = function (key, callback) {
-  _get(this.getTransaction, key, function (err, result) {
-    if (err) {
-      return callback(err);
-    } // Deal with zero-length ArrayBuffers, which will be encoded as ''
-
-
-    if (result || result === '') {
-      var arrayBuffer = base64ArrayBuffer.decode(result);
-      result = Buffer.from(arrayBuffer);
-    }
-
-    callback(null, result);
-  });
-};
-
-function _put(getTransaction, key, value, callback) {
-  function onSuccess() {
-    callback(null);
-  }
-
-  function onError(transaction, error) {
-    callback(error);
-  }
-
-  getTransaction(function (transaction) {
-    transaction.executeSql('INSERT OR REPLACE INTO ' + FILE_STORE_NAME + ' (id, data) VALUES (?, ?);', [key, value], onSuccess, onError);
-  });
-}
-
-WebSQLContext.prototype.putObject = function (key, value, callback) {
-  var json = JSON.stringify(value);
-
-  _put(this.getTransaction, key, json, callback);
-};
-
-WebSQLContext.prototype.putBuffer = function (key, uint8BackedBuffer, callback) {
-  var base64 = base64ArrayBuffer.encode(uint8BackedBuffer.buffer);
-
-  _put(this.getTransaction, key, base64, callback);
-};
-
-WebSQLContext.prototype.delete = function (key, callback) {
-  function onSuccess() {
-    callback(null);
-  }
-
-  function onError(transaction, error) {
-    callback(error);
-  }
-
-  this.getTransaction(function (transaction) {
-    transaction.executeSql('DELETE FROM ' + FILE_STORE_NAME + ' WHERE id = ?;', [key], onSuccess, onError);
-  });
-};
-
-function WebSQL(name) {
-  this.name = name || FILE_SYSTEM_NAME;
-  this.db = null;
-}
-
-WebSQL.isSupported = function () {
-  return !!global.openDatabase;
-};
-
-WebSQL.prototype.open = function (callback) {
-  var that = this; // Bail if we already have a db open
-
-  if (that.db) {
-    return callback();
-  }
-
-  var db = global.openDatabase(that.name, WSQL_VERSION, WSQL_DESC, WSQL_SIZE);
-
-  if (!db) {
-    callback('[WebSQL] Unable to open database.');
-    return;
-  }
-
-  function onError(transaction, error) {
-    if (error.code === 5) {
-      callback(new Errors.EINVAL('WebSQL cannot be accessed. If private browsing is enabled, disable it.'));
-    }
-
-    callback(error);
-  }
-
-  function onSuccess() {
-    that.db = db;
-    callback();
-  } // Create the table and index we'll need to store the fs data.
-
-
-  db.transaction(function (transaction) {
-    function createIndex(transaction) {
-      transaction.executeSql('CREATE INDEX IF NOT EXISTS idx_' + FILE_STORE_NAME + '_id' + ' on ' + FILE_STORE_NAME + ' (id);', [], onSuccess, onError);
-    }
-
-    transaction.executeSql('CREATE TABLE IF NOT EXISTS ' + FILE_STORE_NAME + ' (id unique, data TEXT);', [], createIndex, onError);
-  });
-};
-
-WebSQL.prototype.getReadOnlyContext = function () {
-  return new WebSQLContext(this.db, true);
-};
-
-WebSQL.prototype.getReadWriteContext = function () {
-  return new WebSQLContext(this.db, false);
-};
-
-module.exports = WebSQL;
-},{"../constants.js":"iJA9","../errors.js":"p8GN","base64-arraybuffer":"vLJO","buffer":"dskh"}],"u4Zs":[function(require,module,exports) {
+},{"../constants.js":"iJA9","buffer":"dskh"}],"u4Zs":[function(require,module,exports) {
 var process = require("process");
 var define;
 /*global setImmediate: false, setTimeout: false, console: false */
@@ -3602,42 +3243,105 @@ module.exports = Memory;
 },{"../constants.js":"iJA9","../../lib/async.js":"u4Zs"}],"AiW7":[function(require,module,exports) {
 var IndexedDB = require('./indexeddb.js');
 
-var WebSQL = require('./websql.js');
-
 var Memory = require('./memory.js');
 
 module.exports = {
   IndexedDB: IndexedDB,
-  WebSQL: WebSQL,
-  Memory: Memory,
-
-  /**
-   * Convenience Provider references
-   */
-  // The default provider to use when none is specified
   Default: IndexedDB,
-  // The Fallback provider does automatic fallback checks
-  Fallback: function () {
-    if (IndexedDB.isSupported()) {
-      return IndexedDB;
-    }
-
-    if (WebSQL.isSupported()) {
-      return WebSQL;
-    }
-
-    function NotSupported() {
-      throw '[Filer Error] Your browser doesn\'t support IndexedDB or WebSQL.';
-    }
-
-    NotSupported.isSupported = function () {
-      return false;
-    };
-
-    return NotSupported;
-  }()
+  Memory: Memory
 };
-},{"./indexeddb.js":"QO4x","./websql.js":"hW+K","./memory.js":"3OWy"}],"QMiB":[function(require,module,exports) {
+},{"./indexeddb.js":"QO4x","./memory.js":"3OWy"}],"p8GN":[function(require,module,exports) {
+var errors = {};
+[
+/**
+ * node.js errors - we only use some of these, add as needed.
+ */
+//'-1:UNKNOWN:unknown error',
+//'0:OK:success',
+//'1:EOF:end of file',
+//'2:EADDRINFO:getaddrinfo error',
+'3:EACCES:permission denied', //'4:EAGAIN:resource temporarily unavailable',
+//'5:EADDRINUSE:address already in use',
+//'6:EADDRNOTAVAIL:address not available',
+//'7:EAFNOSUPPORT:address family not supported',
+//'8:EALREADY:connection already in progress',
+'9:EBADF:bad file descriptor', '10:EBUSY:resource busy or locked', //'11:ECONNABORTED:software caused connection abort',
+//'12:ECONNREFUSED:connection refused',
+//'13:ECONNRESET:connection reset by peer',
+//'14:EDESTADDRREQ:destination address required',
+//'15:EFAULT:bad address in system call argument',
+//'16:EHOSTUNREACH:host is unreachable',
+//'17:EINTR:interrupted system call',
+'18:EINVAL:invalid argument', //'19:EISCONN:socket is already connected',
+//'20:EMFILE:too many open files',
+//'21:EMSGSIZE:message too long',
+//'22:ENETDOWN:network is down',
+//'23:ENETUNREACH:network is unreachable',
+//'24:ENFILE:file table overflow',
+//'25:ENOBUFS:no buffer space available',
+//'26:ENOMEM:not enough memory',
+'27:ENOTDIR:not a directory', '28:EISDIR:illegal operation on a directory', //'29:ENONET:machine is not on the network',
+// errno 30 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+//'31:ENOTCONN:socket is not connected',
+//'32:ENOTSOCK:socket operation on non-socket',
+//'33:ENOTSUP:operation not supported on socket',
+'34:ENOENT:no such file or directory', //'35:ENOSYS:function not implemented',
+//'36:EPIPE:broken pipe',
+//'37:EPROTO:protocol error',
+//'38:EPROTONOSUPPORT:protocol not supported',
+//'39:EPROTOTYPE:protocol wrong type for socket',
+//'40:ETIMEDOUT:connection timed out',
+//'41:ECHARSET:invalid Unicode character',
+//'42:EAIFAMNOSUPPORT:address family for hostname not supported',
+// errno 43 skipped, as per https://github.com/rvagg/node-errno/blob/master/errno.js
+//'44:EAISERVICE:servname not supported for ai_socktype',
+//'45:EAISOCKTYPE:ai_socktype not supported',
+//'46:ESHUTDOWN:cannot send after transport endpoint shutdown',
+'47:EEXIST:file already exists', //'48:ESRCH:no such process',
+//'49:ENAMETOOLONG:name too long',
+'50:EPERM:operation not permitted', '51:ELOOP:too many symbolic links encountered', //'52:EXDEV:cross-device link not permitted',
+'53:ENOTEMPTY:directory not empty', //'54:ENOSPC:no space left on device',
+'55:EIO:i/o error', //'56:EROFS:read-only file system',
+//'57:ENODEV:no such device',
+//'58:ESPIPE:invalid seek',
+//'59:ECANCELED:operation canceled',
+
+/**
+ * Filer specific errors
+ */
+'1000:ENOTMOUNTED:not mounted', '1001:EFILESYSTEMERROR:missing super node, use \'FORMAT\' flag to format filesystem.', '1002:ENOATTR:attribute does not exist'].forEach(function (e) {
+  e = e.split(':');
+  var errno = +e[0];
+  var errName = e[1];
+  var defaultMessage = e[2];
+
+  function FilerError(msg, path) {
+    Error.call(this);
+    this.name = errName;
+    this.code = errName;
+    this.errno = errno;
+    this.message = msg || defaultMessage;
+
+    if (path) {
+      this.path = path;
+    }
+
+    this.stack = new Error(this.message).stack;
+  }
+
+  FilerError.prototype = Object.create(Error.prototype);
+  FilerError.prototype.constructor = FilerError;
+
+  FilerError.prototype.toString = function () {
+    var pathInfo = this.path ? ', \'' + this.path + '\'' : '';
+    return this.name + ': ' + this.message + pathInfo;
+  }; // We expose the error as both Errors.EINVAL and Errors[18]
+
+
+  errors[errName] = errors[errno] = FilerError;
+});
+module.exports = errors;
+},{}],"QMiB":[function(require,module,exports) {
 var defaults = require('../constants.js').ENVIRONMENT;
 
 module.exports = function Environment(env) {
@@ -5954,7 +5658,61 @@ module.exports = function DirectoryEntry(id, type) {
   this.id = id;
   this.type = type || NODE_TYPE_FILE;
 };
-},{"./constants.js":"iJA9"}],"KKNo":[function(require,module,exports) {
+},{"./constants.js":"iJA9"}],"osLK":[function(require,module,exports) {
+var _require = require('./constants'),
+    FIRST_DESCRIPTOR = _require.FIRST_DESCRIPTOR;
+
+var openFiles = {};
+/**
+ * Start at FIRST_DESCRIPTOR and go until we find
+ * an empty file descriptor, then return it.
+ */
+
+var getEmptyDescriptor = function getEmptyDescriptor() {
+  var fd = FIRST_DESCRIPTOR;
+
+  while (getOpenFileDescription(fd)) {
+    fd++;
+  }
+
+  return fd;
+};
+/**
+ * Look up the open file description object for a given
+ * file descriptor.
+ */
+
+
+var getOpenFileDescription = function getOpenFileDescription(ofd) {
+  return openFiles[ofd];
+};
+/**
+ * Allocate a new file descriptor for the given
+ * open file description. 
+ */
+
+
+var allocDescriptor = function allocDescriptor(openFileDescription) {
+  var ofd = getEmptyDescriptor();
+  openFiles[ofd] = openFileDescription;
+  return ofd;
+};
+/**
+ * Release the given existing file descriptor created
+ * with allocDescriptor(). 
+ */
+
+
+var releaseDescriptor = function releaseDescriptor(ofd) {
+  return delete openFiles[ofd];
+};
+
+module.exports = {
+  allocDescriptor: allocDescriptor,
+  releaseDescriptor: releaseDescriptor,
+  getOpenFileDescription: getOpenFileDescription
+};
+},{"./constants":"iJA9"}],"KKNo":[function(require,module,exports) {
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -6239,7 +5997,6 @@ var normalize = Path.normalize;
 var dirname = Path.dirname;
 var basename = Path.basename;
 var isAbsolutePath = Path.isAbsolute;
-var isNullPath = Path.isNull;
 
 var shared = require('../shared.js');
 
@@ -6269,6 +6026,8 @@ var Encoding = require('../encoding.js');
 var Errors = require('../errors.js');
 
 var DirectoryEntry = require('../directory-entry.js');
+
+var openFiles = require('../open-files.js');
 
 var OpenFileDescription = require('../open-file-description.js');
 
@@ -7942,39 +7701,13 @@ function validate_file_options(options, enc, fileMode) {
   return options;
 }
 
-function pathCheck(path, allowRelative, callback) {
-  var err;
-
-  if (typeof allowRelative === 'function') {
-    callback = allowRelative;
-    allowRelative = false;
-  }
-
-  if (!path) {
-    err = new Errors.EINVAL('Path must be a string', path);
-  } else if (isNullPath(path)) {
-    err = new Errors.EINVAL('Path must be a string without null bytes.', path);
-  } else if (!allowRelative && !isAbsolutePath(path)) {
-    err = new Errors.EINVAL('Path must be absolute.', path);
-  }
-
-  if (err) {
-    callback(err);
-    return false;
-  }
-
-  return true;
-}
-
-function open(fs, context, path, flags, mode, callback) {
-  if (arguments.length < 6) {
+function open(context, path, flags, mode, callback) {
+  if (arguments.length < 5) {
     callback = arguments[arguments.length - 1];
     mode = 420;
   } else {
     mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
   }
-
-  if (!pathCheck(path, callback)) return;
 
   function check_result(error, fileNode) {
     if (error) {
@@ -7989,7 +7722,7 @@ function open(fs, context, path, flags, mode, callback) {
       }
 
       var openFileDescription = new OpenFileDescription(path, fileNode.id, flags, position);
-      var fd = fs.allocDescriptor(openFileDescription);
+      var fd = openFiles.allocDescriptor(openFileDescription);
       callback(null, fd);
     }
   }
@@ -8003,22 +7736,21 @@ function open(fs, context, path, flags, mode, callback) {
   open_file(context, path, flags, mode, check_result);
 }
 
-function close(fs, context, fd, callback) {
-  if (!fs.openFiles[fd]) {
+function close(context, fd, callback) {
+  if (!openFiles.getOpenFileDescription(fd)) {
     callback(new Errors.EBADF());
   } else {
-    fs.releaseDescriptor(fd);
+    openFiles.releaseDescriptor(fd);
     callback(null);
   }
 }
 
-function mknod(fs, context, path, type, callback) {
-  if (!pathCheck(path, callback)) return;
+function mknod(context, path, type, callback) {
   make_node(context, path, type, callback);
 }
 
-function mkdir(fs, context, path, mode, callback) {
-  if (arguments.length < 5) {
+function mkdir(context, path, mode, callback) {
+  if (arguments.length < 4) {
     callback = mode;
     mode = FULL_READ_WRITE_EXEC_PERMISSIONS;
   } else {
@@ -8026,22 +7758,20 @@ function mkdir(fs, context, path, mode, callback) {
     if (!mode) return;
   }
 
-  if (!pathCheck(path, callback)) return;
   make_directory(context, path, callback);
 }
 
-function access(fs, context, path, mode, callback) {
+function access(context, path, mode, callback) {
   if (typeof mode === 'function') {
     callback = mode;
     mode = Constants.fsConstants.F_OK;
   }
 
-  if (!pathCheck(path, callback)) return;
   mode = mode | Constants.fsConstants.F_OK;
   access_file(context, path, mode, callback);
 }
 
-function mkdtemp(fs, context, prefix, options, callback) {
+function mkdtemp(context, prefix, options, callback) {
   callback = arguments[arguments.length - 1];
 
   if (!prefix) {
@@ -8050,25 +7780,21 @@ function mkdtemp(fs, context, prefix, options, callback) {
 
   var random = shared.randomChars(6);
   var path = prefix + '-' + random;
-  if (!pathCheck(path, callback)) return;
   make_directory(context, path, function (error) {
     callback(error, path);
   });
 }
 
-function rmdir(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+function rmdir(context, path, callback) {
   remove_directory(context, path, callback);
 }
 
-function stat(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
-
+function stat(context, path, callback) {
   function check_result(error, result) {
     if (error) {
       callback(error);
     } else {
-      var stats = new Stats(path, result, fs.name);
+      var stats = new Stats(path, result, context.name);
       callback(null, stats);
     }
   }
@@ -8076,17 +7802,17 @@ function stat(fs, context, path, callback) {
   stat_file(context, path, check_result);
 }
 
-function fstat(fs, context, fd, callback) {
+function fstat(context, fd, callback) {
   function check_result(error, result) {
     if (error) {
       callback(error);
     } else {
-      var stats = new Stats(ofd.path, result, fs.name);
+      var stats = new Stats(ofd.path, result, context.name);
       callback(null, stats);
     }
   }
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8095,18 +7821,15 @@ function fstat(fs, context, fd, callback) {
   }
 }
 
-function link(fs, context, oldpath, newpath, callback) {
-  if (!pathCheck(oldpath, callback)) return;
-  if (!pathCheck(newpath, callback)) return;
+function link(context, oldpath, newpath, callback) {
   link_node(context, oldpath, newpath, callback);
 }
 
-function unlink(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+function unlink(context, path, callback) {
   unlink_node(context, path, callback);
 }
 
-function read(fs, context, fd, buffer, offset, length, position, callback) {
+function read(context, fd, buffer, offset, length, position, callback) {
   // Follow how node.js does this
   function wrapped_cb(err, bytesRead) {
     // Retain a reference to buffer so that it can't be GC'ed too soon.
@@ -8116,7 +7839,7 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   offset = undefined === offset ? 0 : offset;
   length = undefined === length ? buffer.length - offset : length;
   callback = arguments[arguments.length - 1];
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8127,9 +7850,9 @@ function read(fs, context, fd, buffer, offset, length, position, callback) {
   }
 }
 
-function fsync(fs, context, fd, callback) {
+function fsync(context, fd, callback) {
   if (validateInteger(fd, callback) !== fd) return;
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8138,10 +7861,9 @@ function fsync(fs, context, fd, callback) {
   }
 }
 
-function readFile(fs, context, path, options, callback) {
+function readFile(context, path, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, null, 'r');
-  if (!pathCheck(path, callback)) return;
   var flags = validate_flags(options.flag || 'r');
 
   if (!flags) {
@@ -8154,10 +7876,10 @@ function readFile(fs, context, path, options, callback) {
     }
 
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
-    var fd = fs.allocDescriptor(ofd);
+    var fd = openFiles.allocDescriptor(ofd);
 
     function cleanup() {
-      fs.releaseDescriptor(fd);
+      openFiles.releaseDescriptor(fd);
     }
 
     fstat_file(context, ofd, function (err, fstatResult) {
@@ -8166,7 +7888,7 @@ function readFile(fs, context, path, options, callback) {
         return callback(err);
       }
 
-      var stats = new Stats(ofd.path, fstatResult, fs.name);
+      var stats = new Stats(ofd.path, fstatResult, context.name);
 
       if (stats.isDirectory()) {
         cleanup();
@@ -8196,11 +7918,11 @@ function readFile(fs, context, path, options, callback) {
   });
 }
 
-function write(fs, context, fd, buffer, offset, length, position, callback) {
+function write(context, fd, buffer, offset, length, position, callback) {
   callback = arguments[arguments.length - 1];
   offset = undefined === offset ? 0 : offset;
   length = undefined === length ? buffer.length - offset : length;
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8213,10 +7935,9 @@ function write(fs, context, fd, buffer, offset, length, position, callback) {
   }
 }
 
-function writeFile(fs, context, path, data, options, callback) {
+function writeFile(context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'w');
-  if (!pathCheck(path, callback)) return;
   var flags = validate_flags(options.flag || 'w');
 
   if (!flags) {
@@ -8239,9 +7960,9 @@ function writeFile(fs, context, path, data, options, callback) {
     }
 
     var ofd = new OpenFileDescription(path, fileNode.id, flags, 0);
-    var fd = fs.allocDescriptor(ofd);
+    var fd = openFiles.allocDescriptor(ofd);
     replace_data(context, ofd, data, 0, data.length, function (err) {
-      fs.releaseDescriptor(fd);
+      openFiles.releaseDescriptor(fd);
 
       if (err) {
         return callback(err);
@@ -8252,10 +7973,9 @@ function writeFile(fs, context, path, data, options, callback) {
   });
 }
 
-function appendFile(fs, context, path, data, options, callback) {
+function appendFile(context, path, data, options, callback) {
   callback = arguments[arguments.length - 1];
   options = validate_file_options(options, 'utf8', 'a');
-  if (!pathCheck(path, callback)) return;
   var flags = validate_flags(options.flag || 'a');
 
   if (!flags) {
@@ -8278,9 +7998,9 @@ function appendFile(fs, context, path, data, options, callback) {
     }
 
     var ofd = new OpenFileDescription(path, fileNode.id, flags, fileNode.size);
-    var fd = fs.allocDescriptor(ofd);
+    var fd = openFiles.allocDescriptor(ofd);
     write_data(context, ofd, data, 0, data.length, ofd.position, function (err) {
-      fs.releaseDescriptor(fd);
+      openFiles.releaseDescriptor(fd);
 
       if (err) {
         return callback(err);
@@ -8291,12 +8011,12 @@ function appendFile(fs, context, path, data, options, callback) {
   });
 }
 
-function exists(fs, context, path, callback) {
+function exists(context, path, callback) {
   function cb(err) {
     callback(err ? false : true);
   }
 
-  stat(fs, context, path, cb);
+  stat(context, path, cb);
 }
 
 function validateInteger(value, callback) {
@@ -8431,13 +8151,12 @@ function fchown_file(context, ofd, uid, gid, callback) {
   ofd.getNode(context, update_owner);
 }
 
-function getxattr(fs, context, path, name, callback) {
-  if (!pathCheck(path, callback)) return;
+function getxattr(context, path, name, callback) {
   getxattr_file(context, path, name, callback);
 }
 
-function fgetxattr(fs, context, fd, name, callback) {
-  var ofd = fs.openFiles[fd];
+function fgetxattr(context, fd, name, callback) {
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8446,23 +8165,22 @@ function fgetxattr(fs, context, fd, name, callback) {
   }
 }
 
-function setxattr(fs, context, path, name, value, flag, callback) {
+function setxattr(context, path, name, value, flag, callback) {
   if (typeof flag === 'function') {
     callback = flag;
     flag = null;
   }
 
-  if (!pathCheck(path, callback)) return;
   setxattr_file(context, path, name, value, flag, callback);
 }
 
-function fsetxattr(fs, context, fd, name, value, flag, callback) {
+function fsetxattr(context, fd, name, value, flag, callback) {
   if (typeof flag === 'function') {
     callback = flag;
     flag = null;
   }
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8473,13 +8191,12 @@ function fsetxattr(fs, context, fd, name, value, flag, callback) {
   }
 }
 
-function removexattr(fs, context, path, name, callback) {
-  if (!pathCheck(path, callback)) return;
+function removexattr(context, path, name, callback) {
   removexattr_file(context, path, name, callback);
 }
 
-function fremovexattr(fs, context, fd, name, callback) {
-  var ofd = fs.openFiles[fd];
+function fremovexattr(context, fd, name, callback) {
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8490,7 +8207,7 @@ function fremovexattr(fs, context, fd, name, callback) {
   }
 }
 
-function lseek(fs, context, fd, offset, whence, callback) {
+function lseek(context, fd, offset, whence, callback) {
   function update_descriptor_position(error, stats) {
     if (error) {
       callback(error);
@@ -8504,7 +8221,7 @@ function lseek(fs, context, fd, offset, whence, callback) {
     }
   }
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8531,8 +8248,7 @@ function lseek(fs, context, fd, offset, whence, callback) {
   }
 }
 
-function readdir(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+function readdir(context, path, callback) {
   read_directory(context, path, callback);
 }
 
@@ -8546,19 +8262,18 @@ function toUnixTimestamp(time) {
   }
 }
 
-function utimes(fs, context, path, atime, mtime, callback) {
-  if (!pathCheck(path, callback)) return;
+function utimes(context, path, atime, mtime, callback) {
   var currentTime = Date.now();
   atime = atime ? toUnixTimestamp(atime) : toUnixTimestamp(currentTime);
   mtime = mtime ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
   utimes_file(context, path, atime, mtime, callback);
 }
 
-function futimes(fs, context, fd, atime, mtime, callback) {
+function futimes(context, fd, atime, mtime, callback) {
   var currentTime = Date.now();
   atime = atime ? toUnixTimestamp(atime) : toUnixTimestamp(currentTime);
   mtime = mtime ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8569,17 +8284,16 @@ function futimes(fs, context, fd, atime, mtime, callback) {
   }
 }
 
-function chmod(fs, context, path, mode, callback) {
-  if (!pathCheck(path, callback)) return;
+function chmod(context, path, mode, callback) {
   mode = validateAndMaskMode(mode, callback);
   if (!mode) return;
   chmod_file(context, path, mode, callback);
 }
 
-function fchmod(fs, context, fd, mode, callback) {
+function fchmod(context, fd, mode, callback) {
   mode = validateAndMaskMode(mode, callback);
   if (!mode) return;
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8590,9 +8304,7 @@ function fchmod(fs, context, fd, mode, callback) {
   }
 }
 
-function chown(fs, context, path, uid, gid, callback) {
-  if (!pathCheck(path, callback)) return;
-
+function chown(context, path, uid, gid, callback) {
   if (!isUint32(uid)) {
     return callback(new Errors.EINVAL('uid must be a valid integer', uid));
   }
@@ -8604,7 +8316,7 @@ function chown(fs, context, path, uid, gid, callback) {
   chown_file(context, path, uid, gid, callback);
 }
 
-function fchown(fs, context, fd, uid, gid, callback) {
+function fchown(context, fd, uid, gid, callback) {
   if (!isUint32(uid)) {
     return callback(new Errors.EINVAL('uid must be a valid integer', uid));
   }
@@ -8613,7 +8325,7 @@ function fchown(fs, context, fd, uid, gid, callback) {
     return callback(new Errors.EINVAL('gid must be a valid integer', gid));
   }
 
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8624,9 +8336,7 @@ function fchown(fs, context, fd, uid, gid, callback) {
   }
 }
 
-function rename(fs, context, oldpath, newpath, callback) {
-  if (!pathCheck(oldpath, callback)) return;
-  if (!pathCheck(newpath, callback)) return;
+function rename(context, oldpath, newpath, callback) {
   oldpath = normalize(oldpath);
   newpath = normalize(newpath);
   var oldParentPath = Path.dirname(oldpath);
@@ -8741,29 +8451,22 @@ function rename(fs, context, oldpath, newpath, callback) {
   find_node(context, oldpath, check_node_type);
 }
 
-function symlink(fs, context, srcpath, dstpath, type, callback) {
+function symlink(context, srcpath, dstpath, type, callback) {
   // NOTE: we support passing the `type` arg, but ignore it.
-  callback = arguments[arguments.length - 1]; // Special Case: allow srcpath to be relative, which we normally don't permit.
-  // If the srcpath is relative, we assume it's relative to the dirpath of dstpath.
-
-  if (!pathCheck(srcpath, true, callback)) return;
-  if (!pathCheck(dstpath, callback)) return;
+  callback = arguments[arguments.length - 1];
   make_symbolic_link(context, srcpath, dstpath, callback);
 }
 
-function readlink(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
+function readlink(context, path, callback) {
   read_link(context, path, callback);
 }
 
-function lstat(fs, context, path, callback) {
-  if (!pathCheck(path, callback)) return;
-
+function lstat(context, path, callback) {
   function check_result(error, result) {
     if (error) {
       callback(error);
     } else {
-      var stats = new Stats(path, result, fs.name);
+      var stats = new Stats(path, result, context.name);
       callback(null, stats);
     }
   }
@@ -8771,20 +8474,19 @@ function lstat(fs, context, path, callback) {
   lstat_file(context, path, check_result);
 }
 
-function truncate(fs, context, path, length, callback) {
+function truncate(context, path, length, callback) {
   // NOTE: length is optional
   callback = arguments[arguments.length - 1];
   length = length || 0;
-  if (!pathCheck(path, callback)) return;
   if (validateInteger(length, callback) !== length) return;
   truncate_file(context, path, length, callback);
 }
 
-function ftruncate(fs, context, fd, length, callback) {
+function ftruncate(context, fd, length, callback) {
   // NOTE: length is optional
   callback = arguments[arguments.length - 1];
   length = length || 0;
-  var ofd = fs.openFiles[fd];
+  var ofd = openFiles.getOpenFileDescription(fd);
 
   if (!ofd) {
     callback(new Errors.EBADF());
@@ -8797,51 +8499,60 @@ function ftruncate(fs, context, fd, length, callback) {
 }
 
 module.exports = {
-  ensureRootDirectory: ensure_root_directory,
-  open: open,
-  chmod: chmod,
+  appendFile: appendFile,
   access: access,
-  fchmod: fchmod,
   chown: chown,
-  fchown: fchown,
+  chmod: chmod,
   close: close,
-  mknod: mknod,
+  // copyFile - https://github.com/filerjs/filer/issues/436
+  ensureRootDirectory: ensure_root_directory,
+  exists: exists,
+  fchown: fchown,
+  fchmod: fchmod,
+  // fdatasync - https://github.com/filerjs/filer/issues/653
+  fgetxattr: fgetxattr,
+  fremovexattr: fremovexattr,
+  fsetxattr: fsetxattr,
+  fstat: fstat,
+  fsync: fsync,
+  ftruncate: ftruncate,
+  futimes: futimes,
+  getxattr: getxattr,
+  // lchown - https://github.com/filerjs/filer/issues/620
+  // lchmod - https://github.com/filerjs/filer/issues/619
+  link: link,
+  lseek: lseek,
+  lstat: lstat,
   mkdir: mkdir,
   mkdtemp: mkdtemp,
-  rmdir: rmdir,
-  unlink: unlink,
-  stat: stat,
-  fstat: fstat,
-  link: link,
-  fsync: fsync,
+  mknod: mknod,
+  open: open,
+  readdir: readdir,
   read: read,
   readFile: readFile,
-  write: write,
-  writeFile: writeFile,
-  appendFile: appendFile,
-  exists: exists,
-  getxattr: getxattr,
-  fgetxattr: fgetxattr,
-  setxattr: setxattr,
-  fsetxattr: fsetxattr,
-  removexattr: removexattr,
-  fremovexattr: fremovexattr,
-  lseek: lseek,
-  readdir: readdir,
-  utimes: utimes,
-  futimes: futimes,
-  rename: rename,
-  symlink: symlink,
   readlink: readlink,
-  lstat: lstat,
+  // realpath - https://github.com/filerjs/filer/issues/85
+  removexattr: removexattr,
+  rename: rename,
+  rmdir: rmdir,
+  setxattr: setxattr,
+  stat: stat,
+  symlink: symlink,
   truncate: truncate,
-  ftruncate: ftruncate
+  // unwatchFile - implemented in interface.js
+  unlink: unlink,
+  utimes: utimes,
+  // watch - implemented in interface.js
+  // watchFile - implemented in interface.js
+  writeFile: writeFile,
+  write: write
 };
-},{"../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../encoding.js":"03yF","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","buffer":"dskh"}],"GMi4":[function(require,module,exports) {
+},{"../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../encoding.js":"03yF","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-files.js":"osLK","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","buffer":"dskh"}],"GMi4":[function(require,module,exports) {
+var Buffer = require("buffer").Buffer;
 var _require = require('es6-promisify'),
     promisify = _require.promisify;
 
-var isNullPath = require('../path.js').isNull;
+var Path = require('../path.js');
 
 var nop = require('../shared.js').nop;
 
@@ -8868,8 +8579,7 @@ var defaultGuidFn = require('../shared.js').guid;
 
 var STDIN = Constants.STDIN;
 var STDOUT = Constants.STDOUT;
-var STDERR = Constants.STDERR;
-var FIRST_DESCRIPTOR = Constants.FIRST_DESCRIPTOR; // The core fs operations live on impl
+var STDERR = Constants.STDERR; // The core fs operations live on impl
 
 var impl = require('./implementation.js'); // node.js supports a calling pattern that leaves off a callback.
 
@@ -8892,6 +8602,62 @@ function defaultCallback(err) {
     /* eslint no-console: 0 */
     console.error('Filer error: ', err);
   }
+} // Get a path (String) from a file:// URL. Support URL() like objects
+// https://github.com/nodejs/node/blob/968e901aff38a343b1de4addebf79fd8fa991c59/lib/internal/url.js#L1381
+
+
+function toPathIfFileURL(fileURLOrPath) {
+  if (!(fileURLOrPath && fileURLOrPath.protocol && fileURLOrPath.pathname)) {
+    return fileURLOrPath;
+  }
+
+  if (fileURLOrPath.protocol !== 'file:') {
+    throw new Errors.EINVAL('only file: URLs are supported for paths', fileURLOrPath);
+  }
+
+  var pathname = fileURLOrPath.pathname;
+
+  for (var n = 0; n < pathname.length; n++) {
+    if (pathname[n] === '%') {
+      var third = pathname.codePointAt(n + 2) | 0x20;
+
+      if (pathname[n + 1] === '2' && third === 102) {
+        throw new Errors.EINVAL('file: URLs must not include encoded / characters', fileURLOrPath);
+      }
+    }
+  }
+
+  return decodeURIComponent(pathname);
+} // Allow Buffers for paths. Assumes we want UTF8.
+
+
+function toPathIfBuffer(bufferOrPath) {
+  return Buffer.isBuffer(bufferOrPath) ? bufferOrPath.toString() : bufferOrPath;
+}
+
+function validatePath(path, allowRelative) {
+  if (!path) {
+    return new Errors.EINVAL('Path must be a string', path);
+  } else if (Path.isNull(path)) {
+    return new Errors.EINVAL('Path must be a string without null bytes.', path);
+  } else if (!allowRelative && !Path.isAbsolute(path)) {
+    return new Errors.EINVAL('Path must be absolute.', path);
+  }
+}
+
+function processPathArg(args, idx, allowRelative) {
+  var path = args[idx];
+  path = toPathIfFileURL(path);
+  path = toPathIfBuffer(path); // Some methods specifically allow for rel paths (eg symlink with srcPath)
+
+  var err = validatePath(path, allowRelative);
+
+  if (err) {
+    throw err;
+  } // Overwrite path arg with converted and validated path
+
+
+  args[idx] = path;
 }
 /**
  * FileSystem
@@ -8940,29 +8706,14 @@ function FileSystem(options, callback) {
   fs.stdout = STDOUT;
   fs.stderr = STDERR; // Expose Node's fs.constants to users
 
-  fs.constants = Constants.fsConstants; // Expose Shell constructor
+  fs.constants = Constants.fsConstants; // Node also forwards the access mode flags onto fs
 
-  this.Shell = Shell.bind(undefined, this); // Safely expose the list of open files and file
-  // descriptor management functions
+  fs.F_OK = Constants.fsConstants.F_OK;
+  fs.R_OK = Constants.fsConstants.R_OK;
+  fs.W_OK = Constants.fsConstants.W_OK;
+  fs.X_OK = Constants.fsConstants.X_OK; // Expose Shell constructor
 
-  var openFiles = {};
-  var nextDescriptor = FIRST_DESCRIPTOR;
-  Object.defineProperty(this, 'openFiles', {
-    get: function get() {
-      return openFiles;
-    }
-  });
-
-  this.allocDescriptor = function (openFileDescription) {
-    var fd = nextDescriptor++;
-    openFiles[fd] = openFileDescription;
-    return fd;
-  };
-
-  this.releaseDescriptor = function (fd) {
-    delete openFiles[fd];
-  }; // Safely expose the operation queue
-
+  this.Shell = Shell.bind(undefined, this); // Safely expose the operation queue
 
   var queue = [];
 
@@ -8989,7 +8740,7 @@ function FileSystem(options, callback) {
 
 
   this.watch = function (filename, options, listener) {
-    if (isNullPath(filename)) {
+    if (Path.isNull(filename)) {
       throw new Error('Path must be a string without null bytes.');
     }
 
@@ -9055,6 +8806,7 @@ function FileSystem(options, callback) {
     function complete(error) {
       function wrappedContext(methodName) {
         var context = provider[methodName]();
+        context.name = name;
         context.flags = flags;
         context.changes = [];
         context.guid = wrappedGuidFn(context); // When the context is finished, let the fs deal with any change events
@@ -9114,112 +8866,146 @@ function FileSystem(options, callback) {
   });
   FileSystem.prototype.promises = {};
   /**
-   * Public API for FileSystem. All node.js methods that are
-   * exposed on fs.promises include `promise: true`.  We also
-   * include our own extra methods, but skip the fd versions
-   * to match node.js, which puts these on a FileHandle object.
+   * Public API for FileSystem. All node.js methods that are exposed on fs.promises
+   * include `promise: true`.  We also include our own extra methods, but skip the
+   * fd versions to match node.js, which puts these on a `FileHandle` object.
+   * Any method that deals with path argument(s) also includes the position of
+   * those args in one of `absPathArgs: [...]` or `relPathArgs: [...]`, so they
+   * can be processed and validated before being passed on to the method.
    */
 
   [{
-    name: 'open',
-    promises: true
+    name: 'appendFile',
+    promises: true,
+    absPathArgs: [0]
   }, {
     name: 'access',
-    promises: true
-  }, {
-    name: 'chmod',
-    promises: true
-  }, {
-    name: 'fchmod'
+    promises: true,
+    absPathArgs: [0]
   }, {
     name: 'chown',
-    promises: true
+    promises: true,
+    absPathArgs: [0]
+  }, {
+    name: 'chmod',
+    promises: true,
+    absPathArgs: [0]
+  }, {
+    name: 'close'
+  }, // copyFile - https://github.com/filerjs/filer/issues/436
+  {
+    name: 'exists',
+    absPathArgs: [0]
   }, {
     name: 'fchown'
   }, {
-    name: 'close'
+    name: 'fchmod'
+  }, // fdatasync - https://github.com/filerjs/filer/issues/653
+  {
+    name: 'fgetxattr'
   }, {
-    name: 'mknod',
-    promises: true
+    name: 'fremovexattr'
   }, {
-    name: 'mkdir',
-    promises: true
-  }, {
-    name: 'mkdtemp',
-    promises: true
-  }, {
-    name: 'rmdir',
-    promises: true
-  }, {
-    name: 'stat',
-    promises: true
+    name: 'fsetxattr'
   }, {
     name: 'fstat'
   }, {
     name: 'fsync'
   }, {
+    name: 'ftruncate'
+  }, {
+    name: 'futimes'
+  }, {
+    name: 'getxattr',
+    promises: true,
+    absPathArgs: [0]
+  }, // lchown - https://github.com/filerjs/filer/issues/620
+  // lchmod - https://github.com/filerjs/filer/issues/619
+  {
     name: 'link',
-    promises: true
-  }, {
-    name: 'unlink',
-    promises: true
-  }, {
-    name: 'read'
-  }, {
-    name: 'readFile',
-    promises: true
-  }, {
-    name: 'write'
-  }, {
-    name: 'writeFile',
-    promises: true
-  }, {
-    name: 'appendFile',
-    promises: true
-  }, {
-    name: 'exists'
+    promises: true,
+    absPathArgs: [0, 1]
   }, {
     name: 'lseek'
-  }, {
-    name: 'readdir',
-    promises: true
-  }, {
-    name: 'rename',
-    promises: true
-  }, {
-    name: 'readlink',
-    promises: true
-  }, {
-    name: 'symlink',
-    promises: true
   }, {
     name: 'lstat',
     promises: true
   }, {
-    name: 'truncate',
+    name: 'mkdir',
+    promises: true,
+    absPathArgs: [0]
+  }, {
+    name: 'mkdtemp',
     promises: true
   }, {
-    name: 'ftruncate'
+    name: 'mknod',
+    promises: true,
+    absPathArgs: [0]
   }, {
-    name: 'utimes',
-    promises: true
+    name: 'open',
+    promises: true,
+    absPathArgs: [0]
   }, {
-    name: 'futimes'
+    name: 'readdir',
+    promises: true,
+    absPathArgs: [0]
+  }, {
+    name: 'read'
+  }, {
+    name: 'readFile',
+    promises: true,
+    absPathArgs: [0]
+  }, {
+    name: 'readlink',
+    promises: true,
+    absPathArgs: [0]
+  }, // realpath - https://github.com/filerjs/filer/issues/85
+  {
+    name: 'removexattr',
+    promises: true,
+    absPathArgs: [0]
+  }, {
+    name: 'rename',
+    promises: true,
+    absPathArgs: [0, 1]
+  }, {
+    name: 'rmdir',
+    promises: true,
+    absPathArgs: [0]
   }, {
     name: 'setxattr',
-    promises: true
+    promises: true,
+    absPathArgs: [0]
   }, {
-    name: 'getxattr',
-    promises: true
+    name: 'stat',
+    promises: true,
+    absPathArgs: [0]
   }, {
-    name: 'fsetxattr'
+    name: 'symlink',
+    promises: true,
+    relPathArgs: [0],
+    absPathArgs: [1]
   }, {
-    name: 'fgetxattr'
+    name: 'truncate',
+    promises: true,
+    absPathArgs: [0]
+  }, // unwatchFile - https://github.com/filerjs/filer/pull/553
+  {
+    name: 'unlink',
+    promises: true,
+    absPathArgs: [0]
   }, {
-    name: 'removexattr',
-    promises: true
+    name: 'utimes',
+    promises: true,
+    absPathArgs: [0]
+  }, // watch - implemented above in `this.watch`
+  // watchFile - https://github.com/filerjs/filer/issues/654
+  {
+    name: 'writeFile',
+    promises: true,
+    absPathArgs: [0]
   }, {
-    name: 'fremovexattr'
+    name: 'write'
   }].forEach(function (method) {
     var methodName = method.name;
     var shouldPromisify = method.promises === true;
@@ -9231,7 +9017,20 @@ function FileSystem(options, callback) {
       // fire-and-forget style fs operations, we have to dance a bit here.
 
       var missingCallback = typeof args[lastArgIndex] !== 'function';
-      var callback = maybeCallback(args[lastArgIndex]);
+      var callback = maybeCallback(args[lastArgIndex]); // Deal with path arguments, validating and normalizing Buffer and file:// URLs
+
+      if (method.absPathArgs) {
+        method.absPathArgs.forEach(function (pathArg) {
+          return processPathArg(args, pathArg, false);
+        });
+      }
+
+      if (method.relPathArgs) {
+        method.relPathArgs.forEach(function (pathArg) {
+          return processPathArg(args, pathArg, true);
+        });
+      }
+
       var error = fs.queueOrRun(function () {
         var context = fs.provider.openReadWriteContext(); // Fail early if the filesystem is in an error state (e.g.,
         // provider failed to open.
@@ -9257,7 +9056,7 @@ function FileSystem(options, callback) {
         // fn(fs, context, arg0, arg1, ... , complete);
 
 
-        var fnArgs = [fs, context].concat(args);
+        var fnArgs = [context].concat(args);
         impl[methodName].apply(null, fnArgs);
       });
 
@@ -9276,14 +9075,30 @@ function FileSystem(options, callback) {
 
 FileSystem.providers = providers;
 module.exports = FileSystem;
-},{"es6-promisify":"0c0E","../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","./implementation.js":"bsBG"}],"Focm":[function(require,module,exports) {
+},{"es6-promisify":"0c0E","../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","./implementation.js":"bsBG","buffer":"dskh"}],"Focm":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
-module.exports = {
+var fs = null;
+var Filer = null;
+module.exports = Filer = {
   FileSystem: require('./filesystem/interface.js'),
   Buffer: Buffer,
+  // We previously called this Path, but node calls it path. Do both
   Path: require('./path.js'),
+  path: require('./path.js'),
   Errors: require('./errors.js'),
   Shell: require('./shell/shell.js')
-};
+}; // Add a getter for the `fs` instance, which returns
+// a Filer FileSystem instance, using the default provider/flags.
+
+Object.defineProperty(Filer, 'fs', {
+  enumerable: true,
+  get: function get() {
+    if (!fs) {
+      fs = new Filer.FileSystem();
+    }
+
+    return fs;
+  }
+});
 },{"./filesystem/interface.js":"GMi4","./path.js":"UzoP","./errors.js":"p8GN","./shell/shell.js":"D1Ra","buffer":"dskh"}]},{},["Focm"], "Filer")
 //# sourceMappingURL=/filer.map
