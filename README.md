@@ -81,15 +81,20 @@ backend storage providers, for example `Memory`. See the section on [Storage Pro
 <a name="overviewExample"></a>
 
 ```js
-var fs = new Filer.FileSystem();
-fs.open('/myfile', 'w+', function(err, fd) {
-  if (err) throw err;
-  fs.close(fd, function(err) {
-    if (err) throw err;
-    fs.stat('/myfile', function(err, stats) {
-      if (err) throw err;
-      console.log('stats: ' + JSON.stringify(stats));
-    });
+// You can easily use Filer.fs in place of node's `fs`
+const { fs } = require('filer');
+
+fs.writeFile('/myfile', 'Hello World!', (err) => {
+  if (err) {
+    return console.error('Unable to write /myfile', err);
+  }
+
+  fs.stat('/myfile', (err, stats) =>  {
+    if (err) {
+      return console.error('Unable to stat /myfile', err);
+    }
+
+    console.log('Wrote /myfile, stats are:', stats);
   });
 });
 ```
@@ -125,9 +130,13 @@ fs.writeFile('/myfile', 'some data')
 
 #### Filer.FileSystem(options, callback) constructor
 
-File system constructor, invoked to open an existing file system or create a new one.
-Accepts two arguments: an `options` object, and an optional `callback`. The `options`
-object can specify a number of optional arguments, including:
+In most cases, using `Filer.fs` will be sufficient, and provide a working filesystem.
+However, if you need more control over the filesystem, you can also use the `FileSystem`
+constructor, invoked to open an existing file system or create a new one.
+
+`Filer.FileSystem()` It accepts two arguments: an `options` object, and an optional
+`callback` function. The `options` object can specify a number of optional arguments,
+including:
 
 * `name`: the name of the file system, defaults to `'"local'`
 * `flags`: an Array of one or more flags to use when creating/opening the file system:
@@ -324,7 +333,11 @@ Once a `FileSystem` is created, it has the following methods. NOTE: code example
 a `FileSystem` instance named `fs` has been created like so:
 
 ```javascript
-var fs = new Filer.FileSystem();
+// 1. Using Filer.fs for a default filesystem
+const { fs } = require('filer');
+
+// 2. Or via the FileSystem constructor with specified options
+const fs = new Filer.FileSystem(options, callback);
 ```
 
 * [fs.rename(oldPath, newPath, callback)](#rename)
