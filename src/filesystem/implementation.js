@@ -29,7 +29,6 @@ var XATTR_REPLACE = Constants.XATTR_REPLACE;
 var FS_NOMTIME = Constants.FS_NOMTIME;
 var FS_NOCTIME = Constants.FS_NOCTIME;
 
-var Encoding = require('../encoding.js');
 var Errors = require('../errors.js');
 var DirectoryEntry = require('../directory-entry.js');
 var openFiles = require('../open-files.js');
@@ -1827,7 +1826,7 @@ function readFile(context, path, options, callback) {
 
         var data;
         if(options.encoding === 'utf8') {
-          data = Encoding.decode(buffer);
+          data = buffer.toString('utf8');
         } else {
           data = buffer;
         }
@@ -1868,7 +1867,7 @@ function writeFile(context, path, data, options, callback) {
     data = '' + data;
   }
   if(typeof data === 'string' && options.encoding === 'utf8') {
-    data = Encoding.encode(data);
+    data = Buffer.from(data);
   }
 
   open_file(context, path, flags, function(err, fileNode) {
@@ -1903,7 +1902,7 @@ function appendFile(context, path, data, options, callback) {
     data = '' + data;
   }
   if(typeof data === 'string' && options.encoding === 'utf8') {
-    data = Encoding.encode(data);
+    data = Buffer.from(data);
   }
 
   open_file(context, path, flags, function(err, fileNode) {
