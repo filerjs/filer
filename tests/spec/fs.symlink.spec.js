@@ -1,17 +1,17 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs.symlink', function () {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be a function', function () {
-    var fs = util.fs();
+    const fs = util.fs();
     expect(fs.symlink).to.be.a('function');
   });
 
   it('should return an error if part of the parent destination path does not exist', function (done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.symlink('/', '/tmp/mydir', function (error) {
       expect(error).to.exist;
@@ -21,7 +21,7 @@ describe('fs.symlink', function () {
   });
 
   it('should return an error if the destination path already exists', function (done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.symlink('/tmp', '/', function (error) {
       expect(error).to.exist;
@@ -31,7 +31,7 @@ describe('fs.symlink', function () {
   });
 
   it('should create a symlink', function (done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.symlink('/', '/myfile', function (error) {
       expect(error).not.to.exist;
@@ -47,7 +47,7 @@ describe('fs.symlink', function () {
   /** Tests for fsPromises API */
   describe('fsPromises.symlink', function () {
     it('should return an error if destination path does not exist', function () {
-      var fsPromises = util.fs().promises;
+      const fsPromises = util.fs().promises;
   
       return fsPromises.symlink('/', '/tmp/link')
         .catch(error => {
@@ -57,7 +57,7 @@ describe('fs.symlink', function () {
     });
 
     it('should return an error if source path does not exist', function () {
-      var fsPromises = util.fs().promises;
+      const fsPromises = util.fs().promises;
   
       return fsPromises.symlink('/tmp/myLink', '/myLink')
         .catch(error => {
@@ -67,7 +67,7 @@ describe('fs.symlink', function () {
     });
 
     it('Promise should create a symlink of type DIRECTORY when directory provided', function () {
-      var fsPromises = util.fs().promises;
+      const fsPromises = util.fs().promises;
   
       return fsPromises.symlink('/', '/myDirLink')
         .then(() => fsPromises.stat('/myDirLink'))
@@ -78,7 +78,7 @@ describe('fs.symlink', function () {
     });
 
     it('Promise should create a symlink of type FILE when file provided', function () {
-      var fsPromises = util.fs().promises;
+      const fsPromises = util.fs().promises;
 
       return fsPromises.writeFile('/myFile', 'data')
         .then(() => fsPromises.symlink('/myFile', '/myFileLink'))
@@ -108,7 +108,7 @@ describe('fsPromises.symlink', function () {
 
 
   it('should return an error if part of the parent destination path does not exist', () => {
-    var fsPromises = util.fs().promises;
+    const fsPromises = util.fs().promises;
 
     return fsPromises.symlink('/', '/tmp/mydir')
       .catch(error => {
