@@ -1,30 +1,30 @@
-var { promisify } = require('es6-promisify');
+const { promisify } = require('es6-promisify');
 
-var Path = require('../path.js');
-var nop = require('../shared.js').nop;
+const Path = require('../path.js');
+const nop = require('../shared.js').nop;
 
-var Constants = require('../constants.js');
-var FILE_SYSTEM_NAME = Constants.FILE_SYSTEM_NAME;
-var FS_FORMAT = Constants.FS_FORMAT;
-var FS_READY = Constants.FS_READY;
-var FS_PENDING = Constants.FS_PENDING;
-var FS_ERROR = Constants.FS_ERROR;
-var FS_NODUPEIDCHECK = Constants.FS_NODUPEIDCHECK;
+const Constants = require('../constants.js');
+const FILE_SYSTEM_NAME = Constants.FILE_SYSTEM_NAME;
+const FS_FORMAT = Constants.FS_FORMAT;
+const FS_READY = Constants.FS_READY;
+const FS_PENDING = Constants.FS_PENDING;
+const FS_ERROR = Constants.FS_ERROR;
+const FS_NODUPEIDCHECK = Constants.FS_NODUPEIDCHECK;
 
-var providers = require('../providers/index.js');
+const providers = require('../providers/index.js');
 
-var Shell = require('../shell/shell.js');
-var Intercom = require('../../lib/intercom.js');
-var FSWatcher = require('../fs-watcher.js');
-var Errors = require('../errors.js');
-var defaultGuidFn = require('../shared.js').guid;
+const Shell = require('../shell/shell.js');
+const Intercom = require('../../lib/intercom.js');
+const FSWatcher = require('../fs-watcher.js');
+const Errors = require('../errors.js');
+const defaultGuidFn = require('../shared.js').guid;
 
-var STDIN = Constants.STDIN;
-var STDOUT = Constants.STDOUT;
-var STDERR = Constants.STDERR;
+const STDIN = Constants.STDIN;
+const STDOUT = Constants.STDOUT;
+const STDERR = Constants.STDERR;
 
 // The core fs operations live on impl
-var impl = require('./implementation.js');
+const impl = require('./implementation.js');
 
 // node.js supports a calling pattern that leaves off a callback.
 function maybeCallback(callback) {
