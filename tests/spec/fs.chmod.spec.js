@@ -1,18 +1,20 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+'use strict';
+
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs.chmod, fs.fchmod', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be functions', function() {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(typeof fs.chmod).to.equal('function');
     expect(typeof fs.fchmod).to.equal('function');
   });
 
   it('should automatically set mode=755 for a directory', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -26,7 +28,7 @@ describe('fs.chmod, fs.fchmod', function() {
   });
 
   it('should automatically set mode=644 for a file', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.open('/file', 'w', function(err, fd) {
       if(err) throw err;
@@ -40,7 +42,7 @@ describe('fs.chmod, fs.fchmod', function() {
   });
 
   it('should be an error when the path is invalid', function(done){
-    var fs = util.fs();
+    let fs = util.fs();
     fs.chmod('/invalid_path', 0o444, function(err){
       expect(err).to.exist;
       expect(err.code).to.equal('ENOENT');
@@ -49,7 +51,7 @@ describe('fs.chmod, fs.fchmod', function() {
   });
 
   it('should error if mode value is a non-numeric string', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -63,7 +65,7 @@ describe('fs.chmod, fs.fchmod', function() {
   });
 
   it('should error if mode value is null', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -77,7 +79,7 @@ describe('fs.chmod, fs.fchmod', function() {
   });
 
   it('should error if mode value is non-integer number', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -91,7 +93,7 @@ describe('fs.chmod, fs.fchmod', function() {
   });
 
   it('should error if mode value is non-integer number', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -105,7 +107,7 @@ describe('fs.chmod, fs.fchmod', function() {
   });
 
   it('should allow octal strings for mode value', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.mkdir('/dir', function(err) {
       if(err) throw err;
@@ -124,7 +126,7 @@ describe('fs.chmod, fs.fchmod', function() {
   });
 
   it('should allow for updating mode of a given file', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.open('/file', 'w', function(err, fd) {
       if(err) throw err;
@@ -161,12 +163,12 @@ describe('fsPromise.chmod', function() {
   afterEach(util.setup);
 
   it('should be a function', function() {
-    var fsPromise = util.fs().promises;
+    let fsPromise = util.fs().promises;
     expect(typeof fsPromise.chmod).to.equal('function');
   });
 
   it('should allow for updating mode of a given file', function() {
-    var fsPromise = util.fs().promises;
+    let fsPromise = util.fs().promises;
 
     return fsPromise.open('/file', 'w')
       .then(() => fsPromise.chmod('/file', 0o444))
