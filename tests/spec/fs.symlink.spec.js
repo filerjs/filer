@@ -1,3 +1,5 @@
+'use strict'; 
+
 const util = require('../lib/test-utils.js');
 const expect = require('chai').expect;
 
@@ -90,7 +92,7 @@ describe('fs.symlink', function () {
     });
 
     it('Promise should return an error if the destination path already exists', function () {
-      var fsPromises = util.fs().promises;
+      const fsPromises = util.fs().promises;
 
       return fsPromises.symlink('/tmp', '/')
         .catch(error => {
