@@ -1,17 +1,19 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+'use strict'; 
+
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs.readdir', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(fs.readdir).to.be.a('function');
   });
 
   it('should return an error if the path does not exist', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.readdir('/tmp/mydir', function(error, files) {
       expect(error).to.exist;
@@ -22,7 +24,7 @@ describe('fs.readdir', function() {
   });
 
   it('should return a list of files from an existing directory', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.mkdir('/tmp', function(error) {
       if(error) throw error;
@@ -38,7 +40,7 @@ describe('fs.readdir', function() {
   });
 
   it('should follow symbolic links', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.mkdir('/tmp', function(error) {
       if(error) throw error;
@@ -56,12 +58,12 @@ describe('fs.readdir', function() {
   });
 
   it('(promise) should be a function', function() {
-    var fsPromises = util.fs().promises;
+    let fsPromises = util.fs().promises;
     expect(fsPromises.readdir).to.be.a('function');
   });
 
   it('should return an error if the path is a file', function() {
-    var fsPromises = util.fs().promises;
+    let fsPromises = util.fs().promises;
 
     return fsPromises.writeFile('/myfile', 'contents')
       .then(() => fsPromises.readdir('/myfile'))
@@ -72,7 +74,7 @@ describe('fs.readdir', function() {
   });
 
   it('(promise) should return a list of files from an existing directory', function() {
-    var fsPromises = util.fs().promises;
+    let fsPromises = util.fs().promises;
 
     return fsPromises.mkdir('/tmp')
       .then(() => {
