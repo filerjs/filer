@@ -50,6 +50,22 @@ describe('fs.writeFile, fs.readFile', function() {
     });
   });
 
+  it('should write a string when given a number for the data', function(done) {
+    var fs = util.fs();
+    var contents = 7;
+    var contentsAsString = '7';
+
+    fs.writeFile('/myfile', contents, function(error) {
+      if(error) throw error;
+
+      fs.readFile('/myfile', 'utf8', function(error, data) {
+        expect(error).not.to.exist;
+        expect(data).to.equal(contentsAsString);
+        done();
+      });
+    });
+  });
+
   it('should write, read a utf8 file with "utf8" option to writeFile', function(done) {
     const fs = util.fs();
     const contents = 'This is a file.';
