@@ -7,6 +7,7 @@ const nop = require('../shared.js').nop;
 
 const providers = require('../providers/index.js');
 
+const Constants = require('../constants.js');
 const Shell = require('../shell/shell.js');
 const Intercom = require('../../lib/intercom.js');
 const FSWatcher = require('../fs-watcher.js');
@@ -23,7 +24,7 @@ const {
   STDIN,
   STDOUT,
   STDERR
-} = require('../constants.js');
+} = Constants;
 
 // The core fs operations live on impl
 const impl = require('./implementation.js');
