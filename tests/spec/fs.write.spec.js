@@ -1,24 +1,26 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+'use strict';
+
+let util = require('../lib/test-utils.js');
+let expect = require('chai').expect;
 
 describe('fs.write', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(fs.write).to.be.a('function');
   });
 
   it('should error if file path is undefined', function() {
-    var fs = util.fs();
-    var fn = () => fs.writeFile(undefined, 'data');
+    let fs = util.fs();
+    let fn = () => fs.writeFile(undefined, 'data');
     expect(fn).to.throw();
   });
 
   it('should write data to a file', function(done) {
-    var fs = util.fs();
-    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    let fs = util.fs();
+    let buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, fd) {
       if(error) throw error;
@@ -38,9 +40,9 @@ describe('fs.write', function() {
   });
 
   it('should update the current file position', function(done) {
-    var fs = util.fs();
-    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
-    var _result = 0;
+    let fs = util.fs();
+    let buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    let _result = 0;
 
     fs.open('/myfile', 'w', function(error, fd) {
       if(error) throw error;
