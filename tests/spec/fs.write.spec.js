@@ -1,5 +1,4 @@
 'use strict';
-
 let util = require('../lib/test-utils.js');
 let expect = require('chai').expect;
 
