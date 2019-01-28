@@ -1,6 +1,6 @@
 'use strict';
-let util = require('../lib/test-utils.js');
-let expect = require('chai').expect;
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs.write', function() {
   beforeEach(util.setup);
