@@ -1,12 +1,14 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+'use strict';
+
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs.access', function () {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should expose access mode flags on fs and fs.constants', function() {
-    var fs = util.fs();
+    let fs = util.fs();
 
     // F_OK
     expect(fs.F_OK).to.equal(0);
@@ -26,12 +28,12 @@ describe('fs.access', function () {
   });
 
   it('should be a function', function () {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(typeof fs.access).to.equal('function');
   });
 
   it('should return an error if file does not exist', function (done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.access('/tmp', fs.constants.F_OK, function (error) {
       expect(error).to.exist;
@@ -41,8 +43,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = F_OK', function (done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    let contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -55,8 +57,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = R_OK', function (done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    let contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -69,8 +71,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = W_OK', function (done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    let contents = 'This is a file.';
    
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -83,8 +85,8 @@ describe('fs.access', function () {
   });
 
   it('should return an error if file is not executable and mode = X_OK', function (done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    let contents = 'This is a file.';
    
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -102,8 +104,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = X_OK', function (done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    let contents = 'This is a file.';
    
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -120,8 +122,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and no mode is passed', function (done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    let contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -134,8 +136,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = R_OK | W_OK', function (done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    let contents = 'This is a file.';
    
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
