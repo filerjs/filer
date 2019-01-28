@@ -1,5 +1,5 @@
-var Constants = require('./constants.js');
-var Path = require('./path.js');
+const Constants = require('./constants.js');
+const Path = require('./path.js');
 
 // https://github.com/nodejs/node/blob/4f1297f259b09d129ac01afbd4c674263b7ac124/lib/internal/fs/utils.js#L231
 function dateFromNumeric(num) {
