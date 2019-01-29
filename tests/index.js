@@ -85,6 +85,7 @@ require('./bugs/issue267.js');
 require('./bugs/issue270.js');
 require('./bugs/rename-dir-trailing-slash.js');
 require('./bugs/issue357.js');
+require('./bugs/issue681.js');
 
 // Sample code from README
 require('./spec/readme.example.spec');
