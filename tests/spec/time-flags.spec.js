@@ -8,7 +8,7 @@ describe('node times (atime, mtime, ctime) with mount flags', function() {
   let filename = '/dir/file';
 
   function memoryFS(flags, callback) {
-    const name = util.uniqueName();
+    let name = util.uniqueName();
     return new Filer.FileSystem({
       name: name,
       flags: flags || [],
@@ -104,3 +104,4 @@ describe('node times (atime, mtime, ctime) with mount flags', function() {
     });
   });
 });
+
