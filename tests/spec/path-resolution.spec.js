@@ -4,7 +4,7 @@ const util = require('../lib/test-utils.js');
 const expect = require('chai').expect;
 
 // Support global URL and node's url module
-const URL = global.URL || require('url').URL;
+let URL = global.URL || require('url').URL;
 
 describe('path resolution', function() {
   beforeEach(util.setup);
