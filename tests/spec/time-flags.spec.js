@@ -1,14 +1,14 @@
-var Filer = require('../../src');
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+let Filer = require('../../src');
+let util = require('../lib/test-utils.js');
+let expect = require('chai').expect;
 
 describe('node times (atime, mtime, ctime) with mount flags', function() {
 
-  var dirname = '/dir';
-  var filename = '/dir/file';
+  let dirname = '/dir';
+  let filename = '/dir/file';
 
   function memoryFS(flags, callback) {
-    var name = util.uniqueName();
+    const name = util.uniqueName();
     return new Filer.FileSystem({
       name: name,
       flags: flags || [],
@@ -44,7 +44,7 @@ describe('node times (atime, mtime, ctime) with mount flags', function() {
 
   it('should not update ctime when calling fs.rename() with NOCTIME', function(done) {
     memoryFS(['NOCTIME'], function(error, fs) {
-      var newfilename = filename + '1';
+      let newfilename = filename + '1';
 
       createTree(fs, function() {
         stat(fs, filename, function(stats1) {
