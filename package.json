@@ -51,7 +51,7 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-datetime": "^1.5.0",
-    "eslint": "^5.10.0",
+    "eslint": "^5.12.1",
     "fake-indexeddb": "^2.0.4",
     "karma": "^3.1.4",
     "karma-chai": "^0.1.0",

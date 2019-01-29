@@ -1,3 +1,5 @@
+'use strict';
+
 var Filer = require('../../src');
 
 var needsCleanup = [];
