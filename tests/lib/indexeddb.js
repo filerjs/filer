@@ -1,8 +1,8 @@
 'use strict';
 
-var Filer = require('../../src');
+const Filer = require('../../src');
 
-var needsCleanup = [];
+let needsCleanup = [];
 if(global.addEventListener) {
   global.addEventListener('beforeunload', function() {
     needsCleanup.forEach(function(f) { f(); });
@@ -10,8 +10,8 @@ if(global.addEventListener) {
 }
 
 function IndexedDBTestProvider(name) {
-  var _done = false;
-  var that = this;
+  let _done = false;
+  let that = this;
 
   function cleanup(callback) {
     callback = callback || function(){};
@@ -33,12 +33,12 @@ function IndexedDBTestProvider(name) {
         that.provider.db.close();
       }
 
-      var indexedDB = global.indexedDB       ||
+      const indexedDB = global.indexedDB       ||
                       global.mozIndexedDB    ||
                       global.webkitIndexedDB ||
                       global.msIndexedDB;
 
-      var request = indexedDB.deleteDatabase(name);
+      let request = indexedDB.deleteDatabase(name);
       request.onsuccess = finished;
       request.onerror = finished;
     } catch(e) {
