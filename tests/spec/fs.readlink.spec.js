@@ -1,17 +1,19 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+'use strict';
+
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs.readlink', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(fs.readlink).to.be.a('function');
   });
 
   it('should return an error if part of the parent destination path does not exist', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.readlink('/tmp/mydir', function(error) {
       expect(error).to.exist;
@@ -21,7 +23,7 @@ describe('fs.readlink', function() {
   });
 
   it('should return an error if the path is not a symbolic link', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.readlink('/', function(error) {
       expect(error).to.exist;
@@ -31,7 +33,7 @@ describe('fs.readlink', function() {
   });
 
   it('should return the contents of a symbolic link', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.symlink('/', '/myfile', function(error) {
       if(error) throw error;
@@ -45,8 +47,8 @@ describe('fs.readlink', function() {
   });
 
   it('should allow relative paths, but resolve to the dstpath', function(done) {
-    var fs = util.fs();
-    var contents = 'contents';
+    let fs = util.fs();
+    let contents = 'contents';
 
     fs.mkdir('/dir', function(error) {
       if(error) throw error;
