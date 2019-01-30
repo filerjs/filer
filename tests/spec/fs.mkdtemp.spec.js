@@ -1,6 +1,8 @@
 const util = require('../lib/test-utils.js');
 const expect = require('chai').expect;
 
+'use strict';
+
 describe('fs.mkdtemp', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
