@@ -2876,8 +2876,8 @@ function isnan (val) {
 }
 
 },{"base64-js":"yh9p","ieee754":"JgNJ","isarray":"REa7","buffer":"dskh"}],"QO4x":[function(require,module,exports) {
-var global = arguments[3];
 var Buffer = require("buffer").Buffer;
+var global = arguments[3];
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
@@ -2885,8 +2885,6 @@ var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var IDB_RW = require('../constants.js').IDB_RW;
 
 var IDB_RO = require('../constants.js').IDB_RO;
-
-var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB;
 
 function IndexedDBContext(db, mode) {
   this.db = db;
@@ -3012,6 +3010,7 @@ function IndexedDB(name) {
 }
 
 IndexedDB.isSupported = function () {
+  var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB;
   return !!indexedDB;
 };
 
@@ -3023,7 +3022,8 @@ IndexedDB.prototype.open = function (callback) {
   }
 
   try {
-    // NOTE: we're not using versioned databases.
+    var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB; // NOTE: we're not using versioned databases.
+
     var openRequest = indexedDB.open(that.name); // If the db doesn't exist, we'll create it
 
     openRequest.onupgradeneeded = function onupgradeneeded(event) {
@@ -5641,17 +5641,7 @@ function FSWatcher() {
 FSWatcher.prototype = new EventEmitter();
 FSWatcher.prototype.constructor = FSWatcher;
 module.exports = FSWatcher;
-},{"../lib/eventemitter.js":"J4Qg","./path.js":"UzoP","../lib/intercom.js":"u7Jv"}],"03yF":[function(require,module,exports) {
-var Buffer = require("buffer").Buffer;
-module.exports = {
-  encode: function encode(string) {
-    return Buffer.from(string);
-  },
-  decode: function decode(buffer) {
-    return buffer.toString('utf8');
-  }
-};
-},{"buffer":"dskh"}],"ZECt":[function(require,module,exports) {
+},{"../lib/eventemitter.js":"J4Qg","./path.js":"UzoP","../lib/intercom.js":"u7Jv"}],"ZECt":[function(require,module,exports) {
 var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
@@ -6020,8 +6010,6 @@ var XATTR_CREATE = Constants.XATTR_CREATE;
 var XATTR_REPLACE = Constants.XATTR_REPLACE;
 var FS_NOMTIME = Constants.FS_NOMTIME;
 var FS_NOCTIME = Constants.FS_NOCTIME;
-
-var Encoding = require('../encoding.js');
 
 var Errors = require('../errors.js');
 
@@ -7907,7 +7895,7 @@ function readFile(context, path, options, callback) {
         var data;
 
         if (options.encoding === 'utf8') {
-          data = Encoding.decode(buffer);
+          data = buffer.toString('utf8');
         } else {
           data = buffer;
         }
@@ -7951,7 +7939,7 @@ function writeFile(context, path, data, options, callback) {
   }
 
   if (typeof data === 'string' && options.encoding === 'utf8') {
-    data = Encoding.encode(data);
+    data = Buffer.from(data);
   }
 
   open_file(context, path, flags, function (err, fileNode) {
@@ -7989,7 +7977,7 @@ function appendFile(context, path, data, options, callback) {
   }
 
   if (typeof data === 'string' && options.encoding === 'utf8') {
-    data = Encoding.encode(data);
+    data = Buffer.from(data);
   }
 
   open_file(context, path, flags, function (err, fileNode) {
@@ -8547,7 +8535,7 @@ module.exports = {
   writeFile: writeFile,
   write: write
 };
-},{"../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../encoding.js":"03yF","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-files.js":"osLK","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","buffer":"dskh"}],"GMi4":[function(require,module,exports) {
+},{"../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-files.js":"osLK","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","buffer":"dskh"}],"GMi4":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
 var _require = require('es6-promisify'),
     promisify = _require.promisify;
