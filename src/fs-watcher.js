@@ -1,6 +1,8 @@
-var EventEmitter = require('../lib/eventemitter.js');
-var Path = require('./path.js');
-var Intercom = require('../lib/intercom.js');
+'using strict';
+
+const EventEmitter = require('../lib/eventemitter.js');
+const Path = require('./path.js');
+const Intercom = require('../lib/intercom.js');
 
 /**
  * FSWatcher based on node.js' FSWatcher
@@ -8,7 +10,7 @@ var Intercom = require('../lib/intercom.js');
  */
 function FSWatcher() {
   EventEmitter.call(this);
-  var self = this;
+  const self = this;
   var recursive = false;
   var recursivePathPrefix;
   var filename;
@@ -46,12 +48,12 @@ function FSWatcher() {
       recursivePathPrefix = filename === '/' ? '/' : filename + '/';
     }
 
-    var intercom = Intercom.getInstance();
+    let intercom = Intercom.getInstance();
     intercom.on('change', onchange);
   };
 
   self.close = function() {
-    var intercom = Intercom.getInstance();
+    let intercom = Intercom.getInstance();
     intercom.off('change', onchange);
     self.removeAllListeners('change');
   };
