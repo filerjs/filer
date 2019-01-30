@@ -1,4 +1,4 @@
-use strict;
+"use strict";
 
 const util = require('../lib/test-utils.js'); //changed var to const
 const expect = require('chai').expect; //changed var to const
