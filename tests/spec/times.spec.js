@@ -1,15 +1,15 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('node times (atime, mtime, ctimeMs)', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  var dirname = '/dir';
-  var filename = '/dir/file';
+  const dirname = '/dir';
+  const filename = '/dir/file';
 
   function createTree(callback) {
-    var fs = util.fs();
+    let fs = util.fs();
     fs.mkdir(dirname, function(error) {
       if(error) throw error;
 
@@ -22,7 +22,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   }
 
   function stat(path, callback) {
-    var fs = util.fs();
+    let fs = util.fs();
     fs.stat(path, function(error, stats) {
       if(error) throw error;
 
@@ -31,8 +31,8 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   }
 
   it('should update ctime when calling fs.rename()', function(done) {
-    var fs = util.fs();
-    var newfilename = filename + '1';
+    let fs = util.fs();
+    const newfilename = filename + '1';
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -52,7 +52,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, mtime, atime when calling fs.truncate()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -72,7 +72,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, mtime, atime when calling fs.ftruncate()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -97,7 +97,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.stat()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -115,7 +115,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.fstat()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -138,7 +138,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.lstat()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       fs.link(filename, '/link', function(error) {
@@ -159,7 +159,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.exists()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -181,7 +181,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, atime when calling fs.link()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -200,7 +200,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.symlink()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -219,7 +219,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.readlink()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       fs.symlink(filename, '/link', function(error) {
@@ -243,7 +243,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, atime, mtime of parent dir when calling fs.unlink()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(dirname, function(stats1) {
@@ -262,7 +262,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, atime, mtime of parent dir when calling fs.rmdir()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat('/', function(stats1) {
@@ -286,7 +286,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, atime, mtime of parent dir when calling fs.mkdir()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat('/', function(stats1) {
@@ -306,7 +306,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.close()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       fs.open(filename, 'w', function(error, fd) {
@@ -329,7 +329,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.open()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -353,8 +353,8 @@ describe('node times (atime, mtime, ctimeMs)', function() {
    */
 
   it('should update atime, ctime, mtime when calling fs.write()', function(done) {
-    var fs = util.fs();
-    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    let fs = util.fs();
+    let buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     createTree(function() {
       fs.open('/myfile', 'w', function(error, fd) {
@@ -382,8 +382,8 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.read()', function(done) {
-    var fs = util.fs();
-    var buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    let fs = util.fs();
+    let buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     createTree(function() {
       fs.open('/myfile', 'w', function(err, fd) {
@@ -400,7 +400,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
               if(error) throw error;
 
               stat('/myfile', function(stats1) {
-                var buffer2 = Buffer.alloc(buffer.length);
+                let buffer2 = Buffer.alloc(buffer.length);
 
                 fs.read(fd, buffer2, 0, buffer2.length, 0, function(err, nbytes) {
                   if(err) throw err;
@@ -426,7 +426,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.readFile()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -446,7 +446,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update atime, ctime, mtime when calling fs.writeFile()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -465,7 +465,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update atime, ctime, mtime when calling fs.appendFile()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -484,7 +484,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, atime when calling fs.setxattr()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       stat(filename, function(stats1) {
@@ -503,7 +503,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, atime when calling fs.fsetxattr()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       fs.open(filename, 'w', function(error, fd) {
@@ -526,7 +526,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.getxattr()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       fs.setxattr(filename, 'extra', 'data', function(error) {
@@ -550,7 +550,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should make no change when calling fs.fgetxattr()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       fs.open(filename, 'w', function(error, fd) {
@@ -578,7 +578,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, atime when calling fs.removexattr()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       fs.setxattr(filename, 'extra', 'data', function(error) {
@@ -601,7 +601,7 @@ describe('node times (atime, mtime, ctimeMs)', function() {
   });
 
   it('should update ctime, atime when calling fs.fremovexattr()', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     createTree(function() {
       fs.open(filename, 'w', function(error, fd) {
