@@ -8,12 +8,12 @@ describe('fs.readlink', function() {
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    let fs = util.fs();
+    const fs = util.fs();
     expect(fs.readlink).to.be.a('function');
   });
 
   it('should return an error if part of the parent destination path does not exist', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.readlink('/tmp/mydir', function(error) {
       expect(error).to.exist;
@@ -23,7 +23,7 @@ describe('fs.readlink', function() {
   });
 
   it('should return an error if the path is not a symbolic link', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.readlink('/', function(error) {
       expect(error).to.exist;
@@ -33,7 +33,7 @@ describe('fs.readlink', function() {
   });
 
   it('should return the contents of a symbolic link', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.symlink('/', '/myfile', function(error) {
       if(error) throw error;
@@ -47,8 +47,8 @@ describe('fs.readlink', function() {
   });
 
   it('should allow relative paths, but resolve to the dstpath', function(done) {
-    let fs = util.fs();
-    let contents = 'contents';
+    const fs = util.fs();
+    const contents = 'contents';
 
     fs.mkdir('/dir', function(error) {
       if(error) throw error;
