@@ -1,3 +1,4 @@
+'use strict';
 const Constants = require('./constants.js');
 const Path = require('./path.js');
 
