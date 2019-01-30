@@ -2,6 +2,8 @@ const util = require('../lib/test-utils.js');
 const expect = require('chai').expect;
 const { COPYFILE_EXCL } = require('../../src/constants').fsConstants;
 
+use strict;
+
 // Waiting on implementation to land https://github.com/filerjs/filer/issues/436
 describe.skip('fs.copyFile', function() {
   const file = {
