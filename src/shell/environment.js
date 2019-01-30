@@ -1,4 +1,4 @@
-var defaults = require('../constants.js').ENVIRONMENT;
+const defaults = require('../constants.js').ENVIRONMENT;
 
 module.exports = function Environment(env) {
   env = env || {};
