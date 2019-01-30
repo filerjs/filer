@@ -48,3 +48,28 @@ describe('fs.lstat', function () {
         });
     });
 });
+
+describe('fs.promises.lstat', () => {
+    beforeEach(util.setup);
+    afterEach(util.cleanup);
+
+    it('should return an error if path does not exist', () => {
+        let fsPromises = util.fs().promises;
+
+        return fsPromises.lstat('/tmp')
+            .catch(error => {
+                expect(error).to.exist;
+                expect(error.code).to.equal('ENOENT');
+            });
+    });
+
+    it('should return a stat object if path is not a symbolic link', () => {
+        let fsPromises = util.fs().promises;
+
+        return fsPromises.lstat('/')
+            .then(result => {
+                expect(result).to.exist;
+                expect(result.isDirectory()).to.be.true;
+            });
+    });
+});
