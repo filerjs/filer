@@ -1,3 +1,4 @@
+'use strict';
 const util = require('../lib/test-utils.js');
 const expect = require('chai').expect;
 
