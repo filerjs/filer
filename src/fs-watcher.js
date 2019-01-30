@@ -11,9 +11,9 @@ const Intercom = require('../lib/intercom.js');
 function FSWatcher() {
   EventEmitter.call(this);
   const self = this;
-  var recursive = false;
-  var recursivePathPrefix;
-  var filename;
+  let recursive = false;
+  let recursivePathPrefix;
+  let filename;
 
   function onchange(path) {
     // Watch for exact filename, or parent path when recursive is true.
