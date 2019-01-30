@@ -12,7 +12,6 @@ describe('fs.mkdir', function () {
   });
 
   it('should return an error if part of the parent path does not exist', function (done) {
-    'use strict';
     const fs = util.fs();
 
     fs.mkdir('/tmp/mydir', function (error) {
