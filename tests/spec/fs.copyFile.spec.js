@@ -1,5 +1,5 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 const { COPYFILE_EXCL } = require('../../src/constants').fsConstants;
 
 // Waiting on implementation to land https://github.com/filerjs/filer/issues/436
@@ -11,19 +11,19 @@ describe.skip('fs.copyFile', function() {
 
   beforeEach(function(done){
     util.setup(function() {
-      var fs = util.fs();
+      const fs = util.fs();
       fs.writeFile(file.path, file.contents, done);
     });
   });
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(fs.copyFile).to.be.a('function');
   });
 
   it('should return an error if the src path does not exist', function(done){
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.copyFile(null, '/dest.txt', function(error) {
       expect(error).to.exist;
@@ -33,7 +33,7 @@ describe.skip('fs.copyFile', function() {
   });
 
   it('should copy file successfully', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
     const destPath = '/destfile';
 
     fs.copyFile(file.path, destPath, function(error) {
