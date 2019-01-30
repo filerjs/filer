@@ -1,5 +1,6 @@
 'use strict';
 
+
 const Filer = require('../../src');
 const util = require('../lib/test-utils.js');
 const expect = require('chai').expect;
