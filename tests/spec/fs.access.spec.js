@@ -8,7 +8,7 @@ describe('fs.access', function () {
   afterEach(util.cleanup);
 
   it('should expose access mode flags on fs and fs.constants', function() {
-    let fs = util.fs();
+    const fs = util.fs();
 
     // F_OK
     expect(fs.F_OK).to.equal(0);
@@ -28,12 +28,12 @@ describe('fs.access', function () {
   });
 
   it('should be a function', function () {
-    let fs = util.fs();
+    const fs = util.fs();
     expect(typeof fs.access).to.equal('function');
   });
 
   it('should return an error if file does not exist', function (done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.access('/tmp', fs.constants.F_OK, function (error) {
       expect(error).to.exist;
