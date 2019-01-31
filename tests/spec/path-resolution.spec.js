@@ -4,14 +4,14 @@ const util = require('../lib/test-utils.js');
 const expect = require('chai').expect;
 
 // Support global URL and node's url module
-let URL = global.URL || require('url').URL;
+const URL = global.URL || require('url').URL;
 
 describe('path resolution', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should follow a symbolic link to the root directory', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.symlink('/', '/mydirectorylink', function(error) {
       if(error) throw error;
@@ -20,7 +20,7 @@ describe('path resolution', function() {
         if(error) throw error;
 
         expect(result['node']).to.exist;
-        let _node = result['node'];
+        const _node = result['node'];
 
         fs.stat('/mydirectorylink', function(error, result) {
           expect(error).not.to.exist;
@@ -33,7 +33,7 @@ describe('path resolution', function() {
   });
 
   it('should follow a symbolic link to a directory', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.mkdir('/mydir', function(error) {
       if(error) throw error;
@@ -45,7 +45,7 @@ describe('path resolution', function() {
           if(error) throw error;
 
           expect(result['node']).to.exist;
-          let _node = result['node'];
+          const _node = result['node'];
           fs.stat('/mydirectorylink', function(error, result) {
             expect(error).not.to.exist;
             expect(result).to.exist;
@@ -58,18 +58,18 @@ describe('path resolution', function() {
   });
 
   it('should follow a symbolic link to a file', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
-      let fd = result;
+      const fd = result;
       fs.close(fd, function(error) {
         if(error) throw error;
         fs.stat('/myfile', function(error, result) {
           if(error) throw error;
 
           expect(result['node']).to.exist;
-          let _node = result['node'];
+          const _node = result['node'];
           fs.symlink('/myfile', '/myfilelink', function(error) {
             if(error) throw error;
 
@@ -86,18 +86,18 @@ describe('path resolution', function() {
   });
 
   it('should follow multiple symbolic links to a file', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
-      let fd = result;
+      const fd = result;
       fs.close(fd, function(error) {
         if(error) throw error;
         fs.stat('/myfile', function(error, result) {
           if(error) throw error;
 
           expect(result['node']).to.exist;
-          let _node = result['node'];
+          const _node = result['node'];
           fs.symlink('/myfile', '/myfilelink1', function(error) {
             if(error) throw error;
             fs.symlink('/myfilelink1', '/myfilelink2', function(error) {
@@ -117,7 +117,7 @@ describe('path resolution', function() {
   });
 
   it('should error if symbolic link leads to itself', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.symlink('/mylink1', '/mylink2', function(error) {
       if(error) throw error;
@@ -136,8 +136,8 @@ describe('path resolution', function() {
   });
 
   it('should error if it follows more than 10 symbolic links', function(done) {
-    let fs = util.fs();
-    let nlinks = 11;
+    const fs = util.fs();
+    const nlinks = 11;
 
     function createSymlinkChain(n, callback) {
       if(n > nlinks) {
@@ -149,7 +149,7 @@ describe('path resolution', function() {
 
     fs.open('/myfile0', 'w', function(error, result) {
       if(error) throw error;
-      let fd = result;
+      const fd = result;
       fs.close(fd, function(error) {
         if(error) throw error;
         fs.stat('/myfile0', function(error, result) {
@@ -171,17 +171,17 @@ describe('path resolution', function() {
   });
 
   it('should follow a symbolic link in the path to a file', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
-      let fd = result;
+      const fd = result;
       fs.close(fd, function(error) {
         if(error) throw error;
         fs.stat('/myfile', function(error, result) {
           if(error) throw error;
 
-          let _node = result['node'];
+          const _node = result['node'];
           fs.symlink('/', '/mydirlink', function(error) {
             if(error) throw error;
 
@@ -199,11 +199,11 @@ describe('path resolution', function() {
   });
 
   it('should error if a symbolic link in the path to a file is itself a file', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.open('/myfile', 'w', function(error, result) {
       if(error) throw error;
-      let fd = result;
+      const fd = result;
       fs.close(fd, function(error) {
         if(error) throw error;
         fs.stat('/myfile', function(error, result) {
@@ -212,7 +212,7 @@ describe('path resolution', function() {
 
           fs.open('/myfile2', 'w', function(error, result) {
             if(error) throw error;
-            let fd = result;
+            const fd = result;
             fs.close(fd, function(error) {
               if(error) throw error;
               fs.symlink('/myfile2', '/mynotdirlink', function(error) {
@@ -233,7 +233,7 @@ describe('path resolution', function() {
   });
 
   it('should properly add trailing slashes with Path.addTrailing()', function() {
-    let Path = Filer.Path;
+    const Path = Filer.Path;
     expect(Path.addTrailing('/')).to.equal('/');
     expect(Path.addTrailing('/////')).to.equal('/');
     expect(Path.addTrailing('.')).to.equal('./');
@@ -242,7 +242,7 @@ describe('path resolution', function() {
   });
 
   it('should properly remove trailing slashes with Path.removeTrailing()', function() {
-    let Path = Filer.Path;
+    const Path = Filer.Path;
     expect(Path.removeTrailing('/')).to.equal('/');
     expect(Path.removeTrailing('/////')).to.equal('/');
     expect(Path.removeTrailing('./')).to.equal('.');
@@ -251,10 +251,10 @@ describe('path resolution', function() {
   });
 
   it('should allow using Buffer for paths', function(done) {
-    let fs = util.fs();
-    let filePath = '/file';
-    let bufferPath = Buffer.from(filePath);
-    let data = 'data';
+    const fs = util.fs();
+    const filePath = '/file';
+    const bufferPath = Buffer.from(filePath);
+    const data = 'data';
 
     fs.writeFile(bufferPath, data, function(err) {
       if(err) throw err;
@@ -268,10 +268,10 @@ describe('path resolution', function() {
   });
 
   it('should allow using file: URLs for paths', function(done) {
-    let fs = util.fs();
-    let filePath = '/file';
-    let fileUrl = new URL(`file://${filePath}`);
-    let data = 'data';
+    const fs = util.fs();
+    const filePath = '/file';
+    const fileUrl = new URL(`file://${filePath}`);
+    const data = 'data';
 
     fs.writeFile(fileUrl, data, function(err) {
       if(err) throw err;
@@ -285,16 +285,16 @@ describe('path resolution', function() {
   });
 
   it('should error for non file: URLs for paths', function() {
-    let fs = util.fs();
-    let fileUrl = new URL('http://file');
-    let fn = () => fs.writeFile(fileUrl, 1);
+    const fs = util.fs();
+    const fileUrl = new URL('http://file');
+    const fn = () => fs.writeFile(fileUrl, 1);
     expect(fn).to.throw();
   });
 
   it('should error if file: URLs include escaped / characters', function() {
-    let fs = util.fs();
-    let fileUrl = new URL('file:///p/a/t/h/%2F');
-    let fn = () => fs.writeFile(fileUrl, 1);
+    const fs = util.fs();
+    const fileUrl = new URL('file:///p/a/t/h/%2F');
+    const fn = () => fs.writeFile(fileUrl, 1);
     expect(fn).to.throw();
   });
 });
