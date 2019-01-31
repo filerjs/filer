@@ -8,7 +8,7 @@ describe('fs.appendFile', function() {
 
   beforeEach(function(done) {
     util.setup(function() {
-      const fs = util.fs();
+      let fs = util.fs();
       fs.writeFile('/myfile', contents, function(error) {
         if(error) throw error;
         done();
@@ -18,12 +18,12 @@ describe('fs.appendFile', function() {
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    const fs = util.fs();
+    let fs = util.fs();
     expect(fs.appendFile).to.be.a('function');
   });
 
   it('should append a utf8 file without specifying utf8 in appendFile', function(done) {
-    const fs = util.fs();
+    let fs = util.fs();
     const more = ' Appended.';
 
     fs.appendFile('/myfile', more, function(error) {
@@ -38,7 +38,7 @@ describe('fs.appendFile', function() {
   });
 
   it('should append a utf8 file with "utf8" option to appendFile', function(done) {
-    const fs = util.fs();
+    let fs = util.fs();
     const more = ' Appended.';
 
     fs.appendFile('/myfile', more, 'utf8', function(error) {
@@ -53,7 +53,7 @@ describe('fs.appendFile', function() {
   });
 
   it('should append a utf8 file with {encoding: "utf8"} option to appendFile', function(done) {
-    const fs = util.fs();
+    let fs = util.fs();
     const more = ' Appended.';
 
     fs.appendFile('/myfile', more, { encoding: 'utf8' }, function(error) {
@@ -68,7 +68,7 @@ describe('fs.appendFile', function() {
   });
 
   it('should append a binary file', function(done) {
-    const fs = util.fs();
+    let fs = util.fs();
 
     // String and utf8 binary encoded versions of the same thing: 'This is a file.'
     const binary = Buffer.from([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
@@ -92,7 +92,7 @@ describe('fs.appendFile', function() {
   });
 
   it('should follow symbolic links', function(done) {
-    const fs = util.fs();
+    let fs = util.fs();
     const contents = 'This is a file.';
     const more = ' Appended.';
 
@@ -112,7 +112,7 @@ describe('fs.appendFile', function() {
   });
 
   it('should work when file does not exist, and create the file', function(done) {
-    const fs = util.fs();
+    let fs = util.fs();
 
     fs.appendFile('/newfile', contents, { encoding: 'utf8' }, function(error) {
       expect(error).not.to.exist;
@@ -126,7 +126,7 @@ describe('fs.appendFile', function() {
   });
   
   it('should accept numbers and append them to the file', function(done) {
-    const fs = util.fs();
+    let fs = util.fs();
     const more = 10000;
 
     fs.appendFile('/myfile', more, 'utf8', function(error) {
@@ -144,7 +144,7 @@ describe('fs.appendFile', function() {
 describe('fs.promises.appendFile', function() {
   beforeEach(function(done) {
     util.setup(function() {
-      const fs = util.fs();
+      let fs = util.fs();
       return fs.promises.writeFile('/myfile', 'This is a file.', { encoding: 'utf8' })
         .then(done)
         .catch(done);
@@ -153,12 +153,12 @@ describe('fs.promises.appendFile', function() {
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    const fs = util.fs();
+    let fs = util.fs();
     expect(fs.promises.appendFile).to.be.a('function');
   });
 
   it('should append a utf8 file without specifying utf8 in appendFile', function() {
-    const fs = util.fs();
+    let fs = util.fs();
     const contents = 'This is a file.';
     const more = ' Appended.';
 
@@ -168,7 +168,7 @@ describe('fs.promises.appendFile', function() {
   });
 
   it('should append a utf8 file with "utf8" option to appendFile', function() {
-    const fs = util.fs();
+    let fs = util.fs();
     const contents = 'This is a file.';
     const more = ' Appended.';
 
@@ -178,7 +178,7 @@ describe('fs.promises.appendFile', function() {
   });
 
   it('should append a utf8 file with {encoding: "utf8"} option to appendFile', function() {
-    const fs = util.fs();
+    let fs = util.fs();
     const contents = 'This is a file.';
     const more = ' Appended.';
 
@@ -188,7 +188,7 @@ describe('fs.promises.appendFile', function() {
   });
 
   it('should append a binary file', function() {
-    const fs = util.fs();
+    let fs = util.fs();
 
     // String and utf8 binary encoded versions of the same thing: 'This is a file.'
     const binary = new Buffer([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
@@ -203,7 +203,7 @@ describe('fs.promises.appendFile', function() {
   });
 
   it('should follow symbolic links', function() {
-    const fs = util.fs();
+    let fs = util.fs();
     const contents = 'This is a file.';
     const more = ' Appended.';
 
@@ -214,7 +214,7 @@ describe('fs.promises.appendFile', function() {
   });
 
   it('should work when file does not exist, and create the file', function() {
-    const fs = util.fs();
+    let fs = util.fs();
     const contents = 'This is a file.';
 
     return fs.promises.appendFile('/newfile', contents, { encoding: 'utf8' })
