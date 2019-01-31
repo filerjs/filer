@@ -1,18 +1,19 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
+'use strict';
 
 describe('fs.writeFile, fs.readFile', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(fs.writeFile).to.be.a('function');
     expect(fs.readFile).to.be.a('function');
   });
 
   it('should error when path is wrong to readFile', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.readFile('/no-such-file', 'utf8', function(error, data) {
       expect(error).to.exist;
@@ -24,7 +25,7 @@ describe('fs.writeFile, fs.readFile', function() {
 
   
   it('should error when path is wrong to writeFile',function(done){
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.writeFile('/tmp/myfile', '','utf8', function(error, result) {
       expect(error).to.exist;
@@ -36,8 +37,8 @@ describe('fs.writeFile, fs.readFile', function() {
   });
 
   it('should write, read a utf8 file without specifying utf8 in writeFile', function(done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    const contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, function(error) {
       if(error) throw error;
@@ -50,8 +51,8 @@ describe('fs.writeFile, fs.readFile', function() {
   });
 
   it('should write, read a utf8 file with "utf8" option to writeFile', function(done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    const contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, 'utf8', function(error) {
       if(error) throw error;
@@ -64,8 +65,8 @@ describe('fs.writeFile, fs.readFile', function() {
   });
 
   it('should write, read a utf8 file with {encoding: "utf8"} option to writeFile', function(done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    const contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, { encoding: 'utf8' }, function(error) {
       if(error) throw error;
@@ -78,9 +79,9 @@ describe('fs.writeFile, fs.readFile', function() {
   });
 
   it('should write, read a binary file', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
     // String and utf8 binary encoded versions of the same thing: 'This is a file.'
-    var binary = Buffer.from([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
+    const binary = Buffer.from([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
     fs.writeFile('/myfile', binary, function(error) {
       if(error) throw error;
@@ -93,8 +94,8 @@ describe('fs.writeFile, fs.readFile', function() {
   });
 
   it('should follow symbolic links', function(done) {
-    var fs = util.fs();
-    var contents = 'This is a file.';
+    let fs = util.fs();
+    const contents = 'This is a file.';
 
     fs.writeFile('/myfile', '', { encoding: 'utf8' }, function(error) {
       if(error) throw error;
@@ -122,16 +123,16 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    var fsPromises = util.fs().promises;
+    let fsPromises = util.fs().promises;
     expect(fsPromises.writeFile).to.be.a('function');
     expect(fsPromises.readFile).to.be.a('function');
   });
 
   it('should return a promise', function() {
-    var fsPromises = util.fs().promises;
-    var contents = 'This is a file.';
+    let fsPromises = util.fs().promises;
+    const contents = 'This is a file.';
 
-    var p = fsPromises.writeFile('/myfile', contents);
+    let p = fsPromises.writeFile('/myfile', contents);
     expect(p).to.be.a('Promise');
 
     p.then(() => {
@@ -141,7 +142,7 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
   });
 
   it('should error when path is wrong to readFile', function() {
-    var fsPromises = util.fs().promises;
+    let fsPromises = util.fs().promises;
 
     return fsPromises.readFile('/no-such-file', 'utf8')
       .catch(error => { 
@@ -151,8 +152,8 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
   });
 
   it('should write, read a utf8 file without specifying utf8 in writeFile', function() {
-    var fsPromises = util.fs().promises;
-    var contents = 'This is a file.';
+    let fsPromises = util.fs().promises;
+    const contents = 'This is a file.';
 
     return fsPromises.writeFile('/myfile', contents)
       .then( () => fsPromises.readFile('/myfile', 'utf8'))
@@ -160,8 +161,8 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
   });
 
   it('should write, read a utf8 file with "utf8" option to writeFile', function() {
-    var fsPromises = util.fs().promises;
-    var contents = 'This is a file.';
+    let fsPromises = util.fs().promises;
+    const contents = 'This is a file.';
 
     return fsPromises.writeFile('/myfile', contents, 'utf8') 
       .then( () => fsPromises.readFile('/myfile', 'utf8'))
@@ -169,8 +170,8 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
   });
 
   it('should write, read a utf8 file with {encoding: "utf8"} option to writeFile', function() {
-    var fsPromises = util.fs().promises;
-    var contents = 'This is a file.';
+    let fsPromises = util.fs().promises;
+    const contents = 'This is a file.';
 
     return fsPromises.writeFile('/myfile', contents, { encoding: 'utf8' })
       .then( () => fsPromises.readFile('/myfile', 'utf8'))
@@ -178,9 +179,9 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
   });
 
   it('should write, read a binary file', function() {
-    var fsPromises = util.fs().promises;
+    let fsPromises = util.fs().promises;
     // String and utf8 binary encoded versions of the same thing: 'This is a file.'
-    var binary = Buffer.from([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
+    const binary = Buffer.from([84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 102, 105, 108, 101, 46]);
 
     return fsPromises.writeFile('/myfile', binary)
       .then( () => fsPromises.readFile('/myfile'))
@@ -188,8 +189,8 @@ describe('fsPromises.writeFile, fsPromises.readFile', function() {
   });
 
   it('should follow symbolic links', function() {
-    var fsPromises = util.fs().promises;
-    var contents = 'This is a file.';
+    let fsPromises = util.fs().promises;
+    const contents = 'This is a file.';
 
     return fsPromises.writeFile('/myfile', '', { encoding: 'utf8' })
       .then( () => fsPromises.symlink('/myfile', '/myFileLink'))
