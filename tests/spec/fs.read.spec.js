@@ -1,19 +1,20 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+'use strict';
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs.read', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(fs.read).to.be.a('function');
   });
 
   it('should read data from a file', function(done) {
-    var fs = util.fs();
-    var wbuffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
-    var rbuffer = Buffer.alloc(wbuffer.length);
+    let fs = util.fs();
+    let wbuffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    let rbuffer = Buffer.alloc(wbuffer.length);
 
     fs.open('/myfile', 'w+', function(error, fd) {
       if(error) throw error;
@@ -33,10 +34,10 @@ describe('fs.read', function() {
   });
 
   it('should update the current file position', function(done) {
-    var fs = util.fs();
-    var wbuffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
-    var rbuffer = Buffer.alloc(wbuffer.length);
-    var _result = 0;
+    let fs = util.fs();
+    let wbuffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    let rbuffer = Buffer.alloc(wbuffer.length);
+    let _result = 0;
 
     fs.open('/myfile', 'w+', function(error, fd) {
       if(error) throw error;
@@ -63,9 +64,9 @@ describe('fs.read', function() {
   });
 
   it('should fail to read a directory', function(done) {
-    var fs = util.fs();
-    var buf = Buffer.alloc(20);
-    var buf2 = Buffer.alloc(20);
+    let fs = util.fs();
+    let buf = Buffer.alloc(20);
+    let buf2 = Buffer.alloc(20);
 
     fs.mkdir('/mydir', function(error) {
       if(error) throw error;
@@ -85,10 +86,10 @@ describe('fs.read', function() {
   });
 
   it('should fail to read a file that does not exist', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
-    var fd = 0;
-    var rbuffer = Buffer.alloc(8);
+    let fd = 0;
+    let rbuffer = Buffer.alloc(8);
 
     fs.read(fd, rbuffer, 0, rbuffer.length, 0, function(error, result) {
       expect(error).to.exist;
