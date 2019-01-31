@@ -43,8 +43,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = F_OK', function (done) {
-    let fs = util.fs();
-    let contents = 'This is a file.';
+    const fs = util.fs();
+    const contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -57,8 +57,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = R_OK', function (done) {
-    let fs = util.fs();
-    let contents = 'This is a file.';
+    const fs = util.fs();
+    const contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -71,8 +71,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = W_OK', function (done) {
-    let fs = util.fs();
-    let contents = 'This is a file.';
+    const fs = util.fs();
+    const contents = 'This is a file.';
    
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -85,8 +85,8 @@ describe('fs.access', function () {
   });
 
   it('should return an error if file is not executable and mode = X_OK', function (done) {
-    let fs = util.fs();
-    let contents = 'This is a file.';
+    const fs = util.fs();
+    const contents = 'This is a file.';
    
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -104,8 +104,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = X_OK', function (done) {
-    let fs = util.fs();
-    let contents = 'This is a file.';
+    const fs = util.fs();
+    const contents = 'This is a file.';
    
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -122,8 +122,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and no mode is passed', function (done) {
-    let fs = util.fs();
-    let contents = 'This is a file.';
+    const fs = util.fs();
+    const contents = 'This is a file.';
 
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
@@ -136,8 +136,8 @@ describe('fs.access', function () {
   });
 
   it('should return no error if file does exist and mode = R_OK | W_OK', function (done) {
-    let fs = util.fs();
-    let contents = 'This is a file.';
+    const fs = util.fs();
+    const contents = 'This is a file.';
    
     fs.writeFile('/myfile', contents, function (error) {
       if (error) throw error;
