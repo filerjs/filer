@@ -1,18 +1,18 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+let util = require('../lib/test-utils.js');
+let expect = require('chai').expect;
 
 describe('fs.unlink', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(fs.unlink).to.be.a('function');
   });
 
   it('should remove a link to an existing file', function(done) {
-    var fs = util.fs();
-    var complete1, complete2;
+    let fs = util.fs();
+    let complete1, complete2;
 
     function maybeDone() {
       if(complete1 && complete2) {
@@ -53,7 +53,7 @@ describe('fs.unlink', function() {
   });
 
   it('should not follow symbolic links', function(done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.symlink('/', '/myFileLink', function (error) {
       if (error) throw error;
@@ -85,7 +85,7 @@ describe('fs.unlink', function() {
   });
 
   it('should not unlink directories', function (done) {
-    var fs = util.fs();
+    let fs = util.fs();
 
     fs.mkdir('/mydir', function (error) {
       if(error) throw error;
@@ -110,12 +110,12 @@ describe('fs.promises.unlink', function () {
   afterEach(util.cleanup);
 
   it('should be a function', function () {
-    var fs = util.fs();
+    let fs = util.fs();
     expect(fs.promises.unlink).to.be.a('function');
   });
 
   it('should return an error if trying to delete a file that does not exist', function() {
-    var fsPromises = util.fs().promises;
+    let fsPromises = util.fs().promises;
 
     return fsPromises.unlink('/myFile')
       .catch(error => {
@@ -125,7 +125,7 @@ describe('fs.promises.unlink', function () {
   });
 
   it('should not unlink directories', () => {
-    var fs = util.fs().promises;
+    let fs = util.fs().promises;
 
     return fs.mkdir('/mydir')
       .then(() => fs.unlink('/mydir'))
