@@ -3,18 +3,20 @@
 const { promisify } = require('es6-promisify');
 
 const Path = require('../path.js');
-const nop = require('../shared.js').nop;
 
 const providers = require('../providers/index.js');
 
-const Constants = require('../constants.js');
 const Shell = require('../shell/shell.js');
 const Intercom = require('../../lib/intercom.js');
 const FSWatcher = require('../fs-watcher.js');
 const Errors = require('../errors.js');
-const defaultGuidFn = require('../shared.js').guid;
+const {
+  nop,
+  guid: defaultGuidFn
+} = require('../shared.js');
 
 const {
+  fsConstants,
   FILE_SYSTEM_NAME,
   FS_FORMAT,
   FS_READY,
@@ -24,7 +26,7 @@ const {
   STDIN,
   STDOUT,
   STDERR
-} = Constants;
+} = require('../constants.js');
 
 // The core fs operations live on impl
 const impl = require('./implementation.js');
@@ -143,7 +145,7 @@ function FileSystem(options, callback) {
   const name = options.name || provider.name;
   const forceFormatting = flags.includes(FS_FORMAT);
 
-  let fs = this;
+  const fs = this;
   fs.readyState = FS_PENDING;
   fs.name = name;
   fs.error = null;
@@ -153,12 +155,12 @@ function FileSystem(options, callback) {
   fs.stderr = STDERR;
 
   // Expose Node's fs.constants to users
-  fs.constants = Constants.fsConstants;
+  fs.constants = fsConstants;
   // Node also forwards the access mode flags onto fs
-  fs.F_OK = Constants.fsConstants.F_OK;
-  fs.R_OK = Constants.fsConstants.R_OK;
-  fs.W_OK = Constants.fsConstants.W_OK;
-  fs.X_OK = Constants.fsConstants.X_OK;
+  fs.F_OK = fsConstants.F_OK;
+  fs.R_OK = fsConstants.R_OK;
+  fs.W_OK = fsConstants.W_OK;
+  fs.X_OK = fsConstants.X_OK;
 
   // Expose Shell constructor
   this.Shell = Shell.bind(undefined, this);
@@ -292,7 +294,7 @@ function FileSystem(options, callback) {
       return complete(err);
     }
 
-    let context = provider.getReadWriteContext();
+    const context = provider.getReadWriteContext();
     context.guid = wrappedGuidFn(context);
 
     // Mount the filesystem, formatting if necessary
@@ -372,7 +374,7 @@ function FileSystem(options, callback) {
 
     FileSystem.prototype[methodName] = function () {
       const fs = this;
-      let args = Array.prototype.slice.call(arguments, 0);
+      const args = Array.prototype.slice.call(arguments, 0);
       const lastArgIndex = args.length - 1;
 
       // We may or may not get a callback, and since node.js supports
