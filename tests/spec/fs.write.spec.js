@@ -40,7 +40,7 @@ describe('fs.write', function() {
 
   it('should update the current file position', function(done) {
     let fs = util.fs();
-    let buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
     let _result = 0;
 
     fs.open('/myfile', 'w', function(error, fd) {
