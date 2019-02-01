@@ -7,19 +7,19 @@ describe('fs.write', function() {
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    let fs = util.fs();
+    const fs = util.fs();
     expect(fs.write).to.be.a('function');
   });
 
   it('should error if file path is undefined', function() {
     let fs = util.fs();
-    let fn = () => fs.writeFile(undefined, 'data');
+    const fn = () => fs.writeFile(undefined, 'data');
     expect(fn).to.throw();
   });
 
   it('should write data to a file', function(done) {
     let fs = util.fs();
-    let buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+    const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, fd) {
       if(error) throw error;
