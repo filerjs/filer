@@ -46,7 +46,7 @@ describe('Filer', function() {
   });
 
   it('must honor the \'FORMAT\' flag', function(done) {
-    let name = 'local-test';
+    const name = 'local-test';
     // Because we need to use a bunch of Filer filesystems
     // in this test, we can't use the usual test infrastructure
     // to create/manage the fs instance.  Pick the best one
