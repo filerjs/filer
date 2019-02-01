@@ -12,13 +12,13 @@ describe('fs.write', function() {
   });
 
   it('should error if file path is undefined', function() {
-    let fs = util.fs();
+    const fs = util.fs();
     const fn = () => fs.writeFile(undefined, 'data');
     expect(fn).to.throw();
   });
 
   it('should write data to a file', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
     const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
     fs.open('/myfile', 'w', function(error, fd) {
@@ -39,7 +39,7 @@ describe('fs.write', function() {
   });
 
   it('should update the current file position', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
     const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
     let _result = 0;
 
