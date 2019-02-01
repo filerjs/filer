@@ -1,8 +1,8 @@
 'use strict';
 
-let Filer = require('../../src');
-let util = require('../lib/test-utils.js');
-let expect = require('chai').expect;
+const Filer = require('../../src');
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs', function() {
   beforeEach(util.setup);
