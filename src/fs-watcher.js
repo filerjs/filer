@@ -48,12 +48,12 @@ function FSWatcher() {
       recursivePathPrefix = filename === '/' ? '/' : filename + '/';
     }
 
-    let intercom = Intercom.getInstance();
+    const intercom = Intercom.getInstance();
     intercom.on('change', onchange);
   };
 
   self.close = function() {
-    let intercom = Intercom.getInstance();
+    const intercom = Intercom.getInstance();
     intercom.off('change', onchange);
     self.removeAllListeners('change');
   };
