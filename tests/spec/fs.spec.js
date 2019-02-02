@@ -9,13 +9,13 @@ describe('fs', function() {
   afterEach(util.cleanup);
 
   it('is an object', function() {
-    let fs = util.fs();
+    const fs = util.fs();
     expect(typeof fs).to.equal('object');
     expect(fs).to.be.an.instanceof(Filer.FileSystem);
   });
 
   it('should have a root directory', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
     fs.stat('/', function(error, result) {
       expect(error).not.to.exist;
       expect(result).to.exist;
