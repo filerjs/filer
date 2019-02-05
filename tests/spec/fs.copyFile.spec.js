@@ -1,5 +1,4 @@
 'use strict';
-
 const util = require('../lib/test-utils.js'); 
 const expect = require('chai').expect; 
 const { COPYFILE_EXCL } = require('../../src/constants').fsConstants;
