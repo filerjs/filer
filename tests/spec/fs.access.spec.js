@@ -6,7 +6,7 @@ describe('fs.access', function () {
   afterEach(util.cleanup);
 
   it('should expose access mode flags on fs and fs.constants', function() {
-    var fs = util.fs();
+    const fs = util.fs();
 
     // F_OK
     expect(fs.F_OK).to.equal(0);
