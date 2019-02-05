@@ -13,7 +13,6 @@ describe('fs.lstat', function() {
 
   it('should return an error if path does not exist', function(done) {
     const fs = util.fs();
-
     fs.lstat('/tmp', function(error, result) {
       expect(error).to.exist;
       expect(error.code).to.equal('ENOENT');
@@ -24,7 +23,6 @@ describe('fs.lstat', function() {
 
   it('should return a stat object if path is not a symbolic link', function(done) {
     const fs = util.fs();
-
     fs.lstat('/', function(error, result) {
       expect(error).not.to.exist;
       expect(result).to.exist;
@@ -35,7 +33,6 @@ describe('fs.lstat', function() {
 
   it('should return a stat object if path is a symbolic link', function(done) {
     const fs = util.fs();
-
     fs.symlink('/', '/mylink', function(error) {
       if(error) throw error;
 
@@ -54,8 +51,7 @@ describe('fs.promises.lstat', () => {
   afterEach(util.cleanup);
 
   it('should return an error if path does not exist', () => {
-    const fsPromises = util.fs().promises;
-    
+    const fsPromises = util.fs().promises;    
     return fsPromises.lstat('/tmp')
       .catch( error => {
         expect(error).to.exist;
@@ -65,7 +61,6 @@ describe('fs.promises.lstat', () => {
 
   it('should return a stat object if path is not a symbolic link', () => {
     const fsPromises = util.fs().promises;
-
     return fsPromises.lstat('/')
       .then(result => {
         expect(result).to.exist;
