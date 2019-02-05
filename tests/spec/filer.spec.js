@@ -1,6 +1,7 @@
-var Filer = require('../../src');
-var util = require('../lib/test-utils');
-var expect = require('chai').expect;
+'use strict';
+const Filer = require('../../src');
+const util = require('../lib/test-utils');
+const expect = require('chai').expect;
 
 describe('Filer', function() {
   it('is defined', function() {
@@ -45,21 +46,21 @@ describe('Filer', function() {
   });
 
   it('must honor the \'FORMAT\' flag', function(done) {
-    var name = 'local-test';
+    const name = 'local-test';
     // Because we need to use a bunch of Filer filesystems
     // in this test, we can't use the usual test infrastructure
     // to create/manage the fs instance.  Pick the best one
     // based on the testing environment (browser vs. node)
-    var providers = Filer.FileSystem.providers;
-    var Provider;
+    const providers = Filer.FileSystem.providers;
+    let Provider;
     if(providers.IndexedDB.isSupported()) {
       Provider = providers.IndexedDB;
     } else {
       Provider = providers.Memory;
     }
 
-    var fs = new Filer.FileSystem({name, provider: new Provider(name)});
-    var fs2 = new Filer.FileSystem({name, provider: new Provider(name)});
+    let fs = new Filer.FileSystem({name, provider: new Provider(name)});
+    let fs2 = new Filer.FileSystem({name, provider: new Provider(name)});
 
     fs.mkdir('/test', function(err){
       if(err) throw err;
