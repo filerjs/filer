@@ -3,9 +3,8 @@
 const Constants = require('./constants.js');
 const Path = require('./path.js');
 
-// https://github.com/nodejs/node/blob/4f1297f259b09d129ac01afbd4c674263b7ac124/lib/internal/fs/utils.js#L231
-function dateFromNumeric(num) {
-  return new Date(Number(num) * 1000);
+function dateFromMs(ms) {
+  return new Date(Number(ms));
 }
 
 function Stats(path, fileNode, devName) {
@@ -15,10 +14,10 @@ function Stats(path, fileNode, devName) {
   this.size = fileNode.size;
   this.nlinks = fileNode.nlinks;
   // Date objects
-  this.atime = dateFromNumeric(fileNode.atime);
-  this.mtime = dateFromNumeric(fileNode.mtime);
-  this.ctime = dateFromNumeric(fileNode.ctime);
-  // Unix timestamp Numbers
+  this.atime = dateFromMs(fileNode.atime);
+  this.mtime = dateFromMs(fileNode.mtime);
+  this.ctime = dateFromMs(fileNode.ctime);
+  // Unix timestamp MS Numbers
   this.atimeMs = fileNode.atime;
   this.mtimeMs = fileNode.mtime;
   this.ctimeMs = fileNode.ctime;
