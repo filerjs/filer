@@ -2160,7 +2160,7 @@ function toUnixTimestamp(time) {
     return time;
   }
   if (typeof time === 'object' && typeof time.getTime === 'function') {
-    return time.getTime() / 1000;
+    return time.getTime();
   }
 }
 

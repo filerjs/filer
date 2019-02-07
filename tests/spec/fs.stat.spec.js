@@ -1,5 +1,7 @@
 var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+var chai = require('chai');
+chai.use(require('chai-datetime'));
+var expect = chai.expect;
 
 describe('fs.stat', function() {
   beforeEach(util.setup);
@@ -55,9 +57,9 @@ describe('fs.stat', function() {
       expect(result['mtime']).to.be.a('date');
       expect(result['ctime']).to.be.a('date');
 
-      expect(result.atime.getTime()/1000).to.equal(result.atimeMs);
-      expect(result.mtime.getTime()/1000).to.equal(result.mtimeMs);
-      expect(result.ctime.getTime()/1000).to.equal(result.ctimeMs);
+      expect(result.atime.getTime()).to.equal(result.atimeMs);
+      expect(result.mtime.getTime()).to.equal(result.mtimeMs);
+      expect(result.ctime.getTime()).to.equal(result.ctimeMs);
 
       done();
     });
@@ -151,6 +153,67 @@ describe('fs.stat', function() {
         expect(result['ctimeMs']).to.be.a('number');
         expect(result.isDirectory()).to.be.true;
       }); 
+  });
+
+  it('should set appropriate time and timeMs values when creating a file', function(done) {
+    var fs = util.fs();
+
+    // Make sure that all times on a file node are within a 1 minute window
+    var before = new Date();
+    var oneMinuteLater = new Date();
+    oneMinuteLater.setMinutes(oneMinuteLater.getMinutes() + 1);
+
+    fs.writeFile('/file', 'data', function(error) {
+      if(error) throw error;
+
+      fs.stat('/file', function(error, stats) {
+        if(error) throw error;
+
+        expect(new Date(stats.ctimeMs)).to.be.withinDate(before, oneMinuteLater);
+        expect(stats.ctime).to.be.withinDate(before, oneMinuteLater);
+
+        expect(new Date(stats.atimeMs)).to.be.withinDate(before, oneMinuteLater);
+        expect(stats.atime).to.be.withinDate(before, oneMinuteLater);
+
+        expect(new Date(stats.mtimeMs)).to.be.withinDate(before, oneMinuteLater);
+        expect(stats.mtime).to.be.withinDate(before, oneMinuteLater);
+
+        done();
+      });
+    });
+  });
+
+  it('should set appropriate time and timeMs values when creating a file', function(done) {
+    var fs = util.fs();
+
+    fs.writeFile('/file', 'data', function(error) {
+      if(error) throw error;
+
+      var newAtime = new Date('1 Oct 2000 15:33:22');
+      var newMtime = new Date('30 Sep 2000 06:43:54');
+
+      fs.utimes('/file', newAtime, newMtime, function(error) {
+        if(error) throw error;
+
+        fs.stat('/file', function(error, stats) {
+          if(error) throw error;
+
+          // ctime should match newMtime
+          expect(stats.ctimeMs).to.equal(newMtime.getTime());
+          expect(stats.ctime).to.equalDate(newMtime);
+
+          // atime should match newAtime
+          expect(stats.atimeMs).to.equal(newAtime.getTime());
+          expect(stats.atime).to.equalDate(newAtime);
+
+          // mtime should match newMtime
+          expect(stats.mtimeMs).to.equal(newMtime.getTime());
+          expect(stats.mtime).to.equalDate(newMtime);
+
+          done();
+        });
+      });
+    });
   });
 });
 
