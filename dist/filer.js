@@ -689,37 +689,7 @@ filerPath.removeTrailing = function (path) {
 };
 
 module.exports = filerPath;
-},{"path":"UUq2","process":"pBGv"}],"3zBM":[function(require,module,exports) {
-function generateRandom(template) {
-  return template.replace(/[xy]/g, function (c) {
-    var r = Math.random() * 16 | 0,
-        v = c === 'x' ? r : r & 0x3 | 0x8;
-    return v.toString(16);
-  });
-}
-
-function guid() {
-  return generateRandom('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').toUpperCase();
-}
-/**
- * Generate a string of n random characters.  Defaults to n=6.
- */
-
-
-function randomChars(n) {
-  n = n || 6;
-  var template = 'x'.repeat(n);
-  return generateRandom(template);
-}
-
-function nop() {}
-
-module.exports = {
-  guid: guid,
-  nop: nop,
-  randomChars: randomChars
-};
-},{}],"iJA9":[function(require,module,exports) {
+},{"path":"UUq2","process":"pBGv"}],"iJA9":[function(require,module,exports) {
 var O_READ = 'READ';
 var O_WRITE = 'WRITE';
 var O_CREATE = 'CREATE';
@@ -2876,8 +2846,8 @@ function isnan (val) {
 }
 
 },{"base64-js":"yh9p","ieee754":"JgNJ","isarray":"REa7","buffer":"dskh"}],"QO4x":[function(require,module,exports) {
-var global = arguments[3];
 var Buffer = require("buffer").Buffer;
+var global = arguments[3];
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME;
 
 var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
@@ -2885,8 +2855,6 @@ var FILE_STORE_NAME = require('../constants.js').FILE_STORE_NAME;
 var IDB_RW = require('../constants.js').IDB_RW;
 
 var IDB_RO = require('../constants.js').IDB_RO;
-
-var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB;
 
 function IndexedDBContext(db, mode) {
   this.db = db;
@@ -3012,6 +2980,7 @@ function IndexedDB(name) {
 }
 
 IndexedDB.isSupported = function () {
+  var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB;
   return !!indexedDB;
 };
 
@@ -3023,7 +2992,8 @@ IndexedDB.prototype.open = function (callback) {
   }
 
   try {
-    // NOTE: we're not using versioned databases.
+    var indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB; // NOTE: we're not using versioned databases.
+
     var openRequest = indexedDB.open(that.name); // If the db doesn't exist, we'll create it
 
     openRequest.onupgradeneeded = function onupgradeneeded(event) {
@@ -3342,6 +3312,8 @@ var errors = {};
 });
 module.exports = errors;
 },{}],"QMiB":[function(require,module,exports) {
+'use strict';
+
 var defaults = require('../constants.js').ENVIRONMENT;
 
 module.exports = function Environment(env) {
@@ -5234,6 +5206,36 @@ EventEmitter.prototype.off = pub.off;
 EventEmitter.prototype.trigger = pub.trigger;
 EventEmitter.prototype.removeAllListeners = pub.removeAllListeners;
 module.exports = EventEmitter;
+},{}],"3zBM":[function(require,module,exports) {
+function generateRandom(template) {
+  return template.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0,
+        v = c === 'x' ? r : r & 0x3 | 0x8;
+    return v.toString(16);
+  });
+}
+
+function guid() {
+  return generateRandom('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').toUpperCase();
+}
+/**
+ * Generate a string of n random characters.  Defaults to n=6.
+ */
+
+
+function randomChars(n) {
+  n = n || 6;
+  var template = 'x'.repeat(n);
+  return generateRandom(template);
+}
+
+function nop() {}
+
+module.exports = {
+  guid: guid,
+  nop: nop,
+  randomChars: randomChars
+};
 },{}],"u7Jv":[function(require,module,exports) {
 var global = arguments[3];
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -5578,6 +5580,8 @@ Intercom.getInstance = function () {
 
 module.exports = Intercom;
 },{"./eventemitter.js":"J4Qg","../src/shared.js":"3zBM"}],"VLEe":[function(require,module,exports) {
+'using strict';
+
 var EventEmitter = require('../lib/eventemitter.js');
 
 var Path = require('./path.js');
@@ -5641,17 +5645,7 @@ function FSWatcher() {
 FSWatcher.prototype = new EventEmitter();
 FSWatcher.prototype.constructor = FSWatcher;
 module.exports = FSWatcher;
-},{"../lib/eventemitter.js":"J4Qg","./path.js":"UzoP","../lib/intercom.js":"u7Jv"}],"03yF":[function(require,module,exports) {
-var Buffer = require("buffer").Buffer;
-module.exports = {
-  encode: function encode(string) {
-    return Buffer.from(string);
-  },
-  decode: function decode(buffer) {
-    return buffer.toString('utf8');
-  }
-};
-},{"buffer":"dskh"}],"ZECt":[function(require,module,exports) {
+},{"../lib/eventemitter.js":"J4Qg","./path.js":"UzoP","../lib/intercom.js":"u7Jv"}],"ZECt":[function(require,module,exports) {
 var NODE_TYPE_FILE = require('./constants.js').NODE_TYPE_FILE;
 
 module.exports = function DirectoryEntry(id, type) {
@@ -5939,13 +5933,14 @@ SuperNode.create = function (options, callback) {
 
 module.exports = SuperNode;
 },{"./constants.js":"iJA9"}],"6dsC":[function(require,module,exports) {
+'use strict';
+
 var Constants = require('./constants.js');
 
-var Path = require('./path.js'); // https://github.com/nodejs/node/blob/4f1297f259b09d129ac01afbd4c674263b7ac124/lib/internal/fs/utils.js#L231
+var Path = require('./path.js');
 
-
-function dateFromNumeric(num) {
-  return new Date(Number(num) * 1000);
+function dateFromMs(ms) {
+  return new Date(Number(ms));
 }
 
 function Stats(path, fileNode, devName) {
@@ -5955,9 +5950,9 @@ function Stats(path, fileNode, devName) {
   this.size = fileNode.size;
   this.nlinks = fileNode.nlinks; // Date objects
 
-  this.atime = dateFromNumeric(fileNode.atime);
-  this.mtime = dateFromNumeric(fileNode.mtime);
-  this.ctime = dateFromNumeric(fileNode.ctime); // Unix timestamp Numbers
+  this.atime = dateFromMs(fileNode.atime);
+  this.mtime = dateFromMs(fileNode.mtime);
+  this.ctime = dateFromMs(fileNode.ctime); // Unix timestamp MS Numbers
 
   this.atimeMs = fileNode.atime;
   this.mtimeMs = fileNode.mtime;
@@ -6020,8 +6015,6 @@ var XATTR_CREATE = Constants.XATTR_CREATE;
 var XATTR_REPLACE = Constants.XATTR_REPLACE;
 var FS_NOMTIME = Constants.FS_NOMTIME;
 var FS_NOCTIME = Constants.FS_NOCTIME;
-
-var Encoding = require('../encoding.js');
 
 var Errors = require('../errors.js');
 
@@ -7907,7 +7900,7 @@ function readFile(context, path, options, callback) {
         var data;
 
         if (options.encoding === 'utf8') {
-          data = Encoding.decode(buffer);
+          data = buffer.toString('utf8');
         } else {
           data = buffer;
         }
@@ -7951,7 +7944,7 @@ function writeFile(context, path, data, options, callback) {
   }
 
   if (typeof data === 'string' && options.encoding === 'utf8') {
-    data = Encoding.encode(data);
+    data = Buffer.from(data);
   }
 
   open_file(context, path, flags, function (err, fileNode) {
@@ -7989,7 +7982,7 @@ function appendFile(context, path, data, options, callback) {
   }
 
   if (typeof data === 'string' && options.encoding === 'utf8') {
-    data = Encoding.encode(data);
+    data = Buffer.from(data);
   }
 
   open_file(context, path, flags, function (err, fileNode) {
@@ -8258,7 +8251,7 @@ function toUnixTimestamp(time) {
   }
 
   if (_typeof(time) === 'object' && typeof time.getTime === 'function') {
-    return time.getTime() / 1000;
+    return time.getTime();
   }
 }
 
@@ -8547,23 +8540,14 @@ module.exports = {
   writeFile: writeFile,
   write: write
 };
-},{"../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../encoding.js":"03yF","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-files.js":"osLK","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","buffer":"dskh"}],"GMi4":[function(require,module,exports) {
+},{"../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-files.js":"osLK","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","buffer":"dskh"}],"GMi4":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
+'use strict';
+
 var _require = require('es6-promisify'),
     promisify = _require.promisify;
 
 var Path = require('../path.js');
-
-var nop = require('../shared.js').nop;
-
-var Constants = require('../constants.js');
-
-var FILE_SYSTEM_NAME = Constants.FILE_SYSTEM_NAME;
-var FS_FORMAT = Constants.FS_FORMAT;
-var FS_READY = Constants.FS_READY;
-var FS_PENDING = Constants.FS_PENDING;
-var FS_ERROR = Constants.FS_ERROR;
-var FS_NODUPEIDCHECK = Constants.FS_NODUPEIDCHECK;
 
 var providers = require('../providers/index.js');
 
@@ -8575,11 +8559,22 @@ var FSWatcher = require('../fs-watcher.js');
 
 var Errors = require('../errors.js');
 
-var defaultGuidFn = require('../shared.js').guid;
+var _require2 = require('../shared.js'),
+    nop = _require2.nop,
+    defaultGuidFn = _require2.guid;
 
-var STDIN = Constants.STDIN;
-var STDOUT = Constants.STDOUT;
-var STDERR = Constants.STDERR; // The core fs operations live on impl
+var _require3 = require('../constants.js'),
+    fsConstants = _require3.fsConstants,
+    FILE_SYSTEM_NAME = _require3.FILE_SYSTEM_NAME,
+    FS_FORMAT = _require3.FS_FORMAT,
+    FS_READY = _require3.FS_READY,
+    FS_PENDING = _require3.FS_PENDING,
+    FS_ERROR = _require3.FS_ERROR,
+    FS_NODUPEIDCHECK = _require3.FS_NODUPEIDCHECK,
+    STDIN = _require3.STDIN,
+    STDOUT = _require3.STDOUT,
+    STDERR = _require3.STDERR; // The core fs operations live on impl
+
 
 var impl = require('./implementation.js'); // node.js supports a calling pattern that leaves off a callback.
 
@@ -8706,12 +8701,12 @@ function FileSystem(options, callback) {
   fs.stdout = STDOUT;
   fs.stderr = STDERR; // Expose Node's fs.constants to users
 
-  fs.constants = Constants.fsConstants; // Node also forwards the access mode flags onto fs
+  fs.constants = fsConstants; // Node also forwards the access mode flags onto fs
 
-  fs.F_OK = Constants.fsConstants.F_OK;
-  fs.R_OK = Constants.fsConstants.R_OK;
-  fs.W_OK = Constants.fsConstants.W_OK;
-  fs.X_OK = Constants.fsConstants.X_OK; // Expose Shell constructor
+  fs.F_OK = fsConstants.F_OK;
+  fs.R_OK = fsConstants.R_OK;
+  fs.W_OK = fsConstants.W_OK;
+  fs.X_OK = fsConstants.X_OK; // Expose Shell constructor
 
   this.Shell = Shell.bind(undefined, this); // Safely expose the operation queue
 
@@ -9075,7 +9070,7 @@ function FileSystem(options, callback) {
 
 FileSystem.providers = providers;
 module.exports = FileSystem;
-},{"es6-promisify":"0c0E","../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","./implementation.js":"bsBG","buffer":"dskh"}],"Focm":[function(require,module,exports) {
+},{"es6-promisify":"0c0E","../path.js":"UzoP","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","../shared.js":"3zBM","../constants.js":"iJA9","./implementation.js":"bsBG","buffer":"dskh"}],"Focm":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
 var fs = null;
 var Filer = null;
