@@ -6,7 +6,7 @@ describe('fs.unlink', function() {
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    let fs = util.fs();
+    const fs = util.fs();
     expect(fs.unlink).to.be.a('function');
   });
 
@@ -115,7 +115,7 @@ describe('fs.promises.unlink', function () {
   });
 
   it('should return an error if trying to delete a file that does not exist', function() {
-    let fsPromises = util.fs().promises;
+    const fsPromises = util.fs().promises;
 
     return fsPromises.unlink('/myFile')
       .catch(error => {
