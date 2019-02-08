@@ -173,7 +173,7 @@ describe('fs.xattr', function() {
 
   it('should set and get an extended attribute of a path', function(done) {
     const fs = util.fs();
-    let name = 'test';
+    const name = 'test';
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -201,7 +201,7 @@ describe('fs.xattr', function() {
 
         fs.removexattr('/testfile', 'testenoattr', function (error) {
           expect(error).to.exist;
-          expect(error.code).to.equal('ENOATTR');
+          expect(error.code).to.equal('ENOATTR');gi
           done();
         });
       });
