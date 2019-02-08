@@ -1,12 +1,14 @@
-var util = require('../lib/test-utils.js');
-var expect = require('chai').expect;
+'use strict';
+
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs.xattr', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be a function', function () {
-    var fs = util.fs();
+    const fs = util.fs();
     expect(fs.setxattr).to.be.a('function');
     expect(fs.getxattr).to.be.a('function');
     expect(fs.removexattr).to.be.a('function');
@@ -15,7 +17,7 @@ describe('fs.xattr', function() {
   });
 
   it('should error when setting with a name that is not a string', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -29,7 +31,7 @@ describe('fs.xattr', function() {
   });
 
   it('should error when setting with a name that is null', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -43,7 +45,7 @@ describe('fs.xattr', function() {
   });
 
   it('should error when setting with an invalid flag', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -57,7 +59,7 @@ describe('fs.xattr', function() {
   });
 
   it('should error when when setting an extended attribute which exists with XATTR_CREATE flag', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function(error) {
       if (error) throw error;
@@ -75,7 +77,7 @@ describe('fs.xattr', function() {
   });
 
   it('should error when setting an extended attribute which does not exist with XATTR_REPLACE flag', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function(error) {
       if (error) throw error;
@@ -89,7 +91,7 @@ describe('fs.xattr', function() {
   });
 
   it('should error when getting an attribute with a name that is empty', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function(error) {
       if (error) throw error;
@@ -104,7 +106,7 @@ describe('fs.xattr', function() {
   });
 
   it('should error when getting an attribute where the name is not a string', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function(error) {
       if (error) throw error;
@@ -119,7 +121,7 @@ describe('fs.xattr', function() {
   });
 
   it('should error when getting an attribute that does not exist', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function(error) {
       if (error) throw error;
@@ -134,10 +136,10 @@ describe('fs.xattr', function() {
   });
 
   it('should error when file descriptor is invalid', function(done) {
-    var fs = util.fs();
-    var completeSet = false;
-    var completeGet = false;
-    var completeRemove = false;
+    const fs = util.fs();
+    let completeSet = false;
+    let completeGet = false;
+    let completeRemove = false;
 
     function maybeDone() {
       if(completeSet && completeGet && completeRemove) {
@@ -170,8 +172,8 @@ describe('fs.xattr', function() {
   });
 
   it('should set and get an extended attribute of a path', function(done) {
-    var fs = util.fs();
-    var name = 'test';
+    const fs = util.fs();
+    const name = 'test';
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -189,7 +191,7 @@ describe('fs.xattr', function() {
   });
 
   it('should error when attempting to remove a non-existing attribute', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -207,7 +209,7 @@ describe('fs.xattr', function() {
   });
 
   it('should set and get an empty string as a value', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -225,7 +227,7 @@ describe('fs.xattr', function() {
   });
 
   it('should set and get an extended attribute for a valid file descriptor', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.open('/testfile', 'w', function (error, ofd) {
       if (error) throw error;
@@ -243,7 +245,7 @@ describe('fs.xattr', function() {
   });
 
   it('should set and get an object to an extended attribute', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -261,7 +263,7 @@ describe('fs.xattr', function() {
   });
 
   it('should update/overwrite an existing extended attribute', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -296,7 +298,7 @@ describe('fs.xattr', function() {
   });
 
   it('should set multiple extended attributes for a path', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -323,7 +325,7 @@ describe('fs.xattr', function() {
   });
 
   it('should remove an extended attribute from a path', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
@@ -350,7 +352,7 @@ describe('fs.xattr', function() {
   });
 
   it('should remove an extended attribute from a valid file descriptor', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.open('/testfile', 'w', function (error, ofd) {
       if (error) throw error;
@@ -377,7 +379,7 @@ describe('fs.xattr', function() {
   });
 
   it('should allow setting with a null value', function(done) {
-    var fs = util.fs();
+    const fs = util.fs();
 
     fs.writeFile('/testfile', '', function (error) {
       if (error) throw error;
