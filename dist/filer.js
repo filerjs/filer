@@ -6969,6 +6969,14 @@ function lstat_file(context, path, callback) {
     }
   }
 
+  function create_node(error, data) {
+    if (error) {
+      return callback(error);
+    }
+
+    Node.create(data, callback);
+  }
+
   function check_if_file_exists(error, result) {
     if (error) {
       callback(error);
@@ -6978,7 +6986,7 @@ function lstat_file(context, path, callback) {
       if (!directoryData.hasOwnProperty(name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
       } else {
-        context.getObject(directoryData[name].id, callback);
+        context.getObject(directoryData[name].id, create_node);
       }
     }
   }
