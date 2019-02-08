@@ -1,18 +1,18 @@
 'use strict';
-let util = require('../lib/test-utils.js');
-let expect = require('chai').expect;
+const util = require('../lib/test-utils.js');
+const expect = require('chai').expect;
 
 describe('fs.exists', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    let fs = util.fs();
+    const fs = util.fs();
     expect(typeof fs.exists).to.equal('function');
   });
 
   it('should return false if path does not exist', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.exists('/tmp', function(result) {
       expect(result).to.be.false;
@@ -21,7 +21,7 @@ describe('fs.exists', function() {
   });
 
   it('should return true if path exists', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.open('/myfile', 'w', function(err, fd) {
       if(err) throw err;
@@ -38,7 +38,7 @@ describe('fs.exists', function() {
   });
 
   it('should follow symbolic links and return true for the resulting path', function(done) {
-    let fs = util.fs();
+    const fs = util.fs();
 
     fs.open('/myfile', 'w', function(error, fd) {
       if(error) throw error;
