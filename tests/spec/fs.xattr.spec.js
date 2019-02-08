@@ -201,7 +201,7 @@ describe('fs.xattr', function() {
 
         fs.removexattr('/testfile', 'testenoattr', function (error) {
           expect(error).to.exist;
-          expect(error.code).to.equal('ENOATTR');gi
+          expect(error.code).to.equal('ENOATTR');
           done();
         });
       });
