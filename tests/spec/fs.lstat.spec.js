@@ -46,6 +46,27 @@ describe('fs.lstat', function() {
       });
     });
   });
+
+  it('should have a mode (full node) when stat\'d with lstat', function(done) {
+    var fs = util.fs();
+
+    fs.writeFile('/file', 'data', function(error) {
+      if(error) throw error;
+
+      fs.symlink('/file', '/symlink', function(error) {
+        if(error) throw error;
+
+        fs.lstat('/symlink', function(error, stats) {
+          if(error) throw error;
+
+          // We should build and return a full node object, complete with
+          // calculated mode, which should be a SYMLINK and the default file permissions.
+          expect(stats.mode).to.equal(fs.constants.S_IFLNK | 0o644);
+          done();
+        });
+      });
+    });
+  });
 });
 
 describe('fs.promises.lstat', () => {

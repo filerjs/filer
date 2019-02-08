@@ -46,6 +46,36 @@ describe('fs.symlink', function () {
     });
   });
 
+  it('should return the same node data for a file and symbolic link', function(done) {
+    var fs = util.fs();
+
+    fs.writeFile('/file', 'data', function(error) {
+      if(error) throw error;
+
+      fs.stat('/file', function(error, stats1) {
+        if(error) throw error;
+
+
+        fs.symlink('/file', '/symlink', function(error) {
+          if(error) throw error;
+
+          fs.stat('/symlink', function(error, stats2) {
+            if(error) throw error;
+
+            // The node names will differ, confirm and remove.
+            expect(stats1.name).to.equal('file');
+            delete stats1.name;
+            expect(stats2.name).to.equal('symlink');
+            delete stats2.name;
+
+            expect(stats2).to.deep.equal(stats1);
+            done();
+          });
+        });
+      });
+    });
+  });
+
   /** Tests for fsPromises API */
   describe('fsPromises.symlink', function () {
     it('should return an error if destination path does not exist', function () {
