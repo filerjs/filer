@@ -37,7 +37,7 @@ describe('fs.read', function() {
     const fs = util.fs();
     const wbuffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
     const rbuffer = Buffer.alloc(wbuffer.length);
-    const _result = 0;
+    let _result = 0;
 
     fs.open('/myfile', 'w+', function(error, fd) {
       if(error) throw error;
