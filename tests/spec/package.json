@@ -1,0 +1,11 @@
+{
+  "name": "spec",
+  "version": "1.0.0",
+  "description": "const { path } = require('../../src'); var util = require('../lib/test-utils.js'); var expect = require('chai').expect;",
+  "main": "errors.spec.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
