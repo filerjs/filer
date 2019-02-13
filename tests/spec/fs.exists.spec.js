@@ -59,12 +59,7 @@ describe('fs.exists', function() {
   });
   
   it('should follow symbolic links and return false if for the resulting path does not exist', function(done) {
-<<<<<<< HEAD
     const fs = util.fs();
-=======
-    let fs = util.fs();
->>>>>>> 0465a546870ff53a1c20f767c04d2667aa9cbed7
-
     fs.open('/myfile', 'w', function(error, fd) {
       if(error) throw error;
 
