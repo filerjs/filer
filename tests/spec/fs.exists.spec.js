@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 'use strict';
->>>>>>> 0465a546870ff53a1c20f767c04d2667aa9cbed7
 const util = require('../lib/test-utils.js');
 const expect = require('chai').expect;
 
