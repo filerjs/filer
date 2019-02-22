@@ -2,7 +2,6 @@ var util = require('../lib/test-utils.js');
 var chai = require('chai');
 chai.use(require('chai-datetime'));
 var expect = chai.expect;
-
 var Path = require('../../src').Path;
 
 describe('fs.stat', function() {
