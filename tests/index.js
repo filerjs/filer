@@ -36,7 +36,6 @@ require('./spec/fs.truncate.spec');
 require('./spec/fs.ftruncate.spec');
 require('./spec/fs.utimes.spec');
 require('./spec/fs.xattr.spec');
-require('./spec/fs.stats.spec');
 require('./spec/path-resolution.spec');
 require('./spec/trailing-slashes.spec');
 require('./spec/times.spec');
