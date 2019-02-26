@@ -47,6 +47,23 @@ describe('fs.open', function() {
     });
   });
 
+  it('should return an error when flagged for write and the path exists', function(done) {
+    var fs = util.fs();
+
+    fs.mkdir('/tmp', function(error) {
+      if(error) throw error;
+      fs.writeFile('/tmp/file', 'data', function(error) {
+        if(error) throw error;
+        fs.open('/tmp/file', 'wx', function(error, result) {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOENT');
+          expect(result).not.to.exist;
+          done();
+        });
+      });
+    });
+  });
+
   it('should return an error when flagged for append and the path is a directory', function(done) {
     var fs = util.fs();
 
