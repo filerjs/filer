@@ -56,7 +56,7 @@ describe('fs.open', function() {
         if(error) throw error;
         fs.open('/tmp/file', 'wx', function(error, result) {
           expect(error).to.exist;
-          expect(error.code).to.equal('ENOENT');
+          expect(error.code).to.equal('EEXIST');
           expect(result).not.to.exist;
           done();
         });
