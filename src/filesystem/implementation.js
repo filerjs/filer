@@ -620,7 +620,7 @@ function open_file(context, path, flags, mode, callback) {
       directoryData = result;
       if(directoryData.hasOwnProperty(name)) {
         if(flags.includes(O_EXCLUSIVE)) {
-          callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
+          callback(new Errors.EEXIST('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
           if(directoryEntry.type === NODE_TYPE_DIRECTORY && flags.includes(O_WRITE)) {
