@@ -66,6 +66,17 @@ describe('fs.write', function() {
     });
   });
 
+  it('should fail to write to a file that does not exist', function(done) {
+    const fs = util.fs();
+    const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.write('/myfile', buffer, 0, buffer.length, 0, function(error) {
+      expect(error).to.exist;
+      expect(undefined).to.equal(undefined);
+      done();
+    });
+  });
+
   it('should fail to write a buffer whose length is too small', function(done) {
     const fs = util.fs();
     const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
