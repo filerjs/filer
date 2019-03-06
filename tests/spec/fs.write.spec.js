@@ -65,4 +65,23 @@ describe('fs.write', function() {
       });
     });
   });
+
+  it('should fail to write data to a file opened without the O_WRITE flag', function(done) {
+    const fs = util.fs();
+    const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.mknod('/myfile', 'FILE', function(err) {
+      if (err) throw err;
+
+      fs.open('/myfile', 'r', function(error, fd) {
+        if(error) throw error;
+  
+        fs.write(fd, buffer, 0, buffer.length, 0, function(error) {
+          expect(error).to.exist;
+          expect(error.code).to.equal('EBADF');
+          done();
+        });
+      });
+    });
+  });
 });
