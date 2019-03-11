@@ -72,12 +72,12 @@ describe('fs.write', function() {
 
     fs.write('/myfile', buffer, 0, buffer.length, 0, function(error) {
       expect(error).to.exist;
-      expect(undefined).to.equal(undefined);
+      expect(error.code).to.equal('EBADF');
       done();
     });
   });
 
-  it('should fail to write a buffer whose length is too small', function(done) {
+  it('should fail when trying to write more bytes than are available in the buffer (length too long)', function(done) {
     const fs = util.fs();
     const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
@@ -86,7 +86,7 @@ describe('fs.write', function() {
 
       fs.write(fd, buffer, 0, (buffer.length + 10), 0, function(error) {
         expect(error).to.exist;
-        expect(undefined).to.equal(undefined);
+        expect(error.code).to.equal('EIO');
         fs.close(fd, done);
       });
     });
