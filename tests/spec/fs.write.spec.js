@@ -66,7 +66,7 @@ describe('fs.write', function() {
     });
   });
 
-  it('should fail to write to a file that does not exist', function(done) {
+  it('should fail if given a file path vs. an fd', function(done) {
     const fs = util.fs();
     const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
 
