@@ -65,4 +65,49 @@ describe('fs.write', function() {
       });
     });
   });
+
+  it('should fail if given a file path vs. an fd', function(done) {
+    const fs = util.fs();
+    const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.write('/myfile', buffer, 0, buffer.length, 0, function(error) {
+      expect(error).to.exist;
+      expect(error.code).to.equal('EBADF');
+      done();
+    });
+  });
+
+  it('should fail when trying to write more bytes than are available in the buffer (length too long)', function(done) {
+    const fs = util.fs();
+    const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.open('/myfile', 'w', function(error, fd) {
+      if(error) throw error;
+
+      fs.write(fd, buffer, 0, (buffer.length + 10), 0, function(error) {
+        expect(error).to.exist;
+        expect(error.code).to.equal('EIO');
+        fs.close(fd, done);
+      });
+    });
+  });
+
+  it('should fail to write data to a file opened without the O_WRITE flag', function(done) {
+    const fs = util.fs();
+    const buffer = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    fs.mknod('/myfile', 'FILE', function(err) {
+      if (err) throw err;
+
+      fs.open('/myfile', 'r', function(error, fd) {
+        if(error) throw error;
+  
+        fs.write(fd, buffer, 0, buffer.length, 0, function(error) {
+          expect(error).to.exist;
+          expect(error.code).to.equal('EBADF');
+          done();
+        });
+      });
+    });
+  });
 });
