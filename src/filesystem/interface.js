@@ -224,17 +224,25 @@ function FileSystem(options, callback) {
     const interval = options.interval || 5007;
     listener = listener || nop;
     
+    //Stores prev value to compare 
+    fs.stat(filename, function(err, stats) { prevStat = stats}); 
+
     //stores interval return values
     statWatchers.set(filename, value);
 
     var value = setInterval(function() {
       fs.stat(filename, function(err, stats) {
         if(err) {
-          //console.log(err);
+          console.log(err);
         }
-        //record file curr 
-        //compare curr-prev 
-        //if theres a difference file change 
+        currStat = stats;
+        if((currStat.mtime - prevStat.mtime) == 0) {
+          //No changes
+        }
+        else { 
+          //if theres a difference file change 
+          //call listener here
+        }
       });
     }, 
     interval
