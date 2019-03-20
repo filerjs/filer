@@ -224,7 +224,7 @@ function FileSystem(options, callback) {
     const interval = options.interval || 5007;
     listener = listener || nop;
     
-    //Stores prev value to compare 
+    //Stores initial prev value to compare 
     fs.stat(filename, function(err, stats) { prevStat = stats}); 
 
     //stores interval return values
@@ -235,20 +235,17 @@ function FileSystem(options, callback) {
         if(err) {
           console.log(err);
         }
+        //Store the current stat
         currStat = stats;
-        if((currStat.mtime - prevStat.mtime) == 0) {
-          //No changes
+        if(prevStat != currStat) { 
+          listener(prevStat, currStat);
         }
-        else { 
-          //if theres a difference file change 
-          //call listener here
-        }
+        //Set a new prevStat based on previous
+        prevStat = currStat;
       });
     }, 
     interval
     );
-
-    return watcher;
   };
 
   // Deal with various approaches to node ID creation
