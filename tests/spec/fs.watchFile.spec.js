@@ -12,10 +12,11 @@ describe('fs.watchFile', function() {
     expect(typeof fs.watchFile).to.equal('function');
   });
 
+  /*
   it('should get a change event when writing a file', function(done) {
     const fs = util.fs();
 
-    const watcher = fs.watchFile('/myfile.txt', function(event, filename) {
+    fs.watchFile('/myfile.txt', function(event, filename) {
       expect(event).to.equal('change');
       expect(filename).to.equal('/myfile.txt');
       watcher.close();
@@ -24,26 +25,6 @@ describe('fs.watchFile', function() {
 
     fs.writeFile('/myfile.txt', 'data', function(error) {
       if(error) throw error;
-    });
-  });
-
-  /*
-  it('should get a change event when renaming a file', function(done) {
-    const fs = util.fs();
-
-    fs.writeFile('/myfile.txt', 'data', function(error) {
-      if(error) throw error;
-
-      const watcher = fs.watchFile('/myfile.txt', function(event, filename) {
-        expect(event).to.equal('change');
-        expect(filename).to.equal('/myfile.txt');
-        watcher.close();
-        done();
-      });
-
-      fs.rename('/myfile.txt', '/mynewfile.txt', function(error) {
-        if(error) throw error;
-      });
     });
   });
   */
