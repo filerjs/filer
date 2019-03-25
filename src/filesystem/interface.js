@@ -210,42 +210,44 @@ function FileSystem(options, callback) {
   const statWatchers = new Map(); 
 
   this.watchFile = function(filename, options, listener) {
-    const prevStat, currStat; 
+    let prevStat, currStat; 
 
     if (Path.isNull(filename)) {
       throw new Error('Path must be a string without null bytes.');
     }
-    //Checks to see if there were options passed in and if not, the callback function will be set here
+    // Checks to see if there were options passed in and if not, the callback function will be set here
     if (typeof options === 'function') {
       listener = options; 
       options = {};
     }
-    //default 5007ms interval, persistent is not used this project
+    // default 5007ms interval, persistent is not used this project
     const interval = options.interval || 5007;
     listener = listener || nop;
     
-    //Stores initial prev value to compare 
-    fs.stat(filename, function(err, stats) { prevStat = stats}); 
-
-    //stores interval return values
-    statWatchers.set(filename, value);
-
-    var value = setInterval(function() {
-      fs.stat(filename, function(err, stats) {
-        if(err) {
-          console.log(err);
-        }
-        //Store the current stat
-        currStat = stats;
-        if(prevStat != currStat) { 
-          listener(prevStat, currStat);
-        }
-        //Set a new prevStat based on previous
-        prevStat = currStat;
-      });
-    }, 
-    interval
-    );
+    // Stores initial prev value to compare 
+    fs.stat(filename, function(err, stats) { 
+      prevStat = stats;
+      
+      // Stores interval return values
+      statWatchers.set(filename, value);
+      
+      var value = setInterval(function() {
+        fs.stat(filename, function(err, stats) {
+          if(err) {
+            console.log(err);
+          }
+          // Store the current stat
+          currStat = stats;
+          if(Object.toJSON(prevStat) !== Object.toJSON(currStat)) { 
+            listener(prevStat, currStat);
+          }
+          // Set a new prevStat based on previous
+          prevStat = currStat;
+        });
+      }, 
+      interval
+      );
+    }); 
   };
 
   // Deal with various approaches to node ID creation
