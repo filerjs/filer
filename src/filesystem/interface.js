@@ -226,15 +226,16 @@ function FileSystem(options, callback) {
 
     let intervalValue = statWatchers.get(filename);
 
-    // Checks to see if there's a pre-existing watcher on the file
-    if (intervalValue === undefined) {
-      // Stores initial prev value to compare 
+    if(intervalValue) {
+      return;
+    }
+    else { 
       fs.stat(filename, function (err, stats) {
         var value = setInterval(function () {
           prevStat = currStat;
 
           //Conditional check for first run to set initial state for prevStat
-          if(prevStat === undefined) { 
+          if(!prevStat) { 
             prevStat = stats;
           } 
 
@@ -242,21 +243,21 @@ function FileSystem(options, callback) {
 
           if (err) {
             clearInterval(value);
-            console.warn('[Filer Error] fs.watchFile encountered an error: ' + err);
+            console.warn('[Filer Error] fs.watchFile encountered an error' + err.message);
           }
           if (JSON.stringify(prevStat) !== JSON.stringify(currStat)) {
             listener(prevStat, currStat);
           }
           // Set a new prevStat based on previous
           prevStat = currStat;
-        },
+        }, 
         interval
         );
 
         // Stores interval return values
         statWatchers.set(filename, value);
       });
-    }
+    } 
   };
 
   // Deal with various approaches to node ID creation

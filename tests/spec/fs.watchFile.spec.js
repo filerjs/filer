@@ -19,7 +19,25 @@ describe('fs.watchFile', function() {
     expect(fn).to.throw();
   });
 
-  it('prev and curr should be populated', function() {
+  it('should throw an error if a file is deleted', function() {
+    const fs = util.fs(); 
+    
+    fs.writeFile('/myfile', 'data', function(error) {
+      if(error) throw error;
+    });  
+
+    fs.watchFile('/myfile', function(prev, curr) {
+      expect(prev).to.exist;
+      expect(curr).to.exist;
+    }); 
+
+    fs.unlink('/myfile'); 
+
+    const fn = () => fs.watchFile('/myfile');
+    expect(fn).to.throw();
+  });
+
+  it('prev and curr should be equal if nothing has been changed in the file', function() {
     const fs = util.fs(); 
 
     fs.writeFile('/myfile', 'data', function(error) {
@@ -27,8 +45,25 @@ describe('fs.watchFile', function() {
     }); 
     
     fs.watchFile('/myfile', function(prev, curr) {
-      expect(prev).to.exist;
-      expect(curr).to.exist;
+      expect(prev).to.equal(curr);
+    });
+  });
+
+  it('prev and curr should not be equal if something has been changed in the file', function() {
+    const fs = util.fs(); 
+
+    fs.writeFile('/myfile', 'data', function(error) {
+      if(error) throw error;
+    }); 
+
+    fs.watchFile('/myfile', function(prev, curr) {
+      expect(prev).to.equal(curr);
+
+      fs.writeFile('/myfile', 'data2', function(error) {
+        if(error) throw error;
+      }); 
+      
+      expect(prev).to.not.equal(curr);
     });
   });
 });
