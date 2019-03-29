@@ -206,6 +206,60 @@ function FileSystem(options, callback) {
     return watcher;
   };
 
+  //Object that uses filenames as keys
+  const statWatchers = new Map();
+
+  this.watchFile = function (filename, options, listener) {
+    let prevStat, currStat;
+
+    if (Path.isNull(filename)) {
+      throw new Error('Path must be a string without null bytes.');
+    }
+    // Checks to see if there were options passed in and if not, the callback function will be set here
+    if (typeof options === 'function') {
+      listener = options;
+      options = {};
+    }
+    // default 5007ms interval, persistent is not used this project
+    const interval = options.interval || 5007;
+    listener = listener || nop;
+
+    let intervalValue = statWatchers.get(filename);
+
+    if(intervalValue) {
+      return;
+    }
+    else { 
+      fs.stat(filename, function (err, stats) {
+        var value = setInterval(function () {
+          prevStat = currStat;
+
+          //Conditional check for first run to set initial state for prevStat
+          if(!prevStat) { 
+            prevStat = stats;
+          } 
+
+          currStat = stats;
+
+          if (err) {
+            clearInterval(value);
+            console.warn('[Filer Error] fs.watchFile encountered an error' + err.message);
+          }
+          if (JSON.stringify(prevStat) !== JSON.stringify(currStat)) {
+            listener(prevStat, currStat);
+          }
+          // Set a new prevStat based on previous
+          prevStat = currStat;
+        }, 
+        interval
+        );
+
+        // Stores interval return values
+        statWatchers.set(filename, value);
+      });
+    } 
+  };
+
   // Deal with various approaches to node ID creation
   function wrappedGuidFn(context) {
     return function (callback) {

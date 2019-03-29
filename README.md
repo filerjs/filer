@@ -388,6 +388,7 @@ const fs = new Filer.FileSystem(options, callback);
 * [fs.removexattr(path, name, callback)](#removexattr)
 * [fs.fremovexattr(fd, name, callback)](#fremovexattr)
 * [fs.watch(filename, [options], [listener])](#watch)
+* [fs.watchFile(filename, [options], [listener])](#watchFile)
 
 #### fs.rename(oldPath, newPath, callback)<a name="rename"></a>
 
@@ -1322,6 +1323,24 @@ var watcher = fs.watch('/data', { recursive: true }, function(event, filename) {
 });
 fs.writeFile('/data/subdir/file', 'data');
 ```
+
+### fs.watchFile(filename, [options], [listener])<a name="watch"></a> 
+
+Watch for changes on a file at `filename`. The callback `listener` will be called each time the file is accessed. 
+
+The `options` argument only supports the change in interval between checks measured in milliseconds and does not support perstistence like node.
+
+The `listener` receives two arguments that are the current stat object and previous stat object that are instances of `fs.Stat`. Reference to `fs.Stat` can be found 
+here: [`fs.Stat`](https://nodejs.org/api/fs.html#fs_class_fs_stats)
+
+Example: 
+```javascript 
+fs.watchFile('/myfile.txt', (curr, prev) => {
+  console.log(`the current mtime is: ${curr.mtime}`);
+  console.log(`the previous mtime was: ${prev.mtime}`);
+});
+```
+
 
 ### FileSystemShell<a name="FileSystemShell"></a>
 
