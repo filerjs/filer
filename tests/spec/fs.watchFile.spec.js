@@ -8,24 +8,27 @@ describe('fs.watchFile', function() {
   afterEach(util.cleanup);
 
   it('should be a function', function() {
-    var fs = util.fs();
+    const fs = util.fs();
     expect(typeof fs.watchFile).to.equal('function');
   });
 
-  /*
-  it('should get a change event when writing a file', function(done) {
+  it('should throw an error if a file path is not defined', function() { 
     const fs = util.fs();
+    
+    const fn = () => fs.watchFile(undefined);
+    expect(fn).to.throw();
+  });
 
-    fs.watchFile('/myfile.txt', function(event, filename) {
-      expect(event).to.equal('change');
-      expect(filename).to.equal('/myfile.txt');
-      watcher.close();
-      done();
-    });
+  it('prev and curr should be populated', function() {
+    const fs = util.fs(); 
 
-    fs.writeFile('/myfile.txt', 'data', function(error) {
+    fs.writeFile('/myfile', 'data', function(error) {
       if(error) throw error;
+    }); 
+    
+    fs.watchFile('/myfile', function(prev, curr) {
+      expect(prev).to.exist;
+      expect(curr).to.exist;
     });
   });
-  */
 });
