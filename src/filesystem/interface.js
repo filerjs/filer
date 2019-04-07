@@ -341,7 +341,6 @@ function FileSystem(options, callback) {
     { name: 'futimes' },
     { name: 'getxattr', promises: true, absPathArgs: [0] },
     { name: 'lchown' },
-    // lchmod - https://github.com/filerjs/filer/issues/619
     { name: 'link', promises: true, absPathArgs: [0, 1] },
     { name: 'lseek' },
     { name: 'lstat', promises: true },
