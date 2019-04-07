@@ -278,6 +278,14 @@ function find_node(context, path, callback) {
   }
 }
 
+/**
+ * find_lnode
+ */
+// in: file or directory path
+// out: node structure, or error
+function find_symbolic_node(context, path, callback) {
+  lstat_file(context, path, callback);
+} 
 
 /**
  * set extended attribute (refactor)
@@ -2060,6 +2068,19 @@ function fchown_file(context, ofd, uid, gid, callback) {
   ofd.getNode(context, update_owner);
 }
 
+function lchown_file(context, path, uid, gid, callback) { 
+  function update_owner(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.uid = uid;
+      node.gid = gid;
+      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+    }
+  }
+  find_symbolic_node(context, path, update_owner);
+} 
+
 function getxattr(context, path, name, callback) {
   getxattr_file(context, path, name, callback);
 }
@@ -2244,6 +2265,17 @@ function fchown(context, fd, uid, gid, callback) {
   }
 }
 
+function lchown(context, path, uid, gid, callback) {
+  if(!isUint32(uid)) {
+    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
+  }
+  if(!isUint32(gid)) {
+    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
+  }
+
+  lchown_file(context, path, uid, gid, callback);
+}
+
 function rename(context, oldpath, newpath, callback) {
   oldpath = normalize(oldpath);
   newpath = normalize(newpath);
@@ -2425,7 +2457,7 @@ module.exports = {
   ftruncate,
   futimes,
   getxattr,
-  // lchown - https://github.com/filerjs/filer/issues/620
+  lchown,
   // lchmod - https://github.com/filerjs/filer/issues/619
   link,
   lseek,
