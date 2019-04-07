@@ -278,6 +278,14 @@ function find_node(context, path, callback) {
   }
 }
 
+/**
+ * find_lnode
+ */
+// in: file or directory path
+// out: node structure, or error
+function find_symbolic_node(context, path, callback) {
+  lstat_file(context, path, callback)
+}
 
 /**
  * set extended attribute (refactor)
@@ -921,7 +929,19 @@ function lstat_file(context, path, callback) {
     if(error) {
       return callback(error);
     }
-    Node.create(data, callback);
+    Node.create(data, is_symbolic_link);
+  }
+
+  function is_symbolic_link(error, node) {
+    if(error) {
+      callback(error);
+    } else {
+      if(node.type === NODE_TYPE_SYMBOLIC_LINK) {
+        callback(null, node);
+      } else {
+        callback(new Errors.ENOTSYMLINK(null, path));
+      }
+    }
   }
 
   function check_if_file_exists(error, result) {
@@ -2046,6 +2066,19 @@ function chown_file(context, path, uid, gid, callback) {
   find_node(context, path, update_owner);
 }
 
+function lchown_file(context, path, uid, gid, callback) { 
+  function update_owner(error, node) {
+    if (error) {
+      callback(error);
+    } else {
+      node.uid = uid;
+      node.gid = gid;
+      update_node_times(context, path, node, { mtime: Date.now() }, callback);
+    }
+  }
+  find_symbolic_node(context, path, update_owner);
+}
+
 function fchown_file(context, ofd, uid, gid, callback) {
   function update_owner(error, node) {
     if (error) {
@@ -2224,6 +2257,17 @@ function chown(context, path, uid, gid, callback) {
   }
 
   chown_file(context, path, uid, gid, callback);
+}
+
+function lchown(context, path, uid, gid, callback) {
+  if(!isUint32(uid)) {
+    return callback(new Errors.EINVAL('uid must be a valid integer', uid));
+  }
+  if(!isUint32(gid)) {
+    return callback(new Errors.EINVAL('gid must be a valid integer', gid));
+  }
+
+  lchown_file(context, path, uid, gid, callback);
 }
 
 function fchown(context, fd, uid, gid, callback) {
@@ -2425,7 +2469,7 @@ module.exports = {
   ftruncate,
   futimes,
   getxattr,
-  // lchown - https://github.com/filerjs/filer/issues/620
+  lchown,
   // lchmod - https://github.com/filerjs/filer/issues/619
   link,
   lseek,
