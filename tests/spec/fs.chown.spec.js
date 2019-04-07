@@ -55,6 +55,20 @@ describe('fs.chown, fs.fchown', function() {
     });
   });
 
+  it('lchown should expect an interger value for uid', function(done) {
+    var fs = util.fs();
+
+    fs.writeFile('/file', 'w', function(err) {
+      if(err) throw err;
+
+      fs.lchown('/file', '1001', 1001, function(err) {
+        expect(err).to.exist;
+        expect(err.code).to.equal('EINVAL');
+        done();
+      });
+    });
+  });
+
   it('fchown should expect an interger value for gid', function(done) {
     var fs = util.fs();
 
@@ -83,6 +97,20 @@ describe('fs.chown, fs.fchown', function() {
     });
   });
 
+  it('lchown should expect an interger value for gid', function(done) {
+    var fs = util.fs();
+
+    fs.writeFile('/file', 'w', function(err) {
+      if(err) throw err;
+
+      fs.lchown('/file', 1001, '1001', function(err) {
+        expect(err).to.exist;
+        expect(err.code).to.equal('EINVAL');
+        done();
+      });
+    });
+  });
+  
   it('should allow updating gid and uid for a file', function(done) {
     var fs = util.fs();
 

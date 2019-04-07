@@ -284,7 +284,7 @@ function find_node(context, path, callback) {
 // in: file or directory path
 // out: node structure, or error
 function find_symbolic_node(context, path, callback) {
-  lstat_file(context, path, callback)
+  lstat_file(context, path, callback);
 }
 
 /**
