@@ -17,13 +17,6 @@ var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
 var SUPER_NODE_ID = Constants.SUPER_NODE_ID;
 var SYMLOOP_MAX = Constants.SYMLOOP_MAX;
 
-var O_READ = Constants.O_READ;
-var O_WRITE = Constants.O_WRITE;
-var O_CREATE = Constants.O_CREATE;
-var O_EXCLUSIVE = Constants.O_EXCLUSIVE;
-var O_APPEND = Constants.O_APPEND;
-var O_FLAGS = Constants.O_FLAGS;
-
 var XATTR_CREATE = Constants.XATTR_CREATE;
 var XATTR_REPLACE = Constants.XATTR_REPLACE;
 var FS_NOMTIME = Constants.FS_NOMTIME;
@@ -593,7 +586,8 @@ function open_file(context, path, flags, mode, callback) {
   var followedCount = 0;
 
   if(ROOT_DIRECTORY_NAME === name) {
-    if(flags.includes(O_WRITE)) {
+    flags = stringToFlags(flags);
+    if(flags & Constants.fsConstants.O_WRONLY) {
       callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
     } else {
       find_node(context, path, set_file_node);
@@ -617,20 +611,21 @@ function open_file(context, path, flags, mode, callback) {
     if(error) {
       callback(error);
     } else {
+      flags = stringToFlags(flags);
       directoryData = result;
       if(directoryData.hasOwnProperty(name)) {
-        if(flags.includes(O_EXCLUSIVE)) {
+        if(flags & Constants.fsConstants.O_EXCL) {
           callback(new Errors.EEXIST('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
-          if(directoryEntry.type === NODE_TYPE_DIRECTORY && flags.includes(O_WRITE)) {
+          if(directoryEntry.type === NODE_TYPE_DIRECTORY && flags & Constants.fsConstants.O_WRONLY) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
         }
       } else {
-        if(!flags.includes(O_CREATE)) {
+        if(!flags & Constants.fsConstants.O_CREAT) {
           callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist', path));
         } else {
           write_file_node();
@@ -662,7 +657,8 @@ function open_file(context, path, flags, mode, callback) {
     parentPath = dirname(data);
     name = basename(data);
     if(ROOT_DIRECTORY_NAME === name) {
-      if(flags.includes(O_WRITE)) {
+      flags = stringToFlags(flags);
+      if(flags & Constants.fsConstants.O_WRONLY) {
         callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
       } else {
         find_node(context, path, set_file_node);
@@ -1617,8 +1613,45 @@ function fremovexattr_file (context, ofd, name, callback) {
   }
 }
 
+//TODO: refactor this so it can be validated
 function validate_flags(flags) {
-  return O_FLAGS.hasOwnProperty(flags) ? O_FLAGS[flags] : null;
+  flags = stringToFlags(flags);
+
+  if(flags & stringToFlags('r')) {
+    return flags;
+  }
+  else if(flags & stringToFlags('r+')) {
+    return flags;
+  }
+  else if(flags & stringToFlags('w')) {
+    return flags;
+  }
+  else if(flags & stringToFlags('w+')) {
+    return flags;
+  }
+  else if(flags & stringToFlags('wx')) {
+    return flags;
+  }
+  else if(flags & stringToFlags('wx+')) {
+    return flags;
+  }
+  else if(flags & stringToFlags('a')) {
+    return flags;
+  }
+  else if(flags & stringToFlags('a+')) {
+    return flags;
+  }
+  else if(flags & stringToFlags('ax')) {
+    return flags;
+  }
+  else if(flags & stringToFlags('ax+')) {
+    return flags;
+  }
+
+  return null;
+
+
+  //return Constants.fsConstants.hasOwnProperty(flags) ? Constants.fsConstants[flags] : null;
 }
 
 function validate_file_options(options, enc, fileMode){
@@ -1646,7 +1679,8 @@ function open(context, path, flags, mode, callback) {
       callback(error);
     } else {
       var position;
-      if(flags.includes(O_APPEND)) {
+      flags = stringToFlags(flags);
+      if(flags & Constants.fsConstants.O_APPEND) {
         position = fileNode.size;
       } else {
         position = 0;
@@ -1769,9 +1803,10 @@ function read(context, fd, buffer, offset, length, position, callback) {
   callback = arguments[arguments.length - 1];
 
   var ofd = openFiles.getOpenFileDescription(fd);
+  ofd.flags = stringToFlags(ofd.flags);
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags.includes(O_READ)) {
+  } else if(!ofd.flags & Constants.fsConstants.O_RDONLY) {
     callback(new Errors.EBADF('descriptor does not permit reading'));
   } else {
     read_data(context, ofd, buffer, offset, length, position, wrapped_cb);
@@ -1850,8 +1885,9 @@ function write(context, fd, buffer, offset, length, position, callback) {
 
   var ofd = openFiles.getOpenFileDescription(fd);
   if(!ofd) {
+    ofd.flags = stringToFlags(ofd.flags);
     callback(new Errors.EBADF());
-  } else if(!ofd.flags.includes(O_WRITE)) {
+  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else if(buffer.length - offset < length) {
     callback(new Errors.EIO('input buffer is too small'));
@@ -2090,10 +2126,11 @@ function fsetxattr(context, fd, name, value, flag, callback) {
   }
 
   var ofd = openFiles.getOpenFileDescription(fd);
+  ofd.flags = stringToFlags(ofd.flags);
   if (!ofd) {
     callback(new Errors.EBADF());
   }
-  else if (!ofd.flags.includes(O_WRITE)) {
+  else if (!ofd.flags & Constants.fsConstants.O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   }
   else {
@@ -2107,10 +2144,11 @@ function removexattr(context, path, name, callback) {
 
 function fremovexattr(context, fd, name, callback) {
   var ofd = openFiles.getOpenFileDescription(fd);
+  ofd.flags = stringToFlags(ofd.flags);
   if (!ofd) {
     callback(new Errors.EBADF());
   }
-  else if (!ofd.flags.includes(O_WRITE)) {
+  else if (!ofd.flags & Constants.fsConstants.O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   }
   else {
@@ -2185,9 +2223,10 @@ function futimes(context, fd, atime, mtime, callback) {
   mtime = (mtime) ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
 
   var ofd = openFiles.getOpenFileDescription(fd);
+  ofd.flags = stringToFlags(ofd.flags);
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags.includes(O_WRITE)) {
+  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     futimes_file(context, ofd, atime, mtime, callback);
@@ -2206,9 +2245,10 @@ function fchmod(context, fd, mode, callback) {
   if(!mode) return;
 
   var ofd = openFiles.getOpenFileDescription(fd);
+  ofd.flags = stringToFlags(ofd.flags);
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags.includes(O_WRITE)) {
+  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchmod_file(context, ofd, mode, callback);
@@ -2235,9 +2275,10 @@ function fchown(context, fd, uid, gid, callback) {
   }
 
   var ofd = openFiles.getOpenFileDescription(fd);
+  ofd.flags = stringToFlags(ofd.flags);
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags.includes(O_WRITE)) {
+  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchown_file(context, ofd, uid, gid, callback);
@@ -2395,13 +2436,32 @@ function ftruncate(context, fd, length, callback) {
   length = length || 0;
 
   var ofd = openFiles.getOpenFileDescription(fd);
+  ofd.flags = stringToFlags(ofd.flags);
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags.includes(O_WRITE)) {
+  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     if(validateInteger(length, callback) !== length) return;
     ftruncate_file(context, ofd, length, callback);
+  }
+}
+
+function stringToFlags(flags) {
+  if(typeof flags === 'number') {
+    return flags;
+  }
+  switch(flags) {
+  case 'r': return Constants.fsConstants.O_RDONLY;
+  case 'r+': return Constants.fsConstants.O_RDWR;
+  case 'w': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_TRUNC;
+  case 'w+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_TRUNC;
+  case 'wx': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_TRUNC;
+  case 'wx+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_TRUNC;
+  case 'a': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_APPEND;
+  case 'a+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_APPEND;
+  case 'ax': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_APPEND;
+  case 'ax+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_APPEND;
   }
 }
 
