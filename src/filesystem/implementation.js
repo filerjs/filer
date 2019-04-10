@@ -584,9 +584,9 @@ function open_file(context, path, flags, mode, callback) {
   var fileData;
 
   var followedCount = 0;
+  flags = stringToFlags(flags);
 
   if(ROOT_DIRECTORY_NAME === name) {
-    flags = stringToFlags(flags);
     if(flags & Constants.fsConstants.O_WRONLY) {
       callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
     } else {
@@ -611,7 +611,6 @@ function open_file(context, path, flags, mode, callback) {
     if(error) {
       callback(error);
     } else {
-      flags = stringToFlags(flags);
       directoryData = result;
       if(directoryData.hasOwnProperty(name)) {
         if(flags & Constants.fsConstants.O_EXCL) {
@@ -625,7 +624,7 @@ function open_file(context, path, flags, mode, callback) {
           }
         }
       } else {
-        if(!flags & Constants.fsConstants.O_CREAT) {
+        if(!(flags & Constants.fsConstants.O_CREAT)) {
           callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist', path));
         } else {
           write_file_node();
@@ -657,7 +656,6 @@ function open_file(context, path, flags, mode, callback) {
     parentPath = dirname(data);
     name = basename(data);
     if(ROOT_DIRECTORY_NAME === name) {
-      flags = stringToFlags(flags);
       if(flags & Constants.fsConstants.O_WRONLY) {
         callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
       } else {
@@ -1613,11 +1611,10 @@ function fremovexattr_file (context, ofd, name, callback) {
   }
 }
 
-//TODO: refactor this so it can be validated
 function validate_flags(flags) {
   flags = stringToFlags(flags);
 
-  if(flags & stringToFlags('r')) {
+  if(flags === stringToFlags('r')) {
     return flags;
   }
   else if(flags & stringToFlags('r+')) {
@@ -1666,6 +1663,7 @@ function validate_file_options(options, enc, fileMode){
 }
 
 function open(context, path, flags, mode, callback) {
+  flags = stringToFlags(flags);
   if (arguments.length < 5 ){
     callback = arguments[arguments.length - 1];
     mode = 0o644;
@@ -1679,7 +1677,6 @@ function open(context, path, flags, mode, callback) {
       callback(error);
     } else {
       var position;
-      flags = stringToFlags(flags);
       if(flags & Constants.fsConstants.O_APPEND) {
         position = fileNode.size;
       } else {
@@ -1692,7 +1689,7 @@ function open(context, path, flags, mode, callback) {
   }
 
   flags = validate_flags(flags);
-  if(!flags) {
+  if(!flags && flags !== 0) {
     return callback(new Errors.EINVAL('flags is not valid'), path);
   }
 
@@ -1803,7 +1800,11 @@ function read(context, fd, buffer, offset, length, position, callback) {
   callback = arguments[arguments.length - 1];
 
   var ofd = openFiles.getOpenFileDescription(fd);
-  ofd.flags = stringToFlags(ofd.flags);
+  
+  if(ofd) {
+    ofd.flags = stringToFlags(ofd.flags);
+  }
+
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags & Constants.fsConstants.O_RDONLY) {
@@ -1828,7 +1829,7 @@ function readFile(context, path, options, callback) {
   options = validate_file_options(options, null, 'r');
 
   var flags = validate_flags(options.flag || 'r');
-  if(!flags) {
+  if(!flags && flags !== 0) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
@@ -1884,8 +1885,12 @@ function write(context, fd, buffer, offset, length, position, callback) {
   length = (undefined === length) ? buffer.length - offset : length;
 
   var ofd = openFiles.getOpenFileDescription(fd);
-  if(!ofd) {
+
+  if(ofd) {
     ofd.flags = stringToFlags(ofd.flags);
+  }
+
+  if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
@@ -1901,7 +1906,7 @@ function writeFile(context, path, data, options, callback) {
   options = validate_file_options(options, 'utf8', 'w');
 
   var flags = validate_flags(options.flag || 'w');
-  if(!flags) {
+  if(!flags && flags !== 0) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
@@ -1936,7 +1941,7 @@ function appendFile(context, path, data, options, callback) {
   options = validate_file_options(options, 'utf8', 'a');
 
   var flags = validate_flags(options.flag || 'a');
-  if(!flags) {
+  if(!flags && flags !== 0) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
@@ -2126,7 +2131,11 @@ function fsetxattr(context, fd, name, value, flag, callback) {
   }
 
   var ofd = openFiles.getOpenFileDescription(fd);
-  ofd.flags = stringToFlags(ofd.flags);
+  
+  if(ofd) {
+    ofd.flags = stringToFlags(ofd.flags);
+  }
+
   if (!ofd) {
     callback(new Errors.EBADF());
   }
@@ -2144,7 +2153,11 @@ function removexattr(context, path, name, callback) {
 
 function fremovexattr(context, fd, name, callback) {
   var ofd = openFiles.getOpenFileDescription(fd);
-  ofd.flags = stringToFlags(ofd.flags);
+  
+  if(ofd) {
+    ofd.flags = stringToFlags(ofd.flags);
+  }
+
   if (!ofd) {
     callback(new Errors.EBADF());
   }
@@ -2223,7 +2236,11 @@ function futimes(context, fd, atime, mtime, callback) {
   mtime = (mtime) ? toUnixTimestamp(mtime) : toUnixTimestamp(currentTime);
 
   var ofd = openFiles.getOpenFileDescription(fd);
-  ofd.flags = stringToFlags(ofd.flags);
+  
+  if(ofd) {
+    ofd.flags = stringToFlags(ofd.flags);
+  }
+
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
@@ -2245,7 +2262,11 @@ function fchmod(context, fd, mode, callback) {
   if(!mode) return;
 
   var ofd = openFiles.getOpenFileDescription(fd);
-  ofd.flags = stringToFlags(ofd.flags);
+  
+  if(ofd) {
+    ofd.flags = stringToFlags(ofd.flags);
+  }
+
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
@@ -2275,7 +2296,11 @@ function fchown(context, fd, uid, gid, callback) {
   }
 
   var ofd = openFiles.getOpenFileDescription(fd);
-  ofd.flags = stringToFlags(ofd.flags);
+  
+  if(ofd) {
+    ofd.flags = stringToFlags(ofd.flags);
+  }
+
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
@@ -2436,7 +2461,11 @@ function ftruncate(context, fd, length, callback) {
   length = length || 0;
 
   var ofd = openFiles.getOpenFileDescription(fd);
-  ofd.flags = stringToFlags(ofd.flags);
+  
+  if(ofd) {
+    ofd.flags = stringToFlags(ofd.flags);
+  }
+
   if(!ofd) {
     callback(new Errors.EBADF());
   } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
@@ -2453,15 +2482,16 @@ function stringToFlags(flags) {
   }
   switch(flags) {
   case 'r': return Constants.fsConstants.O_RDONLY;
-  case 'r+': return Constants.fsConstants.O_RDWR;
+  case 'r+': return Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_WRONLY;
   case 'w': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_TRUNC;
   case 'w+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_TRUNC;
   case 'wx': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_TRUNC;
   case 'wx+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_TRUNC;
-  case 'a': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_APPEND;
+  case 'a': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_APPEND;
   case 'a+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_APPEND;
   case 'ax': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_APPEND;
   case 'ax+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_APPEND;
+  default: return null;
   }
 }
 
