@@ -943,47 +943,7 @@ function fstat_file(context, ofd, callback) {
 }
 
 function lstat_file(context, path, callback) {
-  path = normalize(path);
-  var name = basename(path);
-  var parentPath = dirname(path);
-
-  var directoryNode;
-  var directoryData;
-
-  if(ROOT_DIRECTORY_NAME === name) {
-    find_node(context, path, callback);
-  } else {
-    find_node(context, parentPath, read_directory_data);
-  }
-
-  function read_directory_data(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      directoryNode = result;
-      context.getObject(directoryNode.data, check_if_file_exists);
-    }
-  }
-
-  function create_node(error, data) {
-    if(error) {
-      return callback(error);
-    }
-    Node.create(data, callback);
-  }
-
-  function check_if_file_exists(error, result) {
-    if(error) {
-      callback(error);
-    } else {
-      directoryData = result;
-      if(!directoryData.hasOwnProperty(name)) {
-        callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
-      } else {
-        context.getObject(directoryData[name].id, create_node);
-      }
-    }
-  }
+  find_symlink_node(context, path, callback);
 }
 
 function link_node(context, oldpath, newpath, callback) {
