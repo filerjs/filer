@@ -372,6 +372,7 @@ const fs = new Filer.FileSystem(options, callback);
 * [fs.utimes(path, atime, mtime, callback)](#utimes)
 * [fs.chown(path, uid, gid, callback)](#chown)
 * [fs.fchown(fd, uid, gid, callback)](#fchown)
+* [fs.lchown(path, uid, gid, callback)](#lchown)
 * [fs.chmod(path, mode, callback)](#chmod)
 * [fs.fchmod(fd, mode, callback)](#fchmod)
 * [fs.futimes(fd, atime, mtime, callback)](#fsutimes)
@@ -922,6 +923,19 @@ fs.open('/myfile.txt', function(err, fd) {
   });
 });
 ```
+
+#### fs.lchown(path, uid, gid, callback)<a name="lchown"></a>
+
+lchown() is like chown(), but does not dereference symbolic links. Asynchronous [lchown(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/chown.html). Callback gets no additional arguments. Both `uid` (user id) and `gid` (group id) arguments should be a JavaScript Number.  By default, `0x0` is used (i.e., `root:root` ownership).
+
+Example:
+
+```javascript
+fs.lchown('/myfile.txt', 500, 500, function(err) {
+  if(err) throw err;
+  // /myfile.txt is now owned by user with id 500, group 500
+});
+```  
 
 #### fs.chmod(path, mode, callback)<a name="chmod"></a>
 

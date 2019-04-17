@@ -1,7 +1,7 @@
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 
-describe('fs.chown, fs.fchown', function() {
+describe('fs.chown, fs.fchown, fs.lchown', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
@@ -26,6 +26,20 @@ describe('fs.chown, fs.fchown', function() {
       });
     });
   });
+
+  it('lchown should expect an interger value for uid', function(done) {
+    var fs = util.fs();
+
+    fs.open('/file', 'w', function(err, fd) {
+      if(err) throw err;
+
+      fs.lchown(fd, '1001', 1001, function(err) {
+        expect(err).to.exist;
+        expect(err.code).to.equal('EINVAL');
+        fs.close(fd, done);
+      });
+    });
+  }); 
 
   it('fchown should expect an interger value for uid', function(done) {
     var fs = util.fs();
@@ -54,6 +68,20 @@ describe('fs.chown, fs.fchown', function() {
       });
     });
   });
+
+  it('lchown should expect an interger value for gid', function(done) {
+    var fs = util.fs();
+
+    fs.open('/file', 'w', function(err, fd) {
+      if(err) throw err;
+
+      fs.lchown(fd, 1001, '1001', function(err) {
+        expect(err).to.exist;
+        expect(err.code).to.equal('EINVAL');
+        fs.close(fd, done);
+      });
+    });
+  }); 
 
   it('fchown should expect an interger value for gid', function(done) {
     var fs = util.fs();
@@ -111,6 +139,34 @@ describe('fs.chown, fs.fchown', function() {
                 expect(stats.gid).to.equal(500);
                 done();
               });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should allow updating gid and uid for a symlink file', function(done) {
+    var fs = util.fs(); 
+
+    fs.open('/file', 'w', function(err, fd) {
+      if(err) throw err;
+
+      fs.symlink('/file', '/link', function(err) {
+        if(err) throw err; 
+        
+        fs.lchown('/link', 600, 600, function(err) {
+          if(err) throw err; 
+
+          fs.lstat('/link', function(err, stats) {
+            if(err) throw err; 
+
+            expect(stats.uid).to.equal(600);
+            expect(stats.gid).to.equal(600);
+
+            fs.close(fd, function(err) {
+              if(err) throw err;
+              done();
             });
           });
         });
