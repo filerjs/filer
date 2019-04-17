@@ -340,7 +340,7 @@ function FileSystem(options, callback) {
     { name: 'ftruncate' },
     { name: 'futimes' },
     { name: 'getxattr', promises: true, absPathArgs: [0] },
-    { name: 'lchown' },
+    { name: 'lchown', promises:true },
     { name: 'link', promises: true, absPathArgs: [0, 1] },
     { name: 'lseek' },
     { name: 'lstat', promises: true },

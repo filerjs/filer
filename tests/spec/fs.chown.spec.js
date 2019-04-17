@@ -137,20 +137,36 @@ describe('fs.chown, fs.fchown, fs.lchown', function() {
 
                 expect(stats.uid).to.equal(500);
                 expect(stats.gid).to.equal(500);
-                //done();
-              });
-            });
-
-            fs.lchown('/file', 500, 500, function(err) {
-              if(err) throw err;
-        
-              fs.lstat('/file', function(err, stats) {
-                if(err) throw err;
-        
-                expect(stats.uid).to.equal(500);
-                expect(stats.gid).to.equal(500);
                 done();
               });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should allow updating gid and uid for a symlink file', function(done) {
+    var fs = util.fs(); 
+
+    fs.open('/file', 'w', function(err, fd) {
+      if(err) throw err;
+
+      fs.symlink('/file', '/link', function(err) {
+        if(err) throw err; 
+        
+        fs.lchown('/link', 600, 600, function(err) {
+          if(err) throw err; 
+
+          fs.lstat('/link', function(err, stats) {
+            if(err) throw err; 
+
+            expect(stats.uid).to.equal(600);
+            expect(stats.gid).to.equal(600);
+
+            fs.close(fd, function(err) {
+              if(err) throw err;
+              done();
             });
           });
         });
