@@ -1,41 +1,41 @@
-var Path = require('../path.js');
+const Path = require('../path.js');
 var normalize = Path.normalize;
 var dirname = Path.dirname;
 var basename = Path.basename;
 var isAbsolutePath = Path.isAbsolute;
 var shared = require('../shared.js');
 
-var Constants = require('../constants.js');
-var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
-var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
-var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
-var NODE_TYPE_META = Constants.NODE_TYPE_META;
+const Constants = require('../constants.js');
+const NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
+const NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
+const NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
+const NODE_TYPE_META = Constants.NODE_TYPE_META;
 
-var FULL_READ_WRITE_EXEC_PERMISSIONS = Constants.FULL_READ_WRITE_EXEC_PERMISSIONS;
+const FULL_READ_WRITE_EXEC_PERMISSIONS = Constants.FULL_READ_WRITE_EXEC_PERMISSIONS;
 
-var ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
-var SUPER_NODE_ID = Constants.SUPER_NODE_ID;
-var SYMLOOP_MAX = Constants.SYMLOOP_MAX;
+const ROOT_DIRECTORY_NAME = Constants.ROOT_DIRECTORY_NAME;
+const SUPER_NODE_ID = Constants.SUPER_NODE_ID;
+const SYMLOOP_MAX = Constants.SYMLOOP_MAX;
 
-var O_READ = Constants.O_READ;
-var O_WRITE = Constants.O_WRITE;
-var O_CREATE = Constants.O_CREATE;
-var O_EXCLUSIVE = Constants.O_EXCLUSIVE;
-var O_APPEND = Constants.O_APPEND;
-var O_FLAGS = Constants.O_FLAGS;
+const O_READ = Constants.O_READ;
+const O_WRITE = Constants.O_WRITE;
+const O_CREATE = Constants.O_CREATE;
+const O_EXCLUSIVE = Constants.O_EXCLUSIVE;
+const O_APPEND = Constants.O_APPEND;
+const O_FLAGS = Constants.O_FLAGS;
 
-var XATTR_CREATE = Constants.XATTR_CREATE;
-var XATTR_REPLACE = Constants.XATTR_REPLACE;
-var FS_NOMTIME = Constants.FS_NOMTIME;
-var FS_NOCTIME = Constants.FS_NOCTIME;
+const XATTR_CREATE = Constants.XATTR_CREATE;
+const XATTR_REPLACE = Constants.XATTR_REPLACE;
+const FS_NOMTIME = Constants.FS_NOMTIME;
+const FS_NOCTIME = Constants.FS_NOCTIME;
 
-var Errors = require('../errors.js');
-var DirectoryEntry = require('../directory-entry.js');
+const Errors = require('../errors.js');
+const DirectoryEntry = require('../directory-entry.js');
 var openFiles = require('../open-files.js');
 var OpenFileDescription = require('../open-file-description.js');
-var SuperNode = require('../super-node.js');
-var Node = require('../node.js');
-var Stats = require('../stats.js');
+const SuperNode = require('../super-node.js');
+const Node = require('../node.js');
+const Stats = require('../stats.js');
 
 /**
  * Update node times. Only passed times are modified (undefined times are ignored)
