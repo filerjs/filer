@@ -6,6 +6,16 @@ var isAbsolutePath = Path.isAbsolute;
 var shared = require('../shared.js');
 
 var Constants = require('../constants.js');
+const {
+  O_RDONLY,
+  O_WRONLY,
+  O_CREAT,
+  O_TRUNC,
+  O_APPEND,
+  O_EXCL,
+  F_OK
+} = Constants.fsConstants;
+
 var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
 var NODE_TYPE_DIRECTORY = Constants.NODE_TYPE_DIRECTORY;
 var NODE_TYPE_SYMBOLIC_LINK = Constants.NODE_TYPE_SYMBOLIC_LINK;
@@ -587,7 +597,7 @@ function open_file(context, path, flags, mode, callback) {
   flags = stringToFlags(flags);
 
   if(ROOT_DIRECTORY_NAME === name) {
-    if(flags & Constants.fsConstants.O_WRONLY) {
+    if(flags & O_WRONLY) {
       callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
     } else {
       find_node(context, path, set_file_node);
@@ -613,18 +623,18 @@ function open_file(context, path, flags, mode, callback) {
     } else {
       directoryData = result;
       if(directoryData.hasOwnProperty(name)) {
-        if(flags & Constants.fsConstants.O_EXCL) {
+        if(flags & O_EXCL) {
           callback(new Errors.EEXIST('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
-          if(directoryEntry.type === NODE_TYPE_DIRECTORY && flags & Constants.fsConstants.O_WRONLY) {
+          if(directoryEntry.type === NODE_TYPE_DIRECTORY && flags & O_WRONLY) {
             callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
           } else {
             context.getObject(directoryEntry.id, check_if_symbolic_link);
           }
         }
       } else {
-        if(!(flags & Constants.fsConstants.O_CREAT)) {
+        if(!(flags & O_CREAT)) {
           callback(new Errors.ENOENT('O_CREATE is not set and the named file does not exist', path));
         } else {
           write_file_node();
@@ -656,7 +666,7 @@ function open_file(context, path, flags, mode, callback) {
     parentPath = dirname(data);
     name = basename(data);
     if(ROOT_DIRECTORY_NAME === name) {
-      if(flags & Constants.fsConstants.O_WRONLY) {
+      if(flags & O_WRONLY) {
         callback(new Errors.EISDIR('the named file is a directory and O_WRITE is set', path));
       } else {
         find_node(context, path, set_file_node);
@@ -1646,9 +1656,6 @@ function validate_flags(flags) {
   }
 
   return null;
-
-
-  //return Constants.fsConstants.hasOwnProperty(flags) ? Constants.fsConstants[flags] : null;
 }
 
 function validate_file_options(options, enc, fileMode){
@@ -1664,6 +1671,8 @@ function validate_file_options(options, enc, fileMode){
 
 function open(context, path, flags, mode, callback) {
   flags = stringToFlags(flags);
+  flags = validate_flags(flags);
+
   if (arguments.length < 5 ){
     callback = arguments[arguments.length - 1];
     mode = 0o644;
@@ -1677,7 +1686,7 @@ function open(context, path, flags, mode, callback) {
       callback(error);
     } else {
       var position;
-      if(flags & Constants.fsConstants.O_APPEND) {
+      if(flags & O_APPEND) {
         position = fileNode.size;
       } else {
         position = 0;
@@ -1688,7 +1697,6 @@ function open(context, path, flags, mode, callback) {
     }
   }
 
-  flags = validate_flags(flags);
   if(!flags && flags !== 0) {
     return callback(new Errors.EINVAL('flags is not valid'), path);
   }
@@ -1724,10 +1732,10 @@ function mkdir(context, path, mode, callback) {
 function access(context, path, mode, callback) {
   if (typeof mode === 'function') {
     callback = mode;
-    mode = Constants.fsConstants.F_OK;
+    mode = F_OK;
   }
 
-  mode = mode | Constants.fsConstants.F_OK;
+  mode = mode | F_OK;
   access_file(context, path, mode, callback);
 }
 
@@ -1807,7 +1815,7 @@ function read(context, fd, buffer, offset, length, position, callback) {
 
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags & Constants.fsConstants.O_RDONLY) {
+  } else if(!ofd.flags & O_RDONLY) {
     callback(new Errors.EBADF('descriptor does not permit reading'));
   } else {
     read_data(context, ofd, buffer, offset, length, position, wrapped_cb);
@@ -1892,7 +1900,7 @@ function write(context, fd, buffer, offset, length, position, callback) {
 
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
+  } else if(!ofd.flags & O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else if(buffer.length - offset < length) {
     callback(new Errors.EIO('input buffer is too small'));
@@ -2139,7 +2147,7 @@ function fsetxattr(context, fd, name, value, flag, callback) {
   if (!ofd) {
     callback(new Errors.EBADF());
   }
-  else if (!ofd.flags & Constants.fsConstants.O_WRONLY) {
+  else if (!ofd.flags & O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   }
   else {
@@ -2161,7 +2169,7 @@ function fremovexattr(context, fd, name, callback) {
   if (!ofd) {
     callback(new Errors.EBADF());
   }
-  else if (!ofd.flags & Constants.fsConstants.O_WRONLY) {
+  else if (!ofd.flags & O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   }
   else {
@@ -2243,7 +2251,7 @@ function futimes(context, fd, atime, mtime, callback) {
 
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
+  } else if(!ofd.flags & O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     futimes_file(context, ofd, atime, mtime, callback);
@@ -2269,7 +2277,7 @@ function fchmod(context, fd, mode, callback) {
 
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
+  } else if(!ofd.flags & O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchmod_file(context, ofd, mode, callback);
@@ -2303,7 +2311,7 @@ function fchown(context, fd, uid, gid, callback) {
 
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
+  } else if(!ofd.flags & O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     fchown_file(context, ofd, uid, gid, callback);
@@ -2468,7 +2476,7 @@ function ftruncate(context, fd, length, callback) {
 
   if(!ofd) {
     callback(new Errors.EBADF());
-  } else if(!ofd.flags & Constants.fsConstants.O_WRONLY) {
+  } else if(!ofd.flags & O_WRONLY) {
     callback(new Errors.EBADF('descriptor does not permit writing'));
   } else {
     if(validateInteger(length, callback) !== length) return;
@@ -2481,16 +2489,16 @@ function stringToFlags(flags) {
     return flags;
   }
   switch(flags) {
-  case 'r': return Constants.fsConstants.O_RDONLY;
-  case 'r+': return Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_WRONLY;
-  case 'w': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_TRUNC;
-  case 'w+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_TRUNC;
-  case 'wx': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_TRUNC;
-  case 'wx+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_TRUNC;
-  case 'a': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_APPEND;
-  case 'a+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_APPEND;
-  case 'ax': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_APPEND;
-  case 'ax+': return Constants.fsConstants.O_WRONLY | Constants.fsConstants.O_RDONLY | Constants.fsConstants.O_CREAT | Constants.fsConstants.O_EXCL | Constants.fsConstants.O_APPEND;
+  case 'r': return O_RDONLY;
+  case 'r+': return O_RDONLY | O_WRONLY;
+  case 'w': return O_WRONLY | O_CREAT | O_TRUNC;
+  case 'w+': return O_WRONLY | O_RDONLY | O_CREAT | O_TRUNC;
+  case 'wx': return O_WRONLY | O_CREAT | O_EXCL | O_TRUNC;
+  case 'wx+': return O_WRONLY | O_RDONLY | O_CREAT | O_EXCL | O_TRUNC;
+  case 'a': return O_WRONLY | O_CREAT | O_APPEND;
+  case 'a+': return O_WRONLY | O_RDONLY | O_CREAT | O_APPEND;
+  case 'ax': return O_WRONLY | O_CREAT | O_EXCL | O_APPEND;
+  case 'ax+': return O_WRONLY | O_RDONLY | O_CREAT | O_EXCL | O_APPEND;
   default: return null;
   }
 }
