@@ -1,6 +1,7 @@
 var util = require('../lib/test-utils.js');
 var expect = require('chai').expect;
 var { FIRST_DESCRIPTOR } = require('../../src/constants.js');
+var Constants = require('../../src/constants.js');
 
 describe('fs.open', function() {
   beforeEach(util.setup);
@@ -29,6 +30,17 @@ describe('fs.open', function() {
       expect(error).to.exist;
       expect(error.code).to.equal('ENOENT');
       expect(result).not.to.exist;
+      done();
+    });
+  });
+
+  it('should create a file when passed the flag as a bitwise number', function(done) {
+    var fs = util.fs();
+
+    fs.open('/myfile', Constants.fsConstants.O_CREAT, function(error, fd) {
+      expect(error).not.to.exist;
+      expect(fd).to.exist;
+      fs.close(fd);
       done();
     });
   });
