@@ -5,14 +5,13 @@
   },
   "git": {
     "pushRepo": "git@github.com:filerjs/filer.git",
-    "tagName": "v%s"
+    "tagName": "v${version}"
   },
   "npm": {
     "publish": true
   },
   "github": {
     "pushRepo": "git@github.com:filerjs/filer.git",
-    "release": true,
-    "releaseName": "Filer.js %s Released"
+    "release": true
   }
 }
