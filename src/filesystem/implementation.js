@@ -227,7 +227,7 @@ function find_node(context, path, callback) {
     if(error) {
       callback(error);
     } else {
-      if(!parentDirectoryData.hasOwnProperty(name)) {
+      if(!Object.prototype.hasOwnProperty.call(parentDirectoryData, name)) {
         callback(new Errors.ENOENT(null, path));
       } else {
         var nodeId = parentDirectoryData[name].id;
@@ -293,10 +293,10 @@ function set_extended_attribute (context, path, node, name, value, flag, callbac
 
   var xattrs = node.xattrs;
 
-  if (flag === XATTR_CREATE && xattrs.hasOwnProperty(name)) {
+  if (flag === XATTR_CREATE && Object.prototype.hasOwnProperty.call(xattrs, name)) {
     callback(new Errors.EEXIST('attribute already exists', path));
   }
-  else if (flag === XATTR_REPLACE && !xattrs.hasOwnProperty(name)) {
+  else if (flag === XATTR_REPLACE && !Object.prototype.hasOwnProperty.call(xattrs, name)) {
     callback(new Errors.ENOATTR(null, path));
   }
   else {
@@ -509,7 +509,7 @@ function remove_directory(context, path, callback) {
       callback(error);
     } else if(ROOT_DIRECTORY_NAME === name) {
       callback(new Errors.EBUSY(null, path));
-    } else if(!result.hasOwnProperty(name)) {
+    } else if(!Object.prototype.hasOwnProperty.call(result, name)) {
       callback(new Errors.ENOENT(null, path));
     } else {
       parentDirectoryData = result;
@@ -618,7 +618,7 @@ function open_file(context, path, flags, mode, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(directoryData.hasOwnProperty(name)) {
+      if(Object.prototype.hasOwnProperty.call(directoryData, name)) {
         if(flags.includes(O_EXCLUSIVE)) {
           callback(new Errors.EEXIST('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
@@ -929,7 +929,7 @@ function lstat_file(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(!directoryData.hasOwnProperty(name)) {
+      if(!Object.prototype.hasOwnProperty.call(directoryData, name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
       } else {
         context.getObject(directoryData[name].id, create_node);
@@ -986,7 +986,7 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       newDirectoryData = result;
-      if(newDirectoryData.hasOwnProperty(newname)) {
+      if(Object.prototype.hasOwnProperty.call(newDirectoryData, newname)) {
         callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
@@ -1010,7 +1010,7 @@ function link_node(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       oldDirectoryData = result;
-      if(!oldDirectoryData.hasOwnProperty(oldname)) {
+      if(!Object.prototype.hasOwnProperty.call(oldDirectoryData, oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
       } else if(oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
         callback(new Errors.EPERM('oldpath refers to a directory'));
@@ -1100,7 +1100,7 @@ function unlink_node(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(!directoryData.hasOwnProperty(name)) {
+      if(!Object.prototype.hasOwnProperty.call(directoryData, name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_node_is_directory);
@@ -1179,7 +1179,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(directoryData.hasOwnProperty(name)) {
+      if(Object.prototype.hasOwnProperty.call(directoryData, name)) {
         callback(new Errors.EEXIST(null, name));
       } else {
         write_file_node();
@@ -1256,7 +1256,7 @@ function read_link(context, path, callback) {
       callback(error);
     } else {
       directoryData = result;
-      if(!directoryData.hasOwnProperty(name)) {
+      if(!Object.prototype.hasOwnProperty.call(directoryData, name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_symbolic);
@@ -1495,7 +1495,7 @@ function getxattr_file (context, path, name, callback) {
 
     var xattrs = node.xattrs;
 
-    if (!xattrs.hasOwnProperty(name)) {
+    if (!Object.prototype.hasOwnProperty.call(xattrs, name)) {
       callback(new Errors.ENOATTR(null, path));
     }
     else {
@@ -1523,7 +1523,7 @@ function fgetxattr_file (context, ofd, name, callback) {
 
     var xattrs = node.xattrs;
 
-    if (!xattrs.hasOwnProperty(name)) {
+    if (!Object.prototype.hasOwnProperty.call(xattrs, name)) {
       callback(new Errors.ENOATTR());
     }
     else {
@@ -1560,7 +1560,7 @@ function removexattr_file (context, path, name, callback) {
 
     var xattrs = node.xattrs;
 
-    if (!xattrs.hasOwnProperty(name)) {
+    if (!Object.prototype.hasOwnProperty.call(xattrs, name)) {
       callback(new Errors.ENOATTR(null, path));
     }
     else {
@@ -1597,7 +1597,7 @@ function fremovexattr_file (context, ofd, name, callback) {
 
     var xattrs = node.xattrs;
 
-    if (!xattrs.hasOwnProperty(name)) {
+    if (!Object.prototype.hasOwnProperty.call(xattrs, name)) {
       callback(new Errors.ENOATTR());
     }
     else {
@@ -1618,7 +1618,7 @@ function fremovexattr_file (context, ofd, name, callback) {
 }
 
 function validate_flags(flags) {
-  return O_FLAGS.hasOwnProperty(flags) ? O_FLAGS[flags] : null;
+  return Object.prototype.hasOwnProperty.call(O_FLAGS, flags) ? O_FLAGS[flags] : null;
 }
 
 function validate_file_options(options, enc, fileMode){
@@ -2300,7 +2300,7 @@ function rename(context, oldpath, newpath, callback) {
       callback(error);
     } else {
       newParentData = result;
-      if(newParentData.hasOwnProperty(newName)) {
+      if(Object.prototype.hasOwnProperty.call(newParentData, newName)) {
         remove_directory(context, newpath, update_new_parent_directory_data);
       } else {
         update_new_parent_directory_data();

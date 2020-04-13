@@ -5,8 +5,6 @@
 //
 // anything defined in a previous bundle is accessed via the
 // orig method which is the require for previous bundles
-
-// eslint-disable-next-line no-global-assign
 parcelRequire = (function (modules, cache, entry, globalName) {
   // Save the require from previous bundle to this closure if any
   var previousRequire = typeof parcelRequire === 'function' && parcelRequire;
@@ -77,8 +75,16 @@ parcelRequire = (function (modules, cache, entry, globalName) {
     }, {}];
   };
 
+  var error;
   for (var i = 0; i < entry.length; i++) {
-    newRequire(entry[i]);
+    try {
+      newRequire(entry[i]);
+    } catch (e) {
+      // Save first error but execute all entries
+      if (!error) {
+        error = e;
+      }
+    }
   }
 
   if (entry.length) {
@@ -103,92 +109,91 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   // Override the current require with this new one
+  parcelRequire = newRequire;
+
+  if (error) {
+    // throw error from earlier, _after updating parcelRequire_
+    throw error;
+  }
+
   return newRequire;
-})({"0c0E":[function(require,module,exports) {
+})({"c0Ea":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
+exports.promisify = promisify;
 // Symbols is a better way to do this, but not all browsers have good support,
 // so instead we'll just make do with a very unlikely string.
 var customArgumentsToken = "__ES6-PROMISIFY--CUSTOM-ARGUMENTS__";
-
 /**
  * promisify()
- * Transforms callback-based function -- func(arg1, arg2 .. argN, callback) -- into
- * an ES6-compatible Promise. Promisify provides a default callback of the form (error, result)
- * and rejects when `error` is truthy.
+ * Transforms callback-based function -- func(arg1, arg2 .. argN, callback) --
+ * into an ES6-compatible Promise. Promisify provides a default callback of the
+ * form (error, result) and rejects when `error` is truthy.
  *
  * @param {function} original - The function to promisify
  * @return {function} A promisified version of `original`
  */
+
 function promisify(original) {
+  // Ensure the argument is a function
+  if (typeof original !== "function") {
+    throw new TypeError("Argument to promisify must be a function");
+  } // If the user has asked us to decode argument names for them, honour that
 
-    // Ensure the argument is a function
-    if (typeof original !== "function") {
-        throw new TypeError("Argument to promisify must be a function");
+
+  var argumentNames = original[customArgumentsToken]; // If the user has supplied a custom Promise implementation, use it.
+  // Otherwise fall back to whatever we can find on the global object.
+
+  var ES6Promise = promisify.Promise || Promise; // If we can find no Promise implemention, then fail now.
+
+  if (typeof ES6Promise !== "function") {
+    throw new Error("No Promise implementation found; do you need a polyfill?");
+  }
+
+  return function () {
+    var _this = this;
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
     }
 
-    // If the user has asked us to decode argument names for them, honour that
-    var argumentNames = original[customArgumentsToken];
-
-    // If the user has supplied a custom Promise implementation, use it. Otherwise
-    // fall back to whatever we can find on the global object.
-    var ES6Promise = promisify.Promise || Promise;
-
-    // If we can find no Promise implemention, then fail now.
-    if (typeof ES6Promise !== "function") {
-        throw new Error("No Promise implementation found; do you need a polyfill?");
-    }
-
-    return function () {
-        var _this = this;
-
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
+    return new ES6Promise(function (resolve, reject) {
+      // Append the callback bound to the context
+      args.push(function callback(err) {
+        if (err) {
+          return reject(err);
         }
 
-        return new ES6Promise(function (resolve, reject) {
+        for (var _len2 = arguments.length, values = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+          values[_key2 - 1] = arguments[_key2];
+        }
 
-            // Append the callback bound to the context
-            args.push(function callback(err) {
+        if (values.length === 1 || !argumentNames) {
+          return resolve(values[0]);
+        }
 
-                if (err) {
-                    return reject(err);
-                }
+        var o = {};
+        values.forEach(function (value, index) {
+          var name = argumentNames[index];
 
-                for (var _len2 = arguments.length, values = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-                    values[_key2 - 1] = arguments[_key2];
-                }
-
-                if (values.length === 1 || !argumentNames) {
-                    return resolve(values[0]);
-                }
-
-                var o = {};
-                values.forEach(function (value, index) {
-                    var name = argumentNames[index];
-                    if (name) {
-                        o[name] = value;
-                    }
-                });
-
-                resolve(o);
-            });
-
-            // Call the function.
-            original.call.apply(original, [_this].concat(args));
+          if (name) {
+            o[name] = value;
+          }
         });
-    };
-}
+        resolve(o);
+      }); // Call the function.
 
-// Attach this symbol to the exported function, so users can use it
+      original.apply(_this, args);
+    });
+  };
+} // Attach this symbol to the exported function, so users can use it
+
+
 promisify.argumentNames = customArgumentsToken;
-promisify.Promise = undefined;
-
-// Export the public API
-exports.promisify = promisify;
+promisify.Promise = undefined; // Export the public API
 },{}],"pBGv":[function(require,module,exports) {
 
 // shim for using process in browser
@@ -361,7 +366,6 @@ Item.prototype.run = function () {
 };
 
 process.title = 'browser';
-process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
@@ -401,6 +405,9 @@ process.umask = function () {
 };
 },{}],"UUq2":[function(require,module,exports) {
 var process = require("process");
+// .dirname, .basename, and .extname methods are extracted from Node.js v8.11.1,
+// backported and transplited with Babel, with backwards-compat fixes
+
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -451,14 +458,6 @@ function normalizeArray(parts, allowAboveRoot) {
 
   return parts;
 }
-
-// Split a filename into [root, dir, basename, ext], unix version
-// 'root' is just a slash, or nothing.
-var splitPathRe =
-    /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
-var splitPath = function(filename) {
-  return splitPathRe.exec(filename).slice(1);
-};
 
 // path.resolve([from ...], to)
 // posix version
@@ -575,37 +574,120 @@ exports.relative = function(from, to) {
 exports.sep = '/';
 exports.delimiter = ':';
 
-exports.dirname = function(path) {
-  var result = splitPath(path),
-      root = result[0],
-      dir = result[1];
-
-  if (!root && !dir) {
-    // No dirname whatsoever
-    return '.';
+exports.dirname = function (path) {
+  if (typeof path !== 'string') path = path + '';
+  if (path.length === 0) return '.';
+  var code = path.charCodeAt(0);
+  var hasRoot = code === 47 /*/*/;
+  var end = -1;
+  var matchedSlash = true;
+  for (var i = path.length - 1; i >= 1; --i) {
+    code = path.charCodeAt(i);
+    if (code === 47 /*/*/) {
+        if (!matchedSlash) {
+          end = i;
+          break;
+        }
+      } else {
+      // We saw the first non-path separator
+      matchedSlash = false;
+    }
   }
 
-  if (dir) {
-    // It has a dirname, strip trailing slash
-    dir = dir.substr(0, dir.length - 1);
+  if (end === -1) return hasRoot ? '/' : '.';
+  if (hasRoot && end === 1) {
+    // return '//';
+    // Backwards-compat fix:
+    return '/';
   }
-
-  return root + dir;
+  return path.slice(0, end);
 };
 
+function basename(path) {
+  if (typeof path !== 'string') path = path + '';
 
-exports.basename = function(path, ext) {
-  var f = splitPath(path)[2];
-  // TODO: make this comparison case-insensitive on windows?
+  var start = 0;
+  var end = -1;
+  var matchedSlash = true;
+  var i;
+
+  for (i = path.length - 1; i >= 0; --i) {
+    if (path.charCodeAt(i) === 47 /*/*/) {
+        // If we reached a path separator that was not part of a set of path
+        // separators at the end of the string, stop now
+        if (!matchedSlash) {
+          start = i + 1;
+          break;
+        }
+      } else if (end === -1) {
+      // We saw the first non-path separator, mark this as the end of our
+      // path component
+      matchedSlash = false;
+      end = i + 1;
+    }
+  }
+
+  if (end === -1) return '';
+  return path.slice(start, end);
+}
+
+// Uses a mixed approach for backwards-compatibility, as ext behavior changed
+// in new Node.js versions, so only basename() above is backported here
+exports.basename = function (path, ext) {
+  var f = basename(path);
   if (ext && f.substr(-1 * ext.length) === ext) {
     f = f.substr(0, f.length - ext.length);
   }
   return f;
 };
 
+exports.extname = function (path) {
+  if (typeof path !== 'string') path = path + '';
+  var startDot = -1;
+  var startPart = 0;
+  var end = -1;
+  var matchedSlash = true;
+  // Track the state of characters (if any) we see before our first dot and
+  // after any path separator we find
+  var preDotState = 0;
+  for (var i = path.length - 1; i >= 0; --i) {
+    var code = path.charCodeAt(i);
+    if (code === 47 /*/*/) {
+        // If we reached a path separator that was not part of a set of path
+        // separators at the end of the string, stop now
+        if (!matchedSlash) {
+          startPart = i + 1;
+          break;
+        }
+        continue;
+      }
+    if (end === -1) {
+      // We saw the first non-path separator, mark this as the end of our
+      // extension
+      matchedSlash = false;
+      end = i + 1;
+    }
+    if (code === 46 /*.*/) {
+        // If this is our first dot, mark it as the start of our extension
+        if (startDot === -1)
+          startDot = i;
+        else if (preDotState !== 1)
+          preDotState = 1;
+    } else if (startDot !== -1) {
+      // We saw a non-dot and non-path separator before our dot, so we should
+      // have a good chance at having a non-empty extension
+      preDotState = -1;
+    }
+  }
 
-exports.extname = function(path) {
-  return splitPath(path)[3];
+  if (startDot === -1 || end === -1 ||
+      // We saw a non-dot character immediately before the dot
+      preDotState === 0 ||
+      // The (right-most) trimmed path component is exactly '..'
+      preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
+    return '';
+  }
+  return path.slice(startDot, end);
 };
 
 function filter (xs, f) {
@@ -874,7 +956,8 @@ function toByteArray (b64) {
     ? validLen - 4
     : validLen
 
-  for (var i = 0; i < len; i += 4) {
+  var i
+  for (i = 0; i < len; i += 4) {
     tmp =
       (revLookup[b64.charCodeAt(i)] << 18) |
       (revLookup[b64.charCodeAt(i + 1)] << 12) |
@@ -1058,7 +1141,7 @@ var global = arguments[3];
 /*!
  * The buffer module from node.js, for the browser.
  *
- * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @author   Feross Aboukhadijeh <http://feross.org>
  * @license  MIT
  */
 /* eslint-disable no-proto */
@@ -3114,7 +3197,7 @@ var define;
         root.async = async;
       }
 })();
-},{"process":"pBGv"}],"3OWy":[function(require,module,exports) {
+},{"process":"pBGv"}],"OWym":[function(require,module,exports) {
 var FILE_SYSTEM_NAME = require('../constants.js').FILE_SYSTEM_NAME; // NOTE: prefer setImmediate to nextTick for proper recursion yielding.
 // see https://github.com/js-platform/filer/pull/24
 
@@ -3128,7 +3211,7 @@ var asyncCallback = require('../../lib/async.js').setImmediate;
 var createDB = function () {
   var pool = {};
   return function getOrCreate(name) {
-    if (!pool.hasOwnProperty(name)) {
+    if (!Object.prototype.hasOwnProperty.call(pool, name)) {
       pool[name] = {};
     }
 
@@ -3220,7 +3303,7 @@ module.exports = {
   Default: IndexedDB,
   Memory: Memory
 };
-},{"./indexeddb.js":"QO4x","./memory.js":"3OWy"}],"p8GN":[function(require,module,exports) {
+},{"./indexeddb.js":"QO4x","./memory.js":"OWym"}],"p8GN":[function(require,module,exports) {
 var errors = {};
 [
 /**
@@ -3344,7 +3427,7 @@ var isArray = Array.isArray || function (xs) {
     return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],"6D9y":[function(require,module,exports) {
+},{}],"D9yG":[function(require,module,exports) {
 'use strict';
 module.exports = balanced;
 function balanced(a, b, str) {
@@ -3405,7 +3488,7 @@ function range(a, b, str) {
   return result;
 }
 
-},{}],"dwX/":[function(require,module,exports) {
+},{}],"dwXQ":[function(require,module,exports) {
 var concatMap = require('concat-map');
 var balanced = require('balanced-match');
 
@@ -3608,7 +3691,7 @@ function expand(str, isTop) {
 }
 
 
-},{"concat-map":"bQx9","balanced-match":"6D9y"}],"Nt/K":[function(require,module,exports) {
+},{"concat-map":"bQx9","balanced-match":"D9yG"}],"NtKi":[function(require,module,exports) {
 module.exports = minimatch
 minimatch.Minimatch = Minimatch
 
@@ -4533,7 +4616,7 @@ function regExpEscape (s) {
   return s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
 }
 
-},{"path":"UUq2","brace-expansion":"dwX/"}],"D1Ra":[function(require,module,exports) {
+},{"path":"UUq2","brace-expansion":"dwXQ"}],"D1Ra":[function(require,module,exports) {
 var _require = require('es6-promisify'),
     promisify = _require.promisify;
 
@@ -4952,7 +5035,11 @@ Shell.prototype.mkdirp = function (path, callback) {
   if (!path) {
     callback(new Errors.EINVAL('Missing path argument'));
     return;
-  } else if (path === '/') {
+  }
+
+  path = Path.resolve(sh.pwd(), path);
+
+  if (path === '/') {
     callback();
     return;
   }
@@ -5129,7 +5216,7 @@ Shell.prototype.find = function (path, options, callback) {
 };
 
 module.exports = Shell;
-},{"es6-promisify":"0c0E","../path.js":"UzoP","../errors.js":"p8GN","./environment.js":"QMiB","../../lib/async.js":"u4Zs","minimatch":"Nt/K"}],"J4Qg":[function(require,module,exports) {
+},{"es6-promisify":"c0Ea","../path.js":"UzoP","../errors.js":"p8GN","./environment.js":"QMiB","../../lib/async.js":"u4Zs","minimatch":"NtKi"}],"J4Qg":[function(require,module,exports) {
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -5206,7 +5293,7 @@ EventEmitter.prototype.off = pub.off;
 EventEmitter.prototype.trigger = pub.trigger;
 EventEmitter.prototype.removeAllListeners = pub.removeAllListeners;
 module.exports = EventEmitter;
-},{}],"3zBM":[function(require,module,exports) {
+},{}],"zBMa":[function(require,module,exports) {
 function generateRandom(template) {
   return template.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0,
@@ -5238,7 +5325,7 @@ module.exports = {
 };
 },{}],"u7Jv":[function(require,module,exports) {
 var global = arguments[3];
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 // Based on https://github.com/diy/intercom.js/blob/master/lib/intercom.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
@@ -5579,7 +5666,7 @@ Intercom.getInstance = function () {
 }();
 
 module.exports = Intercom;
-},{"./eventemitter.js":"J4Qg","../src/shared.js":"3zBM"}],"VLEe":[function(require,module,exports) {
+},{"./eventemitter.js":"J4Qg","../src/shared.js":"zBMa"}],"VLEe":[function(require,module,exports) {
 'using strict';
 
 var EventEmitter = require('../lib/eventemitter.js');
@@ -5769,9 +5856,7 @@ function generateMode(nodeType, modePermissions) {
  */
 
 
-var Node =
-/*#__PURE__*/
-function () {
+var Node = /*#__PURE__*/function () {
   function Node(options) {
     _classCallCheck(this, Node);
 
@@ -5905,7 +5990,7 @@ OpenFileDescription.prototype.getNode = function (context, callback) {
 };
 
 module.exports = OpenFileDescription;
-},{"./errors.js":"p8GN","./node":"KKNo"}],"33JE":[function(require,module,exports) {
+},{"./errors.js":"p8GN","./node":"KKNo"}],"JEp0":[function(require,module,exports) {
 var Constants = require('./constants.js');
 
 function SuperNode(options) {
@@ -5932,7 +6017,7 @@ SuperNode.create = function (options, callback) {
 };
 
 module.exports = SuperNode;
-},{"./constants.js":"iJA9"}],"6dsC":[function(require,module,exports) {
+},{"./constants.js":"iJA9"}],"dsCT":[function(require,module,exports) {
 'use strict';
 
 var Constants = require('./constants.js');
@@ -5984,7 +6069,7 @@ Stats.prototype.isSocket = Stats.prototype.isFIFO = Stats.prototype.isCharacterD
 module.exports = Stats;
 },{"./constants.js":"iJA9","./path.js":"UzoP"}],"bsBG":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 var Path = require('../path.js');
 
@@ -6235,7 +6320,7 @@ function find_node(context, path, callback) {
     if (error) {
       callback(error);
     } else {
-      if (!parentDirectoryData.hasOwnProperty(name)) {
+      if (!Object.prototype.hasOwnProperty.call(parentDirectoryData, name)) {
         callback(new Errors.ENOENT(null, path));
       } else {
         var nodeId = parentDirectoryData[name].id;
@@ -6306,9 +6391,9 @@ function set_extended_attribute(context, path, node, name, value, flag, callback
 
   var xattrs = node.xattrs;
 
-  if (flag === XATTR_CREATE && xattrs.hasOwnProperty(name)) {
+  if (flag === XATTR_CREATE && Object.prototype.hasOwnProperty.call(xattrs, name)) {
     callback(new Errors.EEXIST('attribute already exists', path));
-  } else if (flag === XATTR_REPLACE && !xattrs.hasOwnProperty(name)) {
+  } else if (flag === XATTR_REPLACE && !Object.prototype.hasOwnProperty.call(xattrs, name)) {
     callback(new Errors.ENOATTR(null, path));
   } else {
     xattrs[name] = value;
@@ -6534,7 +6619,7 @@ function remove_directory(context, path, callback) {
       callback(error);
     } else if (ROOT_DIRECTORY_NAME === name) {
       callback(new Errors.EBUSY(null, path));
-    } else if (!result.hasOwnProperty(name)) {
+    } else if (!Object.prototype.hasOwnProperty.call(result, name)) {
       callback(new Errors.ENOENT(null, path));
     } else {
       parentDirectoryData = result;
@@ -6647,9 +6732,9 @@ function open_file(context, path, flags, mode, callback) {
     } else {
       directoryData = result;
 
-      if (directoryData.hasOwnProperty(name)) {
+      if (Object.prototype.hasOwnProperty.call(directoryData, name)) {
         if (flags.includes(O_EXCLUSIVE)) {
-          callback(new Errors.ENOENT('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
+          callback(new Errors.EEXIST('O_CREATE and O_EXCLUSIVE are set, and the named file exists', path));
         } else {
           directoryEntry = directoryData[name];
 
@@ -6983,7 +7068,7 @@ function lstat_file(context, path, callback) {
     } else {
       directoryData = result;
 
-      if (!directoryData.hasOwnProperty(name)) {
+      if (!Object.prototype.hasOwnProperty.call(directoryData, name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', path));
       } else {
         context.getObject(directoryData[name].id, create_node);
@@ -7041,7 +7126,7 @@ function link_node(context, oldpath, newpath, callback) {
     } else {
       newDirectoryData = result;
 
-      if (newDirectoryData.hasOwnProperty(newname)) {
+      if (Object.prototype.hasOwnProperty.call(newDirectoryData, newname)) {
         callback(new Errors.EEXIST('newpath resolves to an existing file', newname));
       } else {
         newDirectoryData[newname] = oldDirectoryData[oldname];
@@ -7066,7 +7151,7 @@ function link_node(context, oldpath, newpath, callback) {
     } else {
       oldDirectoryData = result;
 
-      if (!oldDirectoryData.hasOwnProperty(oldname)) {
+      if (!Object.prototype.hasOwnProperty.call(oldDirectoryData, oldname)) {
         callback(new Errors.ENOENT('a component of either path prefix does not exist', oldname));
       } else if (oldDirectoryData[oldname].type === NODE_TYPE_DIRECTORY) {
         callback(new Errors.EPERM('oldpath refers to a directory'));
@@ -7162,7 +7247,7 @@ function unlink_node(context, path, callback) {
     } else {
       directoryData = result;
 
-      if (!directoryData.hasOwnProperty(name)) {
+      if (!Object.prototype.hasOwnProperty.call(directoryData, name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_node_is_directory);
@@ -7240,7 +7325,7 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
     } else {
       directoryData = result;
 
-      if (directoryData.hasOwnProperty(name)) {
+      if (Object.prototype.hasOwnProperty.call(directoryData, name)) {
         callback(new Errors.EEXIST(null, name));
       } else {
         write_file_node();
@@ -7318,7 +7403,7 @@ function read_link(context, path, callback) {
     } else {
       directoryData = result;
 
-      if (!directoryData.hasOwnProperty(name)) {
+      if (!Object.prototype.hasOwnProperty.call(directoryData, name)) {
         callback(new Errors.ENOENT('a component of the path does not name an existing file', name));
       } else {
         context.getObject(directoryData[name].id, check_if_symbolic);
@@ -7565,7 +7650,7 @@ function getxattr_file(context, path, name, callback) {
 
     var xattrs = node.xattrs;
 
-    if (!xattrs.hasOwnProperty(name)) {
+    if (!Object.prototype.hasOwnProperty.call(xattrs, name)) {
       callback(new Errors.ENOATTR(null, path));
     } else {
       callback(null, xattrs[name]);
@@ -7589,7 +7674,7 @@ function fgetxattr_file(context, ofd, name, callback) {
 
     var xattrs = node.xattrs;
 
-    if (!xattrs.hasOwnProperty(name)) {
+    if (!Object.prototype.hasOwnProperty.call(xattrs, name)) {
       callback(new Errors.ENOATTR());
     } else {
       callback(null, xattrs[name]);
@@ -7625,7 +7710,7 @@ function removexattr_file(context, path, name, callback) {
 
     var xattrs = node.xattrs;
 
-    if (!xattrs.hasOwnProperty(name)) {
+    if (!Object.prototype.hasOwnProperty.call(xattrs, name)) {
       callback(new Errors.ENOATTR(null, path));
     } else {
       delete xattrs[name];
@@ -7660,7 +7745,7 @@ function fremovexattr_file(context, ofd, name, callback) {
 
     var xattrs = node.xattrs;
 
-    if (!xattrs.hasOwnProperty(name)) {
+    if (!Object.prototype.hasOwnProperty.call(xattrs, name)) {
       callback(new Errors.ENOATTR());
     } else {
       delete xattrs[name];
@@ -7678,7 +7763,7 @@ function fremovexattr_file(context, ofd, name, callback) {
 }
 
 function validate_flags(flags) {
-  return O_FLAGS.hasOwnProperty(flags) ? O_FLAGS[flags] : null;
+  return Object.prototype.hasOwnProperty.call(O_FLAGS, flags) ? O_FLAGS[flags] : null;
 }
 
 function validate_file_options(options, enc, fileMode) {
@@ -8396,7 +8481,7 @@ function rename(context, oldpath, newpath, callback) {
     } else {
       newParentData = result;
 
-      if (newParentData.hasOwnProperty(newName)) {
+      if (Object.prototype.hasOwnProperty.call(newParentData, newName)) {
         remove_directory(context, newpath, update_new_parent_directory_data);
       } else {
         update_new_parent_directory_data();
@@ -8548,7 +8633,7 @@ module.exports = {
   writeFile: writeFile,
   write: write
 };
-},{"../path.js":"UzoP","../shared.js":"3zBM","../constants.js":"iJA9","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-files.js":"osLK","../open-file-description.js":"XWaV","../super-node.js":"33JE","../node.js":"KKNo","../stats.js":"6dsC","buffer":"dskh"}],"GMi4":[function(require,module,exports) {
+},{"../path.js":"UzoP","../shared.js":"zBMa","../constants.js":"iJA9","../errors.js":"p8GN","../directory-entry.js":"ZECt","../open-files.js":"osLK","../open-file-description.js":"XWaV","../super-node.js":"JEp0","../node.js":"KKNo","../stats.js":"dsCT","buffer":"dskh"}],"GMi4":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
 'use strict';
 
@@ -9078,7 +9163,7 @@ function FileSystem(options, callback) {
 
 FileSystem.providers = providers;
 module.exports = FileSystem;
-},{"es6-promisify":"0c0E","../path.js":"UzoP","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","../shared.js":"3zBM","../constants.js":"iJA9","./implementation.js":"bsBG","buffer":"dskh"}],"Focm":[function(require,module,exports) {
+},{"es6-promisify":"c0Ea","../path.js":"UzoP","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","../shared.js":"zBMa","../constants.js":"iJA9","./implementation.js":"bsBG","buffer":"dskh"}],"Focm":[function(require,module,exports) {
 var Buffer = require("buffer").Buffer;
 var fs = null;
 var Filer = null;
@@ -9104,4 +9189,4 @@ Object.defineProperty(Filer, 'fs', {
   }
 });
 },{"./filesystem/interface.js":"GMi4","./path.js":"UzoP","./errors.js":"p8GN","./shell/shell.js":"D1Ra","buffer":"dskh"}]},{},["Focm"], "Filer")
-//# sourceMappingURL=/filer.map
+//# sourceMappingURL=/filer.js.map

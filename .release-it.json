@@ -1,8 +1,7 @@
 {
-  "scripts": {
-    "beforeStart": "npm run test",
-    "beforeBump": "npm run build",
-    "changelogCommand": "git log --pretty=format:'* %s (%h)' [REV_RANGE]"
+  "hooks": {
+    "before:init": ["npm run test"],
+    "before:bump": ["npm run build"]
   },
   "git": {
     "pushRepo": "git@github.com:filerjs/filer.git",
@@ -12,6 +11,7 @@
     "publish": true
   },
   "github": {
+    "pushRepo": "git@github.com:filerjs/filer.git",
     "release": true,
     "releaseName": "Filer.js %s Released"
   }

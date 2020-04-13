@@ -9,7 +9,7 @@ var asyncCallback = require('../../lib/async.js').setImmediate;
 var createDB = (function() {
   var pool = {};
   return function getOrCreate(name) {
-    if(!pool.hasOwnProperty(name)) {
+    if(!Object.prototype.hasOwnProperty.call(pool, name)) {
       pool[name] = {};
     }
     return pool[name];
