@@ -10,7 +10,7 @@
     "indexeddb",
     "idb"
   ],
-  "version": "1.1.2",
+  "version": "1.2.0",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://filerjs.github.io/filer",
   "bugs": "https://github.com/filerjs/filer/issues",
