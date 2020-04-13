@@ -30,6 +30,18 @@ describe('FileSystemShell.mkdirp', function() {
     });
   });
 
+  it('should succeed if provided path is root, given as a relative path (\'.\' in \'/\')', function(done) {
+    var fs = util.fs();
+    var shell = new fs.Shell();
+    shell.cd('/', function(err) {
+      expect(err).to.not.exist;
+      shell.mkdirp('.', function(err) {
+        expect(err).to.not.exist;
+        done();
+      });
+    });
+  });
+
   it('should succeed if the directory exists', function(done) {
     var fs = util.fs();
     var shell = new fs.Shell();
@@ -63,6 +75,21 @@ describe('FileSystemShell.mkdirp', function() {
       fs.exists('/test', function(dir){
         expect(dir).to.be.true;
         done();
+      });
+    });
+  });
+
+  it('should succeed on a folder given as a relative path (\'test\' in \'/\')', function(done) {
+    var fs = util.fs();
+    var shell = new fs.Shell();
+    shell.cd('/', function(err) {
+      expect(err).to.not.exist;
+      shell.mkdirp('test', function(err) {
+        expect(err).to.not.exist;
+        fs.exists('/test', function(dir){
+          expect(dir).to.be.true;
+          done();
+        });
       });
     });
   });
