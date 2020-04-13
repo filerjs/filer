@@ -387,7 +387,8 @@ Shell.prototype.mkdirp = function(path, callback) {
     callback(new Errors.EINVAL('Missing path argument'));
     return;
   }
-  else if (path === '/') {
+  path = Path.resolve(sh.pwd(), path);
+  if (path === '/') {
     callback();
     return;
   }
