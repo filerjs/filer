@@ -109,6 +109,9 @@ The current options for file system providers are:
 * IndexedDB - filer/shims/providers/default.js
 * Memory - filer/shims/providers/memory.js
 
+Though it's technically optional, it is recommended to include an alias for fsprovider in your
+webpack config. This will prevent webpack from logging unnecessary warnings.
+
 The node.js [path module](http://nodejs.org/api/path.html) also has a shim available, which can
 be applied in a similar manner to the node.js [fs module](http://nodejs.org/api/fs.html) shim.
 
