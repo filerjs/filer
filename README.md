@@ -112,6 +112,24 @@ The current options for file system providers are:
 Though it's technically optional, it is recommended to include an alias for fsprovider in your
 webpack config. This will prevent webpack from logging unnecessary warnings.
 
+If you wish to use your own file system provider with the node.js [fs module](http://nodejs.org/api/fs.html)
+shim, it will be necessary to include an alias for fsprovider which points to your providers implementation.
+This can be done as follows:
+
+```javascript
+// webpack.config.js
+const path = require('path');
+
+module.exports = {
+  resolve: {
+    alias: {
+      'fsprovider': path.resolve(__dirname, 'example/dir/provider.js'),
+      'fs': 'filer/shims/fs.js',
+    }
+  }
+}
+```
+
 The node.js [path module](http://nodejs.org/api/path.html) also has a shim available, which can
 be applied in a similar manner to the node.js [fs module](http://nodejs.org/api/fs.html) shim.
 
@@ -124,6 +142,13 @@ module.exports = {
     }
   }
 }
+```
+
+You can then import the node.js [path module](http://nodejs.org/api/path.html) as normal and the
+shim will ensure that calls to path are appropriately handled by filer.
+
+```javascript
+import path from 'path';
 ```
 
 ### Getting Started
