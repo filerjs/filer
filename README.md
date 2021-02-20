@@ -54,6 +54,75 @@ requirejs(['filer'], function(Filer) {...}
 var Filer = window.Filer;
 ```
 
+### Webpack
+
+Filer can be used as a drop-in replacement for the node.js [fs module](http://nodejs.org/api/fs.html) using webpack.
+
+In order to use filer in place of fs, insert the following into your webpack config:
+
+```javascript
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      'fs': 'filer/shims/fs.js',
+    }
+  }
+}
+```
+
+You can then import the node.js [fs module](http://nodejs.org/api/fs.html) as normal
+and the shim will ensure that calls to fs are appropriately handled by filer.
+
+```javascript
+import fs from 'fs';
+```
+
+If any calls are made to fs or fs.promises methods before the file system has been
+initialised, the shim will automatically delay the call until the file system is ready.
+
+If you're using filer in a typescript project, the fs shim has the added
+benefit of allowing you to use the types for the node.js [fs module](http://nodejs.org/api/fs.html),
+which filer tries to match as closely as possible. Note that some methods from fs are
+not available, even though typescript will tell you that they are! See [Getting Started](#getting-started)
+for more details on filers limitations.
+
+If you wish to use an alternative file sytem in place of the default (IndexedDB), you must also
+include an alias for this in your webpack config. For example, if you wish to use an "in memory"
+file system, configure webpack as shown below.
+
+```javascript
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      'fsprovider': 'filer/shims/providers/memory.js',
+      'fs': 'filer/shims/fs.js',
+    }
+  }
+}
+```
+
+The current options for file system providers are:
+
+* Default (IndexedDB) - filer/shims/providers/default.js
+* IndexedDB - filer/shims/providers/default.js
+* Memory - filer/shims/providers/memory.js
+
+The node.js [path module](http://nodejs.org/api/path.html) also has a shim available, which can
+be applied in a similar manner to the node.js [fs module](http://nodejs.org/api/fs.html) shim.
+
+```javascript
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      'path': 'filer/shims/path.js',
+    }
+  }
+}
+```
+
 ### Getting Started
 
 Filer is as close to the node.js [fs module](http://nodejs.org/api/fs.html) as possible,
