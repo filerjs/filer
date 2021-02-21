@@ -96,7 +96,7 @@ file system, configure webpack as shown below.
 module.exports = {
   resolve: {
     alias: {
-      'fsprovider': 'filer/shims/providers/memory.js',
+      'fsProvider': 'filer/shims/providers/memory.js',
       'fs': 'filer/shims/fs.js',
     }
   }
@@ -109,11 +109,11 @@ The current options for file system providers are:
 * IndexedDB - filer/shims/providers/default.js
 * Memory - filer/shims/providers/memory.js
 
-Though it's technically optional, it is recommended to include an alias for fsprovider in your
+Though it's technically optional, it is recommended to include an alias for fsProvider in your
 webpack config. This will prevent webpack from logging unnecessary warnings.
 
 If you wish to use your own file system provider with the node.js [fs module](http://nodejs.org/api/fs.html)
-shim, it will be necessary to include an alias for fsprovider which points to your providers implementation.
+shim, it will be necessary to include an alias for fsProvider which points to your providers implementation.
 This can be done as follows:
 
 ```javascript
@@ -123,7 +123,7 @@ const path = require('path');
 module.exports = {
   resolve: {
     alias: {
-      'fsprovider': path.resolve(__dirname, 'example/dir/provider.js'),
+      'fsProvider': path.resolve(__dirname, 'example/dir/provider.js'),
       'fs': 'filer/shims/fs.js',
     }
   }

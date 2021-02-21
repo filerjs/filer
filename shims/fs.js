@@ -2,10 +2,10 @@ const { FileSystem } = require('../src/index');
 
 let Provider;
 try {
-    Provider = require('fsprovider');
+  Provider = require('fsProvider');
 }
 catch {
-    Provider = require('./providers/default');
+  Provider = require('./providers/default');
 }
 
 const provider = new Provider();
