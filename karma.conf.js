@@ -6,6 +6,7 @@ module.exports = function(config) {
     frameworks: ['mocha', 'chai'],
     reporters: ['mocha', 'summary'],
     client: {
+      captureConsole: true,
       mocha: {
         ui: 'bdd',
         timeout: 5000,
