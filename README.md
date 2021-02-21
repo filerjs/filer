@@ -87,7 +87,7 @@ which filer tries to match as closely as possible. Note that some methods from f
 not available, even though typescript will tell you that they are! See [Getting Started](#getting-started)
 for more details on filers limitations.
 
-If you wish to use an alternative file sytem in place of the default (IndexedDB), you must also
+If you wish to use an alternative file system provider in place of the default (IndexedDB), you must also
 include an alias for this in your webpack config. For example, if you wish to use an "in memory"
 file system, configure webpack as shown below.
 
