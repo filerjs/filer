@@ -4,7 +4,7 @@ let Provider;
 try {
   Provider = require('fsProvider');
 }
-catch {
+catch (err) {
   Provider = require('./providers/default');
 }
 
