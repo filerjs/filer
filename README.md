@@ -154,7 +154,7 @@ import path from 'path';
 It may be necessary in certain cases to shim the node.js [Buffer object](http://nodejs.org/api/buffer.html). This can be impoerted as follows:
 
 ```javascript
-import path from 'path';
+import { Buffer } from 'buffer';
 ```
 
 As such it can be shimmed in much the same way as path and fs:
