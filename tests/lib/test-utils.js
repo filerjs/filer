@@ -52,11 +52,13 @@ function shimIndexedDB(fn) {
     global.indexedDB = require('fake-indexeddb');
   }
 
-  fn();
+  var result = fn();
 
   if(addShim) {
     delete global.indexedDB;
   }
+
+  return result;
 }
 
 function setup(callback) {
