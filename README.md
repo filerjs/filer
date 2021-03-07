@@ -151,6 +151,51 @@ shim will ensure that calls to path are appropriately handled by filer.
 import path from 'path';
 ```
 
+It may be necessary in certain cases to shim the node.js [Buffer object](http://nodejs.org/api/buffer.html). This can be impoerted as follows:
+
+```javascript
+import path from 'path';
+```
+
+As such it can be shimmed in much the same way as path and fs:
+
+```javascript
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      'buffer': 'filer/shims/buffer.js',
+    }
+  }
+}
+```
+
+However, the Buffer object is globally defined in a node environment and many third party libraries will not import (or require) it.
+Using the resolve alias alone will be ineffective in such cases. Instead we must expand our webpack config to use webpacks
+[provide plugin](https://webpack.js.org/plugins/provide-plugin/), which will automatically load the module without the need for an import
+or require. This can be implemented as follows:
+
+```javascript
+// webpack.config.js
+const webpack = require('webpack');
+
+module.exports = {
+  resolve: {
+    alias: {
+      'buffer': 'filer/shims/buffer.js',
+    }
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: 'buffer',
+    }),
+  ]
+}
+```
+
+This will, in effect, make the Buffer object shim globally available in the same way that the node.js
+[Buffer object](http://nodejs.org/api/buffer.html) is in a node environment.
+
 ### Getting Started
 
 Filer is as close to the node.js [fs module](http://nodejs.org/api/fs.html) as possible,
