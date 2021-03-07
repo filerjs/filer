@@ -3,6 +3,11 @@
  * get them running by default.
  */
 
+// Shims
+require('./spec/shims/fs.spec');
+require('./spec/shims/path.spec');
+require('./spec/shims/buffer.spec');
+
 // Filer
 require('./spec/filer.spec');
 require('./spec/filer.buffer.spec.js');

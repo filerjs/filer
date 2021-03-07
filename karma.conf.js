@@ -2,10 +2,14 @@ module.exports = function(config) {
   config.set({
     singleRun: true,
     basePath: '',
-    files: ['tests/dist/index.js'],
+    files: [
+      'node_modules/regenerator-runtime/runtime.js',
+      'tests/dist/index.js'
+    ],
     frameworks: ['mocha', 'chai'],
     reporters: ['mocha', 'summary'],
     client: {
+      captureConsole: true,
       mocha: {
         ui: 'bdd',
         timeout: 5000,
