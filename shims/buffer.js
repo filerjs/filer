@@ -1,4 +1,4 @@
-const { Buffer } = require('filer');
+const { Buffer } = require('../src/index');
 
 module.exports = {
   __esModule: true,
