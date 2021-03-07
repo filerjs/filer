@@ -54,6 +54,148 @@ requirejs(['filer'], function(Filer) {...}
 var Filer = window.Filer;
 ```
 
+### Webpack
+
+Filer can be used as a drop-in replacement for the node.js [fs module](http://nodejs.org/api/fs.html) using webpack.
+
+In order to use filer in place of fs, insert the following into your webpack config:
+
+```javascript
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      'fs': 'filer/shims/fs.js',
+    }
+  }
+}
+```
+
+You can then import the node.js [fs module](http://nodejs.org/api/fs.html) as normal
+and the shim will ensure that calls to fs are appropriately handled by filer.
+
+```javascript
+import fs from 'fs';
+```
+
+If any calls are made to fs or fs.promises methods before the file system has been
+initialised, the shim will automatically delay the call until the file system is ready.
+
+If you're using filer in a typescript project, the fs shim has the added
+benefit of allowing you to use the types for the node.js [fs module](http://nodejs.org/api/fs.html),
+which filer tries to match as closely as possible. Note that some methods from fs are
+not available, even though typescript will tell you that they are! See [Getting Started](#getting-started)
+for more details on filers limitations.
+
+If you wish to use an alternative file system provider in place of the default (IndexedDB), you must also
+include an alias for this in your webpack config. For example, if you wish to use an "in memory"
+file system, configure webpack as shown below.
+
+```javascript
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      'fsProvider': 'filer/shims/providers/memory.js',
+      'fs': 'filer/shims/fs.js',
+    }
+  }
+}
+```
+
+The current options for file system providers are:
+
+* Default (IndexedDB) - filer/shims/providers/default.js
+* IndexedDB - filer/shims/providers/default.js
+* Memory - filer/shims/providers/memory.js
+
+Though it's technically optional, it is recommended to include an alias for fsProvider in your
+webpack config. This will prevent webpack from logging unnecessary warnings.
+
+If you wish to use your own file system provider with the node.js [fs module](http://nodejs.org/api/fs.html)
+shim, it will be necessary to include an alias for fsProvider which points to your providers implementation.
+This can be done as follows:
+
+```javascript
+// webpack.config.js
+const path = require('path');
+
+module.exports = {
+  resolve: {
+    alias: {
+      'fsProvider': path.resolve(__dirname, 'example/dir/provider.js'),
+      'fs': 'filer/shims/fs.js',
+    }
+  }
+}
+```
+
+The node.js [path module](http://nodejs.org/api/path.html) also has a shim available, which can
+be applied in a similar manner to the node.js [fs module](http://nodejs.org/api/fs.html) shim.
+
+```javascript
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      'path': 'filer/shims/path.js',
+    }
+  }
+}
+```
+
+You can then import the node.js [path module](http://nodejs.org/api/path.html) as normal and the
+shim will ensure that calls to path are appropriately handled by filer.
+
+```javascript
+import path from 'path';
+```
+
+It may be necessary in certain cases to shim the node.js [Buffer object](http://nodejs.org/api/buffer.html). This can be impoerted as follows:
+
+```javascript
+import { Buffer } from 'buffer';
+```
+
+As such it can be shimmed in much the same way as path and fs:
+
+```javascript
+// webpack.config.js
+module.exports = {
+  resolve: {
+    alias: {
+      'buffer': 'filer/shims/buffer.js',
+    }
+  }
+}
+```
+
+However, the Buffer object is globally defined in a node environment and many third party libraries will not import (or require) it.
+Using the resolve alias alone will be ineffective in such cases. Instead we must expand our webpack config to use webpacks
+[provide plugin](https://webpack.js.org/plugins/provide-plugin/), which will automatically load the module without the need for an import
+or require. This can be implemented as follows:
+
+```javascript
+// webpack.config.js
+const webpack = require('webpack');
+
+module.exports = {
+  resolve: {
+    alias: {
+      'buffer': 'filer/shims/buffer.js',
+    }
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: 'buffer',
+    }),
+  ]
+}
+```
+
+This will, in effect, make the Buffer object shim globally available in the same way that the node.js
+[Buffer object](http://nodejs.org/api/buffer.html) is in a node environment.
+
 ### Getting Started
 
 Filer is as close to the node.js [fs module](http://nodejs.org/api/fs.html) as possible,

@@ -49,6 +49,7 @@
     "minimatch": "^3.0.4"
   },
   "devDependencies": {
+    "regenerator-runtime": "^0.13.7",
     "chai": "^4.3.0",
     "chai-datetime": "^1.8.0",
     "eslint": "^7.20.0",
