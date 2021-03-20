@@ -3,7 +3,7 @@ const expect = require('chai').expect;
 const utils = require('../../lib/test-utils');
 const fs = utils.shimIndexedDB(() => require('../../../shims/fs').default);
 
-describe.only('fs shim', () => {
+describe('fs shim', () => {
   it('should be defined', () => {
     expect(fs).to.not.be.undefined;
   });
