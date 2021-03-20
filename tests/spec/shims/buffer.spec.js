@@ -4,7 +4,7 @@ const bufferDefault = require('../../../shims/buffer').default;
 const bufferNamed = require('../../../shims/buffer').Buffer;
 const bufferActual = require('../../../src/index').Buffer;
 
-describe.only('path shim', () => {
+describe('path shim', () => {
   it('default export should be defined', () => {
     expect(bufferDefault).to.not.be.undefined;
   });
