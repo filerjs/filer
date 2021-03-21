@@ -1,7 +1,7 @@
 'use strict';
-const expect = require('chai').expect;
 const Filer = require('../../src');
 const util = require('../lib/test-utils');
+const expect = require('chai').expect;
 
 describe('Filer', function() {
   it('is defined', function() {
