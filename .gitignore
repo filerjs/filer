@@ -6,6 +6,7 @@ node_modules
 # Parcel build dirs
 .cache
 tests/dist
+tests/dist-webpack
 
 # nyc code coverage
 .nyc_output
