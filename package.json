@@ -24,6 +24,7 @@
     "pretest:node-debug": "echo \"Open Chrome to chrome://inspect to debug tests...\"",
     "test:node-debug": "mocha --timeout 5000 --inspect-brk tests",
     "test:manual": "parcel tests/index.html --out-dir tests/dist",
+    "test:webpack": "webpack serve --config ./tests/webpack.config.js --env ignoreRequestDependancyExpressionWarnings",
     "test:migrations": "mocha tests/filesystems/migrations",
     "pretest": "npm run lint",
     "test": "npm run karma-mocha",
