@@ -74,7 +74,7 @@ module.exports = {
 
 The filer webpack plugin will, by default, shim the [fs](http://nodejs.org/api/fs.html),
 [path](http://nodejs.org/api/path.html) and [buffer](http://nodejs.org/api/buffer.html) modules. However,
-it's behaviour can be customised by passing an options.
+it's behaviour can be customised by passing an options object.
 
 ```javascript
 // webpack.config.js
