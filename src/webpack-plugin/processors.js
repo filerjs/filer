@@ -1,3 +1,5 @@
+var path = require('path');
+
 const ROOT_DIR_TAG = '<rootDir>';
 const CWD = process.cwd();
 
