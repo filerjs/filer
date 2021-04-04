@@ -27,7 +27,7 @@ module.exports = {
             if (!value) {
                 return path.join(CWD, 'node_modules', 'filer', 'shims', 'providers');
             }
-            return value.replace(ROOT_DIR_TAG, CWD);validateOptions
+            return value.replace(ROOT_DIR_TAG, CWD);
         },
     },
 };
