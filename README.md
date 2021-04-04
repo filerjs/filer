@@ -72,6 +72,18 @@ module.exports = {
 }
 ```
 
+You can then import the node.js [fs](http://nodejs.org/api/fs.html),
+[path](http://nodejs.org/api/path.html) and [buffer](http://nodejs.org/api/buffer.html) modules as normal
+and FilerWebpackPlugin will ensure that webpack will resolve references to these modules to the appropriate
+filer shims. You will then be able to use these modules as normal (with the exception of the synchronous fs
+methods e.g. `mkdirSync()`).
+
+```javascript
+import fs from 'fs';
+import path from 'path';
+import { Buffer } from 'buffer';
+```
+
 The filer webpack plugin will, by default, shim the [fs](http://nodejs.org/api/fs.html),
 [path](http://nodejs.org/api/path.html) and [buffer](http://nodejs.org/api/buffer.html) modules. However,
 it's behaviour can be customised by passing an options object.
