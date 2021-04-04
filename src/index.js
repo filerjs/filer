@@ -8,7 +8,8 @@ module.exports = Filer = {
   Path: require('./path.js'),
   path: require('./path.js'),
   Errors: require('./errors.js'),
-  Shell: require('./shell/shell.js')
+  Shell: require('./shell/shell.js'),
+  FilerWebpackPlugin: require('./webpack-plugin/plugin'),
 };
 
 // Add a getter for the `fs` instance, which returns
