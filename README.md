@@ -97,7 +97,7 @@ The following options can be passed to the filer webpack plugin:
 | shimPath      | boolean | yes      | true                                             | Should the path module be shimmed.                                                                                                               |
 | shimBuffer    | boolean | yes      | true                                             | Should the buffer module be shimmed.                                                                                                             |
 | fsProvider    | string  | yes      | 'default'                                        | The file system provider to use. Should be one of 'default', 'indexeddb', 'memory', 'custom'. The 'default' option is equivalent to 'indexeddb'. |
-| fsProviderDir | string  | yes      | '\<rootDir\>/node_modules/filer/shims/providers' | The directory in which the shims are located. This options is required when using a custom provider.                                             |
+| fsProviderDir | string  | yes      | '\<rootDir\>/node_modules/filer/shims/providers' | The directory in which the shims are located. This option is required when using a custom provider.                                              |
 
 NOTE: '\<rootDir\>' will be resolved to the current working directory.
 
