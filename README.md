@@ -108,7 +108,8 @@ or require. This can be implemented as follows:
 
 ```javascript
 // webpack.config.js
-const webpack = require('webpack');
+var filer = require('filer');
+var webpack = require('webpack');
 
 module.exports = {
   plugins: [
