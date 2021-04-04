@@ -54,124 +54,55 @@ requirejs(['filer'], function(Filer) {...}
 var Filer = window.Filer;
 ```
 
-### Webpack
+### Webpack Plugin
 
-Filer can be used as a drop-in replacement for the node.js [fs module](http://nodejs.org/api/fs.html) using webpack.
+Filer can be used as a drop-in replacement for the node.js [fs](http://nodejs.org/api/fs.html),
+[path](http://nodejs.org/api/path.html) and [buffer](http://nodejs.org/api/buffer.html) modules.
+For convenience, filer provides a webpack plugin which will shim the desired node.js functionality.
+This plugin can be used by inserting the following into your webpack config:
 
-In order to use filer in place of fs, insert the following into your webpack config:
+```javascript
+// webpack.config.js
+var filer = require('filer');
+
+module.exports = {
+  plugins: [
+    new filer.FilerWebpackPlugin(),
+  ],
+}
+```
+
+The filer webpack plugin will, by default, shim the [fs](http://nodejs.org/api/fs.html),
+[path](http://nodejs.org/api/path.html) and [buffer](http://nodejs.org/api/buffer.html) modules. However,
+it's behaviour can be customised by passing an options.
 
 ```javascript
 // webpack.config.js
 module.exports = {
-  resolve: {
-    alias: {
-      'fs': 'filer/shims/fs.js',
-    }
-  }
+  plugins: [
+    new filer.FilerWebpackPlugin({
+      // Options
+    }),
+  ],
 }
 ```
 
-You can then import the node.js [fs module](http://nodejs.org/api/fs.html) as normal
-and the shim will ensure that calls to fs are appropriately handled by filer.
+The following options can be passed to the filer webpack plugin:
 
-```javascript
-import fs from 'fs';
-```
+| Option        | Type    | Optional | Default                                          | Description                                                                                                                                      |
+|---------------|---------|----------|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| filerDir      | string  | yes      | '\<rootDir\>/node_modules/filer'                 | The directory in which filer is installed.                                                                                                       |
+| shimsDir      | string  | yes      | '\<rootDir\>/node_modules/filer/shims'           | The directory in which the shims are installed.                                                                                                  |
+| shimFs        | boolean | yes      | true                                             | Should the fs module be shimmed.                                                                                                                 |
+| shimPath      | boolean | yes      | true                                             | Should the path module be shimmed.                                                                                                               |
+| shimBuffer    | boolean | yes      | true                                             | Should the buffer module be shimmed.                                                                                                             |
+| fsProvider    | string  | yes      | 'default'                                        | The file system provider to use. Should be one of 'default', 'indexeddb', 'memory', 'custom'. The 'default' option is equivalent to 'indexeddb'. |
+| fsProviderDir | string  | yes      | '\<rootDir\>/node_modules/filer/shims/providers' | The directory in which the shims are located. This options is required when using a custom provider.                                             |
 
-If any calls are made to fs or fs.promises methods before the file system has been
-initialised, the shim will automatically delay the call until the file system is ready.
+NOTE: '\<rootDir\>' will be resolved to the current working directory.
 
-If you're using filer in a typescript project, the fs shim has the added
-benefit of allowing you to use the types for the node.js [fs module](http://nodejs.org/api/fs.html),
-which filer tries to match as closely as possible. Note that some methods from fs are
-not available, even though typescript will tell you that they are! See [Getting Started](#getting-started)
-for more details on filers limitations.
-
-If you wish to use an alternative file system provider in place of the default (IndexedDB), you must also
-include an alias for this in your webpack config. For example, if you wish to use an "in memory"
-file system, configure webpack as shown below.
-
-```javascript
-// webpack.config.js
-module.exports = {
-  resolve: {
-    alias: {
-      'fsProvider': 'filer/shims/providers/memory.js',
-      'fs': 'filer/shims/fs.js',
-    }
-  }
-}
-```
-
-The current options for file system providers are:
-
-* Default (IndexedDB) - filer/shims/providers/default.js
-* IndexedDB - filer/shims/providers/default.js
-* Memory - filer/shims/providers/memory.js
-
-Though it's technically optional, it is recommended to include an alias for fsProvider in your
-webpack config. This will prevent webpack from logging unnecessary warnings.
-
-If you wish to use your own file system provider with the node.js [fs module](http://nodejs.org/api/fs.html)
-shim, it will be necessary to include an alias for fsProvider which points to your providers implementation.
-This can be done as follows:
-
-```javascript
-// webpack.config.js
-const path = require('path');
-
-module.exports = {
-  resolve: {
-    alias: {
-      'fsProvider': path.resolve(__dirname, 'example/dir/provider.js'),
-      'fs': 'filer/shims/fs.js',
-    }
-  }
-}
-```
-
-The node.js [path module](http://nodejs.org/api/path.html) also has a shim available, which can
-be applied in a similar manner to the node.js [fs module](http://nodejs.org/api/fs.html) shim.
-
-```javascript
-// webpack.config.js
-module.exports = {
-  resolve: {
-    alias: {
-      'path': 'filer/shims/path.js',
-    }
-  }
-}
-```
-
-You can then import the node.js [path module](http://nodejs.org/api/path.html) as normal and the
-shim will ensure that calls to path are appropriately handled by filer.
-
-```javascript
-import path from 'path';
-```
-
-It may be necessary in certain cases to shim the node.js [Buffer object](http://nodejs.org/api/buffer.html). This can be impoerted as follows:
-
-```javascript
-import { Buffer } from 'buffer';
-```
-
-As such it can be shimmed in much the same way as path and fs:
-
-```javascript
-// webpack.config.js
-module.exports = {
-  resolve: {
-    alias: {
-      'buffer': 'filer/shims/buffer.js',
-    }
-  }
-}
-```
-
-However, the Buffer object is globally defined in a node environment and many third party libraries will not import (or require) it.
-Using the resolve alias alone will be ineffective in such cases. Instead we must expand our webpack config to use webpacks
+The Buffer object is globally defined in a node environment and many third party libraries will not import (or require) it.
+Using the filer webpack plugin alone will be ineffective in such cases. Instead we must expand our webpack config to use webpacks
 [provide plugin](https://webpack.js.org/plugins/provide-plugin/), which will automatically load the module without the need for an import
 or require. This can be implemented as follows:
 
@@ -180,12 +111,10 @@ or require. This can be implemented as follows:
 const webpack = require('webpack');
 
 module.exports = {
-  resolve: {
-    alias: {
-      'buffer': 'filer/shims/buffer.js',
-    }
-  },
   plugins: [
+    new filer.FilerWebpackPlugin({
+      shimBuffer: true,
+    }),
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
     }),
