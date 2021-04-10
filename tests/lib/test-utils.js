@@ -159,6 +159,24 @@ const parseBJSON = json =>
       value
   );
 
+function createMockFn(implementation = undefined) {
+  const calls = [];
+  const mockFn = function(...args) {
+    calls.push({
+      args,
+    });
+    if (typeof implementation === 'function') {
+      return implementation(...args);
+    }
+  }
+  Object.defineProperty(mockFn, 'calls', {
+    get() {
+      return calls;
+    }
+  });
+  return mockFn;
+}
+
 module.exports = {
   uniqueName: uniqueName,
   setup: setup,
@@ -172,5 +190,6 @@ module.exports = {
   cleanup: cleanup,
   typedArrayEqual: typedArrayEqual,
   parseBJSON,
-  shimIndexedDB
+  shimIndexedDB,
+  createMockFn
 };
