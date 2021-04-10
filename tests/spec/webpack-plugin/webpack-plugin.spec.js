@@ -36,7 +36,7 @@ function createNMFResolveCompilerObject(resolveData) {
   };
 }
 
-describe.only('path shim', () => {
+describe('path shim', () => {
   it('should instantiate the plugin with valid options', () => {
     // Arrange
     const options = {
