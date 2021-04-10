@@ -7,6 +7,9 @@
 require('./spec/shims/fs.spec');
 require('./spec/shims/path.spec');
 
+// Webpack Plugin
+require('./spec/webpack-plugin/webpack-plugin.spec');
+
 // Filer
 require('./spec/filer.spec');
 require('./spec/filer.buffer.spec.js');
