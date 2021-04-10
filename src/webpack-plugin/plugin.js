@@ -23,7 +23,7 @@ module.exports = class FilerWebpackPlugin {
             // Resolve fsProvider if required
             if (
               resolveData.request === 'fsProvider'
-                            && resolveData.context === this.options.shimsDir
+              && resolveData.context === this.options.shimsDir
             ) {
               return this.resolveFsProvider(resolveData);
             }
@@ -39,9 +39,6 @@ module.exports = class FilerWebpackPlugin {
             case 'path':
               if (!this.options.shimPath) return;
               return this.applyPathShim(resolveData);
-            case 'buffer':
-              if (!this.options.shimBuffer) return;
-              return this.applyBufferShim(resolveData);
             default:
               return;
             }
@@ -80,9 +77,5 @@ module.exports = class FilerWebpackPlugin {
     
   applyPathShim(resolveData) {
     resolveData.request = path.join(this.options.shimsDir, 'path.js');
-  }
-
-  applyBufferShim(resolveData) {
-    resolveData.request = path.join(this.options.shimsDir, 'buffer.js');
   }
 };

@@ -22,7 +22,6 @@ module.exports = {
   },
   shimFs: { default: true },
   shimPath: { default: true},
-  shimBuffer: { default: true},
   fsProvider: { default: 'default'},
   fsProviderDir: {
     process: function(value) {
