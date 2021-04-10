@@ -56,10 +56,10 @@ var Filer = window.Filer;
 
 ### Webpack Plugin
 
-Filer can be used as a drop-in replacement for the node.js [fs](http://nodejs.org/api/fs.html),
-[path](http://nodejs.org/api/path.html) and [buffer](http://nodejs.org/api/buffer.html) modules.
-For convenience, filer provides a webpack plugin which will shim the desired node.js functionality.
-This plugin can be used by inserting the following into your webpack config:
+Filer can be used as a drop-in replacement for the node.js [fs](http://nodejs.org/api/fs.html) and
+[path](http://nodejs.org/api/path.html) modules. For convenience, filer provides a webpack plugin which
+will shim the desired node.js functionality. This plugin can be used by inserting the following into
+your webpack config:
 
 ```javascript
 // webpack.config.js
@@ -72,21 +72,19 @@ module.exports = {
 }
 ```
 
-You can then import the node.js [fs](http://nodejs.org/api/fs.html),
-[path](http://nodejs.org/api/path.html) and [buffer](http://nodejs.org/api/buffer.html) modules as normal
-and FilerWebpackPlugin will ensure that webpack will resolve references to these modules to the appropriate
-filer shims. You will then be able to use these modules as normal (with the exception of the synchronous fs
-methods e.g. `mkdirSync()`).
+You can then import the node.js [fs](http://nodejs.org/api/fs.html) and [path](http://nodejs.org/api/path.html)
+modules as normal and FilerWebpackPlugin will ensure that webpack will resolve references to these modules to
+the appropriate filer shims. You will then be able to use these modules as normal (with the exception of the
+synchronous fs methods e.g. `mkdirSync()`).
 
 ```javascript
 import fs from 'fs';
 import path from 'path';
-import { Buffer } from 'buffer';
 ```
 
-The filer webpack plugin will, by default, shim the [fs](http://nodejs.org/api/fs.html),
-[path](http://nodejs.org/api/path.html) and [buffer](http://nodejs.org/api/buffer.html) modules. However,
-it's behaviour can be customised by passing an options object.
+The filer webpack plugin will, by default, shim the [fs](http://nodejs.org/api/fs.html) and
+[path](http://nodejs.org/api/path.html) modules. However, it's behaviour can be customised by passing an
+options object.
 
 ```javascript
 // webpack.config.js
@@ -105,38 +103,17 @@ The following options can be passed to the filer webpack plugin:
 |---------------|---------|----------|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
 | filerDir      | string  | yes      | '\<rootDir\>/node_modules/filer'                 | The directory in which filer is installed.                                                                                                       |
 | shimsDir      | string  | yes      | '\<rootDir\>/node_modules/filer/shims'           | The directory in which the shims are installed.                                                                                                  |
+| fsProviderDir | string  | yes      | '\<rootDir\>/node_modules/filer/shims/providers' | The directory in which the shims are located. This option is required when using a custom provider.                                              |
 | shimFs        | boolean | yes      | true                                             | Should the fs module be shimmed.                                                                                                                 |
 | shimPath      | boolean | yes      | true                                             | Should the path module be shimmed.                                                                                                               |
-| shimBuffer    | boolean | yes      | true                                             | Should the buffer module be shimmed.                                                                                                             |
 | fsProvider    | string  | yes      | 'default'                                        | The file system provider to use. Should be one of 'default', 'indexeddb', 'memory', 'custom'. The 'default' option is equivalent to 'indexeddb'. |
-| fsProviderDir | string  | yes      | '\<rootDir\>/node_modules/filer/shims/providers' | The directory in which the shims are located. This option is required when using a custom provider.                                              |
 
 NOTE: '\<rootDir\>' will be resolved to the current working directory.
 
-The Buffer object is globally defined in a node environment and many third party libraries will not import (or require) it.
-Using the filer webpack plugin alone will be ineffective in such cases. Instead we must expand our webpack config to use webpacks
-[provide plugin](https://webpack.js.org/plugins/provide-plugin/), which will automatically load the module without the need for an import
-or require. This can be implemented as follows:
-
-```javascript
-// webpack.config.js
-var filer = require('filer');
-var webpack = require('webpack');
-
-module.exports = {
-  plugins: [
-    new filer.FilerWebpackPlugin({
-      shimBuffer: true,
-    }),
-    new webpack.ProvidePlugin({
-      Buffer: ['buffer', 'Buffer'],
-    }),
-  ]
-}
-```
-
-This will, in effect, make the Buffer object shim globally available in the same way that the node.js
-[Buffer object](http://nodejs.org/api/buffer.html) is in a node environment.
+Though filer also exposes the Buffer object, it is left up to the user to shim this as appropriate. This is because filer offers
+no custom implementation. Currently, filer uses the [node-libs-browser](https://github.com/webpack/node-libs-browser) Buffer implementation
+internally, though any faithful implementation of the [node.js Buffer object](http://nodejs.org/api/buffer.html) should play nicely
+with filer.
 
 ### Getting Started
 
