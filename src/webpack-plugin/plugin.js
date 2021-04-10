@@ -33,14 +33,14 @@ module.exports = class FilerWebpackPlugin {
 
             // Apply fs, path and buffer shims if required
             switch (resolveData.request) {
-              case 'fs':
-                if (!this.options.shimFs) return;
-                return this.applyFsShim(resolveData);
-              case 'path':
-                if (!this.options.shimPath) return;
-                return this.applyPathShim(resolveData);
-              default:
-                return;
+            case 'fs':
+              if (!this.options.shimFs) return;
+              return this.applyFsShim(resolveData);
+            case 'path':
+              if (!this.options.shimPath) return;
+              return this.applyPathShim(resolveData);
+            default:
+              return;
             }
           }
         );

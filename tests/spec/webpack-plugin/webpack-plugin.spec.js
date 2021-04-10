@@ -15,7 +15,7 @@ function createNMFResolveCompilerObject(resolveData) {
         tap: normalModuleFactory_resolve_tap
       }
     }
-  }
+  };
 
   const normalModuleFactory_tap = utils.createMockFn(function (name, callback) {
     callback(normalModuleFactory);
@@ -27,13 +27,13 @@ function createNMFResolveCompilerObject(resolveData) {
         tap: normalModuleFactory_tap,
       }
     }
-  }
+  };
 
   return {
     compiler,
     normalModuleFactory_tap,
     normalModuleFactory_resolve_tap,
-  }
+  };
 }
 
 describe.only('path shim', () => {
@@ -324,8 +324,6 @@ describe.only('path shim', () => {
       // Mocks
       const {
         compiler,
-        normalModuleFactory_tap,
-        normalModuleFactory_resolve_tap,
       } = createNMFResolveCompilerObject(resolveDataIn);
 
       // Act
