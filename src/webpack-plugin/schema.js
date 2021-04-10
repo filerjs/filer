@@ -13,9 +13,6 @@ module.exports = {
     shimPath: {
       type: 'boolean',
     },
-    shimBuffer: {
-      type: 'boolean',
-    },
     fsProvider: {
       type: 'string',
     },
