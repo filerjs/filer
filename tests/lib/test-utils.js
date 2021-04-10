@@ -168,7 +168,7 @@ function createMockFn(implementation = undefined) {
     if (typeof implementation === 'function') {
       return implementation(...args);
     }
-  }
+  };
   Object.defineProperty(mockFn, 'calls', {
     get() {
       return calls;
