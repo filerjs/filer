@@ -1873,6 +1873,7 @@ function writeFile(context, path, data, options, callback) {
     if(typeof data === 'number') {
       data = '' + data;
     }
+    data = data || '';
     if(typeof data !== 'string') {
       data = Buffer.from(data.toString());
     }
