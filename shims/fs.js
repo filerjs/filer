@@ -62,7 +62,4 @@ const fs = new Proxy(fsInstance, {
   },
 });
 
-module.exports = {
-  __esModule: true,
-  default: fs,
-};
+module.exports = fs;

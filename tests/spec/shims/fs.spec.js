@@ -1,7 +1,7 @@
 'use strict';
 const expect = require('chai').expect;
 const utils = require('../../lib/test-utils');
-const fs = utils.shimIndexedDB(() => require('../../../shims/fs').default);
+const fs = utils.shimIndexedDB(() => require('../../../shims/fs'));
 
 describe('fs shim', () => {
   it('should be defined', () => {
