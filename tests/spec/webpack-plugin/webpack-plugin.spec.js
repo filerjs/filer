@@ -1,7 +1,7 @@
 'use strict';
 const expect = require('chai').expect;
 const utils = require('../../lib/test-utils');
-const FilerWebpackPlugin = require('../../../src/webpack-plugin/plugin');
+const FilerWebpackPlugin = require('../../../src/webpack-plugin');
 
 function createNMFResolveCompilerObject(resolveData) {
 
