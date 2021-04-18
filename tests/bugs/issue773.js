@@ -1,7 +1,7 @@
 'use strict';
 const util = require('../lib/test-utils.js');
 
-describe('unexpected failures when calling fs functions (e.g. writeFile) with empty options object, issue773', function() {
+describe('unexpected failures when calling fs functions (e.g. writeFile) with empty options object, issue 773', function() {
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
