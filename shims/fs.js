@@ -26,8 +26,16 @@ var fsInstance = new FileSystem({ provider }, (err) => {
   }
 });
 
+function proxyHasProp(target, prop) {
+  return prop in target;
+}
+
 const fsPromises = new Proxy(fsInstance.promises, {
   get(target, prop) {
+    if (!proxyHasProp(target, prop)) {
+      return;
+    }
+
     return async (...args) => {
       await fsReady;
       return await target[prop](...args);
@@ -37,6 +45,10 @@ const fsPromises = new Proxy(fsInstance.promises, {
 
 const fs = new Proxy(fsInstance, {
   get(target, prop) {
+    if (!proxyHasProp(target, prop)) {
+      return;
+    }
+
     if (prop === 'promises') {
       return fsPromises;
     }
