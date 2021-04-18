@@ -1870,11 +1870,16 @@ function writeFile(context, path, data, options, callback) {
   }
 
   data = data || '';
-  if(typeof data === 'number') {
-    data = '' + data;
-  }
-  if(typeof data === 'string' && (options.encoding || 'utf8') === 'utf8') {
-    data = Buffer.from(data);
+  if(!Buffer.isBuffer(data)) {
+    if(typeof data === 'number') {
+      data = '' + data;
+    }
+    if(typeof data !== 'string') {
+      data = Buffer.from(data.toString());
+    }
+    else {
+      data = Buffer.from(data, options.encoding || 'utf8');
+    }
   }
 
   open_file(context, path, flags, function(err, fileNode) {
