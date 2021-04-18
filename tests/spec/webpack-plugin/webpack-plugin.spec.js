@@ -77,7 +77,7 @@ describe('path shim', () => {
     expect(plugin.options.fsProvider).to.equal('default');
   });
 
-  it('should instantiate the plugin with invalid options', () => {
+  it('should throw if provided invalid options', () => {
     // Arrange
     const options = {
       filerDir: 123,
