@@ -1869,7 +1869,6 @@ function writeFile(context, path, data, options, callback) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
-  data = data || '';
   if(!Buffer.isBuffer(data)) {
     if(typeof data === 'number') {
       data = '' + data;
@@ -1878,7 +1877,7 @@ function writeFile(context, path, data, options, callback) {
       data = Buffer.from(data.toString());
     }
     else {
-      data = Buffer.from(data, options.encoding || 'utf8');
+      data = Buffer.from(data || '', options.encoding || 'utf8');
     }
   }
 
