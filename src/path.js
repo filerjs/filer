@@ -10,7 +10,7 @@ process.cwd = () => '/';
  * a few things we need for the browser environment.
  */
 const nodePath = require('path');
-const filerPath = Object.create(nodePath);
+const filerPath = Object.assign({}, nodePath);
 
 /**
  * Patch path.basename() to return / vs. ''
