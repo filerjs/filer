@@ -1878,7 +1878,7 @@ function writeFile(context, path, data, options, callback) {
       data = Buffer.from(data.toString());
     }
     else {
-      data = Buffer.from(data, options.encoding || 'utf8');
+      data = Buffer.from(data || '', options.encoding || 'utf8');
     }
   }
 
