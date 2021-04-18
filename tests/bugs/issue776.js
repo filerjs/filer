@@ -5,7 +5,7 @@ describe('fs.mkdir does not recursively create parent directories when called wi
   beforeEach(util.setup);
   afterEach(util.cleanup);
 
-  it('should not throw when calling fs.mkdir with recursive flag set', function(done) {
+  it.skip('should not throw when calling fs.mkdir with recursive flag set', function(done) {
     const fs = util.fs();
     fs.mkdir('/test_dir/a/b', { recursive: true }, done);
   });
