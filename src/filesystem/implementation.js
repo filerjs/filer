@@ -1869,11 +1869,11 @@ function writeFile(context, path, data, options, callback) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
 
-  data = data || '';
   if(!Buffer.isBuffer(data)) {
     if(typeof data === 'number') {
       data = '' + data;
     }
+    data = data || '';
     if(typeof data !== 'string') {
       data = Buffer.from(data.toString());
     }
