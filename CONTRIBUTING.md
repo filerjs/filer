@@ -40,6 +40,8 @@ If you want more control over how tests are run, you can use other scripts:
 
 * If you need to debug browser tests, or want to run them in a different browser, use `npm run test:manual`, which will start a server and you can point your browser to [http://localhost:1234](http://localhost:1234).  Running the tests this way will also automatically watch your files, and hot-reload your code and tests, which is useful for debugging and trial/error testing.
 
+* If you would like to use webpack to build your tests, use `npm run test:webpack`, which will start a server and you can point your browser to [http://localhost:8080](http://localhost:8080).  Similar to `npm run test:manual`, this will watch for changes to test files and hot-reload your code and tests.
+
 * If you need to debug node.js test runs, you can do so using `npm run test:node-debug`.  Then, open Chrome and browse to [chrome://inspect](chrome://inspect) and click on your tests in the inspector.  The easiest way to get a breakpoint is to manually add a `debugger` keyword to your test code where you want the tests to stop.
 
 > Tip: you can add `skip()` to any `it()` or `describe()` in Mocha to skip a test, or `only()` to have only that test run.  For example: `describe.skip(...)` or `it.only(...)`.

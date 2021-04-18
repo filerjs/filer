@@ -1,7 +1,7 @@
 'use strict';
 const expect = require('chai').expect;
 const utils = require('../../lib/test-utils');
-const fs = utils.shimIndexedDB(() => require('../../../shims/fs').default);
+import fs from 'fs';
 
 describe('fs shim', () => {
   it('should be defined', () => {
@@ -17,10 +17,12 @@ describe('fs shim', () => {
   });
 
   it('should call callback when calling fs.writeFile', (done) => {
-    fs.writeFile('/test.txt', 'test', function(err) {
-      if(err) throw err;
+    utils.shimIndexedDB(() => {
+      fs.writeFile('/test.txt', 'test', function(err) {
+        if(err) throw err;
 
-      done();
+        done();
+      });
     });
   });
 
