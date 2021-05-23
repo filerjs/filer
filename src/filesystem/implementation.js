@@ -1120,26 +1120,53 @@ function unlink_node(context, path, callback) {
   find_node(context, parentPath, read_directory_data);
 }
 
-function read_directory(context, path, callback) {
+function read_directory(context, path, options, callback) {
   path = normalize(path);
+
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  options = validate_directory_options(options);
 
   var directoryNode;
   var directoryData;
 
   function handle_directory_data(error, result) {
-    if(error) {
+    if (error) {
       callback(error);
     } else {
       directoryData = result;
       var files = Object.keys(directoryData);
+
+      if (options.encoding) {
+        var fileBuffers = files.map(function (file) {
+          return Buffer.from(file);
+        });
+
+        if (options.encoding === 'buffer') {
+          files = fileBuffers;
+        }
+        else {
+          files = fileBuffers.map(function (fileBuffer) {
+            return fileBuffer.toString(options.encoding);
+          });
+        }
+      }
+
+      if (options.withFileTypes) {
+        // TODO: map files to fs.Dirent
+        return callback(new Error('readdir does not support option withFileTypes yet'));
+      }
+
       callback(null, files);
     }
   }
 
   function read_directory_data(error, result) {
-    if(error) {
+    if (error) {
       callback(error);
-    } else if(result.type !== NODE_TYPE_DIRECTORY) {
+    } else if (result.type !== NODE_TYPE_DIRECTORY) {
       callback(new Errors.ENOTDIR(null, path));
     } else {
       directoryNode = result;
@@ -1148,6 +1175,17 @@ function read_directory(context, path, callback) {
   }
 
   find_node(context, path, read_directory_data);
+}
+
+function validate_directory_options(options, enc) {
+  if (!options) {
+    options = { encoding: enc };
+  } else if (typeof options === 'function') {
+    options = { encoding: enc };
+  } else if (typeof options === 'string') {
+    options = { encoding: options };
+  }
+  return options;
 }
 
 function make_symbolic_link(context, srcpath, dstpath, callback) {
@@ -2163,8 +2201,8 @@ function lseek(context, fd, offset, whence, callback) {
   }
 }
 
-function readdir(context, path, callback) {
-  read_directory(context, path, callback);
+function readdir(context, path, options, callback) {
+  read_directory(context, path, options, callback);
 }
 
 function toUnixTimestamp(time) {
