@@ -4,6 +4,7 @@ var dirname = Path.dirname;
 var basename = Path.basename;
 var isAbsolutePath = Path.isAbsolute;
 var shared = require('../shared.js');
+var async = require('../../lib/async.js');
 
 var Constants = require('../constants.js');
 var NODE_TYPE_FILE = Constants.NODE_TYPE_FILE;
@@ -35,6 +36,7 @@ var openFiles = require('../open-files.js');
 var OpenFileDescription = require('../open-file-description.js');
 var SuperNode = require('../super-node.js');
 var Node = require('../node.js');
+var Dirent = require('../dirent.js');
 var Stats = require('../stats.js');
 
 /**
@@ -1155,11 +1157,30 @@ function read_directory(context, path, options, callback) {
       }
 
       if (options.withFileTypes) {
-        // TODO: map files to fs.Dirent
-        return callback(new Error('readdir does not support option withFileTypes yet'));
-      }
+        var dirEnts = [];
 
-      callback(null, files);
+        // eslint-disable-next-line no-inner-declarations
+        function to_dir_entry(file, callback) {
+          const filename = Buffer.from(file, options.encoding).toString();
+          const filepath = Path.join(path, filename);
+          get_dir_entry(context, filepath, function(error, dirEnt) {
+            if (error) {
+              callback(error);
+            }
+            dirEnt.name = file;
+            dirEnts.push(dirEnt);
+            callback();
+          });
+        }
+
+        async.eachSeries(files, to_dir_entry, function (error) {
+          callback(error, dirEnts);
+        });
+      }
+      
+      else {
+        callback(null, files);
+      }
     }
   }
 
@@ -1175,6 +1196,19 @@ function read_directory(context, path, options, callback) {
   }
 
   find_node(context, path, read_directory_data);
+}
+
+function get_dir_entry(context, path, callback) {
+  function check_result(error, result) {
+    if(error) {
+      callback(error);
+    } else {
+      var stats = new Dirent(path, result, context.name);
+      callback(null, stats);
+    }
+  }
+
+  lstat_file(context, path, check_result);
 }
 
 function validate_directory_options(options, enc) {
