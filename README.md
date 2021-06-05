@@ -870,7 +870,11 @@ fs.readdir('/docs', function(err, files) {
 });
 ```
 
-Optionally accepts an options parameter, which can be either an encoding (e.g. "utf8") or an object with optional properties `encoding` and `withFileTypes`. The `encoding` property is a `string` which will determine the character encoding to use for the names of each directory entry. The `withFileTypes` property is a `boolean` which defaults to `false`. If `true`, this method will return an array of [fs.Dirent](https://nodejs.org/api/fs.html#fs_class_fs_dirent) objects. The `name` property on the [fs.Dirent](https://nodejs.org/api/fs.html#fs_class_fs_dirent) object will be encoded using the specified character encoding.
+Optionally accepts an options parameter, which can be either an encoding (e.g. "utf8") or an object with optional properties `encoding` and `withFileTypes`.
+
+The `encoding` property is a `string` which will determine the character encoding to use for the names of each directory entry. The `withFileTypes` property is a `boolean` which defaults to `false`. If `true`, this method will return an array of [fs.Dirent](https://nodejs.org/api/fs.html#fs_class_fs_dirent) objects.
+
+The `name` property on the [fs.Dirent](https://nodejs.org/api/fs.html#fs_class_fs_dirent) objects will be encoded using the specified character encoding.
 
 #### fs.close(fd, callback)<a name="close"></a>
 
