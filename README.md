@@ -849,7 +849,7 @@ fs.mkdtemp("/myDir/tmp", function (error, path) {
 });
 ```
 
-#### fs.readdir(path, callback)<a name="readdir"></a>
+#### fs.readdir(path, [options], callback)<a name="readdir"></a>
 
 Reads the contents of a directory. Asynchronous [readdir(3)](http://pubs.opengroup.org/onlinepubs/009695399/functions/readdir.html).
 Callback gets `(error, files)`, where `files` is an array containing the names of each directory entry (i.e., file, directory, link) in the directory, excluding `.` and `..`.
@@ -869,6 +869,8 @@ fs.readdir('/docs', function(err, files) {
   // files now contains ['a.txt', 'b.txt', 'c']
 });
 ```
+
+Optionally accepts an options parameter, which can be either an encoding (e.g. "utf8") or an object with optional properties `encoding` and `withFileTypes`. The `encoding` property is a `string` which will determine the character encoding to use for the names of each directory entry. The `withFileTypes` property is a `boolean` which defaults to `false`. If `true`, this method will return an array of [fs.Dirent](https://nodejs.org/api/fs.html#fs_class_fs_dirent) objects. The `name` property on the [fs.Dirent](https://nodejs.org/api/fs.html#fs_class_fs_dirent) object will be encoded using the specified character encoding.
 
 #### fs.close(fd, callback)<a name="close"></a>
 
