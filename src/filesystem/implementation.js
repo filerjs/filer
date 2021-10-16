@@ -480,7 +480,7 @@ function access_file(context, path, mode, callback) {
     }
 
     // In any other case, the file isn't accessible
-    callback(new Errors.EACCES('permission denied',path)) ; 
+    callback(new Errors.EACCES('permission denied',path)) ;
   });
 }
 
@@ -1079,7 +1079,7 @@ function unlink_node(context, path, callback) {
         context.putObject(fileNode.id, fileNode, function(error) {
           if(error) {
             callback(error);
-          } else {          
+          } else {
             update_node_times(context, path, fileNode, { ctime: Date.now() }, update_directory_data);
           }
         });
@@ -1177,7 +1177,7 @@ function read_directory(context, path, options, callback) {
           callback(error, dirEnts);
         });
       }
-      
+
       else {
         callback(null, files);
       }
@@ -1275,12 +1275,12 @@ function make_symbolic_link(context, srcpath, dstpath, callback) {
       // but store both versions, since we'll use the relative one in readlink().
       if(!isAbsolutePath(srcpath)) {
         fileNode.symlink_relpath = srcpath;
-        srcpath = Path.resolve(parentPath, srcpath); 
+        srcpath = Path.resolve(parentPath, srcpath);
       }
 
       fileNode.size = srcpath.length;
       fileNode.data = srcpath;
-      
+
       context.putObject(fileNode.id, fileNode, update_directory_data);
     });
   }
@@ -1758,7 +1758,7 @@ function mkdir(context, path, mode, callback) {
     mode = validateAndMaskMode(mode, FULL_READ_WRITE_EXEC_PERMISSIONS, callback);
     if(!mode) return;
   }
- 
+
   make_directory(context, path, callback);
 }
 
@@ -1776,14 +1776,14 @@ function mkdtemp(context, prefix, options, callback) {
   callback = arguments[arguments.length - 1];
   if(!prefix) {
     return callback(new Error('filename prefix is required'));
-  } 
+  }
 
   let random = shared.randomChars(6);
-  var path = prefix + '-' + random; 
+  var path = prefix + '-' + random;
 
   make_directory(context, path, function(error) {
     callback(error, path);
-  });  
+  });
 }
 
 function rmdir(context, path, callback) {
@@ -2326,7 +2326,7 @@ function rename(context, oldpath, newpath, callback) {
   newpath = normalize(newpath);
 
   var oldParentPath = Path.dirname(oldpath);
-  var newParentPath = Path.dirname(oldpath);
+  var newParentPath = Path.dirname(newpath);
   var oldName = Path.basename(oldpath);
   var newName = Path.basename(newpath);
   var oldParentDirectory, oldParentData;
