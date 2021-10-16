@@ -20,7 +20,7 @@ describe('fs.rename', function() {
         if(error) throw error;
 
         fs.rename('/myfile', '/myfile', function(error) {
-          expect(error).not.to.exist; 
+          expect(error).not.to.exist;
           done();
         });
       });
@@ -99,6 +99,35 @@ describe('fs.rename', function() {
         });
       })
       .then(() => { fsPromises.stat('/myotherdir')
+        .then(result => {
+          expect(result.nlinks).to.equal(1);
+        });
+      })
+      .catch((error) => {
+        if (error) throw error;
+      });
+  });
+
+  it('should rename an existing directory into another sub directory', () => {
+    var fsPromises = util.fs().promises;
+
+    return fsPromises.mkdir('/mydir')
+      .then(() => fsPromises.mkdir('/mydir/subdir'))
+      .then(() => fsPromises.mkdir('/anotherdir'))
+      .then(() => fsPromises.rename('/mydir', '/anotherdir/originaldir'))
+      .then(() => { fsPromises.stat('/mydir')
+        .catch((error) => {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOENT');
+        });
+      })
+      .then(() => { fsPromises.stat('/anotherdir/mydir')
+        .catch((error) => {
+          expect(error).to.exist;
+          expect(error.code).to.equal('ENOENT');
+        });
+      })
+      .then(() => { fsPromises.stat('/anotherdir/originaldir/subdir')
         .then(result => {
           expect(result.nlinks).to.equal(1);
         });
