@@ -117,83 +117,47 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"c0Ea":[function(require,module,exports) {
+})({"b1ZG":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.promisify = promisify;
-// Symbols is a better way to do this, but not all browsers have good support,
-// so instead we'll just make do with a very unlikely string.
 var customArgumentsToken = "__ES6-PROMISIFY--CUSTOM-ARGUMENTS__";
-/**
- * promisify()
- * Transforms callback-based function -- func(arg1, arg2 .. argN, callback) --
- * into an ES6-compatible Promise. Promisify provides a default callback of the
- * form (error, result) and rejects when `error` is truthy.
- *
- * @param {function} original - The function to promisify
- * @return {function} A promisified version of `original`
- */
 
-function promisify(original) {
-  // Ensure the argument is a function
-  if (typeof original !== "function") {
-    throw new TypeError("Argument to promisify must be a function");
-  } // If the user has asked us to decode argument names for them, honour that
-
-
-  var argumentNames = original[customArgumentsToken]; // If the user has supplied a custom Promise implementation, use it.
-  // Otherwise fall back to whatever we can find on the global object.
-
-  var ES6Promise = promisify.Promise || Promise; // If we can find no Promise implemention, then fail now.
-
-  if (typeof ES6Promise !== "function") {
-    throw new Error("No Promise implementation found; do you need a polyfill?");
-  }
-
+function promisify(a) {
+  if ("function" != typeof a) throw new TypeError("Argument to promisify must be a function");
+  var b = a[customArgumentsToken],
+      c = promisify.Promise || Promise;
+  if ("function" != typeof c) throw new Error("No Promise implementation found; do you need a polyfill?");
   return function () {
     var _this = this;
 
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
+    for (var d = arguments.length, e = Array(d), f = 0; f < d; f++) {
+      e[f] = arguments[f];
     }
 
-    return new ES6Promise(function (resolve, reject) {
-      // Append the callback bound to the context
-      args.push(function callback(err) {
-        if (err) {
-          return reject(err);
+    return new c(function (c, d) {
+      e.push(function (a) {
+        if (a) return d(a);
+
+        for (var e = arguments.length, f = Array(1 < e ? e - 1 : 0), g = 1; g < e; g++) {
+          f[g - 1] = arguments[g];
         }
 
-        for (var _len2 = arguments.length, values = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-          values[_key2 - 1] = arguments[_key2];
-        }
-
-        if (values.length === 1 || !argumentNames) {
-          return resolve(values[0]);
-        }
-
-        var o = {};
-        values.forEach(function (value, index) {
-          var name = argumentNames[index];
-
-          if (name) {
-            o[name] = value;
-          }
-        });
-        resolve(o);
-      }); // Call the function.
-
-      original.apply(_this, args);
+        if (1 === f.length || !b) return c(f[0]);
+        var h = {};
+        f.forEach(function (a, c) {
+          var d = b[c];
+          d && (h[d] = a);
+        }), c(h);
+      }), a.apply(_this, e);
     });
   };
-} // Attach this symbol to the exported function, so users can use it
+}
 
-
-promisify.argumentNames = customArgumentsToken;
-promisify.Promise = undefined; // Export the public API
+promisify.argumentNames = "__ES6-PROMISIFY--CUSTOM-ARGUMENTS__", promisify.Promise = void 0;
 },{}],"pBGv":[function(require,module,exports) {
 
 // shim for using process in browser
@@ -1016,9 +980,7 @@ function fromByteArray (uint8) {
 
   // go through the array every three bytes, we'll deal with trailing stuff later
   for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(
-      uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)
-    ))
+    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
   }
 
   // pad the end with zeros, but make sure to not forget the extra bytes
@@ -1043,6 +1005,7 @@ function fromByteArray (uint8) {
 }
 
 },{}],"JgNJ":[function(require,module,exports) {
+/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -5216,7 +5179,7 @@ Shell.prototype.find = function (path, options, callback) {
 };
 
 module.exports = Shell;
-},{"es6-promisify":"c0Ea","../path.js":"UzoP","../errors.js":"p8GN","./environment.js":"QMiB","../../lib/async.js":"u4Zs","minimatch":"NtKi"}],"J4Qg":[function(require,module,exports) {
+},{"es6-promisify":"b1ZG","../path.js":"UzoP","../errors.js":"p8GN","./environment.js":"QMiB","../../lib/async.js":"u4Zs","minimatch":"NtKi"}],"J4Qg":[function(require,module,exports) {
 // Based on https://github.com/diy/intercom.js/blob/master/lib/events.js
 // Copyright 2012 DIY Co Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
@@ -9258,7 +9221,7 @@ function FileSystem(options, callback) {
 
 FileSystem.providers = providers;
 module.exports = FileSystem;
-},{"es6-promisify":"c0Ea","../path.js":"UzoP","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","../shared.js":"zBMa","../constants.js":"iJA9","./implementation.js":"bsBG","buffer":"dskh"}],"iIhC":[function(require,module,exports) {
+},{"es6-promisify":"b1ZG","../path.js":"UzoP","../providers/index.js":"AiW7","../shell/shell.js":"D1Ra","../../lib/intercom.js":"u7Jv","../fs-watcher.js":"VLEe","../errors.js":"p8GN","../shared.js":"zBMa","../constants.js":"iJA9","./implementation.js":"bsBG","buffer":"dskh"}],"iIhC":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -9286,7 +9249,7 @@ function errorMessage(message, schema, data) {
     // @ts-ignore
     // eslint-disable-next-line no-undefined
     schemaPath: undefined,
-    keyword: 'absolutePath',
+    keyword: "absolutePath",
     params: {
       absolutePath: data
     },
@@ -9314,14 +9277,14 @@ function getErrorFor(shouldBeAbsolute, schema, data) {
 
 
 function addAbsolutePathKeyword(ajv) {
-  ajv.addKeyword('absolutePath', {
+  ajv.addKeyword("absolutePath", {
     errors: true,
-    type: 'string',
+    type: "string",
     compile: function compile(schema, parentSchema) {
       /** @type {ValidateFunction} */
       var callback = function callback(data) {
         var passes = true;
-        var isExclamationMarkPresent = data.includes('!');
+        var isExclamationMarkPresent = data.includes("!");
 
         if (isExclamationMarkPresent) {
           callback.errors = [errorMessage("The provided value ".concat(JSON.stringify(data), " contains exclamation mark (!) which is not allowed because it's reserved for loader syntax."), parentSchema, data)];
@@ -9381,115 +9344,6 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 var Range = /*#__PURE__*/function () {
-  _createClass(Range, null, [{
-    key: "getOperator",
-
-    /**
-     * @param {"left" | "right"} side
-     * @param {boolean} exclusive
-     * @returns {">" | ">=" | "<" | "<="}
-     */
-    value: function getOperator(side, exclusive) {
-      if (side === 'left') {
-        return exclusive ? '>' : '>=';
-      }
-
-      return exclusive ? '<' : '<=';
-    }
-    /**
-     * @param {number} value
-     * @param {boolean} logic is not logic applied
-     * @param {boolean} exclusive is range exclusive
-     * @returns {string}
-     */
-
-  }, {
-    key: "formatRight",
-    value: function formatRight(value, logic, exclusive) {
-      if (logic === false) {
-        return Range.formatLeft(value, !logic, !exclusive);
-      }
-
-      return "should be ".concat(Range.getOperator('right', exclusive), " ").concat(value);
-    }
-    /**
-     * @param {number} value
-     * @param {boolean} logic is not logic applied
-     * @param {boolean} exclusive is range exclusive
-     * @returns {string}
-     */
-
-  }, {
-    key: "formatLeft",
-    value: function formatLeft(value, logic, exclusive) {
-      if (logic === false) {
-        return Range.formatRight(value, !logic, !exclusive);
-      }
-
-      return "should be ".concat(Range.getOperator('left', exclusive), " ").concat(value);
-    }
-    /**
-     * @param {number} start left side value
-     * @param {number} end right side value
-     * @param {boolean} startExclusive is range exclusive from left side
-     * @param {boolean} endExclusive is range exclusive from right side
-     * @param {boolean} logic is not logic applied
-     * @returns {string}
-     */
-
-  }, {
-    key: "formatRange",
-    value: function formatRange(start, end, startExclusive, endExclusive, logic) {
-      var result = 'should be';
-      result += " ".concat(Range.getOperator(logic ? 'left' : 'right', logic ? startExclusive : !startExclusive), " ").concat(start, " ");
-      result += logic ? 'and' : 'or';
-      result += " ".concat(Range.getOperator(logic ? 'right' : 'left', logic ? endExclusive : !endExclusive), " ").concat(end);
-      return result;
-    }
-    /**
-     * @param {Array<RangeValue>} values
-     * @param {boolean} logic is not logic applied
-     * @return {RangeValue} computed value and it's exclusive flag
-     */
-
-  }, {
-    key: "getRangeValue",
-    value: function getRangeValue(values, logic) {
-      var minMax = logic ? Infinity : -Infinity;
-      var j = -1;
-      var predicate = logic ?
-      /** @type {RangeValueCallback} */
-      function (_ref) {
-        var _ref2 = _slicedToArray(_ref, 1),
-            value = _ref2[0];
-
-        return value <= minMax;
-      } :
-      /** @type {RangeValueCallback} */
-      function (_ref3) {
-        var _ref4 = _slicedToArray(_ref3, 1),
-            value = _ref4[0];
-
-        return value >= minMax;
-      };
-
-      for (var i = 0; i < values.length; i++) {
-        if (predicate(values[i])) {
-          var _values$i = _slicedToArray(values[i], 1);
-
-          minMax = _values$i[0];
-          j = i;
-        }
-      }
-
-      if (j > -1) {
-        return values[j];
-      }
-
-      return [Infinity, true];
-    }
-  }]);
-
   function Range() {
     _classCallCheck(this, Range);
 
@@ -9545,14 +9399,14 @@ var Range = /*#__PURE__*/function () {
           rightExclusive = _Range$getRangeValue4[1];
 
       if (!Number.isFinite(start) && !Number.isFinite(end)) {
-        return '';
+        return "";
       }
 
       var realStart = leftExclusive ? start + 1 : start;
       var realEnd = rightExclusive ? end - 1 : end; // e.g. 5 < x < 7, 5 < x <= 6, 6 <= x <= 6
 
       if (realStart === realEnd) {
-        return "should be ".concat(logic ? '' : '!', "= ").concat(realStart);
+        return "should be ".concat(logic ? "" : "!", "= ").concat(realStart);
       } // e.g. 4 < x < ∞
 
 
@@ -9566,6 +9420,113 @@ var Range = /*#__PURE__*/function () {
       }
 
       return Range.formatRange(start, end, leftExclusive, rightExclusive, logic);
+    }
+  }], [{
+    key: "getOperator",
+    value:
+    /**
+     * @param {"left" | "right"} side
+     * @param {boolean} exclusive
+     * @returns {">" | ">=" | "<" | "<="}
+     */
+    function getOperator(side, exclusive) {
+      if (side === "left") {
+        return exclusive ? ">" : ">=";
+      }
+
+      return exclusive ? "<" : "<=";
+    }
+    /**
+     * @param {number} value
+     * @param {boolean} logic is not logic applied
+     * @param {boolean} exclusive is range exclusive
+     * @returns {string}
+     */
+
+  }, {
+    key: "formatRight",
+    value: function formatRight(value, logic, exclusive) {
+      if (logic === false) {
+        return Range.formatLeft(value, !logic, !exclusive);
+      }
+
+      return "should be ".concat(Range.getOperator("right", exclusive), " ").concat(value);
+    }
+    /**
+     * @param {number} value
+     * @param {boolean} logic is not logic applied
+     * @param {boolean} exclusive is range exclusive
+     * @returns {string}
+     */
+
+  }, {
+    key: "formatLeft",
+    value: function formatLeft(value, logic, exclusive) {
+      if (logic === false) {
+        return Range.formatRight(value, !logic, !exclusive);
+      }
+
+      return "should be ".concat(Range.getOperator("left", exclusive), " ").concat(value);
+    }
+    /**
+     * @param {number} start left side value
+     * @param {number} end right side value
+     * @param {boolean} startExclusive is range exclusive from left side
+     * @param {boolean} endExclusive is range exclusive from right side
+     * @param {boolean} logic is not logic applied
+     * @returns {string}
+     */
+
+  }, {
+    key: "formatRange",
+    value: function formatRange(start, end, startExclusive, endExclusive, logic) {
+      var result = "should be";
+      result += " ".concat(Range.getOperator(logic ? "left" : "right", logic ? startExclusive : !startExclusive), " ").concat(start, " ");
+      result += logic ? "and" : "or";
+      result += " ".concat(Range.getOperator(logic ? "right" : "left", logic ? endExclusive : !endExclusive), " ").concat(end);
+      return result;
+    }
+    /**
+     * @param {Array<RangeValue>} values
+     * @param {boolean} logic is not logic applied
+     * @return {RangeValue} computed value and it's exclusive flag
+     */
+
+  }, {
+    key: "getRangeValue",
+    value: function getRangeValue(values, logic) {
+      var minMax = logic ? Infinity : -Infinity;
+      var j = -1;
+      var predicate = logic ?
+      /** @type {RangeValueCallback} */
+      function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 1),
+            value = _ref2[0];
+
+        return value <= minMax;
+      } :
+      /** @type {RangeValueCallback} */
+      function (_ref3) {
+        var _ref4 = _slicedToArray(_ref3, 1),
+            value = _ref4[0];
+
+        return value >= minMax;
+      };
+
+      for (var i = 0; i < values.length; i++) {
+        if (predicate(values[i])) {
+          var _values$i = _slicedToArray(values[i], 1);
+
+          minMax = _values$i[0];
+          j = i;
+        }
+      }
+
+      if (j > -1) {
+        return values[j];
+      }
+
+      return [Infinity, true];
     }
   }]);
 
@@ -9582,7 +9543,7 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var Range = require('./Range');
+var Range = require("./Range");
 /** @typedef {import("../validate").Schema} Schema */
 
 /**
@@ -9594,7 +9555,7 @@ var Range = require('./Range');
 
 module.exports.stringHints = function stringHints(schema, logic) {
   var hints = [];
-  var type = 'string';
+  var type = "string";
 
   var currentSchema = _objectSpread({}, schema);
 
@@ -9610,39 +9571,39 @@ module.exports.stringHints = function stringHints(schema, logic) {
     currentSchema.formatExclusiveMinimum = !tmpExclusive;
   }
 
-  if (typeof currentSchema.minLength === 'number') {
+  if (typeof currentSchema.minLength === "number") {
     if (currentSchema.minLength === 1) {
-      type = 'non-empty string';
+      type = "non-empty string";
     } else {
       var length = Math.max(currentSchema.minLength - 1, 0);
-      hints.push("should be longer than ".concat(length, " character").concat(length > 1 ? 's' : ''));
+      hints.push("should be longer than ".concat(length, " character").concat(length > 1 ? "s" : ""));
     }
   }
 
-  if (typeof currentSchema.maxLength === 'number') {
+  if (typeof currentSchema.maxLength === "number") {
     if (currentSchema.maxLength === 0) {
-      type = 'empty string';
+      type = "empty string";
     } else {
       var _length = currentSchema.maxLength + 1;
 
-      hints.push("should be shorter than ".concat(_length, " character").concat(_length > 1 ? 's' : ''));
+      hints.push("should be shorter than ".concat(_length, " character").concat(_length > 1 ? "s" : ""));
     }
   }
 
   if (currentSchema.pattern) {
-    hints.push("should".concat(logic ? '' : ' not', " match pattern ").concat(JSON.stringify(currentSchema.pattern)));
+    hints.push("should".concat(logic ? "" : " not", " match pattern ").concat(JSON.stringify(currentSchema.pattern)));
   }
 
   if (currentSchema.format) {
-    hints.push("should".concat(logic ? '' : ' not', " match format ").concat(JSON.stringify(currentSchema.format)));
+    hints.push("should".concat(logic ? "" : " not", " match format ").concat(JSON.stringify(currentSchema.format)));
   }
 
   if (currentSchema.formatMinimum) {
-    hints.push("should be ".concat(currentSchema.formatExclusiveMinimum ? '>' : '>=', " ").concat(JSON.stringify(currentSchema.formatMinimum)));
+    hints.push("should be ".concat(currentSchema.formatExclusiveMinimum ? ">" : ">=", " ").concat(JSON.stringify(currentSchema.formatMinimum)));
   }
 
   if (currentSchema.formatMaximum) {
-    hints.push("should be ".concat(currentSchema.formatExclusiveMaximum ? '<' : '<=', " ").concat(JSON.stringify(currentSchema.formatMaximum)));
+    hints.push("should be ".concat(currentSchema.formatExclusiveMaximum ? "<" : "<=", " ").concat(JSON.stringify(currentSchema.formatMaximum)));
   }
 
   return [type].concat(hints);
@@ -9655,22 +9616,22 @@ module.exports.stringHints = function stringHints(schema, logic) {
 
 
 module.exports.numberHints = function numberHints(schema, logic) {
-  var hints = [schema.type === 'integer' ? 'integer' : 'number'];
+  var hints = [schema.type === "integer" ? "integer" : "number"];
   var range = new Range();
 
-  if (typeof schema.minimum === 'number') {
+  if (typeof schema.minimum === "number") {
     range.left(schema.minimum);
   }
 
-  if (typeof schema.exclusiveMinimum === 'number') {
+  if (typeof schema.exclusiveMinimum === "number") {
     range.left(schema.exclusiveMinimum, true);
   }
 
-  if (typeof schema.maximum === 'number') {
+  if (typeof schema.maximum === "number") {
     range.right(schema.maximum);
   }
 
-  if (typeof schema.exclusiveMaximum === 'number') {
+  if (typeof schema.exclusiveMaximum === "number") {
     range.right(schema.exclusiveMaximum, true);
   }
 
@@ -9680,8 +9641,8 @@ module.exports.numberHints = function numberHints(schema, logic) {
     hints.push(rangeFormat);
   }
 
-  if (typeof schema.multipleOf === 'number') {
-    hints.push("should".concat(logic ? '' : ' not', " be multiple of ").concat(schema.multipleOf));
+  if (typeof schema.multipleOf === "number") {
+    hints.push("should".concat(logic ? "" : " not", " be multiple of ").concat(schema.multipleOf));
   }
 
   return hints;
@@ -9744,7 +9705,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _require = require('./util/hints'),
+var _require = require("./util/hints"),
     stringHints = _require.stringHints,
     numberHints = _require.numberHints;
 /** @typedef {import("json-schema").JSONSchema6} JSONSchema6 */
@@ -9862,7 +9823,7 @@ function findAllChildren(children, schemaPaths) {
   };
 
   while (i > -1 && !schemaPaths.every(predicate)) {
-    if (children[i].keyword === 'anyOf' || children[i].keyword === 'oneOf') {
+    if (children[i].keyword === "anyOf" || children[i].keyword === "oneOf") {
       var refs = extractRefs(children[i]);
       var childrenStart = findAllChildren(children.slice(0, i), refs.concat(children[i].schemaPath));
       i = childrenStart - 1;
@@ -9908,7 +9869,7 @@ function groupChildrenByFirstChild(children) {
   while (i > 0) {
     var child = children[i];
 
-    if (child.keyword === 'anyOf' || child.keyword === 'oneOf') {
+    if (child.keyword === "anyOf" || child.keyword === "oneOf") {
       var refs = extractRefs(child);
       var childrenStart = findAllChildren(children.slice(0, i), refs.concat(child.schemaPath));
 
@@ -9982,7 +9943,7 @@ function canApplyNot(schema) {
 
 
 function isObject(maybeObj) {
-  return _typeof(maybeObj) === 'object' && maybeObj !== null;
+  return _typeof(maybeObj) === "object" && maybeObj !== null;
 }
 /**
  * @param {Schema} schema
@@ -9991,7 +9952,7 @@ function isObject(maybeObj) {
 
 
 function likeNumber(schema) {
-  return schema.type === 'number' || typeof schema.minimum !== 'undefined' || typeof schema.exclusiveMinimum !== 'undefined' || typeof schema.maximum !== 'undefined' || typeof schema.exclusiveMaximum !== 'undefined' || typeof schema.multipleOf !== 'undefined';
+  return schema.type === "number" || typeof schema.minimum !== "undefined" || typeof schema.exclusiveMinimum !== "undefined" || typeof schema.maximum !== "undefined" || typeof schema.exclusiveMaximum !== "undefined" || typeof schema.multipleOf !== "undefined";
 }
 /**
  * @param {Schema} schema
@@ -10000,7 +9961,7 @@ function likeNumber(schema) {
 
 
 function likeInteger(schema) {
-  return schema.type === 'integer' || typeof schema.minimum !== 'undefined' || typeof schema.exclusiveMinimum !== 'undefined' || typeof schema.maximum !== 'undefined' || typeof schema.exclusiveMaximum !== 'undefined' || typeof schema.multipleOf !== 'undefined';
+  return schema.type === "integer" || typeof schema.minimum !== "undefined" || typeof schema.exclusiveMinimum !== "undefined" || typeof schema.maximum !== "undefined" || typeof schema.exclusiveMaximum !== "undefined" || typeof schema.multipleOf !== "undefined";
 }
 /**
  * @param {Schema} schema
@@ -10009,7 +9970,7 @@ function likeInteger(schema) {
 
 
 function likeString(schema) {
-  return schema.type === 'string' || typeof schema.minLength !== 'undefined' || typeof schema.maxLength !== 'undefined' || typeof schema.pattern !== 'undefined' || typeof schema.format !== 'undefined' || typeof schema.formatMinimum !== 'undefined' || typeof schema.formatMaximum !== 'undefined';
+  return schema.type === "string" || typeof schema.minLength !== "undefined" || typeof schema.maxLength !== "undefined" || typeof schema.pattern !== "undefined" || typeof schema.format !== "undefined" || typeof schema.formatMinimum !== "undefined" || typeof schema.formatMaximum !== "undefined";
 }
 /**
  * @param {Schema} schema
@@ -10018,7 +9979,7 @@ function likeString(schema) {
 
 
 function likeBoolean(schema) {
-  return schema.type === 'boolean';
+  return schema.type === "boolean";
 }
 /**
  * @param {Schema} schema
@@ -10027,7 +9988,7 @@ function likeBoolean(schema) {
 
 
 function likeArray(schema) {
-  return schema.type === 'array' || typeof schema.minItems === 'number' || typeof schema.maxItems === 'number' || typeof schema.uniqueItems !== 'undefined' || typeof schema.items !== 'undefined' || typeof schema.additionalItems !== 'undefined' || typeof schema.contains !== 'undefined';
+  return schema.type === "array" || typeof schema.minItems === "number" || typeof schema.maxItems === "number" || typeof schema.uniqueItems !== "undefined" || typeof schema.items !== "undefined" || typeof schema.additionalItems !== "undefined" || typeof schema.contains !== "undefined";
 }
 /**
  * @param {Schema & {patternRequired?: Array<string>}} schema
@@ -10036,7 +9997,7 @@ function likeArray(schema) {
 
 
 function likeObject(schema) {
-  return schema.type === 'object' || typeof schema.minProperties !== 'undefined' || typeof schema.maxProperties !== 'undefined' || typeof schema.required !== 'undefined' || typeof schema.properties !== 'undefined' || typeof schema.patternProperties !== 'undefined' || typeof schema.additionalProperties !== 'undefined' || typeof schema.dependencies !== 'undefined' || typeof schema.propertyNames !== 'undefined' || typeof schema.patternRequired !== 'undefined';
+  return schema.type === "object" || typeof schema.minProperties !== "undefined" || typeof schema.maxProperties !== "undefined" || typeof schema.required !== "undefined" || typeof schema.properties !== "undefined" || typeof schema.patternProperties !== "undefined" || typeof schema.additionalProperties !== "undefined" || typeof schema.dependencies !== "undefined" || typeof schema.propertyNames !== "undefined" || typeof schema.patternRequired !== "undefined";
 }
 /**
  * @param {Schema} schema
@@ -10045,7 +10006,7 @@ function likeObject(schema) {
 
 
 function likeNull(schema) {
-  return schema.type === 'null';
+  return schema.type === "null";
 }
 /**
  * @param {string} type
@@ -10055,10 +10016,10 @@ function likeNull(schema) {
 
 function getArticle(type) {
   if (/^[aeiou]/i.test(type)) {
-    return 'an';
+    return "an";
   }
 
-  return 'a';
+  return "a";
 }
 /**
  * @param {Schema=} schema
@@ -10068,28 +10029,28 @@ function getArticle(type) {
 
 function getSchemaNonTypes(schema) {
   if (!schema) {
-    return '';
+    return "";
   }
 
   if (!schema.type) {
     if (likeNumber(schema) || likeInteger(schema)) {
-      return ' | should be any non-number';
+      return " | should be any non-number";
     }
 
     if (likeString(schema)) {
-      return ' | should be any non-string';
+      return " | should be any non-string";
     }
 
     if (likeArray(schema)) {
-      return ' | should be any non-array';
+      return " | should be any non-array";
     }
 
     if (likeObject(schema)) {
-      return ' | should be any non-object';
+      return " | should be any non-object";
     }
   }
 
-  return '';
+  return "";
 }
 /**
  * @param {Array<string>} hints
@@ -10098,7 +10059,7 @@ function getSchemaNonTypes(schema) {
 
 
 function formatHints(hints) {
-  return hints.length > 0 ? "(".concat(hints.join(', '), ")") : '';
+  return hints.length > 0 ? "(".concat(hints.join(", "), ")") : "";
 }
 /**
  * @param {Schema} schema
@@ -10137,7 +10098,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
     _this = _super.call(this);
     /** @type {string} */
 
-    _this.name = 'ValidationError';
+    _this.name = "ValidationError";
     /** @type {Array<SchemaUtilErrorObject>} */
 
     _this.errors = errors;
@@ -10167,10 +10128,10 @@ var ValidationError = /*#__PURE__*/function (_Error) {
     /** @type {string} */
 
 
-    _this.headerName = configuration.name || headerNameFromSchema || 'Object';
+    _this.headerName = configuration.name || headerNameFromSchema || "Object";
     /** @type {string} */
 
-    _this.baseDataPath = configuration.baseDataPath || baseDataPathFromSchema || 'configuration';
+    _this.baseDataPath = configuration.baseDataPath || baseDataPathFromSchema || "configuration";
     /** @type {PostFormatter | null} */
 
     _this.postFormatter = configuration.postFormatter || null;
@@ -10190,7 +10151,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
   _createClass(ValidationError, [{
     key: "getSchemaPart",
     value: function getSchemaPart(path) {
-      var newPath = path.split('/');
+      var newPath = path.split("/");
       var schemaPart = this.schema;
 
       for (var i = 1; i < newPath.length; i++) {
@@ -10236,7 +10197,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
         }
 
         if (prevSchemas.includes(innerSchema)) {
-          return '(recursive)';
+          return "(recursive)";
         }
 
         return _this2.formatSchema(innerSchema, newLogic, prevSchemas.concat(schema));
@@ -10249,7 +10210,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
         }
 
         var needApplyLogicHere = !schema.not.not;
-        var prefix = logic ? '' : 'non ';
+        var prefix = logic ? "" : "non ";
         newLogic = !logic;
         return needApplyLogicHere ? prefix + formatInnerSchema(schema.not) : formatInnerSchema(schema.not);
       }
@@ -10267,8 +10228,8 @@ var ValidationError = /*#__PURE__*/function (_Error) {
          * @returns {string}
          */
         function (item) {
-          return item === 'Function' ? 'function' : item;
-        }).join(' | ');
+          return item === "Function" ? "function" : item;
+        }).join(" | ");
       }
 
       if (schema.enum) {
@@ -10276,11 +10237,11 @@ var ValidationError = /*#__PURE__*/function (_Error) {
           /** @type {Array<any>} */
           schema.enum.map(function (item) {
             return JSON.stringify(item);
-          }).join(' | ')
+          }).join(" | ")
         );
       }
 
-      if (typeof schema.const !== 'undefined') {
+      if (typeof schema.const !== "undefined") {
         return JSON.stringify(schema.const);
       }
 
@@ -10289,7 +10250,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
           /** @type {Array<Schema>} */
           schema.oneOf.map(function (item) {
             return formatInnerSchema(item, true);
-          }).join(' | ')
+          }).join(" | ")
         );
       }
 
@@ -10298,7 +10259,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
           /** @type {Array<Schema>} */
           schema.anyOf.map(function (item) {
             return formatInnerSchema(item, true);
-          }).join(' | ')
+          }).join(" | ")
         );
       }
 
@@ -10307,7 +10268,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
           /** @type {Array<Schema>} */
           schema.allOf.map(function (item) {
             return formatInnerSchema(item, true);
-          }).join(' & ')
+          }).join(" & ")
         );
       }
 
@@ -10319,7 +10280,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
         schema.if,
             thenValue = schema.then,
             elseValue = schema.else;
-        return "".concat(ifValue ? "if ".concat(formatInnerSchema(ifValue)) : '').concat(thenValue ? " then ".concat(formatInnerSchema(thenValue)) : '').concat(elseValue ? " else ".concat(formatInnerSchema(elseValue)) : '');
+        return "".concat(ifValue ? "if ".concat(formatInnerSchema(ifValue)) : "").concat(thenValue ? " then ".concat(formatInnerSchema(thenValue)) : "").concat(elseValue ? " else ".concat(formatInnerSchema(elseValue)) : "");
       }
 
       if (schema.$ref) {
@@ -10332,7 +10293,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             type = _getHints2[0],
             hints = _getHints2.slice(1);
 
-        var str = "".concat(type).concat(hints.length > 0 ? " ".concat(formatHints(hints)) : '');
+        var str = "".concat(type).concat(hints.length > 0 ? " ".concat(formatHints(hints)) : "");
         return logic ? str : hints.length > 0 ? "non-".concat(type, " | ").concat(str) : "non-".concat(type);
       }
 
@@ -10342,13 +10303,13 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             _type = _getHints4[0],
             _hints = _getHints4.slice(1);
 
-        var _str = "".concat(_type).concat(_hints.length > 0 ? " ".concat(formatHints(_hints)) : '');
+        var _str = "".concat(_type).concat(_hints.length > 0 ? " ".concat(formatHints(_hints)) : "");
 
-        return logic ? _str : _str === 'string' ? 'non-string' : "non-string | ".concat(_str);
+        return logic ? _str : _str === "string" ? "non-string" : "non-string | ".concat(_str);
       }
 
       if (likeBoolean(schema)) {
-        return "".concat(logic ? '' : 'non-', "boolean");
+        return "".concat(logic ? "" : "non-", "boolean");
       }
 
       if (likeArray(schema)) {
@@ -10356,20 +10317,20 @@ var ValidationError = /*#__PURE__*/function (_Error) {
         newLogic = true;
         var _hints2 = [];
 
-        if (typeof schema.minItems === 'number') {
-          _hints2.push("should not have fewer than ".concat(schema.minItems, " item").concat(schema.minItems > 1 ? 's' : ''));
+        if (typeof schema.minItems === "number") {
+          _hints2.push("should not have fewer than ".concat(schema.minItems, " item").concat(schema.minItems > 1 ? "s" : ""));
         }
 
-        if (typeof schema.maxItems === 'number') {
-          _hints2.push("should not have more than ".concat(schema.maxItems, " item").concat(schema.maxItems > 1 ? 's' : ''));
+        if (typeof schema.maxItems === "number") {
+          _hints2.push("should not have more than ".concat(schema.maxItems, " item").concat(schema.maxItems > 1 ? "s" : ""));
         }
 
         if (schema.uniqueItems) {
-          _hints2.push('should not have duplicate items');
+          _hints2.push("should not have duplicate items");
         }
 
-        var hasAdditionalItems = typeof schema.additionalItems === 'undefined' || Boolean(schema.additionalItems);
-        var items = '';
+        var hasAdditionalItems = typeof schema.additionalItems === "undefined" || Boolean(schema.additionalItems);
+        var items = "";
 
         if (schema.items) {
           if (Array.isArray(schema.items) && schema.items.length > 0) {
@@ -10377,7 +10338,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             /** @type {Array<Schema>} */
             schema.items.map(function (item) {
               return formatInnerSchema(item);
-            }).join(', '));
+            }).join(", "));
 
             if (hasAdditionalItems) {
               if (schema.additionalItems && isObject(schema.additionalItems) && Object.keys(schema.additionalItems).length > 0) {
@@ -10389,18 +10350,18 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             items = "".concat(formatInnerSchema(schema.items));
           } else {
             // Fallback for empty `items` value
-            items = 'any';
+            items = "any";
           }
         } else {
           // "additionalItems" is ignored
-          items = 'any';
+          items = "any";
         }
 
         if (schema.contains && Object.keys(schema.contains).length > 0) {
           _hints2.push("should contains at least one ".concat(this.formatSchema(schema.contains), " item"));
         }
 
-        return "[".concat(items).concat(hasAdditionalItems ? ', ...' : '', "]").concat(_hints2.length > 0 ? " (".concat(_hints2.join(', '), ")") : '');
+        return "[".concat(items).concat(hasAdditionalItems ? ", ..." : "", "]").concat(_hints2.length > 0 ? " (".concat(_hints2.join(", "), ")") : "");
       }
 
       if (likeObject(schema)) {
@@ -10408,20 +10369,20 @@ var ValidationError = /*#__PURE__*/function (_Error) {
         newLogic = true;
         var _hints3 = [];
 
-        if (typeof schema.minProperties === 'number') {
-          _hints3.push("should not have fewer than ".concat(schema.minProperties, " ").concat(schema.minProperties > 1 ? 'properties' : 'property'));
+        if (typeof schema.minProperties === "number") {
+          _hints3.push("should not have fewer than ".concat(schema.minProperties, " ").concat(schema.minProperties > 1 ? "properties" : "property"));
         }
 
-        if (typeof schema.maxProperties === 'number') {
-          _hints3.push("should not have more than ".concat(schema.maxProperties, " ").concat(schema.minProperties && schema.minProperties > 1 ? 'properties' : 'property'));
+        if (typeof schema.maxProperties === "number") {
+          _hints3.push("should not have more than ".concat(schema.maxProperties, " ").concat(schema.minProperties && schema.minProperties > 1 ? "properties" : "property"));
         }
 
         if (schema.patternProperties && Object.keys(schema.patternProperties).length > 0) {
           var patternProperties = Object.keys(schema.patternProperties);
 
-          _hints3.push("additional property names should match pattern".concat(patternProperties.length > 1 ? 's' : '', " ").concat(patternProperties.map(function (pattern) {
+          _hints3.push("additional property names should match pattern".concat(patternProperties.length > 1 ? "s" : "", " ").concat(patternProperties.map(function (pattern) {
             return JSON.stringify(pattern);
-          }).join(' | ')));
+          }).join(" | ")));
         }
 
         var properties = schema.properties ? Object.keys(schema.properties) : [];
@@ -10435,8 +10396,8 @@ var ValidationError = /*#__PURE__*/function (_Error) {
           var isRequired = required.includes(property); // Some properties need quotes, maybe we should add check
           // Maybe we should output type of property (`foo: string`), but it is looks very unreadable
 
-          return "".concat(property).concat(isRequired ? '' : '?');
-        }).concat(typeof schema.additionalProperties === 'undefined' || Boolean(schema.additionalProperties) ? schema.additionalProperties && isObject(schema.additionalProperties) ? ["<key>: ".concat(formatInnerSchema(schema.additionalProperties))] : ['…'] : []).join(', ');
+          return "".concat(property).concat(isRequired ? "" : "?");
+        }).concat(typeof schema.additionalProperties === "undefined" || Boolean(schema.additionalProperties) ? schema.additionalProperties && isObject(schema.additionalProperties) ? ["<key>: ".concat(formatInnerSchema(schema.additionalProperties))] : ["…"] : []).join(", ");
         var dependencies =
         /** @type {Schema & {patternRequired?: Array<string>;}} */
         schema.dependencies,
@@ -10448,9 +10409,9 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             var dependency = dependencies[dependencyName];
 
             if (Array.isArray(dependency)) {
-              _hints3.push("should have ".concat(dependency.length > 1 ? 'properties' : 'property', " ").concat(dependency.map(function (dep) {
+              _hints3.push("should have ".concat(dependency.length > 1 ? "properties" : "property", " ").concat(dependency.map(function (dep) {
                 return "'".concat(dep, "'");
-              }).join(', '), " when property '").concat(dependencyName, "' is present"));
+              }).join(", "), " when property '").concat(dependencyName, "' is present"));
             } else {
               _hints3.push("should be valid according to the schema ".concat(formatInnerSchema(dependency), " when property '").concat(dependencyName, "' is present"));
             }
@@ -10472,16 +10433,16 @@ var ValidationError = /*#__PURE__*/function (_Error) {
           })));
         }
 
-        return "object {".concat(objectStructure ? " ".concat(objectStructure, " ") : '', "}").concat(_hints3.length > 0 ? " (".concat(_hints3.join(', '), ")") : '');
+        return "object {".concat(objectStructure ? " ".concat(objectStructure, " ") : "", "}").concat(_hints3.length > 0 ? " (".concat(_hints3.join(", "), ")") : "");
       }
 
       if (likeNull(schema)) {
-        return "".concat(logic ? '' : 'non-', "null");
+        return "".concat(logic ? "" : "non-", "null");
       }
 
       if (Array.isArray(schema.type)) {
         // not logic already applied in formatValidationError
-        return "".concat(schema.type.join(' | '));
+        return "".concat(schema.type.join(" | "));
       } // Fallback for unknown keywords
       // not logic already applied in formatValidationError
 
@@ -10505,7 +10466,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
       var logic = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
 
       if (!schemaPart) {
-        return '';
+        return "";
       }
 
       if (Array.isArray(additionalPath)) {
@@ -10529,10 +10490,14 @@ var ValidationError = /*#__PURE__*/function (_Error) {
         schemaPart = this.getSchemaPart(schemaPart.$ref);
       }
 
-      var schemaText = "".concat(this.formatSchema(schemaPart, logic)).concat(needDot ? '.' : '');
+      var schemaText = "".concat(this.formatSchema(schemaPart, logic)).concat(needDot ? "." : "");
 
       if (schemaPart.description) {
         schemaText += "\n-> ".concat(schemaPart.description);
+      }
+
+      if (schemaPart.link) {
+        schemaText += "\n-> Read more at ".concat(schemaPart.link);
       }
 
       return schemaText;
@@ -10546,7 +10511,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
     key: "getSchemaPartDescription",
     value: function getSchemaPartDescription(schemaPart) {
       if (!schemaPart) {
-        return '';
+        return "";
       }
 
       while (schemaPart.$ref) {
@@ -10554,11 +10519,17 @@ var ValidationError = /*#__PURE__*/function (_Error) {
         schemaPart = this.getSchemaPart(schemaPart.$ref);
       }
 
+      var schemaText = "";
+
       if (schemaPart.description) {
-        return "\n-> ".concat(schemaPart.description);
+        schemaText += "\n-> ".concat(schemaPart.description);
       }
 
-      return '';
+      if (schemaPart.link) {
+        schemaText += "\n-> Read more at ".concat(schemaPart.link);
+      }
+
+      return schemaText;
     }
     /**
      * @param {SchemaUtilErrorObject} error
@@ -10575,7 +10546,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
       var dataPath = "".concat(this.baseDataPath).concat(errorDataPath);
 
       switch (keyword) {
-        case 'type':
+        case "type":
           {
             var parentSchema = error.parentSchema,
                 params = error.params; // eslint-disable-next-line default-case
@@ -10583,25 +10554,25 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             switch (
             /** @type {import("ajv").TypeParams} */
             params.type) {
-              case 'number':
+              case "number":
                 return "".concat(dataPath, " should be a ").concat(this.getSchemaPartText(parentSchema, false, true));
 
-              case 'integer':
+              case "integer":
+                return "".concat(dataPath, " should be an ").concat(this.getSchemaPartText(parentSchema, false, true));
+
+              case "string":
                 return "".concat(dataPath, " should be a ").concat(this.getSchemaPartText(parentSchema, false, true));
 
-              case 'string':
+              case "boolean":
                 return "".concat(dataPath, " should be a ").concat(this.getSchemaPartText(parentSchema, false, true));
 
-              case 'boolean':
-                return "".concat(dataPath, " should be a ").concat(this.getSchemaPartText(parentSchema, false, true));
-
-              case 'array':
+              case "array":
                 return "".concat(dataPath, " should be an array:\n").concat(this.getSchemaPartText(parentSchema));
 
-              case 'object':
+              case "object":
                 return "".concat(dataPath, " should be an object:\n").concat(this.getSchemaPartText(parentSchema));
 
-              case 'null':
+              case "null":
                 return "".concat(dataPath, " should be a ").concat(this.getSchemaPartText(parentSchema, false, true));
 
               default:
@@ -10609,13 +10580,13 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             }
           }
 
-        case 'instanceof':
+        case "instanceof":
           {
             var _parentSchema = error.parentSchema;
             return "".concat(dataPath, " should be an instance of ").concat(this.getSchemaPartText(_parentSchema, false, true));
           }
 
-        case 'pattern':
+        case "pattern":
           {
             var _params = error.params,
                 _parentSchema2 = error.parentSchema;
@@ -10625,7 +10596,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should match pattern ").concat(JSON.stringify(pattern)).concat(getSchemaNonTypes(_parentSchema2), ".").concat(this.getSchemaPartDescription(_parentSchema2));
           }
 
-        case 'format':
+        case "format":
           {
             var _params2 = error.params,
                 _parentSchema3 = error.parentSchema;
@@ -10635,8 +10606,8 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should match format ").concat(JSON.stringify(format)).concat(getSchemaNonTypes(_parentSchema3), ".").concat(this.getSchemaPartDescription(_parentSchema3));
           }
 
-        case 'formatMinimum':
-        case 'formatMaximum':
+        case "formatMinimum":
+        case "formatMaximum":
           {
             var _params3 = error.params,
                 _parentSchema4 = error.parentSchema;
@@ -10647,10 +10618,10 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should be ").concat(comparison, " ").concat(JSON.stringify(limit)).concat(getSchemaNonTypes(_parentSchema4), ".").concat(this.getSchemaPartDescription(_parentSchema4));
           }
 
-        case 'minimum':
-        case 'maximum':
-        case 'exclusiveMinimum':
-        case 'exclusiveMaximum':
+        case "minimum":
+        case "maximum":
+        case "exclusiveMinimum":
+        case "exclusiveMaximum":
           {
             var _parentSchema5 = error.parentSchema,
                 _params4 = error.params;
@@ -10669,10 +10640,10 @@ var ValidationError = /*#__PURE__*/function (_Error) {
               hints.push("should be ".concat(_comparison, " ").concat(_limit));
             }
 
-            return "".concat(dataPath, " ").concat(hints.join(' ')).concat(getSchemaNonTypes(_parentSchema5), ".").concat(this.getSchemaPartDescription(_parentSchema5));
+            return "".concat(dataPath, " ").concat(hints.join(" ")).concat(getSchemaNonTypes(_parentSchema5), ".").concat(this.getSchemaPartDescription(_parentSchema5));
           }
 
-        case 'multipleOf':
+        case "multipleOf":
           {
             var _params5 = error.params,
                 _parentSchema6 = error.parentSchema;
@@ -10682,7 +10653,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should be multiple of ").concat(multipleOf).concat(getSchemaNonTypes(_parentSchema6), ".").concat(this.getSchemaPartDescription(_parentSchema6));
           }
 
-        case 'patternRequired':
+        case "patternRequired":
           {
             var _params6 = error.params,
                 _parentSchema7 = error.parentSchema;
@@ -10692,7 +10663,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should have property matching pattern ").concat(JSON.stringify(missingPattern)).concat(getSchemaNonTypes(_parentSchema7), ".").concat(this.getSchemaPartDescription(_parentSchema7));
           }
 
-        case 'minLength':
+        case "minLength":
           {
             var _params7 = error.params,
                 _parentSchema8 = error.parentSchema;
@@ -10701,14 +10672,14 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             _params7.limit;
 
             if (_limit2 === 1) {
-              return "".concat(dataPath, " should be an non-empty string").concat(getSchemaNonTypes(_parentSchema8), ".").concat(this.getSchemaPartDescription(_parentSchema8));
+              return "".concat(dataPath, " should be a non-empty string").concat(getSchemaNonTypes(_parentSchema8), ".").concat(this.getSchemaPartDescription(_parentSchema8));
             }
 
             var length = _limit2 - 1;
-            return "".concat(dataPath, " should be longer than ").concat(length, " character").concat(length > 1 ? 's' : '').concat(getSchemaNonTypes(_parentSchema8), ".").concat(this.getSchemaPartDescription(_parentSchema8));
+            return "".concat(dataPath, " should be longer than ").concat(length, " character").concat(length > 1 ? "s" : "").concat(getSchemaNonTypes(_parentSchema8), ".").concat(this.getSchemaPartDescription(_parentSchema8));
           }
 
-        case 'minItems':
+        case "minItems":
           {
             var _params8 = error.params,
                 _parentSchema9 = error.parentSchema;
@@ -10717,13 +10688,13 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             _params8.limit;
 
             if (_limit3 === 1) {
-              return "".concat(dataPath, " should be an non-empty array").concat(getSchemaNonTypes(_parentSchema9), ".").concat(this.getSchemaPartDescription(_parentSchema9));
+              return "".concat(dataPath, " should be a non-empty array").concat(getSchemaNonTypes(_parentSchema9), ".").concat(this.getSchemaPartDescription(_parentSchema9));
             }
 
             return "".concat(dataPath, " should not have fewer than ").concat(_limit3, " items").concat(getSchemaNonTypes(_parentSchema9), ".").concat(this.getSchemaPartDescription(_parentSchema9));
           }
 
-        case 'minProperties':
+        case "minProperties":
           {
             var _params9 = error.params,
                 _parentSchema10 = error.parentSchema;
@@ -10732,13 +10703,13 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             _params9.limit;
 
             if (_limit4 === 1) {
-              return "".concat(dataPath, " should be an non-empty object").concat(getSchemaNonTypes(_parentSchema10), ".").concat(this.getSchemaPartDescription(_parentSchema10));
+              return "".concat(dataPath, " should be a non-empty object").concat(getSchemaNonTypes(_parentSchema10), ".").concat(this.getSchemaPartDescription(_parentSchema10));
             }
 
             return "".concat(dataPath, " should not have fewer than ").concat(_limit4, " properties").concat(getSchemaNonTypes(_parentSchema10), ".").concat(this.getSchemaPartDescription(_parentSchema10));
           }
 
-        case 'maxLength':
+        case "maxLength":
           {
             var _params10 = error.params,
                 _parentSchema11 = error.parentSchema;
@@ -10746,10 +10717,10 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             /** @type {import("ajv").LimitParams} */
             _params10.limit;
             var max = _limit5 + 1;
-            return "".concat(dataPath, " should be shorter than ").concat(max, " character").concat(max > 1 ? 's' : '').concat(getSchemaNonTypes(_parentSchema11), ".").concat(this.getSchemaPartDescription(_parentSchema11));
+            return "".concat(dataPath, " should be shorter than ").concat(max, " character").concat(max > 1 ? "s" : "").concat(getSchemaNonTypes(_parentSchema11), ".").concat(this.getSchemaPartDescription(_parentSchema11));
           }
 
-        case 'maxItems':
+        case "maxItems":
           {
             var _params11 = error.params,
                 _parentSchema12 = error.parentSchema;
@@ -10759,7 +10730,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should not have more than ").concat(_limit6, " items").concat(getSchemaNonTypes(_parentSchema12), ".").concat(this.getSchemaPartDescription(_parentSchema12));
           }
 
-        case 'maxProperties':
+        case "maxProperties":
           {
             var _params12 = error.params,
                 _parentSchema13 = error.parentSchema;
@@ -10769,7 +10740,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should not have more than ").concat(_limit7, " properties").concat(getSchemaNonTypes(_parentSchema13), ".").concat(this.getSchemaPartDescription(_parentSchema13));
           }
 
-        case 'uniqueItems':
+        case "uniqueItems":
           {
             var _params13 = error.params,
                 _parentSchema14 = error.parentSchema;
@@ -10779,7 +10750,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should not contain the item '").concat(error.data[i], "' twice").concat(getSchemaNonTypes(_parentSchema14), ".").concat(this.getSchemaPartDescription(_parentSchema14));
           }
 
-        case 'additionalItems':
+        case "additionalItems":
           {
             var _params14 = error.params,
                 _parentSchema15 = error.parentSchema;
@@ -10789,20 +10760,20 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should not have more than ").concat(_limit8, " items").concat(getSchemaNonTypes(_parentSchema15), ". These items are valid:\n").concat(this.getSchemaPartText(_parentSchema15));
           }
 
-        case 'contains':
+        case "contains":
           {
             var _parentSchema16 = error.parentSchema;
-            return "".concat(dataPath, " should contains at least one ").concat(this.getSchemaPartText(_parentSchema16, ['contains']), " item").concat(getSchemaNonTypes(_parentSchema16), ".");
+            return "".concat(dataPath, " should contains at least one ").concat(this.getSchemaPartText(_parentSchema16, ["contains"]), " item").concat(getSchemaNonTypes(_parentSchema16), ".");
           }
 
-        case 'required':
+        case "required":
           {
             var _parentSchema17 = error.parentSchema,
                 _params15 = error.params;
 
             var missingProperty =
             /** @type {import("ajv").DependenciesParams} */
-            _params15.missingProperty.replace(/^\./, '');
+            _params15.missingProperty.replace(/^\./, "");
 
             var hasProperty = _parentSchema17 && Boolean(
             /** @type {Schema} */
@@ -10810,10 +10781,10 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             /** @type {Schema} */
             _parentSchema17.properties[missingProperty]);
 
-            return "".concat(dataPath, " misses the property '").concat(missingProperty, "'").concat(getSchemaNonTypes(_parentSchema17), ".").concat(hasProperty ? " Should be:\n".concat(this.getSchemaPartText(_parentSchema17, ['properties', missingProperty])) : this.getSchemaPartDescription(_parentSchema17));
+            return "".concat(dataPath, " misses the property '").concat(missingProperty, "'").concat(getSchemaNonTypes(_parentSchema17), ".").concat(hasProperty ? " Should be:\n".concat(this.getSchemaPartText(_parentSchema17, ["properties", missingProperty])) : this.getSchemaPartDescription(_parentSchema17));
           }
 
-        case 'additionalProperties':
+        case "additionalProperties":
           {
             var _params16 = error.params,
                 _parentSchema18 = error.parentSchema;
@@ -10823,7 +10794,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " has an unknown property '").concat(additionalProperty, "'").concat(getSchemaNonTypes(_parentSchema18), ". These properties are valid:\n").concat(this.getSchemaPartText(_parentSchema18));
           }
 
-        case 'dependencies':
+        case "dependencies":
           {
             var _params17 = error.params,
                 _parentSchema19 = error.parentSchema;
@@ -10831,18 +10802,18 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             /** @type {import("ajv").DependenciesParams} */
             _params17.property,
                 deps = _params17.deps;
-            var dependencies = deps.split(',').map(
+            var dependencies = deps.split(",").map(
             /**
              * @param {string} dep
              * @returns {string}
              */
             function (dep) {
               return "'".concat(dep.trim(), "'");
-            }).join(', ');
+            }).join(", ");
             return "".concat(dataPath, " should have properties ").concat(dependencies, " when property '").concat(property, "' is present").concat(getSchemaNonTypes(_parentSchema19), ".").concat(this.getSchemaPartDescription(_parentSchema19));
           }
 
-        case 'propertyNames':
+        case "propertyNames":
           {
             var _params18 = error.params,
                 _parentSchema20 = error.parentSchema,
@@ -10853,7 +10824,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " property name '").concat(propertyName, "' is invalid").concat(getSchemaNonTypes(_parentSchema20), ". Property names should be match format ").concat(JSON.stringify(schema.format), ".").concat(this.getSchemaPartDescription(_parentSchema20));
           }
 
-        case 'enum':
+        case "enum":
           {
             var _parentSchema21 = error.parentSchema;
 
@@ -10868,17 +10839,17 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should be one of these:\n").concat(this.getSchemaPartText(_parentSchema21));
           }
 
-        case 'const':
+        case "const":
           {
             var _parentSchema22 = error.parentSchema;
             return "".concat(dataPath, " should be equal to constant ").concat(this.getSchemaPartText(_parentSchema22, false, true));
           }
 
-        case 'not':
+        case "not":
           {
             var postfix = likeObject(
             /** @type {Schema} */
-            error.parentSchema) ? "\n".concat(this.getSchemaPartText(error.parentSchema)) : '';
+            error.parentSchema) ? "\n".concat(this.getSchemaPartText(error.parentSchema)) : "";
             var schemaOutput = this.getSchemaPartText(error.schema, false, false, false);
 
             if (canApplyNot(error.schema)) {
@@ -10887,11 +10858,11 @@ var ValidationError = /*#__PURE__*/function (_Error) {
 
             var _schema = error.schema,
                 _parentSchema23 = error.parentSchema;
-            return "".concat(dataPath, " should not be ").concat(this.getSchemaPartText(_schema, false, true)).concat(_parentSchema23 && likeObject(_parentSchema23) ? "\n".concat(this.getSchemaPartText(_parentSchema23)) : '');
+            return "".concat(dataPath, " should not be ").concat(this.getSchemaPartText(_schema, false, true)).concat(_parentSchema23 && likeObject(_parentSchema23) ? "\n".concat(this.getSchemaPartText(_parentSchema23)) : "");
           }
 
-        case 'oneOf':
-        case 'anyOf':
+        case "oneOf":
+        case "anyOf":
           {
             var _parentSchema24 = error.parentSchema,
                 children = error.children;
@@ -10919,14 +10890,14 @@ var ValidationError = /*#__PURE__*/function (_Error) {
                * @returns {string}
                */
               function (nestedError) {
-                return " * ".concat(indent(_this3.formatValidationError(nestedError), '   '));
-              }).join('\n'));
+                return " * ".concat(indent(_this3.formatValidationError(nestedError), "   "));
+              }).join("\n"));
             }
 
             return "".concat(dataPath, " should be one of these:\n").concat(this.getSchemaPartText(_parentSchema24));
           }
 
-        case 'if':
+        case "if":
           {
             var _params19 = error.params,
                 _parentSchema25 = error.parentSchema;
@@ -10936,7 +10907,7 @@ var ValidationError = /*#__PURE__*/function (_Error) {
             return "".concat(dataPath, " should match \"").concat(failingKeyword, "\" schema:\n").concat(this.getSchemaPartText(_parentSchema25, [failingKeyword]));
           }
 
-        case 'absolutePath':
+        case "absolutePath":
           {
             var message = error.message,
                 _parentSchema26 = error.parentSchema;
@@ -10973,8 +10944,8 @@ var ValidationError = /*#__PURE__*/function (_Error) {
           formattedError = _this4.postFormatter(formattedError, error);
         }
 
-        return " - ".concat(indent(formattedError, '   '));
-      }).join('\n');
+        return " - ".concat(indent(formattedError, "   "));
+      }).join("\n");
     }
   }]);
 
@@ -19464,9 +19435,9 @@ function _interopRequireDefault(obj) {
 } // Use CommonJS require for ajv libs so TypeScript consumers aren't locked into esModuleInterop (see #110).
 
 
-var Ajv = require('ajv');
+var Ajv = require("ajv");
 
-var ajvKeywords = require('ajv-keywords');
+var ajvKeywords = require("ajv-keywords");
 /** @typedef {import("json-schema").JSONSchema4} JSONSchema4 */
 
 /** @typedef {import("json-schema").JSONSchema6} JSONSchema6 */
@@ -19481,6 +19452,7 @@ var ajvKeywords = require('ajv-keywords');
  * @property {number=} formatMaximum
  * @property {boolean=} formatExclusiveMinimum
  * @property {boolean=} formatExclusiveMaximum
+ * @property {string=} link
  */
 
 /** @typedef {(JSONSchema4 | JSONSchema6 | JSONSchema7) & Extend} Schema */
@@ -19507,7 +19479,7 @@ var ajv = new Ajv({
   verbose: true,
   $data: true
 });
-ajvKeywords(ajv, ['instanceof', 'formatMinimum', 'formatMaximum', 'patternRequired']); // Custom keywords
+ajvKeywords(ajv, ["instanceof", "formatMinimum", "formatMaximum", "patternRequired"]); // Custom keywords
 
 (0, _absolutePath.default)(ajv);
 /**
@@ -19623,7 +19595,7 @@ function filterErrors(errors) {
 },{"./keywords/absolutePath":"iIhC","./ValidationError":"ySUA","ajv":"hi5j","ajv-keywords":"n1A8"}],"pA46":[function(require,module,exports) {
 "use strict";
 
-var _require = require('./validate'),
+var _require = require("./validate"),
     validate = _require.validate,
     ValidationError = _require.ValidationError;
 
