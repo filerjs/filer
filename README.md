@@ -75,7 +75,7 @@ module.exports = {
 ---
 **NOTE**
 
-Previously it was recommended to access the `FilerWebpackPlugin` class by importing the main filer module. This was depracated due the [this issue](https://github.com/filerjs/filer/issues/790). For anyone using ***filer version 1.3.1 or earlier***, please import the plugin class like this:
+Previously it was recommended to access the `FilerWebpackPlugin` class by importing the main filer module. This was depracated due [this issue](https://github.com/filerjs/filer/issues/790). For anyone using ***filer version 1.3.1 or earlier***, please import the plugin class like this:
 
 ```javascript
 var FilerWebpackPlugin = require('filer/src/webpack-plugin');
