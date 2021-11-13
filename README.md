@@ -63,17 +63,28 @@ your webpack config:
 
 ```javascript
 // webpack.config.js
-var filer = require('filer');
+var { FilerWebpackPlugin } = require('filer/webpack');
 
 module.exports = {
   plugins: [
-    new filer.FilerWebpackPlugin(),
+    new FilerWebpackPlugin(),
   ],
 }
 ```
 
+---
+**NOTE**
+
+Previously it was recommended to access the `FilerWebpackPlugin` class by importing the main filer module. This was depracated due the [this issue](https://github.com/filerjs/filer/issues/790). For anyone using ***filer version 1.3.1 or earlier***, please import the plugin class like this:
+
+```javascript
+var FilerWebpackPlugin = require('filer/src/webpack-plugin');
+```
+
+---
+
 You can then import the node.js [fs](http://nodejs.org/api/fs.html) and [path](http://nodejs.org/api/path.html)
-modules as normal and FilerWebpackPlugin will ensure that webpack will resolve references to these modules to
+modules as normal and `FilerWebpackPlugin` will ensure that webpack will resolve references to these modules to
 the appropriate filer shims. You will then be able to use these modules as normal (with the exception of the
 synchronous fs methods e.g. `mkdirSync()`).
 
