@@ -19824,6 +19824,16 @@ module.exports = Filer = {
   path: require('./path.js'),
   Errors: require('./errors.js'),
   Shell: require('./shell/shell.js'),
+
+  /**
+   * @deprecated Importing filer from your webpack config is not recommended.
+   * 
+   * The filer `FilerWebpackPlugin` class is exposed directly. 
+   * 
+   * ```
+   * const { FilerWebpackPlugin } = require('filer/webpack');
+   * ```
+   */
   FilerWebpackPlugin: require('./webpack-plugin')
 }; // Add a getter for the `fs` instance, which returns
 // a Filer FileSystem instance, using the default provider/flags.
