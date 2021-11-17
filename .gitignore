@@ -5,7 +5,7 @@ node_modules
 .idea
 
 # Parcel build dirs
-.cache
+.parcel-cache
 tests/dist
 
 # nyc code coverage
