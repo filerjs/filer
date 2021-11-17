@@ -15,6 +15,8 @@
   "homepage": "http://filerjs.github.io/filer",
   "bugs": "https://github.com/filerjs/filer/issues",
   "license": "BSD-2-Clause",
+  "testpath1": "filer.js",
+  "testpath2": "filer.min.js",
   "scripts": {
     "eslint": "npm run lint",
     "eslint:fix": "npm run lint:fix",
@@ -23,14 +25,14 @@
     "test:node": "mocha --timeout 5000 tests",
     "pretest:node-debug": "echo \"Open Chrome to chrome://inspect to debug tests...\"",
     "test:node-debug": "mocha --timeout 5000 --inspect-brk tests",
-    "test:manual": "parcel tests/index.html --out-dir tests/dist",
+    "test:manual": "parcel tests/index.html --dist-dir tests/dist",
     "test:migrations": "mocha tests/filesystems/migrations",
     "pretest": "npm run lint",
     "test": "npm run karma-mocha",
     "posttest": "npm run test:migrations",
-    "prebuild": "parcel build --global Filer src/index.js --no-minify --out-file filer.js",
-    "build": "parcel build --global Filer src/index.js --out-file filer.min.js --detailed-report",
-    "build-tests": "parcel build tests/index.js --no-source-maps --out-dir tests/dist",
+    "prebuild": "parcel build --global Filer src/index.js --no-minify testpath1",
+    "build": "parcel build --global Filer src/index.js testpath2 --detailed-report",
+    "build-tests": "parcel build tests/index.js --no-source-maps --dist-dir tests/dist",
     "prekarma-mocha-firefox": "npm run build-tests",
     "karma-mocha-firefox": "karma start karma.conf.js --browsers FirefoxHeadless",
     "prekarma-mocha-chrome": "npm run build-tests",
@@ -45,9 +47,16 @@
     "url": "https://github.com/filerjs/filer.git"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
+    "chai": "^4.3.4",
+    "chai-datetime": "^1.8.0",
     "es6-promisify": "^7.0.0",
+    "fake-indexeddb": "^3.1.7",
     "minimatch": "^3.0.4",
-    "schema-utils": "^3.1.1"
+    "path": "^0.12.7",
+    "process": "^0.11.10",
+    "schema-utils": "^3.1.1",
+    "url": "https://github.com/filerjs/filer.git"
   },
   "devDependencies": {
     "regenerator-runtime": "^0.13.9",
