@@ -1980,11 +1980,24 @@ function appendFile(context, path, data, options, callback) {
   if(!flags) {
     return callback(new Errors.EINVAL('flags is not valid', path));
   }
+  
+  if (typeof options === 'object') {
+    if (!options.encoding) {
+      options.encoding = 'utf8';
+    }
+    if (!options.mode) {
+      options.mode = 0o666;
+    }
+    if (!options.flag) {
+      options.flag = 'a';
+    }
+  }
 
   data = data || '';
   if(typeof data === 'number') {
     data = '' + data;
   }
+  
   if(typeof data === 'string' && options.encoding === 'utf8') {
     data = Buffer.from(data);
   }

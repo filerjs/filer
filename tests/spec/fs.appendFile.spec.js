@@ -66,6 +66,38 @@ describe('fs.appendFile', function() {
       });
     });
   });
+    
+  it('should append without error when explcitly entering encoding and flag options (default values)' , function(done) {
+    var fs = util.fs();
+    var contents = 'This is a file.';
+    var more = ' Appended.';
+
+    fs.appendFile('/myfile', more , {encoding: 'utf8', flag: 'a'}, function(error) {
+      if(error) throw error;
+
+      fs.readFile('/myfile', { encoding: 'utf8' }, function(error, data) {
+        expect(error).not.to.exist;
+        expect(data).to.equal(contents + more);
+        done();
+      });
+    });
+  });
+
+  it('should append without error when specfifying flag option (default value)' , function(done) {
+    var fs = util.fs();
+    var contents = 'This is a file.';
+    var more = ' Appended.';
+
+    fs.appendFile('/myfile', more , {flag: 'a'}, function(error) {
+      if(error) throw error;
+
+      fs.readFile('/myfile', { encoding: 'utf8' }, function(error, data) {
+        expect(error).not.to.exist;
+        expect(data).to.equal(contents + more);
+        done();
+      });
+    });
+  });
 
   it('should append a binary file', function(done) {
     const fs = util.fs();
