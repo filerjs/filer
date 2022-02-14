@@ -15,6 +15,8 @@
   "homepage": "http://filerjs.github.io/filer",
   "bugs": "https://github.com/filerjs/filer/issues",
   "license": "BSD-2-Clause",
+  "filerjs": "filer.js",
+  "filerminjs": "filer.min.js",
   "scripts": {
     "eslint": "npm run lint",
     "eslint:fix": "npm run lint:fix",
@@ -23,14 +25,14 @@
     "test:node": "mocha --timeout 5000 tests",
     "pretest:node-debug": "echo \"Open Chrome to chrome://inspect to debug tests...\"",
     "test:node-debug": "mocha --timeout 5000 --inspect-brk tests",
-    "test:manual": "parcel tests/index.html --out-dir tests/dist",
+    "test:manual": "parcel tests/index.html --dist-dir tests/dist",
     "test:migrations": "mocha tests/filesystems/migrations",
     "pretest": "npm run lint",
     "test": "npm run karma-mocha",
     "posttest": "npm run test:migrations",
-    "prebuild": "parcel build --global Filer src/index.js --no-minify --out-file filer.js",
-    "build": "parcel build --global Filer src/index.js --out-file filer.min.js --detailed-report",
-    "build-tests": "parcel build tests/index.js --no-source-maps --out-dir tests/dist",
+    "prebuild": "parcel build --global Filer src/index.js --no-minify filerjs",
+    "build": "parcel build --global Filer src/index.js filerminjs --detailed-report",
+    "build-tests": "parcel build tests/index.js --no-source-maps --dist-dir tests/dist",
     "prekarma-mocha-firefox": "npm run build-tests",
     "karma-mocha-firefox": "karma start karma.conf.js --browsers FirefoxHeadless",
     "prekarma-mocha-chrome": "npm run build-tests",
@@ -45,7 +47,10 @@
     "url": "https://github.com/filerjs/filer.git"
   },
   "dependencies": {
+    "chai": "^4.3.4",
+    "chai-datetime": "^1.8.0",
     "es6-promisify": "^7.0.0",
+    "fake-indexeddb": "^3.1.7",
     "minimatch": "^3.0.4",
     "schema-utils": "^3.1.1"
   },
@@ -65,14 +70,18 @@
     "meow": "^10.0.1",
     "mocha": "^9.1.3",
     "nyc": "^15.1.0",
-    "parcel-bundler": "^1.12.5",
+    "parcel": "^2.0.1",
     "pretty-bytes": "^5.6.0",
     "release-it": "^14.11.6",
     "run.env": "^1.1.0",
     "unused-filename": "^3.0.1",
     "walk": "^2.3.15"
   },
-  "main": "./src/index.js",
+  "targets": {
+    "default": {
+      "includeNodeModules": true
+    }
+  },
   "browser": "./dist/filer.min.js",
   "files": [
     "src",

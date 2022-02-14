@@ -8,8 +8,8 @@
  </head>
 <body>
   <div id="mocha"></div>
-  <script src="../node_modules/chai/chai.js"></script>
-  <script src="../node_modules/mocha/mocha.js"></script>
+  <script type="module" src="../node_modules/chai/chai.js"></script>
+  <script type="module" src="../node_modules/mocha/mocha.js"></script>
 
   <script>
     mocha.setup('bdd').timeout(10000).slow(250);
@@ -21,6 +21,6 @@
   </script>
 
   <!-- Add any new tests to `tests/index.js` -->
-  <script src="./index.js"></script>
+  <script type="module" src="./index.js"></script>
 </body>
 </html>
