@@ -12,16 +12,18 @@ describe('fs.fsync', function() {
 
   it('should return error when fd is not a number', function(done) {
     var fs = util.fs();
-    fs.fsync('1', function(error) {
+    fs.fsync('notAnInteger', function(error) {
       expect(error).to.exist;
       expect(error.code).to.equal('EINVAL');
       done();
     });
   });
 
-  it('should return error when fd is invalid', function(done) {
-    var fs = util.fs();
-    fs.fsync(1, function(error) {
+  it('should return an error if file descriptor is negative', function(done) {
+    let fs = util.fs();
+
+    // File descriptor should be a non-negative number
+    fs.fsync(-1, function(error) {
       expect(error).to.exist;
       expect(error.code).to.equal('EBADF');
       done();
