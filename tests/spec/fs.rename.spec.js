@@ -167,10 +167,10 @@ describe('fs.rename', function() {
     var fs = util.fs();
 
     fs.mkdir('/mydir', function(error) {
-      if(error) throw error;
+      if (error) throw error;
 
       fs.mkdir('/myotherdir', function(error) {
-        if(error) throw error;
+        if (error) throw error;
 
         fs.writeFile('/myotherdir/myfile', 'This is a file', function(error) {
           if(error) throw error;
@@ -217,5 +217,36 @@ describe('fs.rename', function() {
         });
       });
     });
+  });
+
+  it('(promise version) should rename an existing file', function(done) {
+    var complete1 = false;
+    var complete2 = false;
+    var fs = util.fs();
+
+    function maybeDone() {
+      if(complete1 && complete2) {
+        done();
+      }
+    }
+    
+  
+    fs.promises.open('/myfile', 'w+')
+      .then((fd)=>fs.promises.close(fd))
+      .then(fs.promises.rename('/myfile', '/myotherfile'))
+      .then(Promise.all(fs.promises.stat('/myfile')
+        .then( (result)=> expect(result).not.to.exist, (error) => expect(error).to.exist)
+        .finally(()=>{
+          complete1 = true;
+          maybeDone();
+        }),
+      fs.promises.stat('/myotherfile')
+        .then( (result) => expect(result.nlinks).to.equal(1), (error) => expect(error).not.to.exist)
+        .finally(()=>{
+          complete2 = true;
+          maybeDone();
+        })))
+    
+      .catch((error)=> {throw error;});
   });
 });
