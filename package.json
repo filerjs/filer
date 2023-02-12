@@ -67,7 +67,7 @@
     "nyc": "^15.1.0",
     "parcel-bundler": "^1.12.5",
     "pretty-bytes": "^5.6.0",
-    "release-it": "^14.11.6",
+    "release-it": "^15.6.0",
     "run.env": "^1.1.0",
     "unused-filename": "^3.0.1",
     "walk": "^2.3.15"
